@@ -237,6 +237,7 @@
     <Compile Include="Newtonsoft.Json\Serialization\ErrorContext.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\ErrorEventArgs.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\ExpressionValueProvider.cs" />
+    <Compile Include="Newtonsoft.Json\Serialization\IAttributeProvider.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\IContractResolver.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\IReferenceResolver.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\ITraceWriter.cs" />
@@ -262,6 +263,7 @@
     <Compile Include="Newtonsoft.Json\Serialization\MemoryTraceWriter.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\ObjectConstructor.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\OnErrorAttribute.cs" />
+    <Compile Include="Newtonsoft.Json\Serialization\ReflectionAttributeProvider.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\ReflectionValueProvider.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\TraceJsonReader.cs" />
     <Compile Include="Newtonsoft.Json\Serialization\TraceJsonWriter.cs" />

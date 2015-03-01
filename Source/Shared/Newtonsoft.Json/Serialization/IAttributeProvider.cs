@@ -23,33 +23,29 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System.Globalization;
-using Exceptionless.Json.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace Exceptionless.Json.Serialization
 {
     /// <summary>
-    /// Resolves member mappings for a type, camel casing property names.
+    /// Provides methods to get attributes.
     /// </summary>
-    public class CamelCasePropertyNamesContractResolver : DefaultContractResolver
+    public interface IAttributeProvider
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CamelCasePropertyNamesContractResolver"/> class.
+        /// Returns a collection of all of the attributes, or an empty collection if there are no attributes.
         /// </summary>
-        public CamelCasePropertyNamesContractResolver()
-            : base(true)
-        {
-        }
+        /// <param name="inherit">When true, look up the hierarchy chain for the inherited custom attribute.</param>
+        /// <returns>A collection of <see cref="Attribute"/>s, or an empty collection.</returns>
+        IList<Attribute> GetAttributes(bool inherit);
 
         /// <summary>
-        /// Resolves the name of the property.
+        /// Returns a collection of attributes, identified by type, or an empty collection if there are no attributes.
         /// </summary>
-        /// <param name="propertyName">Name of the property.</param>
-        /// <returns>The property name camel cased.</returns>
-        protected internal override string ResolvePropertyName(string propertyName)
-        {
-            // lower case the first letter of the passed in name
-            return StringUtils.ToCamelCase(propertyName);
-        }
+        /// <param name="attributeType">The type of the attributes.</param>
+        /// <param name="inherit">When true, look up the hierarchy chain for the inherited custom attribute.</param>
+        /// <returns>A collection of <see cref="Attribute"/>s, or an empty collection.</returns>
+        IList<Attribute> GetAttributes(Type attributeType, bool inherit);
     }
 }

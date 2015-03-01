@@ -640,6 +640,7 @@ namespace Exceptionless.Json.Serialization
         {
             JsonProperty property = new JsonProperty();
             property.PropertyType = parameterInfo.ParameterType;
+            property.AttributeProvider = new ReflectionAttributeProvider(parameterInfo);
 
             bool allowNonPublicAccess;
             SetPropertySettingsFromAttributes(property, parameterInfo, parameterInfo.Name, parameterInfo.Member.DeclaringType, MemberSerialization.OptOut, out allowNonPublicAccess);
@@ -1167,6 +1168,7 @@ namespace Exceptionless.Json.Serialization
             property.PropertyType = ReflectionUtils.GetMemberUnderlyingType(member);
             property.DeclaringType = member.DeclaringType;
             property.ValueProvider = CreateMemberValueProvider(member);
+            property.AttributeProvider = new ReflectionAttributeProvider(member);
 
             bool allowNonPublicAccess;
             SetPropertySettingsFromAttributes(property, member, member.Name, member.DeclaringType, memberSerialization, out allowNonPublicAccess);
@@ -1343,7 +1345,7 @@ namespace Exceptionless.Json.Serialization
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns>Name of the property.</returns>
-        protected virtual string ResolvePropertyName(string propertyName)
+        protected internal virtual string ResolvePropertyName(string propertyName)
         {
             return propertyName;
         }

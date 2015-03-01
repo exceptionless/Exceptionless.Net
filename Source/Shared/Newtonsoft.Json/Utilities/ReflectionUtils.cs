@@ -567,11 +567,13 @@ namespace Exceptionless.Json.Utilities
                 case MemberTypes.Field:
                     FieldInfo fieldInfo = (FieldInfo)member;
 
+                    if (fieldInfo.IsLiteral)
+                        return false;
                     if (fieldInfo.IsInitOnly && !canSetReadOnly)
                         return false;
                     if (nonPublic)
                         return true;
-                    else if (fieldInfo.IsPublic)
+                    if (fieldInfo.IsPublic)
                         return true;
                     return false;
                 case MemberTypes.Property:
@@ -664,13 +666,19 @@ namespace Exceptionless.Json.Utilities
         {
             T[] attributes = GetAttributes<T>(attributeProvider, inherit);
 
-            return (attributes != null) ? attributes.SingleOrDefault() : null;
+            return (attributes != null) ? attributes.FirstOrDefault() : null;
         }
 
 #if !(NETFX_CORE || PORTABLE)
         public static T[] GetAttributes<T>(object attributeProvider, bool inherit) where T : Attribute
         {
-            return (T[])GetAttributes(attributeProvider, typeof(T), inherit);
+            Attribute[] a = GetAttributes(attributeProvider, typeof(T), inherit);
+
+            T[] attributes = a as T[];
+            if (attributes != null)
+                return attributes;
+
+            return a.Cast<T>().ToArray();
         }
 
         public static Attribute[] GetAttributes(object attributeProvider, Type attributeType, bool inherit)
@@ -683,24 +691,51 @@ namespace Exceptionless.Json.Utilities
             // ICustomAttributeProvider doesn't do inheritance
 
             if (provider is Type)
-                return (Attribute[])((Type)provider).GetCustomAttributes(attributeType, inherit);
+            {
+                Type t = (Type)provider;
+                object[] a = (attributeType != null) ? t.GetCustomAttributes(attributeType, inherit) : t.GetCustomAttributes(inherit);
+                Attribute[] attributes = a.Cast<Attribute>().ToArray();
+
+#if (NET20 || NET35)
+                // ye olde .NET GetCustomAttributes doesn't respect the inherit argument
+                if (inherit && t.BaseType != null)
+                    attributes = attributes.Union(GetAttributes(t.BaseType, attributeType, inherit)).ToArray();
+#endif
+
+                return attributes;
+            }
 
             if (provider is Assembly)
-                return Attribute.GetCustomAttributes((Assembly)provider, attributeType);
+            {
+                Assembly a = (Assembly)provider;
+                return (attributeType != null) ? Attribute.GetCustomAttributes(a, attributeType) : Attribute.GetCustomAttributes(a);
+            }
 
             if (provider is MemberInfo)
-                return Attribute.GetCustomAttributes((MemberInfo)provider, attributeType, inherit);
+            {
+                MemberInfo m = (MemberInfo)provider;
+                return (attributeType != null) ? Attribute.GetCustomAttributes(m, attributeType, inherit) : Attribute.GetCustomAttributes(m, inherit);
+            }
 
 #if !PORTABLE40
             if (provider is Module)
-                return Attribute.GetCustomAttributes((Module)provider, attributeType, inherit);
+            {
+                Module m = (Module)provider;
+                return (attributeType != null) ? Attribute.GetCustomAttributes(m, attributeType, inherit) : Attribute.GetCustomAttributes(m, inherit);
+            }
 #endif
 
             if (provider is ParameterInfo)
-                return Attribute.GetCustomAttributes((ParameterInfo)provider, attributeType, inherit);
+            {
+                ParameterInfo p = (ParameterInfo)provider;
+                return (attributeType != null) ? Attribute.GetCustomAttributes(p, attributeType, inherit) : Attribute.GetCustomAttributes(p, inherit);
+            }
 
 #if !PORTABLE40
-            return (Attribute[])((ICustomAttributeProvider)attributeProvider).GetCustomAttributes(attributeType, inherit);
+            ICustomAttributeProvider customAttributeProvider = (ICustomAttributeProvider)attributeProvider;
+            object[] result = (attributeType != null) ? customAttributeProvider.GetCustomAttributes(attributeType, inherit) : customAttributeProvider.GetCustomAttributes(inherit);
+
+            return (Attribute[])result;
 #else
             throw new Exception("Cannot get attributes from '{0}'.".FormatWith(CultureInfo.InvariantCulture, provider));
 #endif
@@ -714,19 +749,36 @@ namespace Exceptionless.Json.Utilities
         public static Attribute[] GetAttributes(object provider, Type attributeType, bool inherit)
         {
             if (provider is Type)
-                return ((Type) provider).GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray();
+            {
+                Type t = (Type)provider;
+                return (attributeType != null)
+                    ? t.GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray()
+                    : t.GetTypeInfo().GetCustomAttributes(inherit).ToArray();
+            }
 
             if (provider is Assembly)
-                return ((Assembly) provider).GetCustomAttributes(attributeType).ToArray();
+            {
+                Assembly a = (Assembly)provider;
+                return (attributeType != null) ? a.GetCustomAttributes(attributeType).ToArray() : a.GetCustomAttributes().ToArray();
+            }
 
             if (provider is MemberInfo)
-                return ((MemberInfo) provider).GetCustomAttributes(attributeType, inherit).ToArray();
+            {
+                MemberInfo m = (MemberInfo)provider;
+                return (attributeType != null) ? m.GetCustomAttributes(attributeType, inherit).ToArray() : m.GetCustomAttributes(inherit).ToArray();
+            }
 
             if (provider is Module)
-                return ((Module) provider).GetCustomAttributes(attributeType).ToArray();
+            {
+                Module m = (Module)provider;
+                return (attributeType != null) ? m.GetCustomAttributes(attributeType).ToArray() : m.GetCustomAttributes().ToArray();
+            }
 
             if (provider is ParameterInfo)
-                return ((ParameterInfo) provider).GetCustomAttributes(attributeType, inherit).ToArray();
+            {
+                ParameterInfo p = (ParameterInfo)provider;
+                return (attributeType != null) ? p.GetCustomAttributes(attributeType, inherit).ToArray() : p.GetCustomAttributes(inherit).ToArray();
+            }
 
             throw new Exception("Cannot get attributes from '{0}'.".FormatWith(CultureInfo.InvariantCulture, provider));
         }
