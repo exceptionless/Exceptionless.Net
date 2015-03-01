@@ -33,7 +33,7 @@
 //using Foundatio.Metrics;
 //using Foundatio.Queues;
 
-//namespace Client.Tests.Submission {
+//namespace Exceptionless.Tests.Submission {
 //    public class DefaultSubmissionClientTests {
 //        private ExceptionlessClient GetClient() {
 //            return new ExceptionlessClient(c => {

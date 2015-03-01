@@ -17,17 +17,17 @@ namespace Exceptionless.Helpers {
             return events;
         }
 
-        public PersistentEvent GeneratePersistent() {
-            var ev = new PersistentEvent {
-                OrganizationId = "1ecd0826e447ad1e78877555",
-                ProjectId = "1ecd0826e447ad1e78877ab2",
-                StackId = "1ecd0826e447a44e78877ab1",
-                Date = DateTime.UtcNow
-            };
+        //public PersistentEvent GeneratePersistent() {
+        //    var ev = new PersistentEvent {
+        //        OrganizationId = "1ecd0826e447ad1e78877555",
+        //        ProjectId = "1ecd0826e447ad1e78877ab2",
+        //        StackId = "1ecd0826e447a44e78877ab1",
+        //        Date = DateTime.UtcNow
+        //    };
 
-            PopulateEvent(ev);
-            return ev;
-        }
+        //    PopulateEvent(ev);
+        //    return ev;
+        //}
 
         public Event Generate() {
             var ev = new Event();

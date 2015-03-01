@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using Client.Tests.Utility;
-using Exceptionless;
 using Exceptionless.Configuration;
-using Exceptionless.Core;
 using Exceptionless.Dependency;
 using Exceptionless.Models;
 using Exceptionless.Storage;
 using Exceptionless.Submission;
+using Exceptionless.Tests.Utility;
 using Moq;
 using Xunit;
 
 [assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:45000", EnableSSL = false)]
 [assembly: ExceptionlessSetting("testing", "configuration")]
-namespace Client.Tests.Configuration {
+namespace Exceptionless.Tests.Configuration {
     public class ConfigurationTests {
         [Fact]
         public void CanConfigureApiKeyFromClientConstructor() {
@@ -28,7 +26,7 @@ namespace Client.Tests.Configuration {
             
             var client = new ExceptionlessClient(c => {
                 c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
-                //c.ServerUrl = Settings.Current.BaseURL;
+                c.ServerUrl = "http://localhost:45000";
                 c.EnableSSL = false;
                 c.SetVersion(version);
             });
@@ -37,7 +35,6 @@ namespace Client.Tests.Configuration {
             Assert.Equal("http://localhost:45000", client.Configuration.ServerUrl);
             Assert.False(client.Configuration.EnableSSL);
             Assert.Equal(version, client.Configuration.DefaultData[Event.KnownDataKeys.Version].ToString());
-            
         }
 
         [Fact]

@@ -1343,7 +1343,7 @@ namespace Exceptionless.Json.Serialization
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns>Name of the property.</returns>
-        protected internal virtual string ResolvePropertyName(string propertyName)
+        protected virtual string ResolvePropertyName(string propertyName)
         {
             return propertyName;
         }

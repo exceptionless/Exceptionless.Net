@@ -7,8 +7,8 @@
     <ProjectGuid>{D8F22775-3DB8-4BAD-AFCF-9CC8DAF7A807}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Client.Tests</RootNamespace>
-    <AssemblyName>Client.Tests</AssemblyName>
+    <RootNamespace>Exceptionless.Tests</RootNamespace>
+    <AssemblyName>Exceptionless.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
@@ -148,10 +148,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Models\Exceptionless.Models.csproj">
-      <Project>{A14E78DE-A085-4647-BA2D-E6237D7D8057}</Project>
-      <Name>Exceptionless.Models</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Extras\Exceptionless.Extras.csproj">
       <Project>{693F3CBF-5BC7-457D-9F31-BDD89C72677E}</Project>
       <Name>Exceptionless.Extras</Name>

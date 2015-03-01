@@ -6,7 +6,6 @@ using Exceptionless.Models.Data;
 
 namespace Exceptionless.Extensions {
     public static class RequestInfoExtensions {
-
         /// <summary>
         /// The full path for the request including host, path and query String.
         /// </summary>

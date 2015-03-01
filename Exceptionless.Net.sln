@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Models", "Source\Models\Exceptionless.Models.csproj", "{A14E78DE-A085-4647-BA2D-E6237D7D8057}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{DAA02D3B-8404-4938-AB04-84AC31C1AD45}"
 EndProject
@@ -24,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.WebApi", "Sou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless", "Source\Clients\Shared\Exceptionless.csproj", "{14DFD206-B445-4D52-9C3C-8B2F69B22B91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Tests", "Source\Clients\Tests\Client.Tests.csproj", "{D8F22775-3DB8-4BAD-AFCF-9CC8DAF7A807}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Tests", "Source\Clients\Tests\Exceptionless.Tests.csproj", "{D8F22775-3DB8-4BAD-AFCF-9CC8DAF7A807}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Extras", "Source\Clients\Extras\Exceptionless.Extras.csproj", "{693F3CBF-5BC7-457D-9F31-BDD89C72677E}"
 EndProject
@@ -66,16 +64,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{A14E78DE-A085-4647-BA2D-E6237D7D8057}.Release|x86.ActiveCfg = Release|Any CPU
 		{8B71F45D-0828-4B46-A8FE-F6DCA64F6C9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8B71F45D-0828-4B46-A8FE-F6DCA64F6C9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B71F45D-0828-4B46-A8FE-F6DCA64F6C9E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -273,8 +261,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8B71F45D-0828-4B46-A8FE-F6DCA64F6C9E} = {DAA02D3B-8404-4938-AB04-84AC31C1AD45}
 		{D6E6EE87-5869-4A62-8F67-7A685205BCAD} = {AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}
-		{14DFD206-B445-4D52-9C3C-8B2F69B22B91} = {AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}
-		{693F3CBF-5BC7-457D-9F31-BDD89C72677E} = {AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}
 		{DE06EDB4-5D81-4B49-989D-A2C5A1DB6CEC} = {AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}
 		{811BC612-86AA-4039-BD8F-4ADC27D3EED9} = {AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}
 		{47B49E88-42EC-44FF-B1C2-981699A354E3} = {AD891FB6-E07A-47DB-AA64-B68AA8DEB7CA}

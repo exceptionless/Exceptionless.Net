@@ -6,7 +6,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission;
 
-namespace Client.Tests.Utility {
+namespace Exceptionless.Tests.Utility {
     public class InMemorySubmissionClient : ISubmissionClient {
         public InMemorySubmissionClient() {
             Events = new List<Event>();

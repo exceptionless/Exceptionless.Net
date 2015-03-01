@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Exceptionless;
+using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Serialization;
 using Exceptionless.Models;
 using Exceptionless.Serializer;
-using Exceptionless.Extensions;
 using Xunit;
 
-namespace Client.Tests.Serializer {
+namespace Exceptionless.Tests.Serializer {
     public class SerializerTests {
         protected virtual IJsonSerializer GetSerializer() {
             return new DefaultJsonSerializer();
@@ -118,7 +117,7 @@ namespace Client.Tests.Serializer {
             return contract;
         }
 
-        protected internal override string ResolvePropertyName(string propertyName) {
+        protected override string ResolvePropertyName(string propertyName) {
             return propertyName.ToLowerUnderscoredWords();
         }
     }

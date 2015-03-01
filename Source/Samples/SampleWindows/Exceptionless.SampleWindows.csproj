@@ -133,10 +133,6 @@
       <Project>{159fb9d1-e226-4828-b2a5-fedd994f3525}</Project>
       <Name>Exceptionless.Windows</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Models\Exceptionless.Models.csproj">
-      <Project>{A14E78DE-A085-4647-BA2D-E6237D7D8057}</Project>
-      <Name>Exceptionless.Models</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

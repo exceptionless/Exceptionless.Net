@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading;
-using Client.Tests.Utility;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
+using Exceptionless.Tests.Utility;
 using Xunit;
 
-namespace Client.Tests.Storage {
+namespace Exceptionless.Tests.Storage {
     public class PersistedDictionaryTests {
         [Fact]
         public void WillBeSaved() {

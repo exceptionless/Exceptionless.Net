@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using Exceptionless.Logging;
 using Xunit;
 
-namespace Exceptionless.Client.Tests.Log {
+namespace Exceptionless.Tests.Log {
     public class FileExceptionlessLogTests : IDisposable {
         protected const string LOG_FILE = "test.log";
 

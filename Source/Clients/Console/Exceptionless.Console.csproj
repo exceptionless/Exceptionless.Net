@@ -62,10 +62,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Models\Exceptionless.Models.csproj">
-      <Project>{A14E78DE-A085-4647-BA2D-E6237D7D8057}</Project>
-      <Name>Exceptionless.Models</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Extras\Exceptionless.Extras.csproj">
       <Project>{693f3cbf-5bc7-457d-9f31-bdd89c72677e}</Project>
       <Name>Exceptionless.Extras</Name>

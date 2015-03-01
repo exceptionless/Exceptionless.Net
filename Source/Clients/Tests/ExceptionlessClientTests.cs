@@ -11,7 +11,7 @@ using Microsoft.Owin.Hosting;
 using SimpleInjector;
 using Xunit;
 
-namespace Client.Tests {
+namespace Exceptionless.Tests {
     public class ExceptionlessClientTests {
         //private ExceptionlessClient CreateClient() {
         //    return new ExceptionlessClient(c => {

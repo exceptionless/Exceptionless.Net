@@ -15,7 +15,7 @@ using Exceptionless.Extras.Storage;
 using Exceptionless.Logging;
 using Exceptionless.Serializer;
 
-namespace Exceptionless.Client.Tests.Log {
+namespace Exceptionless.Tests.Log {
     public class IsolatedStorageFileExceptionlessLogTests : FileExceptionlessLogTests {
         private readonly IsolatedStorageObjectStorage _storage;
 

@@ -89,6 +89,32 @@
     <Compile Include="Enrichments\EventEnrichmentManager.cs" />
     <Compile Include="Enrichments\EventEnrichmentContext.cs" />
     <Compile Include="Enrichments\IEventEnrichment.cs" />
+    <Compile Include="Models\Client\ClientConfiguration.cs" />
+    <Compile Include="Models\Client\Data\EnvironmentInfo.cs" />
+    <Compile Include="Models\Client\Data\Error.cs" />
+    <Compile Include="Models\Client\Data\InnerError.cs" />
+    <Compile Include="Models\Client\Data\Method.cs" />
+    <Compile Include="Models\Client\Data\Module.cs" />
+    <Compile Include="Models\Client\Data\Parameter.cs" />
+    <Compile Include="Models\Client\Data\RequestInfo.cs" />
+    <Compile Include="Models\Client\Data\SimpleError.cs" />
+    <Compile Include="Models\Client\Data\StackFrame.cs" />
+    <Compile Include="Models\Client\Data\UserDescription.cs" />
+    <Compile Include="Models\Client\Data\UserInfo.cs" />
+    <Compile Include="Models\Client\Event.cs" />
+    <Compile Include="Models\Client\SessionInfo.cs" />
+    <Compile Include="Models\Collections\DataDictionary.cs" />
+    <Compile Include="Models\Collections\GenericArguments.cs" />
+    <Compile Include="Models\Collections\ModuleCollection.cs" />
+    <Compile Include="Models\Collections\ObservableDictionary.cs" />
+    <Compile Include="Models\Collections\ParameterCollection.cs" />
+    <Compile Include="Models\Collections\SettingsDictionary.cs" />
+    <Compile Include="Models\Collections\StackFrameCollection.cs" />
+    <Compile Include="Models\Collections\TagSet.cs" />
+    <Compile Include="Extensions\MethodExtensions.cs" />
+    <Compile Include="Extensions\ParameterExtensions.cs" />
+    <Compile Include="Extensions\RequestInfoExtensions.cs" />
+    <Compile Include="Models\Interfaces\IData.cs" />
     <Compile Include="Newtonsoft.Json\Bson\BsonBinaryType.cs" />
     <Compile Include="Newtonsoft.Json\Bson\BsonBinaryWriter.cs" />
     <Compile Include="Newtonsoft.Json\Bson\BsonObjectId.cs" />
@@ -311,12 +337,6 @@
     <None Include="NuGet\tools\exceptionless.psm1" />
     <None Include="NuGet\tools\install.ps1" />
     <None Include="NuGet\tools\uninstall.ps1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Models\Exceptionless.Models.csproj">
-      <Project>{a14e78de-a085-4647-ba2d-e6237d7d8057}</Project>
-      <Name>Exceptionless.Models</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="NuGet\readme.txt" />

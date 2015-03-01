@@ -13,7 +13,7 @@ using Exceptionless.Serializer;
 using Exceptionless.Storage;
 using Xunit;
 
-namespace Client.Tests.Storage {
+namespace Exceptionless.Tests.Storage {
     public abstract class FileStorageTestsBase {
         protected abstract IObjectStorage GetStorage();
 

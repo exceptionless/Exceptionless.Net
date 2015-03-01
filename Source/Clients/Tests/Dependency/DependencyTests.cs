@@ -2,7 +2,7 @@
 using Exceptionless.Dependency;
 using Xunit;
 
-namespace Client.Tests.Dependency {
+namespace Exceptionless.Tests.Dependency {
     public class DependencyTests {
         [Fact]
         public void CanRegisterAndResolveTypes() {

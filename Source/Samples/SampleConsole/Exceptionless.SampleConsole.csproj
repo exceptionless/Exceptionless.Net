@@ -99,10 +99,6 @@
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
       <Name>Exceptionless</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Models\Exceptionless.Models.csproj">
-      <Project>{a14e78de-a085-4647-ba2d-e6237d7d8057}</Project>
-      <Name>Exceptionless.Models</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

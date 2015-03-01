@@ -6,7 +6,7 @@ using Exceptionless.Serializer;
 using Exceptionless.Storage;
 using Xunit;
 
-namespace Client.Tests.Storage {
+namespace Exceptionless.Tests.Storage {
     public class FolderFileStorageTests : FileStorageTestsBase {
         private const string DATA_DIRECTORY_QUEUE_FOLDER = @"|DataDirectory|\Queue";
 

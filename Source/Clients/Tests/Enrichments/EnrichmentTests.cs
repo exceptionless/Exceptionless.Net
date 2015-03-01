@@ -6,7 +6,7 @@ using Exceptionless.Models;
 using Xunit;
 using Xunit.Extensions;
 
-namespace Client.Tests.Enrichments {
+namespace Exceptionless.Tests.Enrichments {
     public class EnrichmentTests {
         [Fact]
         public void ConfigurationDefaults_EnsureNoDuplicateTagsOrData() {

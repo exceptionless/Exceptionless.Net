@@ -44,7 +44,7 @@ namespace Exceptionless.Serializer {
         }
 
 #if EMBEDDED
-        protected internal
+        protected
 #else
         protected
 #endif

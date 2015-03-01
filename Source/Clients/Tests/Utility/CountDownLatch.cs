@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Client.Tests.Utility {
+namespace Exceptionless.Tests.Utility {
     public class CountDownLatch {
         private int _remaining;
         private EventWaitHandle _event;
