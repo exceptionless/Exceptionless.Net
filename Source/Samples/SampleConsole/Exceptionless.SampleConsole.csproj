@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Clients\Tests\Utility\RandomEventGenerator.cs">
+    <Compile Include="..\..\Tests\Utility\RandomEventGenerator.cs">
       <Link>RandomEventGenerator.cs</Link>
     </Compile>
     <Compile Include="InMemorySubmissionClient.cs" />
@@ -83,19 +83,19 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Clients\Console\Exceptionless.Console.csproj">
+    <ProjectReference Include="..\..\Platforms\Console\Exceptionless.Console.csproj">
       <Project>{1e53d5cd-1719-4bfb-a9a8-7d46baca6402}</Project>
       <Name>Exceptionless.Console</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Clients\Extras\Exceptionless.Extras.csproj">
+    <ProjectReference Include="..\..\Extras\Exceptionless.Extras.csproj">
       <Project>{693f3cbf-5bc7-457d-9f31-bdd89c72677e}</Project>
       <Name>Exceptionless.Extras</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Clients\NLog\Exceptionless.NLog.csproj">
+    <ProjectReference Include="..\..\Platforms\NLog\Exceptionless.NLog.csproj">
       <Project>{5eb81eef-ed35-4ad2-9b20-0b3e5c94bba4}</Project>
       <Name>Exceptionless.NLog</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Clients\Shared\Exceptionless.csproj">
+    <ProjectReference Include="..\..\Shared\Exceptionless.csproj">
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
       <Name>Exceptionless</Name>
     </ProjectReference>
