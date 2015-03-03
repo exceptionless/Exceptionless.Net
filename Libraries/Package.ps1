@@ -15,7 +15,7 @@ ForEach ($p in $client_projects) {
     $workingDirectory = "$working_dir\$($p.Name)"
     Create-Directory $workingDirectory
 
-    Write-Host "Building Client NuGet Package: $($p.Name)"
+    Write-Host "Building Client NuGet Package: $($p.Name)" -ForegroundColor Yellow
 
     #copy assemblies from build directory to working directory.
     ForEach ($b in $client_build_configurations) {
@@ -44,7 +44,7 @@ ForEach ($p in $client_projects) {
     Copy-Item "$base_dir\Source\GlobalAssemblyInfo.cs" "$workingDirectory\src\Source\GlobalAssemblyInfo.cs"
 
     If (($($p.Name) -ne "Exceptionless") -and ($($p.Name) -ne "Exceptionless.Signed")) {
-        robocopy "$base_dir\Source\Extras" "$workingDirectory\src\Source\Extras" *.cs /S /NP /XD obj
+        robocopy "$base_dir\Source\Extras" "$workingDirectory\src\Source\Extras" *.cs /S /NP /XD obj | Out-Null
     }
 
     If ($($p.Name).StartsWith("Exceptionless.Mvc")) {

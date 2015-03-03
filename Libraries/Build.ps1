@@ -10,7 +10,7 @@ ForEach ($p in $client_projects) {
 
         $outputDirectory = "$build_dir\$configuration\$($p.Name)\lib\$($b.NuGetDir)"
 
-        Write-Host "Building $($p.Name) ($($b.TargetFrameworkVersionProperty))" 
+        Write-Host "Building $($p.Name) ($($b.TargetFrameworkVersionProperty))" -ForegroundColor Yellow
         
         If ($($p.Name).EndsWith(".Signed")) {
             $name = $($p.Name).Replace(".Signed", "");
@@ -38,14 +38,14 @@ ForEach ($p in $client_projects) {
                         /t:"Rebuild"
         }
 
-        Write-Host "Finished building $($p.Name) ($($b.TargetFrameworkVersionProperty))"
+        Write-Host "Finished building $($p.Name) ($($b.TargetFrameworkVersionProperty))" -ForegroundColor Yellow
     }
 }
 
-Write-Host "Building Client Tests" 
+Write-Host "Building Client Tests" -ForegroundColor Yellow
 
 msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn="1591 1711 1712 1572 1573 1574" /verbosity:minimal
 
-Write-Host "Finished building Client Tests"
+Write-Host "Finished building Client Tests" -ForegroundColor Yellow
 
 Pop-Location
