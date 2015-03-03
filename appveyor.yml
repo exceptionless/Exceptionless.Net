@@ -2,6 +2,9 @@ version: 2.0.{build}
 clone_depth: 2
 configuration: Release
 
+environment:
+  VERSION_SUFFIX: -preview
+
 init:
   - git config --global core.autocrlf true
 
