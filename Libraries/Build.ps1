@@ -44,7 +44,7 @@ ForEach ($p in $client_projects) {
 
 Write-Host "Building Client Tests" -ForegroundColor Yellow
 
-msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn="1591 1711 1712 1572 1573 1574" /verbosity:minimal
+msbuild "$source_dir\Tests\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn="1591 1711 1712 1572 1573 1574" /verbosity:minimal
 
 Write-Host "Finished building Client Tests" -ForegroundColor Yellow
 
