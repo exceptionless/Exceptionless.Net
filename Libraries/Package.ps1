@@ -96,6 +96,4 @@ ForEach ($p in $client_projects) {
     nuget pack $nuspecFile -OutputDirectory $packageDir -Version $nuget_version -Symbols
 }
 
-Get-ChildItem $packageDir\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
-
 Pop-Location

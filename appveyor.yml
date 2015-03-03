@@ -30,6 +30,9 @@ notifications:
       secure: WxN+iiJf8AT50n50y8/AkTMl+Cvma6lwSdffFaBU6/o=
     room: Notifications
 
+artifacts:
+  - path: Build\Deploy\packages\*.nupkg
+
 deploy:
   - provider: Environment
     name: MyGet
