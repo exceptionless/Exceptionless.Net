@@ -32,10 +32,9 @@ notifications:
 
 artifacts:
   - path: Build\Deploy\packages\*.nupkg
+    name: packages
 
 deploy:
-  - provider: NuGet
-    server: https://www.myget.org/F/exceptionless/
-	api_key:
-      secure: $env:MYGET_API_KEY
-	artifact: *.nupkg
+  - provider: Environment
+    name: MyGet
+    artifact: packages
