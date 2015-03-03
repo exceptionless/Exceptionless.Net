@@ -11,7 +11,7 @@ ForEach ($p in $client_projects) {
         $outputDirectory = "$build_dir\$configuration\$($p.Name)\lib\$($b.NuGetDir)"
 
         Write-Host "Building $($p.Name) ($($b.TargetFrameworkVersionProperty))" 
-
+        
         If ($($p.Name).EndsWith(".Signed")) {
             $name = $($p.Name).Replace(".Signed", "");
             msbuild "$($p.SourceDir)\$name.csproj" `
@@ -19,7 +19,7 @@ ForEach ($p in $client_projects) {
                         /p:AssemblyOriginatorKeyFile="$sign_file" `
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
-                        /p:NoWarn=1591 `
+                        /p:NoWarn="1591;1711;1712;1572;1573;1574" `
                         /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;SIGNED;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
@@ -30,7 +30,7 @@ ForEach ($p in $client_projects) {
                         /p:SignAssembly=false `
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
-                        /p:NoWarn=1591 `
+                        /p:NoWarn="1591;1711;1712;1572;1573;1574" `
                         /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
@@ -44,7 +44,7 @@ ForEach ($p in $client_projects) {
 
 Write-Host "Building Client Tests" 
 
-msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn=1591 /verbosity:minimal
+msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn="1591;1711;1712;1572;1573;1574" /verbosity:minimal
 
 Write-Host "Finished building Client Tests"
 
