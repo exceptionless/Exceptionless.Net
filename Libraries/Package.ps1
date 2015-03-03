@@ -1,5 +1,5 @@
 ﻿Push-Location $PSScriptRoot
-. .\Libraries\Settings.ps1
+. .\Settings.ps1
 
 Function Create-Directory([string] $directory_name) {
     If (!(Test-Path -Path $directory_name)) {

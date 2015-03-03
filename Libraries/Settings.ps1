@@ -1,5 +1,5 @@
 ﻿$configuration = "Release"
-$base_dir = Resolve-Path "."
+$base_dir = Resolve-Path "..\"
 $build_dir = "$base_dir\Build"
 $deploy_dir = "$build_dir\Deploy"
 $working_dir = "$build_dir\Working"
