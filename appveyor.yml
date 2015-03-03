@@ -18,7 +18,8 @@ assembly_info:
 before_build:
   - nuget restore -verbosity quiet
 
-build_script: .\Libraries\Build.ps1
+build_script:
+  - ps: .\Libraries\Build.ps1
 
 after_test:
   - ps: .\Libraries\Package.ps1
