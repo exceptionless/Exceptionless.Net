@@ -39,6 +39,6 @@ ForEach ($p in $client_projects) {
 
 Write-Host "Building Client Tests" 
 
-exec { & msbuild "$source_dir\Clients\Tests\Client.Tests.csproj" /p:Configuration="$configuration" /t:"Rebuild" }
+exec { & msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:"Rebuild" }
 
 Write-Host "Finished building Client Tests"
