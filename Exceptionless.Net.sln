@@ -12,10 +12,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{98A5A2F7-BBA9-4B65-91C9-88E18D474341}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
+		Libraries\Build.ps1 = Libraries\Build.ps1
 		CONTRIBUTING.md = CONTRIBUTING.md
 		LICENSE.txt = LICENSE.txt
 		Source\nlog.config = Source\nlog.config
+		Libraries\Package.ps1 = Libraries\Package.ps1
 		README.md = README.md
+		Libraries\Settings.ps1 = Libraries\Settings.ps1
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.WebApi", "Source\Platforms\WebApi\Exceptionless.WebApi.csproj", "{D6E6EE87-5869-4A62-8F67-7A685205BCAD}"

@@ -1,5 +1,5 @@
 ﻿Push-Location $PSScriptRoot
-Include .\Libraries\Settings.ps1
+. .\Libraries\Settings.ps1
 
 ForEach ($p in $client_projects) {
     ForEach ($b in $client_build_configurations) {
