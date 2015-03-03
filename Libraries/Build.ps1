@@ -14,7 +14,7 @@ ForEach ($p in $client_projects) {
 
         If ($($p.Name).EndsWith(".Signed")) {
             $name = $($p.Name).Replace(".Signed", "");
-            exec { & msbuild "$($p.SourceDir)\$name.csproj" `
+            msbuild "$($p.SourceDir)\$name.csproj" `
                         /p:SignAssembly=true `
                         /p:AssemblyOriginatorKeyFile="$sign_file" `
                         /p:Configuration="$configuration" `
@@ -22,16 +22,16 @@ ForEach ($p in $client_projects) {
                         /p:DefineConstants="`"TRACE;SIGNED;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
-                        /t:"Rebuild" }
+                        /t:"Rebuild"
         } else {
-            exec { & msbuild "$($p.SourceDir)\$($p.Name).csproj" `
+            msbuild "$($p.SourceDir)\$($p.Name).csproj" `
                         /p:SignAssembly=false `
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
                         /p:DefineConstants="`"TRACE;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
-                        /t:"Rebuild" }
+                        /t:"Rebuild"
         }
 
         Write-Host "Finished building $($p.Name) ($($b.TargetFrameworkVersionProperty))"
@@ -40,7 +40,7 @@ ForEach ($p in $client_projects) {
 
 Write-Host "Building Client Tests" 
 
-exec { & msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:"Rebuild" }
+msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild
 
 Write-Host "Finished building Client Tests"
 
