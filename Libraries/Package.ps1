@@ -92,7 +92,7 @@ ForEach ($p in $client_projects) {
     $packageDir = "$deploy_dir\packages"
     Create-Directory $packageDir
 
-    exec { & nuget pack $nuspecFile -OutputDirectory $packageDir -Version "$env:APPVEYOR_BUILD_VERSION" -Symbols }
+    nuget pack $nuspecFile -OutputDirectory $packageDir -Version "$env:APPVEYOR_BUILD_VERSION" -Symbols
 }
 
 Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
