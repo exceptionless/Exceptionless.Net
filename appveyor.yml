@@ -3,7 +3,6 @@ clone_depth: 2
 configuration: Release
 
 environment:
-  MSVS_VERSION: 2013
   VERSION_SUFFIX: -preview
 
 init:
