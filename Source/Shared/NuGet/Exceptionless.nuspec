@@ -14,7 +14,6 @@
     <tags>Error Report Reporting Exception Logging Log ELMAH</tags>
     <references>
       <reference file="Exceptionless.dll" />
-      <reference file="Exceptionless.Models.dll" />
     </references>
   </metadata>
 </package>
