@@ -39,8 +39,8 @@ ForEach ($p in $client_projects) {
     }
 
     # Copy the source code for Symbol Source.
-    robocopy $($p.SourceDir) $workingDirectory\src\$($p.SourceDir.Replace($base_dir, """")) *.cs *.xaml /S /NP
-    robocopy "$base_dir\Source\Core" "$workingDirectory\src\Source\Core" *.cs /S /NP /XD obj
+    robocopy $($p.SourceDir) $workingDirectory\src\$($p.SourceDir.Replace($base_dir, """")) *.cs *.xaml /S /NP | Out-Null
+    robocopy "$base_dir\Source\Core" "$workingDirectory\src\Source\Core" *.cs /S /NP /XD obj | Out-Null
     Copy-Item "$base_dir\Source\GlobalAssemblyInfo.cs" "$workingDirectory\src\Source\GlobalAssemblyInfo.cs"
 
     If (($($p.Name) -ne "Exceptionless") -and ($($p.Name) -ne "Exceptionless.Signed")) {
@@ -48,7 +48,7 @@ ForEach ($p in $client_projects) {
     }
 
     If ($($p.Name).StartsWith("Exceptionless.Mvc")) {
-        robocopy "$base_dir\Source\Platforms\Web" "$workingDirectory\src\Source\Platforms\Web" *.cs /S /NP /XD obj
+        robocopy "$base_dir\Source\Platforms\Web" "$workingDirectory\src\Source\Platforms\Web" *.cs /S /NP /XD obj | Out-Null
     }
 
     If ((Test-Path -Path "$($p.SourceDir)\NuGet")) {
