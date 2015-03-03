@@ -11,25 +11,29 @@ using System;
 
 namespace Exceptionless {
     internal class DefaultLastReferenceIdManager : ILastReferenceIdManager {
-        private string _lastErrorId;
+        private string _lastReferenceId;
 
         /// <summary>
-        ///     Gets the last event's client id that was submitted to the server.
+        /// Gets the last event's reference id that was submitted to the server.
         /// </summary>
         /// <returns>The client id</returns>
         public string GetLast() {
-            return _lastErrorId;
+            return _lastReferenceId;
         }
 
         /// <summary>
-        ///     Clears the last error id.
+        /// Clears the last event's reference id.
         /// </summary>
         public void ClearLast() {
-            _lastErrorId = String.Empty;
+            _lastReferenceId = null;
         }
 
+        /// <summary>
+        /// Sets the last event's reference id.
+        /// </summary>
+        /// <param name="errorId"></param>
         public void SetLast(string errorId) {
-            _lastErrorId = errorId;
+            _lastReferenceId = errorId;
         }
     }
 }
