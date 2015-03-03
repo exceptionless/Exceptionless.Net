@@ -20,6 +20,7 @@ ForEach ($p in $client_projects) {
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
                         /p:NoWarn=1591 `
+                        /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;SIGNED;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
@@ -30,6 +31,7 @@ ForEach ($p in $client_projects) {
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
                         /p:NoWarn=1591 `
+                        /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
@@ -42,7 +44,7 @@ ForEach ($p in $client_projects) {
 
 Write-Host "Building Client Tests" 
 
-msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn=1591
+msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:Rebuild /p:NoWarn=1591 /verbosity:minimal
 
 Write-Host "Finished building Client Tests"
 
