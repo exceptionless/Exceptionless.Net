@@ -1,4 +1,5 @@
-﻿Include .\Settings.ps1
+﻿Push-Location $PSScriptRoot
+Include .\Libraries\Settings.ps1
 
 Function Create-Directory([string] $directory_name) {
     If (!(Test-Path -Path $directory_name)) {
@@ -95,3 +96,5 @@ ForEach ($p in $client_projects) {
 }
 
 Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
+Pop-Location

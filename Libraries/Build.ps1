@@ -1,4 +1,5 @@
-﻿Include .\Settings.ps1
+﻿Push-Location $PSScriptRoot
+Include .\Libraries\Settings.ps1
 
 ForEach ($p in $client_projects) {
     ForEach ($b in $client_build_configurations) {
@@ -42,3 +43,5 @@ Write-Host "Building Client Tests"
 exec { & msbuild "$source_dir\Exceptionless.Tests.csproj" /p:Configuration="$configuration" /t:"Rebuild" }
 
 Write-Host "Finished building Client Tests"
+
+Pop-Location
