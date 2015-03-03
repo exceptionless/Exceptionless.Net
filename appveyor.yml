@@ -32,9 +32,7 @@ notifications:
 
 artifacts:
   - path: Build\Deploy\packages\*.nupkg
-    name: packages
 
 deploy:
   - provider: Environment
     name: MyGet
-    artifact: packages
