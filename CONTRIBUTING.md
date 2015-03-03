@@ -2,22 +2,22 @@
 
 ## Before You Start
 
-Anyone wishing to contribute to the **[Exceptionless/Exceptionless](https://github.com/exceptionless/exceptionless)** project **MUST read &amp; sign the [Exceptionless Contribution License Agreement](http://www.clahub.com/agreements/exceptionless/Exceptionless)**. The Exceptionless team is legally prevented from accepting any pull requests from users who have not signed the CLA first.
+Anyone wishing to contribute to the **[Exceptionless/Exceptionless.Net](https://github.com/exceptionless/exceptionless.net)** project **MUST read &amp; sign the [Exceptionless Contribution License Agreement](http://www.clahub.com/agreements/exceptionless/Exceptionless)**. The Exceptionless team is legally prevented from accepting any pull requests from users who have not signed the CLA first.
 
 ## Reporting Bugs
 
 1. Always update to the most recent master release; the bug may already be resolved.
 
-2. Search for similar [issues](https://github.com/exceptionless/Exceptionless/issues?q=is%3Aopen+is%3Aissue+label%3Abug); it may already be an identified problem.
+2. Search for similar [issues](https://github.com/exceptionless/exceptionless.net/issues?q=is%3Aopen+is%3Aissue+label%3Abug); it may already be an identified problem.
 
 3. If this is a bug or problem that **requires any kind of extended discussion -- open [a topic on uservoice][m] about it**. Do *not* open a bug on GitHub.
 
-4. If this is a bug or problem that is clear, simple, and is unlikely to require *any* discussion -- it is OK to open an [issue on GitHub](https://github.com/exceptionless/exceptionless/issues) with a reproduction of the bug including workflows, screenshots, or links to examples. If possible, submit a Pull Request with a failing test. If you'd rather take matters into your own hands, fix the bug yourself (jump down to the "Contributing (Step-by-step)" section).
+4. If this is a bug or problem that is clear, simple, and is unlikely to require *any* discussion -- it is OK to open an [issue on GitHub](https://github.com/exceptionless/exceptionless.net/issues) with a reproduction of the bug including workflows, screenshots, or links to examples. If possible, submit a Pull Request with a failing test. If you'd rather take matters into your own hands, fix the bug yourself (jump down to the "Contributing (Step-by-step)" section).
 5. When the bug is fixed, we will do our best to update the Exceptionless topic or GitHub issue with a resolution.
 
 ## Requesting New Features
 
-1. Search for similar [feature requests](https://github.com/exceptionless/Exceptionless/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement). It's possible somebody has already asked for this feature or provided a pull request that we're still discussing.
+1. Search for similar [feature requests](https://github.com/exceptionless/exceptionless.net/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement). It's possible somebody has already asked for this feature or provided a pull request that we're still discussing.
 
 2. Provide a clear and detailed explanation of the feature you want and why it's important to add. The feature must apply to a wide array of users of Exceptionless. You may also want to provide us with some advance documentation on the feature, which will help the community to better understand where it will fit.
 
@@ -32,7 +32,7 @@ Anyone wishing to contribute to the **[Exceptionless/Exceptionless](https://gith
 2. Follow the Coding Conventions
   * Adhere to common conventions you see in the existing code
   * Include tests, and ensure they pass
-  * Search to see if your new functionality has been discussed on [the Exceptionless issues](https://github.com/exceptionless/Exceptionless/issues), and include updates as appropriate
+  * Search to see if your new functionality has been discussed on [the Exceptionless issues](https://github.com/exceptionless/exceptionless.net/issues), and include updates as appropriate
   * four spaces, no tabs
   * no trailing whitespaces, blank lines should have no spaces
   * use spaces around operators, after commas, colons, semicolons, around `{` and before `}`
