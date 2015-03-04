@@ -69,7 +69,7 @@ namespace Exceptionless {
 
             if (!Configuration.IsLocked) {
                 Configuration.LockConfig();
-                if (!Configuration.Validate().IsValid) {
+                if (!Configuration.IsValid) {
                     _log.Value.FormattedError(typeof(ExceptionlessClient), "Disabling client due to invalid configuration: {0}", String.Join(", ", Configuration.Validate().Messages));
                     return false;
                 }
@@ -98,7 +98,7 @@ namespace Exceptionless {
 
             if (!Configuration.IsLocked) {
                 Configuration.LockConfig();
-                if (!Configuration.Validate().IsValid) {
+                if (!Configuration.IsValid) {
                     _log.Value.FormattedError(typeof(ExceptionlessClient), "Disabling client due to invalid configuration: {0}", String.Join(", ", Configuration.Validate().Messages));
                     return Threading.Tasks.TaskExtensions.FromResult(0);
                 }
@@ -133,7 +133,7 @@ namespace Exceptionless {
 
             if (!Configuration.IsLocked) {
                 Configuration.LockConfig();
-                if (!Configuration.Validate().IsValid) {
+                if (!Configuration.IsValid) {
                     _log.Value.FormattedError(typeof(ExceptionlessClient), "Disabling client due to invalid configuration: {0}", String.Join(", ", Configuration.Validate().Messages));
                     return;
                 }

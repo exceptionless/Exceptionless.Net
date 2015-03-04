@@ -32,6 +32,9 @@ namespace Exceptionless.NLog {
         }
 
         protected override void Write(AsyncLogEventInfo info) {
+            if (!_client.Configuration.IsValid)
+                return;
+
             var builder = _client.CreateFromLogEvent(info.LogEvent);
             foreach (var field in Fields) {
                 var renderedField = field.Layout.Render(info.LogEvent);

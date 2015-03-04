@@ -42,8 +42,7 @@ namespace Exceptionless {
                 return;
 
             _configLocked = true;
-            _validationResult = Validate();
-            Enabled = Enabled && _validationResult.IsValid;
+            Enabled = Enabled && IsValid;
         }
 
         /// <summary>
@@ -58,6 +57,7 @@ namespace Exceptionless {
                 if (_configLocked)
                     throw new ArgumentException("ServerUrl can't be changed after the client has been initialized.");
 
+                _validationResult = null;
                 _serverUrl = value;
             }
         }
@@ -79,6 +79,7 @@ namespace Exceptionless {
                 if (_configLocked)
                     throw new ArgumentException("ApiKey can't be changed after the client has been initialized.");
 
+                _validationResult = null;
                 _apiKey = value;
             }
         }
@@ -229,6 +230,15 @@ namespace Exceptionless {
         }
 
         #endregion
+
+        public bool IsValid {
+            get {
+                if (_validationResult == null)
+                    _validationResult = Validate();
+
+                return _validationResult.IsValid;
+            }
+        }
 
         public ValidationResult Validate() {
             if (_validationResult != null)
