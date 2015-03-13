@@ -13,7 +13,7 @@
     <releaseNotes>http://exceptionless.io/category/versions/</releaseNotes>
     <tags>Error Report Reporting Exception Logging Log ELMAH pcl</tags>
     <references>
-      <reference file="Exceptionless.dll" />
+      <reference file="Exceptionless.Portable.dll" />
     </references>
   </metadata>
 </package>
