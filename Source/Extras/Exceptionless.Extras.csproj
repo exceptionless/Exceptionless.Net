@@ -81,9 +81,9 @@
     <Compile Include="Utility\WrappedDisposable.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Exceptionless.csproj">
+    <ProjectReference Include="..\Shared\Exceptionless.Portable.csproj">
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
-      <Name>Exceptionless</Name>
+      <Name>Exceptionless.Portable</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

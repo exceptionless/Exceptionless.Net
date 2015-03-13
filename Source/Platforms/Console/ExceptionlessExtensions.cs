@@ -12,7 +12,7 @@ using Exceptionless.Dependency;
 using Exceptionless.Logging;
 
 namespace Exceptionless {
-    public static class ExceptionlessConsoleExtensions {
+    public static class ExceptionlessExtensions {
         private static EventHandler _onProcessExit;
 
         public static void Register(this ExceptionlessClient client) {
@@ -35,7 +35,7 @@ namespace Exceptionless {
                 AppDomain.CurrentDomain.ProcessExit -= _onProcessExit;
                 AppDomain.CurrentDomain.ProcessExit += _onProcessExit;
             } catch (Exception ex) {
-                client.Configuration.Resolver.GetLog().Error(typeof(ExceptionlessConsoleExtensions), ex, "An error occurred while wiring up to the process exit event.");
+                client.Configuration.Resolver.GetLog().Error(typeof(ExceptionlessExtensions), ex, "An error occurred while wiring up to the process exit event.");
             }
         }
 

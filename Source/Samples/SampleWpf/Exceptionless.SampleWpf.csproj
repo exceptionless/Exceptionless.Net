@@ -95,9 +95,9 @@
       <Project>{693f3cbf-5bc7-457d-9f31-bdd89c72677e}</Project>
       <Name>Exceptionless.Extras</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Shared\Exceptionless.csproj">
+    <ProjectReference Include="..\..\Shared\Exceptionless.Portable.csproj">
       <Project>{14DFD206-B445-4D52-9C3C-8B2F69B22B91}</Project>
-      <Name>Exceptionless</Name>
+      <Name>Exceptionless.Portable</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Platforms\Wpf\Exceptionless.Wpf.csproj">
       <Project>{0f4730e7-953f-4f20-a337-9fb43a9afbea}</Project>

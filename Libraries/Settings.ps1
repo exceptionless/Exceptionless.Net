@@ -7,8 +7,8 @@ $source_dir = "$base_dir\Source"
 $sign_file = "$source_dir\Exceptionless.snk"
 
 $client_projects = @(
-    @{ Name = "Exceptionless"; 					SourceDir = "$source_dir\Shared";				ExternalNuGetDependencies = $null;		MergeDependencies = $null; },
-    @{ Name = "Exceptionless.Signed"; 			SourceDir = "$source_dir\Shared";				ExternalNuGetDependencies = $null;		MergeDependencies = $null; },
+    @{ Name = "Exceptionless.Portable"; 		SourceDir = "$source_dir\Shared";				ExternalNuGetDependencies = $null;		MergeDependencies = $null; },
+    @{ Name = "Exceptionless.Portable.Signed"; 	SourceDir = "$source_dir\Shared";				ExternalNuGetDependencies = $null;		MergeDependencies = $null; },
     @{ Name = "Exceptionless.Mvc";  			SourceDir = "$source_dir\Platforms\Mvc"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.Mvc.Signed";  		SourceDir = "$source_dir\Platforms\Mvc"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.Nancy";  			SourceDir = "$source_dir\Platforms\Nancy"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
@@ -18,8 +18,8 @@ $client_projects = @(
     @{ Name = "Exceptionless.Web.Signed"; 		SourceDir = "$source_dir\Platforms\Web"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.Windows"; 			SourceDir = "$source_dir\Platforms\Windows"; 	ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.Windows.Signed"; 	SourceDir = "$source_dir\Platforms\Windows"; 	ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
-    @{ Name = "Exceptionless.Console"; 			SourceDir = "$source_dir\Platforms\Console"; 	ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
-    @{ Name = "Exceptionless.Console.Signed"; 	SourceDir = "$source_dir\Platforms\Console"; 	ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
+    @{ Name = "Exceptionless"; 					SourceDir = "$source_dir\Platforms\Console"; 	ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
+    @{ Name = "Exceptionless.Signed"; 			SourceDir = "$source_dir\Platforms\Console"; 	ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.Wpf"; 				SourceDir = "$source_dir\Platforms\Wpf"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.Wpf.Signed"; 		SourceDir = "$source_dir\Platforms\Wpf"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.NLog"; 			SourceDir = "$source_dir\Platforms\NLog";		ExternalNuGetDependencies = "NLog";		MergeDependencies = $null; }

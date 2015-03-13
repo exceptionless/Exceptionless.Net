@@ -152,9 +152,9 @@
       <Project>{693F3CBF-5BC7-457D-9F31-BDD89C72677E}</Project>
       <Name>Exceptionless.Extras</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Shared\Exceptionless.csproj">
+    <ProjectReference Include="..\Shared\Exceptionless.Portable.csproj">
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
-      <Name>Exceptionless</Name>
+      <Name>Exceptionless.Portable</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

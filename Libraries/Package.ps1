@@ -19,7 +19,7 @@ ForEach ($p in $client_projects) {
 
     #copy assemblies from build directory to working directory.
     ForEach ($b in $client_build_configurations) {
-        $isPclClient = ($($p.Name) -eq "Exceptionless") -or ($($p.Name) -eq "Exceptionless.Signed")
+        $isPclClient = ($($p.Name) -eq "Exceptionless.Portable") -or ($($p.Name) -eq "Exceptionless.Portable.Signed")
         If (($isPclClient -and ($($b.NuGetDir) -ne "portable-net40+sl50+win+wpa81+wp80")) -or (!$isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80"))) {
             Continue;
         }
@@ -43,7 +43,7 @@ ForEach ($p in $client_projects) {
     robocopy "$base_dir\Source\Core" "$workingDirectory\src\Source\Core" *.cs /S /NP /XD obj | Out-Null
     Copy-Item "$base_dir\Source\GlobalAssemblyInfo.cs" "$workingDirectory\src\Source\GlobalAssemblyInfo.cs"
 
-    If (($($p.Name) -ne "Exceptionless") -and ($($p.Name) -ne "Exceptionless.Signed")) {
+    If (($($p.Name) -ne "Exceptionless.Portable") -and ($($p.Name) -ne "Exceptionless.Portable.Signed")) {
         robocopy "$base_dir\Source\Extras" "$workingDirectory\src\Source\Extras" *.cs /S /NP /XD obj | Out-Null
     }
 

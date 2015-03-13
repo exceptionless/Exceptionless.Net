@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.WebApi", "Source\Platforms\WebApi\Exceptionless.WebApi.csproj", "{D6E6EE87-5869-4A62-8F67-7A685205BCAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless", "Source\Shared\Exceptionless.csproj", "{14DFD206-B445-4D52-9C3C-8B2F69B22B91}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Portable", "Source\Shared\Exceptionless.Portable.csproj", "{14DFD206-B445-4D52-9C3C-8B2F69B22B91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Tests", "Source\Tests\Exceptionless.Tests.csproj", "{D8F22775-3DB8-4BAD-AFCF-9CC8DAF7A807}"
 EndProject
@@ -55,7 +55,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleWindows
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.NLog", "Source\Platforms\NLog\Exceptionless.NLog.csproj", "{5EB81EEF-ED35-4AD2-9B20-0B3E5C94BBA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Console", "Source\Platforms\Console\Exceptionless.Console.csproj", "{1E53D5CD-1719-4BFB-A9A8-7D46BACA6402}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless", "Source\Platforms\Console\Exceptionless.csproj", "{1E53D5CD-1719-4BFB-A9A8-7D46BACA6402}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

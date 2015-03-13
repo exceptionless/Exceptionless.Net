@@ -15,9 +15,9 @@ You can get your Exceptionless api key by logging into http://exceptionless.io
 and viewing your project configuration page.
 
 -------------------------------------
-		 Console Integration
+		 Integration
 -------------------------------------
-If your project has an app.config file, the Exceptionless.Console NuGet package 
+If your project has an app.config file, the Exceptionless NuGet package 
 will automatically configure your app.config with the required config sections.
 All you need to do is open the app.config and add your Exceptionless api key to 
 the app.config Exceptionless section.

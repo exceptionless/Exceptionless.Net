@@ -176,9 +176,9 @@
       <Project>{811bc612-86aa-4039-bd8f-4adc27d3eed9}</Project>
       <Name>Exceptionless.Mvc</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Shared\Exceptionless.csproj">
+    <ProjectReference Include="..\..\Shared\Exceptionless.Portable.csproj">
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
-      <Name>Exceptionless</Name>
+      <Name>Exceptionless.Portable</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Platforms\WebApi\Exceptionless.WebApi.csproj">
       <Project>{d6e6ee87-5869-4a62-8f67-7a685205bcad}</Project>

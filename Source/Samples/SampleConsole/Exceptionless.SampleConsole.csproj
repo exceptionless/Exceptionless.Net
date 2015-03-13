@@ -83,9 +83,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Platforms\Console\Exceptionless.Console.csproj">
+    <ProjectReference Include="..\..\Platforms\Console\Exceptionless.csproj">
       <Project>{1e53d5cd-1719-4bfb-a9a8-7d46baca6402}</Project>
-      <Name>Exceptionless.Console</Name>
+      <Name>Exceptionless</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Extras\Exceptionless.Extras.csproj">
       <Project>{693f3cbf-5bc7-457d-9f31-bdd89c72677e}</Project>
@@ -95,9 +95,9 @@
       <Project>{5eb81eef-ed35-4ad2-9b20-0b3e5c94bba4}</Project>
       <Name>Exceptionless.NLog</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Shared\Exceptionless.csproj">
+    <ProjectReference Include="..\..\Shared\Exceptionless.Portable.csproj">
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
-      <Name>Exceptionless</Name>
+      <Name>Exceptionless.Portable</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

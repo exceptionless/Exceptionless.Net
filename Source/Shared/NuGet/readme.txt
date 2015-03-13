@@ -17,6 +17,12 @@ and viewing your project configuration page.
 -------------------------------------
 		 Integration
 -------------------------------------
+NOTE: Please note that this library is a Portable Class Library (PCL). As such it is platform agnostic
+and doesn't know how to read configuration settings or know what error handlers to wire up to. For 
+these reasons if you are on a known platform then use the platform specific package to save you time 
+configuring while giving you more contextual information. For more information please read the Exceptionless 
+Portable Class Library (PCL) Configuration section on http://docs.exceptionless.io/contents/configuration/
+
 You can set your api key by calling the following code on startup:
 
 ExceptionlessClient.Default.Configuration.ApiKey = "API_KEY_HERE"
