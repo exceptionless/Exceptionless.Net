@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5EB81EEF-ED35-4AD2-9B20-0B3E5C94BBA4}</ProjectGuid>
+    <ProjectGuid>{C3411D82-A4C9-41AF-99B8-F71926D69FD1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Exceptionless.NLog</RootNamespace>
@@ -31,8 +31,8 @@
     <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.NLog.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NLog">
-      <HintPath>..\..\..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,10 +46,9 @@
     <Compile Include="..\..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ExceptionlessField.cs" />
-    <Compile Include="ExceptionlessTarget.cs" />
+    <Compile Include="ExceptionlessAppender.cs" />
     <Compile Include="ExceptionlessClientExtensions.cs" />
-    <Compile Include="NLogExceptionlessLog.cs" />
+    <Compile Include="Log4netExceptionlessLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -59,7 +58,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="NuGet\Exceptionless.NLog.nuspec" />
+    <None Include="NuGet\Exceptionless.Log4net.nuspec" />
     <None Include="NuGet\readme.txt" />
     <None Include="packages.config" />
   </ItemGroup>
