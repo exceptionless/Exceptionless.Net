@@ -16,20 +16,7 @@ using System.Text.RegularExpressions;
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
         public static string ToLowerUnderscoredWords(this string value) {
-            var builder = new StringBuilder(value.Length + 10);
-            for (int index = 0; index < value.Length; index++) {
-                char c = value[index];
-                if (Char.IsUpper(c)) {
-                    if (index > 0 && value[index - 1] != '_')
-                        builder.Append('_');
-
-                    builder.Append(Char.ToLower(c));
-                } else {
-                    builder.Append(c);
-                }
-            }
-
-            return builder.ToString();
+           return String.Join("_", _splitPascalCaseRegex.Replace(value, "$1 ").Replace('_', ' ').ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
@@ -186,5 +173,6 @@ namespace Exceptionless.Extensions {
 
         private static readonly Regex _properWordRegex = new Regex(@"([A-Z][a-z]*)|([0-9]+)");
         private static readonly Regex _splitNameRegex = new Regex(@"[\W_]+");
+        private static readonly Regex _splitPascalCaseRegex = new Regex(@"([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))");
     }
 }
