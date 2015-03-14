@@ -24,6 +24,8 @@ $client_projects = @(
     @{ Name = "Exceptionless.Wpf.Signed"; 		SourceDir = "$source_dir\Platforms\Wpf"; 		ExternalNuGetDependencies = $null;		MergeDependencies = "Exceptionless.Extras.dll;"; },
     @{ Name = "Exceptionless.NLog"; 			SourceDir = "$source_dir\Platforms\NLog";		ExternalNuGetDependencies = "NLog";		MergeDependencies = $null; }
     @{ Name = "Exceptionless.NLog.Signed"; 		SourceDir = "$source_dir\Platforms\NLog";		ExternalNuGetDependencies = "NLog";		MergeDependencies = $null; }
+    @{ Name = "Exceptionless.Log4net"; 			SourceDir = "$source_dir\Platforms\Log4net";	ExternalNuGetDependencies = "log4net";	MergeDependencies = $null; }
+    @{ Name = "Exceptionless.Log4net.Signed"; 	SourceDir = "$source_dir\Platforms\Log4net";	ExternalNuGetDependencies = "log4net";	MergeDependencies = $null; }
 )
 
 $client_build_configurations = @(
