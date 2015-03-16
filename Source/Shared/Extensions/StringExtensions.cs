@@ -16,7 +16,7 @@ using System.Text.RegularExpressions;
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
         public static string ToLowerUnderscoredWords(this string value) {
-           return String.Join("_", _splitPascalCaseRegex.Replace(value, "$1 ").Replace('_', ' ').ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+           return String.Join("_", _splitPascalCaseRegex.Replace(value, "$1 ").ToLower().Split(new[] { ' ', '_' }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
