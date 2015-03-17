@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,7 +17,41 @@ using System.Text.RegularExpressions;
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
         public static string ToLowerUnderscoredWords(this string value) {
-           return String.Join("_", _splitPascalCaseRegex.Replace(value, "$1 ").ToLower().Split(new[] { ' ', '_' }, StringSplitOptions.RemoveEmptyEntries));
+           return String.Join("_", SeparatePascalCaseWords(value, " ").ToLower().Split(new[] { ' ', '_' }, StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        private static string SeparatePascalCaseWords(string value, string separator)
+        {
+           if (value.Length == 0)
+              return value;
+
+           char[] chars = value.ToCharArray();
+           var words = new List<string>();
+           int tokenStart = 0;
+           UnicodeCategory currentChar = CharUnicodeInfo.GetUnicodeCategory(chars[tokenStart]);
+
+           for (int i = tokenStart + 1; i < chars.Length; i++) {
+              UnicodeCategory nextChar = CharUnicodeInfo.GetUnicodeCategory(chars[i]);
+              if (nextChar == currentChar)
+                 continue;
+
+              if (currentChar == UnicodeCategory.UppercaseLetter && nextChar == UnicodeCategory.LowercaseLetter) {
+                 int newTokenStart = i - 1;
+                 if (newTokenStart != tokenStart) {
+                    words.Add(new String(chars, tokenStart, newTokenStart - tokenStart));
+                    tokenStart = newTokenStart;
+                 }
+              }
+              else if (currentChar == UnicodeCategory.LowercaseLetter && nextChar == UnicodeCategory.UppercaseLetter) {
+                 words.Add(new String(chars, tokenStart, i - tokenStart));
+                 tokenStart = i;
+              }
+
+              currentChar = nextChar;
+           }
+
+           words.Add(new String(chars, tokenStart, chars.Length - tokenStart));
+           return String.Join(separator, words.ToArray());
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
@@ -173,6 +208,5 @@ namespace Exceptionless.Extensions {
 
         private static readonly Regex _properWordRegex = new Regex(@"([A-Z][a-z]*)|([0-9]+)");
         private static readonly Regex _splitNameRegex = new Regex(@"[\W_]+");
-        private static readonly Regex _splitPascalCaseRegex = new Regex(@"([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))");
     }
 }
