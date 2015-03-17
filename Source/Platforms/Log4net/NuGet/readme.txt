@@ -18,9 +18,11 @@ and viewing your project configuration page.
 		 log4net Integration
 -------------------------------------
 
-Here is an example log.config file that shows how to use the Exceptionless NLog target.
+Here is an example log.config file that shows how to use the Exceptionless log4net appender.
 
-...
+<appender name="ExceptionlessAppender" type="Exceptionless.Log4net.ExceptionlessAppender, Exceptionless.Log4net">
+    <apiKey value="API_KEY_HERE" />
+</appender>
 
 -------------------------------------
 	  Documentation and Support

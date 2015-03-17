@@ -7,8 +7,8 @@
     <ProjectGuid>{C3411D82-A4C9-41AF-99B8-F71926D69FD1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Exceptionless.NLog</RootNamespace>
-    <AssemblyName>Exceptionless.NLog</AssemblyName>
+    <RootNamespace>Exceptionless.Log4net</RootNamespace>
+    <AssemblyName>Exceptionless.Log4net</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -28,7 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.NLog.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.Log4net.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">

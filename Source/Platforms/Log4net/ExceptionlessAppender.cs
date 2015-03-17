@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using log4net.Appender;
 using log4net.Core;
 
-namespace Exceptionless.NLog {
+namespace Exceptionless.Log4net {
     public class ExceptionlessAppender : AppenderSkeleton {
         private ExceptionlessClient _client;
 
