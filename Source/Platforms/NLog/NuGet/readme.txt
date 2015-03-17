@@ -26,7 +26,7 @@ Here is an example NLog.config file that shows how to use the Exceptionless NLog
   </extensions>
   
   <targets async="true">
-    <target name="exceptionless" xsi:type="Exceptionless">
+    <target name="exceptionless" apiKey="API_KEY_HERE" xsi:type="Exceptionless">
       <field name="host" layout="${machinename}" />
       <field name="identity" layout="${identity}" />
       <field name="windows-identity" layout="${windows-identity:userName=True:domain=False}" />
