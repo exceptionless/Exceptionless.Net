@@ -26,6 +26,7 @@ namespace Exceptionless.NLog {
                 _client = new ExceptionlessClient(config => {
                     config.ApiKey = ApiKey;
                     config.ServerUrl = ServerUrl;
+                    config.UseInMemoryStorage();
                 });
             else
                 _client = ExceptionlessClient.Default;
