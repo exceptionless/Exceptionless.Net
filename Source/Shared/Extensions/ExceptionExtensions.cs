@@ -48,10 +48,11 @@ namespace Exceptionless.Extensions {
             if (exception == null)
                 return String.Empty;
 
-            if (exception is AggregateException)
-                return String.Join(Environment.NewLine, ((AggregateException)exception).InnerExceptions.Where(ex => !String.IsNullOrEmpty(ex.Message)).Select(ex => ex.Message));
+            var aggregateException = exception as AggregateException;
+            if (aggregateException != null)
+                return String.Join(Environment.NewLine, aggregateException.Flatten().InnerExceptions.Where(ex => !String.IsNullOrEmpty(ex.GetInnermostException().Message)).Select(ex => ex.GetInnermostException().Message));
 
-            return exception.Message;
+            return exception.GetInnermostException().Message;
         }
     }
 }
