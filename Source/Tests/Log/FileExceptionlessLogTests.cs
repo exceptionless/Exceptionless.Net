@@ -95,7 +95,7 @@ namespace Exceptionless.Tests.Log {
         [Fact]
         public void CheckSizeDoesNotFailIfLogIsMissing() {
             FileExceptionlessLog log = GetLog(LOG_FILE + ".doesnotexist");
-            Assert.DoesNotThrow(log.CheckFileSize);
+            log.CheckFileSize();
         }
 
         [Fact]
