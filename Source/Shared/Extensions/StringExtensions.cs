@@ -22,6 +22,9 @@ namespace Exceptionless.Extensions {
 
         private static string SeparatePascalCaseWords(string value, string separator)
         {
+           if (value == null)
+              throw new ArgumentNullException("value");
+
            if (value.Length == 0)
               return value;
 
