@@ -51,6 +51,9 @@
     <Reference Include="Exceptionless.RandomData">
       <HintPath>..\..\..\packages\Exceptionless.RandomData.1.0.4.0\lib\net40\Exceptionless.RandomData.dll</HintPath>
     </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
     </Reference>
@@ -90,6 +93,10 @@
     <ProjectReference Include="..\..\Extras\Exceptionless.Extras.csproj">
       <Project>{693f3cbf-5bc7-457d-9f31-bdd89c72677e}</Project>
       <Name>Exceptionless.Extras</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Platforms\Log4net\Exceptionless.Log4net.csproj">
+      <Project>{c3411d82-a4c9-41af-99b8-f71926d69fd1}</Project>
+      <Name>Exceptionless.Log4net</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Platforms\NLog\Exceptionless.NLog.csproj">
       <Project>{5eb81eef-ed35-4ad2-9b20-0b3e5c94bba4}</Project>

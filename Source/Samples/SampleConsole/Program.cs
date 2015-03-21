@@ -19,8 +19,11 @@ using Exceptionless.DateTimeExtensions;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Helpers;
+using Exceptionless.Log4net;
 using Exceptionless.Logging;
 using Exceptionless.Models;
+using log4net;
+using log4net.Config;
 using NLog.Fluent;
 
 namespace SampleConsole {
@@ -29,6 +32,7 @@ namespace SampleConsole {
         private static int _delayIndex = 2;
         private static readonly InMemoryExceptionlessLog _log = new InMemoryExceptionlessLog { MinimumLogLevel = LogLevel.Info };
         private static readonly object _writeLock = new object();
+        private static readonly ILog _log4net = LogManager.GetLogger(typeof(Program));
 
         private static readonly TimeSpan[] _dateSpans = {
             TimeSpan.Zero,
@@ -50,7 +54,12 @@ namespace SampleConsole {
             //ExceptionlessClient.Default.Configuration.SubmissionBatchSize = 1;
             ExceptionlessClient.Default.Register();
 
+            // test NLog
             Log.Info().Message("Hi").Write();
+
+            // test log4net
+            BasicConfigurator.Configure(new ExceptionlessAppender());
+            _log4net.Info("Hi");
 
             var tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;

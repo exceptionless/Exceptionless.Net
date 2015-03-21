@@ -12,8 +12,10 @@ namespace Exceptionless.Log4net {
         public override void ActivateOptions() {
             if (!String.IsNullOrEmpty(ApiKey) || !String.IsNullOrEmpty(ServerUrl))
                 _client = new ExceptionlessClient(config => {
-                    config.ApiKey = ApiKey;
-                    config.ServerUrl = ServerUrl;
+                    if (!String.IsNullOrEmpty(ApiKey))
+                        config.ApiKey = ApiKey;
+                    if (!String.IsNullOrEmpty(ServerUrl))
+                        config.ServerUrl = ServerUrl;
                     config.UseInMemoryStorage();
                 });
             else
