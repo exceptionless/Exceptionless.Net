@@ -5,6 +5,10 @@ using NLog.Fluent;
 
 namespace Exceptionless.NLog {
     public static class LogBuilderExtensions {
+        public static LogBuilder Critical(this LogBuilder builder, bool isCritical = true) {
+            return isCritical ? builder.Tag("Critical") : builder;
+        }
+
         public static LogBuilder Tag(this LogBuilder builder, params string[] tags) {
             var tagList = builder.LogEventInfo.GetTags();
             tagList.AddRange(tags);
@@ -36,31 +40,33 @@ namespace Exceptionless.NLog {
             contextData[SubmissionMethod] = submissionMethod;
         }
 
-        public const string IsUnhandledError = "@@_IsUnhandledError";
-        public const string SubmissionMethod = "@@_SubmissionMethod";
-
         public static List<string> GetTags(this LogEventInfo ev) {
             var tagList = new List<string>();
-            if (!ev.Properties.ContainsKey("Tags"))
-                ev.Properties["Tags"] = tagList;
+            if (!ev.Properties.ContainsKey(Tags))
+                ev.Properties[Tags] = tagList;
 
-            if (ev.Properties.ContainsKey("Tags")
-                && ev.Properties["Tags"] is List<string>)
-                tagList = (List<string>)ev.Properties["Tags"];
+            if (ev.Properties.ContainsKey(Tags)
+                && ev.Properties[Tags] is List<string>)
+                tagList = (List<string>)ev.Properties[Tags];
 
             return tagList;
         }
 
         public static IDictionary<string, object> GetContextData(this LogEventInfo ev) {
             IDictionary<string, object> contextData = new Dictionary<string, object>();
-            if (!ev.Properties.ContainsKey("ContextData"))
-                ev.Properties["ContextData"] = contextData;
+            if (!ev.Properties.ContainsKey(ContextData))
+                ev.Properties[ContextData] = contextData;
 
-            if (ev.Properties.ContainsKey("ContextData")
-                && ev.Properties["ContextData"] is IDictionary<string, object>)
-                contextData = (IDictionary<string, object>)ev.Properties["ContextData"];
+            if (ev.Properties.ContainsKey(ContextData)
+                && ev.Properties[ContextData] is IDictionary<string, object>)
+                contextData = (IDictionary<string, object>)ev.Properties[ContextData];
 
             return contextData;
         }
+
+        private const string IsUnhandledError = "@@_IsUnhandledError";
+        private const string SubmissionMethod = "@@_SubmissionMethod";
+        private const string Tags = "Tags";
+        private const string ContextData = "ContextData";
     }
 }
