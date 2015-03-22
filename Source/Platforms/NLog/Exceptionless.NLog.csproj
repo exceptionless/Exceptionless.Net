@@ -49,6 +49,7 @@
     <Compile Include="ExceptionlessField.cs" />
     <Compile Include="ExceptionlessTarget.cs" />
     <Compile Include="ExceptionlessClientExtensions.cs" />
+    <Compile Include="LogBuilderExtensions.cs" />
     <Compile Include="NLogExceptionlessLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
