@@ -28,10 +28,10 @@ after_test:
   - ps: .\Libraries\Package.ps1
 
 notifications:
-  - provider: HipChat
+  - provider: Slack
     auth_token:
-      secure: WxN+iiJf8AT50n50y8/AkTMl+Cvma6lwSdffFaBU6/o=
-    room: Notifications
+      secure: PigIGGo7UUDwdb0KGM/s7OfpAng/OMJx7q33jKfzudFBiXi1EBEd0DRmkbCc7CiX
+    channel: notifications
 
 artifacts:
   - path: Build\Deploy\packages\*.nupkg

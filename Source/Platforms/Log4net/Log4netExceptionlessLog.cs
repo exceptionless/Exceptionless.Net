@@ -2,7 +2,7 @@
 using Exceptionless.Logging;
 using log4net;
 
-namespace Exceptionless.NLog {
+namespace Exceptionless.Log4net {
     public class Log4netExceptionlessLog : IExceptionlessLog {
         // ignore and let NLog determine what should be captured.
         public LogLevel MinimumLogLevel { get; set; }

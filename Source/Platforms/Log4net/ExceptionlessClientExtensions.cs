@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net.Core;
 
-namespace Exceptionless.NLog {
+namespace Exceptionless.Log4net {
     public static class ExceptionlessClientExtensions {
         public static EventBuilder CreateFromLogEvent(this ExceptionlessClient client, LoggingEvent ev) {
             var builder = ev.ExceptionObject != null ? client.CreateException(ev.ExceptionObject) : client.CreateLog(ev.LoggerName, ev.RenderedMessage, ev.Level.Name);
@@ -16,8 +16,12 @@ namespace Exceptionless.NLog {
                 builder.SetSource(ev.LoggerName);
 
             var props = ev.GetProperties();
-            foreach (var key in props.GetKeys().Where(key => !_ignoredEventProperties.Contains(key, StringComparer.OrdinalIgnoreCase)))
-                builder.SetProperty(key, props[key]);
+            foreach (var key in props.GetKeys().Where(key => !_ignoredEventProperties.Contains(key, StringComparer.OrdinalIgnoreCase))) {
+                string propName = key;
+                if (propName.StartsWith("log4net:"))
+                    propName = propName.Substring(8);
+                builder.SetProperty(propName, props[key]);
+            }
 
             return builder;
         }

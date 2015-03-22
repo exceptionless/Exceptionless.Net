@@ -65,7 +65,8 @@ namespace Exceptionless.Queue {
                 _storage.ReleaseStaleLocks(_config.GetQueueName());
 
                 DateTime maxCreatedDate = DateTime.Now;
-                var batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, _config.SubmissionBatchSize, maxCreatedDate);
+                int batchSize = _config.SubmissionBatchSize;
+                var batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, batchSize, maxCreatedDate);
                 while (batch.Any()) {
                     bool deleteBatch = true;
 
@@ -90,6 +91,14 @@ namespace Exceptionless.Queue {
                             // The service end point could not be found.
                             _log.FormattedError(typeof(DefaultEventQueue), "Error while trying to submit data: {0}", response.Message);
                             SuspendProcessing(TimeSpan.FromHours(4));
+                        } else if (response.RequestEntityTooLarge) {
+                            if (batchSize > 1) {
+                                _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will be retried with a smaller batch size.");
+                                batchSize = Math.Max(1, (int)Math.Round(batchSize / 1.5d, 0));
+                                deleteBatch = false;
+                            } else {
+                                _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
+                            }
                         } else if (!response.Success) {
                             _log.Error(typeof(DefaultEventQueue), String.Format("An error occurred while submitting events: {0}", response.Message));
                             SuspendProcessing();
@@ -113,7 +122,7 @@ namespace Exceptionless.Queue {
                     if (!deleteBatch || IsQueueProcessingSuspended)
                         break;
 
-                    batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, _config.SubmissionBatchSize, maxCreatedDate);
+                    batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, batchSize, maxCreatedDate);
                 }
             } catch (Exception ex) {
                 _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while processing the queue: ", ex.Message));

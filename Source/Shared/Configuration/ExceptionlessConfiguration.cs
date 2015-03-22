@@ -10,22 +10,25 @@ namespace Exceptionless {
     public class ExceptionlessConfiguration {
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
         private const string DEFAULT_USER_AGENT = "exceptionless/" + ThisAssembly.AssemblyFileVersion;
+        private const int DEFAULT_SUBMISSION_BATCH_SIZE = 50;
+
         private readonly IDependencyResolver _resolver;
         private bool _configLocked;
         private string _apiKey;
         private string _serverUrl;
+        private int _submissionBatchSize;
         private ValidationResult _validationResult;
         private readonly List<string> _exclusions = new List<string>(); 
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
             ServerUrl = DEFAULT_SERVER_URL;
             UserAgent = DEFAULT_USER_AGENT;
+            SubmissionBatchSize = DEFAULT_SUBMISSION_BATCH_SIZE;
             Enabled = true;
             EnableSSL = true;
             DefaultTags = new TagSet();
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
-            SubmissionBatchSize = 50;
             if (resolver == null)
                 throw new ArgumentNullException("resolver");
             _resolver = resolver;
@@ -120,7 +123,13 @@ namespace Exceptionless {
         /// <summary>
         /// Maximum number of events that should be sent to the server together in a batch. (Defaults to 50)
         /// </summary>
-        public int SubmissionBatchSize { get; set; }
+        public int SubmissionBatchSize {
+            get { return _submissionBatchSize; }
+            set {
+                if (value > 0)
+                    _submissionBatchSize = value;
+            }
+        }
 
         /// <summary>
         /// A list of exclusion patterns that will automatically remove any data that matches them from any data submitted to the server.

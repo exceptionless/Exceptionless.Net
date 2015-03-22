@@ -5,13 +5,13 @@
     <version>$version$</version>
     <authors>Exceptionless</authors>
     <owners>Exceptionless</owners>
-    <description>Log4net target that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.</description>
+    <description>Log4net appender that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.</description>
     <projectUrl>http://exceptionless.io</projectUrl>
     <iconUrl>https://be.exceptionless.io/img/exceptionless-32.png</iconUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <releaseNotes>http://exceptionless.io/category/versions/</releaseNotes>
-    <tags>NLog Target Exceptionless Error Report Reporting Exception Logging Log ELMAH</tags>
+    <tags>Log4net Appender Exceptionless Error Report Reporting Exception Logging Log ELMAH</tags>
     <dependencies>
       <dependency id="Exceptionless.Portable" version="[$version$]" />
       <dependency id="log4net" version="2.0.3" />
