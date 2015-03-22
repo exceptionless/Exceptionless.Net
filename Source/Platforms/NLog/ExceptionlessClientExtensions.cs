@@ -9,19 +9,17 @@ using NLog.Fluent;
 namespace Exceptionless.NLog {
     public static class ExceptionlessClientExtensions {
         public static EventBuilder CreateFromLogEvent(this ExceptionlessClient client, LogEventInfo ev) {
-            var contextData = ev.GetContextData();
+            var contextData = new ContextData(ev.GetContextData());
 
             if (ev.Exception != null)
                 contextData.SetException(ev.Exception);
 
             var builder = client.CreateEvent(contextData);
             if (ev.Exception == null) {
-                builder.SetType(Event.KnownTypes.Log);
                 builder.SetSource(ev.LoggerName);
                 builder.SetProperty(Event.KnownDataKeys.Level, ev.Level.Name);
-            } else {
-                builder.SetType(Event.KnownTypes.Error);
             }
+
             builder.Target.Date = ev.TimeStamp;
 
             if (!String.IsNullOrWhiteSpace(ev.FormattedMessage))
@@ -67,6 +65,17 @@ namespace Exceptionless.NLog {
             return builder;
         }
 
+        public static void MarkAsUnhandledError(this IDictionary<string, object> contextData) {
+            contextData[IsUnhandledError] = true;
+        }
+
+        public static void SetSubmissionMethod(this IDictionary<string, object> contextData, string submissionMethod) {
+            contextData[SubmissionMethod] = submissionMethod;
+        }
+
+        public const string IsUnhandledError = "@@_IsUnhandledError";
+        public const string SubmissionMethod = "@@_SubmissionMethod";
+
         public static List<string> GetTags(this LogEventInfo ev) {
             var tagList = new List<string>();
             if (!ev.Properties.ContainsKey("Tags"))
@@ -79,14 +88,14 @@ namespace Exceptionless.NLog {
             return tagList;
         }
 
-        public static ContextData GetContextData(this LogEventInfo ev) {
-            var contextData = new ContextData();
+        public static IDictionary<string, object> GetContextData(this LogEventInfo ev) {
+            IDictionary<string, object> contextData = new Dictionary<string, object>();
             if (!ev.Properties.ContainsKey("ContextData"))
                 ev.Properties["ContextData"] = contextData;
 
             if (ev.Properties.ContainsKey("ContextData")
-                && ev.Properties["ContextData"] is ContextData)
-                contextData = (ContextData)ev.Properties["ContextData"];
+                && ev.Properties["ContextData"] is IDictionary<string, object>)
+                contextData = (IDictionary<string, object>)ev.Properties["ContextData"];
 
             return contextData;
         }
