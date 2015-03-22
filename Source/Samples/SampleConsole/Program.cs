@@ -22,6 +22,7 @@ using Exceptionless.Helpers;
 using Exceptionless.Log4net;
 using Exceptionless.Logging;
 using Exceptionless.Models;
+using Exceptionless.NLog;
 using log4net;
 using log4net.Config;
 using log4net.Core;
@@ -57,7 +58,7 @@ namespace SampleConsole {
 
             // test NLog
             NLog.GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
-            Log.Info().Message("Hi").Property("LocalProp", "LocalValue").Write();
+            Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
             // test log4net
             XmlConfigurator.Configure();

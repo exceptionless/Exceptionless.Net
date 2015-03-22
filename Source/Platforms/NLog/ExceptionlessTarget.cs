@@ -7,7 +7,7 @@ using NLog.Targets;
 namespace Exceptionless.NLog {
     [Target("Exceptionless")]
     public class ExceptionlessTarget : TargetWithLayout {
-        private ExceptionlessClient _client;
+        private ExceptionlessClient _client = ExceptionlessClient.Default;
 
         public string ApiKey { get; set; }
         public string ServerUrl { get; set; }
@@ -24,12 +24,12 @@ namespace Exceptionless.NLog {
 
             if (!String.IsNullOrEmpty(ApiKey) || !String.IsNullOrEmpty(ServerUrl))
                 _client = new ExceptionlessClient(config => {
-                    config.ApiKey = ApiKey;
-                    config.ServerUrl = ServerUrl;
+                    if (!String.IsNullOrEmpty(ApiKey))
+                        config.ApiKey = ApiKey;
+                    if (!String.IsNullOrEmpty(ServerUrl))
+                        config.ServerUrl = ServerUrl;
                     config.UseInMemoryStorage();
                 });
-            else
-                _client = ExceptionlessClient.Default;
         }
 
         protected override void Write(AsyncLogEventInfo info) {
