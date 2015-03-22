@@ -24,6 +24,7 @@ using Exceptionless.Logging;
 using Exceptionless.Models;
 using log4net;
 using log4net.Config;
+using log4net.Core;
 using NLog.Fluent;
 
 namespace SampleConsole {
@@ -55,10 +56,13 @@ namespace SampleConsole {
             ExceptionlessClient.Default.Register();
 
             // test NLog
-            Log.Info().Message("Hi").Write();
+            NLog.GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
+            Log.Info().Message("Hi").Property("LocalProp", "LocalValue").Write();
 
             // test log4net
-            BasicConfigurator.Configure(new ExceptionlessAppender());
+            XmlConfigurator.Configure();
+            GlobalContext.Properties["GlobalProp"] = "GlobalValue";
+            ThreadContext.Properties["LocalProp"] = "LocalValue";
             _log4net.Info("Hi");
 
             var tokenSource = new CancellationTokenSource();

@@ -4,7 +4,7 @@ using log4net.Core;
 
 namespace Exceptionless.Log4net {
     public class ExceptionlessAppender : AppenderSkeleton {
-        private ExceptionlessClient _client;
+        private ExceptionlessClient _client = ExceptionlessClient.Default;
 
         public string ApiKey { get; set; }
         public string ServerUrl { get; set; }
@@ -18,8 +18,6 @@ namespace Exceptionless.Log4net {
                         config.ServerUrl = ServerUrl;
                     config.UseInMemoryStorage();
                 });
-            else
-                _client = ExceptionlessClient.Default;
         }
 
         protected override void Append(LoggingEvent loggingEvent) {

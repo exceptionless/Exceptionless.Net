@@ -20,10 +20,14 @@ and viewing your project configuration page.
 
 Here is an example log.config file that shows how to use the Exceptionless log4net appender.
 
-<appender name="ExceptionlessAppender" type="Exceptionless.Log4net.ExceptionlessAppender, Exceptionless.Log4net">
+<appender name="exceptionless" type="Exceptionless.Log4net.ExceptionlessAppender,Exceptionless.Log4net" />
+
+By default, the appender will use the settings from the Exceptionless config section, but
+you can also set it on the appender like this:
+
+<appender name="exceptionless" type="Exceptionless.Log4net.ExceptionlessAppender, Exceptionless.Log4net">
     <apiKey value="API_KEY_HERE" />
 </appender>
-
 -------------------------------------
 	  Documentation and Support
 -------------------------------------
