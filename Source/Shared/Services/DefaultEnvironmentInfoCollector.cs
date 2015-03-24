@@ -2,7 +2,7 @@
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Services {
-    public class DefaultEnvironmentInfoCollector : IEnvironmentInfoCollector {
+    internal class DefaultEnvironmentInfoCollector : IEnvironmentInfoCollector {
         private static EnvironmentInfo _environmentInfo;
 
         public EnvironmentInfo GetEnvironmentInfo() {

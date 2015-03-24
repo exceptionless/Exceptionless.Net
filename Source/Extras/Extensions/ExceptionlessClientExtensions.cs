@@ -11,12 +11,8 @@ using Exceptionless.Submission;
 namespace Exceptionless {
     public static class ExceptionlessClientExtensions {
         public static void Startup(this ExceptionlessClient client, AppDomain appDomain = null) {
-            if (!client.Configuration.Resolver.HasRegistration<ISubmissionClient>() || 
-                 client.Configuration.Resolver.Resolve<ISubmissionClient>() is DefaultSubmissionClient)
-              client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
-            if (!client.Configuration.Resolver.HasRegistration<IEnvironmentInfoCollector>() || 
-                 client.Configuration.Resolver.Resolve<IEnvironmentInfoCollector>() is DefaultEnvironmentInfoCollector)
-              client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
+            client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
+            client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
             client.Configuration.ReadAllConfig();
             client.Configuration.UseErrorEnrichment();
             client.Configuration.UseTraceLogEntriesEnrichment();
