@@ -1,15 +1,4 @@
-﻿#region Copyright 2014 Exceptionless
-
-// This program is free software: you can redistribute it and/or modify it 
-// under the terms of the GNU Affero General Public License as published 
-// by the Free Software Foundation, either version 3 of the License, or 
-// (at your option) any later version.
-// 
-//     http://www.gnu.org/licenses/agpl-3.0.html
-
-#endregion
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -19,14 +8,15 @@ using Exceptionless.DateTimeExtensions;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Helpers;
-using Exceptionless.Log4net;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.NLog;
 using log4net;
 using log4net.Config;
-using log4net.Core;
+using NLog;
 using NLog.Fluent;
+using LogLevel = Exceptionless.Logging.LogLevel;
+using LogManager = log4net.LogManager;
 
 namespace SampleConsole {
     internal class Program {
@@ -57,7 +47,7 @@ namespace SampleConsole {
             ExceptionlessClient.Default.Register();
 
             // test NLog
-            NLog.GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
+            GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
             Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
             // test log4net
