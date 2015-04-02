@@ -7,6 +7,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Web {
+    [Priority(90)]
     internal class ExceptionlessWebPlugin : IEventPlugin {
         private const string TAGS_HTTP_CONTEXT_NAME = "Exceptionless.Tags";
 

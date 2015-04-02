@@ -64,6 +64,7 @@ namespace SampleConsole {
 
             ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
             ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
+
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => {

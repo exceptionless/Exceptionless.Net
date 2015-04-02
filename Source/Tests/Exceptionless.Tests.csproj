@@ -135,6 +135,7 @@
     <Compile Include="Utility\InMemorySubmissionClient.cs" />
     <Compile Include="Utility\PasswordGenerator.cs" />
     <Compile Include="Utility\RandomEventGenerator.cs" />
+    <Compile Include="Utility\TestOutputWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

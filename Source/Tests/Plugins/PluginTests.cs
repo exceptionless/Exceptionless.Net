@@ -4,10 +4,17 @@ using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
+using Exceptionless.Tests.Utility;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class PluginTests {
+        private readonly TestOutputWriter _writer;
+        public PluginTests(ITestOutputHelper output) {
+            _writer = new TestOutputWriter(output);
+        }
+
         [Fact]
         public void ConfigurationDefaults_EnsureNoDuplicateTagsOrData() {
             var client = new ExceptionlessClient();
@@ -92,6 +99,13 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("version2", plugins[3].Key);
             Assert.Equal(typeof(PluginWithPriority11), plugins[4].Plugin.GetType());
             Assert.Equal(typeof(EnvironmentInfoPlugin), plugins[5].Plugin.GetType());
+        }
+
+        [Fact]
+        public void ViewPriority() {
+            var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
+            foreach (var plugin in config.Plugins)
+                _writer.WriteLine(plugin);
         }
 
         public class PluginWithNoPriority : IEventPlugin {

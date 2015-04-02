@@ -6,6 +6,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Nancy {
+    [Priority(90)]
     internal class ExceptionlessNancyPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             //error.ExceptionlessClientInfo.Platform = "Nancy";

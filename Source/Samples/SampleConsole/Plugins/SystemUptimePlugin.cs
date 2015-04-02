@@ -4,6 +4,7 @@ using Exceptionless.Plugins;
 using Exceptionless.Models;
 
 namespace Exceptionless.SampleConsole.Plugins {
+    [Priority(100)]
     public class SystemUptimePlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             // Only update feature usage events.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
@@ -179,7 +180,7 @@ namespace Exceptionless {
         /// The list of plugins that will be used in this configuration.
         /// </summary>
         public IEnumerable<PluginRegistration> Plugins {
-            get { return _plugins.Values.OrderBy(e => e.Priority); }
+            get { return _plugins.Values.OrderBy(e => e.Priority).ToList(); }
         }
 
         /// <summary>
@@ -315,6 +316,7 @@ namespace Exceptionless {
             public ICollection<string> Messages { get; private set; }
         }
 
+        [DebuggerDisplay("Key: {Key}, Priority: {Priority}")]
         public class PluginRegistration {
             private readonly Lazy<IEventPlugin> _plugin;
             public PluginRegistration(string key, int priority, Lazy<IEventPlugin> plugin) {
@@ -329,6 +331,10 @@ namespace Exceptionless {
 
             public IEventPlugin Plugin {
                 get { return _plugin.Value; }
+            }
+
+            public override string ToString() {
+                return String.Format("Key: {0}, Priority: {1}", Key, Priority);
             }
         }
     }

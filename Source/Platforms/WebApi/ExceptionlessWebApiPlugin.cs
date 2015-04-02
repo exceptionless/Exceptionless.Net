@@ -13,6 +13,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.WebApi {
+    [Priority(90)]
     internal class ExceptionlessWebApiPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             if (!context.ContextData.ContainsKey("HttpActionContext"))
