@@ -69,8 +69,8 @@ namespace Exceptionless.Tests.Plugins {
             foreach (var plugin in client.Configuration.Plugins)
                 client.Configuration.RemovePlugin(plugin.Key);
 
-            client.Configuration.AddPlugin(ctx => ctx.Cancel = true);
-            client.Configuration.AddPlugin(ctx => ctx.Event.Tags.Add("Was Not Canceled"));
+            client.Configuration.AddPlugin("cancel", 1, ctx => ctx.Cancel = true);
+            client.Configuration.AddPlugin("add-tag", 2, ctx => ctx.Event.Tags.Add("Was Not Canceled"));
 
             var context = new EventPluginContext(client, new Event());
             EventPluginManager.Run(context);
@@ -88,15 +88,15 @@ namespace Exceptionless.Tests.Plugins {
             config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<PluginWithPriority11>();
             config.AddPlugin<PluginWithNoPriority>();
-            config.AddPlugin("version3", 1, ctx => ctx.Event.SetVersion("1.0.0.0"));
             config.AddPlugin("version", 1, ctx => ctx.Event.SetVersion("1.0.0.0"));
-            config.AddPlugin("version2", 1, ctx => ctx.Event.SetVersion("1.0.0.0"));
+            config.AddPlugin("version2", 2, ctx => ctx.Event.SetVersion("1.0.0.0"));
+            config.AddPlugin("version3", 3, ctx => ctx.Event.SetVersion("1.0.0.0"));
 
             var plugins = config.Plugins.ToArray();
             Assert.Equal(typeof(PluginWithNoPriority), plugins[0].Plugin.GetType());
-            Assert.Equal("version3", plugins[1].Key);
-            Assert.Equal("version", plugins[2].Key);
-            Assert.Equal("version2", plugins[3].Key);
+            Assert.Equal("version", plugins[1].Key);
+            Assert.Equal("version2", plugins[2].Key);
+            Assert.Equal("version3", plugins[3].Key);
             Assert.Equal(typeof(PluginWithPriority11), plugins[4].Plugin.GetType());
             Assert.Equal(typeof(EnvironmentInfoPlugin), plugins[5].Plugin.GetType());
         }
