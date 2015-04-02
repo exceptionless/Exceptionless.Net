@@ -10,26 +10,26 @@ namespace Exceptionless.Log4net {
         public string ServerUrl { get; set; }
 
         protected override void SendBuffer(LoggingEvent[] events) {
-            foreach (var e in events) {
+            foreach (var e in events)
                 _client.SubmitFromLogEvent(e);
-            }
         }
 
         public override void ActivateOptions() {
             base.ActivateOptions();
-            if (!String.IsNullOrEmpty(ApiKey) || !String.IsNullOrEmpty(ServerUrl))
-                _client = new ExceptionlessClient(config =>
-                {
-                    if (!String.IsNullOrEmpty(ApiKey))
-                        config.ApiKey = ApiKey;
-                    if (!String.IsNullOrEmpty(ServerUrl))
-                        config.ServerUrl = ServerUrl;
-                    config.UseInMemoryStorage();
-                });
+            
+            if (String.IsNullOrEmpty(ApiKey) && String.IsNullOrEmpty(ServerUrl))
+                return;
+
+            _client = new ExceptionlessClient(config => {
+                if (!String.IsNullOrEmpty(ApiKey))
+                    config.ApiKey = ApiKey;
+                if (!String.IsNullOrEmpty(ServerUrl))
+                    config.ServerUrl = ServerUrl;
+                config.UseInMemoryStorage();
+            });
         }
 
-        protected override void Append(LoggingEvent loggingEvent)
-        {
+        protected override void Append(LoggingEvent loggingEvent) {
             if (!_client.Configuration.IsValid)
                 return;
 
