@@ -47,6 +47,7 @@
     <Compile Include="..\..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="BufferingExceptionlessAppender.cs" />
     <Compile Include="ExceptionlessAppender.cs" />
     <Compile Include="ExceptionlessClientExtensions.cs" />
     <Compile Include="Log4netExceptionlessLog.cs" />
