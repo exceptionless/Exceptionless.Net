@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.ExtendedData;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
@@ -15,7 +15,7 @@ namespace Exceptionless {
         public static void RegisterNancy(this ExceptionlessClient client, IPipelines pipelines) {
             client.Startup();
             client.Configuration.IncludePrivateInformation = true;
-            client.Configuration.AddEnrichment<ExceptionlessNancyEnrichment>();
+            client.Configuration.AddPlugin<ExceptionlessNancyPlugin>();
 
             pipelines.OnError += OnError;
             pipelines.AfterRequest += AfterRequest;
@@ -40,7 +40,7 @@ namespace Exceptionless {
 
         public static void UnregisterNancy(this ExceptionlessClient client) {
             client.Shutdown();
-            client.Configuration.RemoveEnrichment<ExceptionlessNancyEnrichment>();
+            client.Configuration.RemovePlugin<ExceptionlessNancyPlugin>();
         }
 
         /// <summary>

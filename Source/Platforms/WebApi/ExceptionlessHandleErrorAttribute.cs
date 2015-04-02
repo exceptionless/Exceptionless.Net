@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Filters;
 using Exceptionless.Dependency;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using TaskExtensions = Exceptionless.Threading.Tasks.TaskExtensions;
 
 namespace Exceptionless.WebApi {

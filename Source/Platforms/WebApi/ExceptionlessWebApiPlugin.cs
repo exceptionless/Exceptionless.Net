@@ -6,15 +6,15 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Web.Http.Controllers;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.WebApi {
-    internal class ExceptionlessWebApiEnrichment : IEventEnrichment {
-        public void Enrich(EventEnrichmentContext context, Event ev) {
+    internal class ExceptionlessWebApiPlugin : IEventPlugin {
+        public void Run(EventPluginContext context) {
             if (!context.Data.ContainsKey("HttpActionContext"))
                 return;
 
@@ -24,26 +24,26 @@ namespace Exceptionless.WebApi {
 
             IPrincipal principal = GetPrincipal(actionContext.Request);
             if (context.Client.Configuration.IncludePrivateInformation && principal != null && principal.Identity.IsAuthenticated)
-                ev.SetUserIdentity(principal.Identity.Name);
+                context.Event.SetUserIdentity(principal.Identity.Name);
 
             RequestInfo requestInfo = null;
             try {
                 requestInfo = actionContext.GetRequestInfo(context.Client.Configuration);
             } catch (Exception ex) {
-                context.Log.Error(typeof(ExceptionlessWebApiEnrichment), ex, "Error adding request info.");
+                context.Log.Error(typeof(ExceptionlessWebApiPlugin), ex, "Error adding request info.");
             }
 
             if (requestInfo == null)
                 return;
 
-            var error = ev.GetError();
+            var error = context.Event.GetError();
             if (error != null && error.Code == "404") {
-                ev.Type = Event.KnownTypes.NotFound;
-                ev.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-                ev.Data.Clear();
+                context.Event.Type = Event.KnownTypes.NotFound;
+                context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+                context.Event.Data.Clear();
             }
 
-            ev.AddRequestInfo(requestInfo);
+            context.Event.AddRequestInfo(requestInfo);
         }
 
         private static IPrincipal GetPrincipal(HttpRequestMessage request) {

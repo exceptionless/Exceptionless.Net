@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
 
 namespace Exceptionless {
     public class EventBuilder {
-        public EventBuilder(Event ev, ExceptionlessClient client = null, ContextData enrichmentContextData = null) {
+        public EventBuilder(Event ev, ExceptionlessClient client = null, ContextData pluginContextData = null) {
             Client = client ?? ExceptionlessClient.Default;
             Target = ev;
-            EnrichmentContextData = enrichmentContextData;
+            PluginContextData = pluginContextData;
         }
 
         /// <summary>
-        ///     Any contextual data objects to be used by Exceptionless enrichments to gather additional
+        ///     Any contextual data objects to be used by Exceptionless plugins to gather additional
         ///     information for inclusion in the event.
         /// </summary>
-        public ContextData EnrichmentContextData { get; private set; }
+        public ContextData PluginContextData { get; private set; }
 
         public ExceptionlessClient Client { get; set; }
         
@@ -182,7 +182,7 @@ namespace Exceptionless {
         ///     Submits the event report.
         /// </summary>
         public void Submit() {
-            Client.SubmitEvent(Target, EnrichmentContextData);
+            Client.SubmitEvent(Target, PluginContextData);
         }
     }
 }

@@ -11,6 +11,7 @@ using Exceptionless.Helpers;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.NLog;
+using Exceptionless.SampleConsole.Plugins;
 using log4net;
 using log4net.Config;
 using NLog;
@@ -61,11 +62,14 @@ namespace SampleConsole {
             if (false)
                 SampleApiUsages();
 
-            ExceptionlessClient.Default.Configuration.AddEnrichment(ev => ev.Data[RandomData.GetWord()] = RandomData.GetWord());
-            ExceptionlessClient.Default.Configuration.AddEnrichment((ctx, ev) => {
+            ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
+            ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
+            ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
+            ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
+            ExceptionlessClient.Default.Configuration.AddPlugin(ctx => {
                 // use server settings to see if we should include this data
                 if (ctx.Client.Configuration.Settings.GetBoolean("IncludeConditionalData", true))
-                    ev.AddObject(new { Total = 32.34, ItemCount = 2, Email = "someone@somewhere.com" }, "ConditionalData");
+                    ctx.Event.AddObject(new { Total = 32.34, ItemCount = 2, Email = "someone@somewhere.com" }, "ConditionalData");
             });
             ExceptionlessClient.Default.Configuration.Settings.Changed += (sender, args) => Trace.WriteLine(String.Format("Action: {0} Key: {1} Value: {2}", args.Action, args.Item.Key, args.Item.Value ));
 

@@ -51,7 +51,7 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ExceptionlessNancyExtensions.cs" />
-    <Compile Include="ExceptionlessNancyEnrichment.cs" />
+    <Compile Include="ExceptionlessNancyPlugin.cs" />
     <Compile Include="NancyRequestInfoCollector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

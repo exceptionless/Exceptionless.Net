@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Exceptionless.Dependency;
 using Exceptionless.Diagnostics;
-using Exceptionless.Enrichments.Default;
+using Exceptionless.Plugins.Default;
 using Exceptionless.Extras;
 using Exceptionless.Extras.Storage;
 using Exceptionless.Extras.Utility;
@@ -20,9 +19,9 @@ namespace Exceptionless {
         /// Reads the Exceptionless configuration from the app.config or web.config file.
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
-        public static void UseErrorEnrichment(this ExceptionlessConfiguration config) {
-            config.RemoveEnrichment<SimpleErrorEnrichment>();
-            config.AddEnrichment<Enrichments.ErrorEnrichment>();
+        public static void UseErrorPlugin(this ExceptionlessConfiguration config) {
+            config.RemovePlugin<SimpleErrorPlugin>();
+            config.AddPlugin<Plugins.ErrorPlugin>();
         }
 
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
@@ -47,16 +46,16 @@ namespace Exceptionless {
             config.Resolver.Register<IExceptionlessLog>(log);
         }
 
-        public static void UseTraceLogEntriesEnrichment(this ExceptionlessConfiguration config, int? defaultMaxEntriesToInclude = null) {
-            int maxEntriesToInclude = config.Settings.GetInt32(TraceLogEnrichment.MaxEntriesToIncludeKey, defaultMaxEntriesToInclude ?? 0);
+        public static void UseTraceLogEntriesPlugin(this ExceptionlessConfiguration config, int? defaultMaxEntriesToInclude = null) {
+            int maxEntriesToInclude = config.Settings.GetInt32(TraceLogPlugin.MaxEntriesToIncludeKey, defaultMaxEntriesToInclude ?? 0);
 
             if (!Trace.Listeners.OfType<ExceptionlessTraceListener>().Any())
                 Trace.Listeners.Add(new ExceptionlessTraceListener(maxEntriesToInclude));
 
-            if (!config.Settings.ContainsKey(TraceLogEnrichment.MaxEntriesToIncludeKey) && defaultMaxEntriesToInclude.HasValue)
-                config.Settings.Add(TraceLogEnrichment.MaxEntriesToIncludeKey, maxEntriesToInclude.ToString());
+            if (!config.Settings.ContainsKey(TraceLogPlugin.MaxEntriesToIncludeKey) && defaultMaxEntriesToInclude.HasValue)
+                config.Settings.Add(TraceLogPlugin.MaxEntriesToIncludeKey, maxEntriesToInclude.ToString());
 
-            config.AddEnrichment(typeof(TraceLogEnrichment).Name, c => new TraceLogEnrichment(c));
+            config.AddPlugin(typeof(TraceLogPlugin).Name, 70, c => new TraceLogPlugin(c));
         }
 
         public static void ReadAllConfig(this ExceptionlessConfiguration config, params Assembly[] configAttributesAssemblies) {

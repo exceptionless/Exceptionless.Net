@@ -117,7 +117,7 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Configuration\ConfigurationTests.cs" />
-    <Compile Include="Enrichments\EnrichmentTests.cs" />
+    <Compile Include="Plugins\PluginTests.cs" />
     <Compile Include="Dependency\DependencyTests.cs" />
     <Compile Include="ExceptionlessClientTests.cs" />
     <Compile Include="LastReferenceIdManager\DefaultLastReferenceIdManagerTests.cs" />

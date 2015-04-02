@@ -25,7 +25,7 @@ namespace Exceptionless.SampleWindows {
         private static void OnSubmittingEvent(object sender, EventSubmittingEventArgs e) {
             e.Event.Tags.Add("ExtraTag");
 
-            var exception = e.EnrichmentContextData.GetException();
+            var exception = e.PluginContextData.GetException();
             if (exception != null && exception.GetType() == typeof(InvalidOperationException))
                 e.Cancel = true;
         }

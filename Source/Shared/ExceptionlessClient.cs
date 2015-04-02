@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Duplicates;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
@@ -118,11 +118,11 @@ namespace Exceptionless {
         /// Submits the event to be sent to the server.
         /// </summary>
         /// <param name="ev">The event data.</param>
-        /// <param name="enrichmentContextData">
-        /// Any contextual data objects to be used by Exceptionless enrichments to gather default
+        /// <param name="pluginContextData">
+        /// Any contextual data objects to be used by Exceptionless plugins to gather default
         /// information for inclusion in the report information.
         /// </param>
-        public void SubmitEvent(Event ev, ContextData enrichmentContextData = null) {
+        public void SubmitEvent(Event ev, ContextData pluginContextData = null) {
             if (ev == null)
                 throw new ArgumentNullException("ev");
 
@@ -139,8 +139,10 @@ namespace Exceptionless {
                 }
             }
 
-            var context = new EventEnrichmentContext(this, enrichmentContextData);
-            EventEnrichmentManager.Enrich(context, ev);
+            var context = new EventPluginContext(this, ev, pluginContextData);
+            EventPluginManager.Run(context);
+            if (context.Cancel)
+                return;
 
             if (_duplicateChecker.Value != null && _duplicateChecker.Value.IsDuplicate(ev))
                 return;
@@ -151,7 +153,7 @@ namespace Exceptionless {
             if (ev.Date == DateTimeOffset.MinValue)
                 ev.Date = DateTimeOffset.Now;
 
-            if (!OnSubmittingEvent(ev, enrichmentContextData)) {
+            if (!OnSubmittingEvent(ev, pluginContextData)) {
                 _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Event submission cancelled by event handler: id={0} type={1}", ev.ReferenceId, ev.Type);
                 return;
             }
@@ -167,13 +169,13 @@ namespace Exceptionless {
         }
 
         /// <summary>Creates a new instance of <see cref="Event" />.</summary>
-        /// <param name="enrichmentContextData">
-        /// Any contextual data objects to be used by Exceptionless enrichments to gather default
+        /// <param name="pluginContextData">
+        /// Any contextual data objects to be used by Exceptionless plugins to gather default
         /// information to add to the event data.
         /// </param>
         /// <returns>A new instance of <see cref="EventBuilder" />.</returns>
-        public EventBuilder CreateEvent(ContextData enrichmentContextData = null) {
-            return new EventBuilder(new Event { Date = DateTimeOffset.Now }, this, enrichmentContextData);
+        public EventBuilder CreateEvent(ContextData pluginContextData = null) {
+            return new EventBuilder(new Event { Date = DateTimeOffset.Now }, this, pluginContextData);
         }
 
         /// <summary>
@@ -189,8 +191,8 @@ namespace Exceptionless {
         /// </summary>
         public event EventHandler<EventSubmittingEventArgs> SubmittingEvent;
 
-        private bool OnSubmittingEvent(Event ev, ContextData enrichmentContextData) {
-            var args = new EventSubmittingEventArgs(this, ev, enrichmentContextData);
+        private bool OnSubmittingEvent(Event ev, ContextData pluginContextData) {
+            var args = new EventSubmittingEventArgs(this, ev, pluginContextData);
             OnSubmittingEvent(args);
             return !args.Cancel;
         }

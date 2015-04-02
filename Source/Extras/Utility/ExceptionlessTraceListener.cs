@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Exceptionless.Enrichments.Default;
+using Exceptionless.Plugins.Default;
 
 namespace Exceptionless.Diagnostics {
     public class ExceptionlessTraceListener : TraceListener {
@@ -62,7 +62,7 @@ namespace Exceptionless.Diagnostics {
 
         private Queue<string> InnerList { get { return _innerList; } }
 
-        public List<string> GetLogEntries(int entryCount = TraceLogEnrichment.DefaultMaxEntriesToInclude) {
+        public List<string> GetLogEntries(int entryCount = TraceLogPlugin.DefaultMaxEntriesToInclude) {
             return new List<string>(InnerList.Take(entryCount).ToArray());
         }
     }

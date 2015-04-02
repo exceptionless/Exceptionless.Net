@@ -14,7 +14,7 @@ namespace Exceptionless.Mvc {
             ExceptionlessClient.Default.Startup();
             ExceptionlessClient.Default.RegisterHttpApplicationErrorHandler(app);
             ExceptionlessClient.Default.Configuration.IncludePrivateInformation = true;
-            ExceptionlessClient.Default.Configuration.AddEnrichment<ExceptionlessWebEnrichment>();
+            ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
             ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
             
             _app = app;

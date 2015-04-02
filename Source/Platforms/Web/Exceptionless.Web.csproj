@@ -69,7 +69,7 @@
     <Compile Include="ExceptionlessWcfHandleErrorAttribute.cs" />
     <Compile Include="ExceptionlessWebExtensions.cs" />
     <Compile Include="ExceptionlessModule.cs" />
-    <Compile Include="ExceptionlessWebEnrichment.cs" />
+    <Compile Include="ExceptionlessWebPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestInfoCollector.cs" />
     <Compile Include="WebLastReferenceIdManager.cs" />

@@ -66,11 +66,11 @@
     <Compile Include="..\Web\ExceptionlessClientExtensions.cs">
       <Link>ExceptionlessClientExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\Web\ExceptionlessWebEnrichment.cs">
-      <Link>ExceptionlessWebEnrichment.cs</Link>
-    </Compile>
     <Compile Include="..\Web\ExceptionlessWebExtensions.cs">
       <Link>ExceptionlessWebExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Web\ExceptionlessWebPlugin.cs">
+      <Link>ExceptionlessWebPlugin.cs</Link>
     </Compile>
     <Compile Include="..\Web\RequestInfoCollector.cs">
       <Link>RequestInfoCollector.cs</Link>

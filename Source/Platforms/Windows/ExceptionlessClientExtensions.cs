@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Windows.Forms;
 using Exceptionless.Dependency;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Logging;
 
 namespace Exceptionless.Windows.Extensions {

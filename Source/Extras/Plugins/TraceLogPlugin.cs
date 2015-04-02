@@ -7,32 +7,28 @@ using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Collections;
 
-namespace Exceptionless.Enrichments.Default {
-    public class TraceLogEnrichment : IEventEnrichment, IDisposable {
+namespace Exceptionless.Plugins.Default {
+    [Priority(70)]
+    public class TraceLogPlugin : IEventPlugin, IDisposable {
         public const string MaxEntriesToIncludeKey = "TraceLogLimit";
         public const int DefaultMaxEntriesToInclude = 25;
 
         private readonly ExceptionlessConfiguration _configuration;
         private readonly ExceptionlessTraceListener _listener; 
 
-        public TraceLogEnrichment(ExceptionlessConfiguration config, ExceptionlessTraceListener listener = null) {
+        public TraceLogPlugin(ExceptionlessConfiguration config, ExceptionlessTraceListener listener = null) {
             _configuration = config;
             _configuration.Settings.Changed += OnSettingsChanged;
             _listener = listener ?? Trace.Listeners.OfType<ExceptionlessTraceListener>().FirstOrDefault();
         }
 
-        /// <summary>
-        /// Enrich the event with additional information.
-        /// </summary>
-        /// <param name="context">Context information.</param>
-        /// <param name="ev">Event to enrich.</param>
-        public void Enrich(EventEnrichmentContext context, Event ev) {
+        public void Run(EventPluginContext context) {
             try {
                 int maxEntriesToInclude = context.Client.Configuration.Settings.GetInt32(MaxEntriesToIncludeKey, DefaultMaxEntriesToInclude);
                 if (maxEntriesToInclude > 0)
-                    AddRecentTraceLogEntries(ev, _listener, maxEntriesToInclude);
+                    AddRecentTraceLogEntries(context.Event, _listener, maxEntriesToInclude);
             } catch (Exception ex) {
-                context.Log.FormattedError(typeof(TraceLogEnrichment), ex, "Error adding trace information: {0}", ex.Message);
+                context.Log.FormattedError(typeof(TraceLogPlugin), ex, "Error adding trace information: {0}", ex.Message);
             }
         }
 

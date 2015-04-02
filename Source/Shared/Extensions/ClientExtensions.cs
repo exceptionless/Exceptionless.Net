@@ -10,7 +10,7 @@ namespace Exceptionless {
         /// <param name="exception">The unhandled exception.</param>
         public static void SubmitUnhandledException(this ExceptionlessClient client, Exception exception) {
             var builder = exception.ToExceptionless(client: client);
-            builder.EnrichmentContextData.MarkAsUnhandledError();
+            builder.PluginContextData.MarkAsUnhandledError();
             builder.Submit();
         }
 

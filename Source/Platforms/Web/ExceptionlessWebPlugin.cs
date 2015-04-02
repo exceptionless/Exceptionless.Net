@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Web;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Web {
-    internal class ExceptionlessWebEnrichment : IEventEnrichment {
+    internal class ExceptionlessWebPlugin : IEventPlugin {
         private const string TAGS_HTTP_CONTEXT_NAME = "Exceptionless.Tags";
 
-        public void Enrich(EventEnrichmentContext context, Event ev) {
+        public void Run(EventPluginContext context) {
             HttpContextBase httpContext = context.Data.GetHttpContext();
 
             // if the context is not passed in, try and grab it
@@ -24,17 +24,17 @@ namespace Exceptionless.Web {
             if (context.Client.Configuration.IncludePrivateInformation
                 && httpContext.User != null
                 && httpContext.User.Identity.IsAuthenticated)
-                ev.SetUserIdentity(httpContext.User.Identity.Name);
+                context.Event.SetUserIdentity(httpContext.User.Identity.Name);
 
             var tags = httpContext.Items[TAGS_HTTP_CONTEXT_NAME] as TagSet;
             if (tags != null)
-                ev.Tags.UnionWith(tags);
+                context.Event.Tags.UnionWith(tags);
 
             RequestInfo requestInfo = null;
             try {
                 requestInfo = httpContext.GetRequestInfo(context.Client.Configuration);
             } catch (Exception ex) {
-                context.Log.Error(typeof(ExceptionlessWebEnrichment), ex, "Error adding request info.");
+                context.Log.Error(typeof(ExceptionlessWebPlugin), ex, "Error adding request info.");
             }
 
             if (requestInfo == null)
@@ -44,13 +44,13 @@ namespace Exceptionless.Web {
             if (httpException != null) {
                 int httpCode = httpException.GetHttpCode();
                 if (httpCode == 404) {
-                    ev.Type = Event.KnownTypes.NotFound;
-                    ev.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-                    ev.Data.Clear();
+                    context.Event.Type = Event.KnownTypes.NotFound;
+                    context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+                    context.Event.Data.Clear();
                 }
             }
 
-            ev.AddRequestInfo(requestInfo);
+            context.Event.AddRequestInfo(requestInfo);
         }
     }
 }

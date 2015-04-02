@@ -3,11 +3,12 @@ using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 
-namespace Exceptionless.Enrichments.Default {
-    public class EnvironmentInfoEnrichment : IEventEnrichment {
-        public void Enrich(EventEnrichmentContext context, Event ev) {
+namespace Exceptionless.Plugins.Default {
+    [Priority(50)]
+    public class EnvironmentInfoPlugin : IEventPlugin {
+        public void Run(EventPluginContext context) {
             //TODO: This needs to be uncommented when the client is sending session start and end.
-            if (ev.Data.ContainsKey(Event.KnownDataKeys.EnvironmentInfo)) // || ev.Type != Event.KnownTypes.SessionStart)
+            if (context.Event.Data.ContainsKey(Event.KnownDataKeys.EnvironmentInfo)) // || context.Event.Type != Event.KnownTypes.SessionStart)
                 return;
 
             try {
@@ -17,9 +18,9 @@ namespace Exceptionless.Enrichments.Default {
 
                 var info = collector.GetEnvironmentInfo();
                 info.InstallId = context.Client.Configuration.GetInstallId();
-                ev.Data.Add(Event.KnownDataKeys.EnvironmentInfo, info);
+                context.Event.Data.Add(Event.KnownDataKeys.EnvironmentInfo, info);
             } catch (Exception ex) {
-                context.Resolver.GetLog().FormattedError(typeof(EnvironmentInfoEnrichment), ex, "Error adding environment information: {0}", ex.Message);
+                context.Resolver.GetLog().FormattedError(typeof(EnvironmentInfoPlugin), ex, "Error adding environment information: {0}", ex.Message);
             }
         }
     }

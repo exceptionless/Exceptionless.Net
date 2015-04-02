@@ -56,7 +56,7 @@
     <Compile Include="ExceptionlessExceptionLogger.cs" />
     <Compile Include="ExceptionlessHandleErrorAttribute.cs" />
     <Compile Include="ExceptionlessWebApiExtensions.cs" />
-    <Compile Include="ExceptionlessWebApiEnrichment.cs" />
+    <Compile Include="ExceptionlessWebApiPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpRequestInfoCollector.cs" />
   </ItemGroup>

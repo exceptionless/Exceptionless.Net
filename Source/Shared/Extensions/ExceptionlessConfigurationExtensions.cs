@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
-using Exceptionless.Enrichments.Default;
+using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Storage;
@@ -71,7 +71,7 @@ namespace Exceptionless {
         /// Automatically set a reference id for error events.
         /// </summary>
         public static void UseReferenceIds(this ExceptionlessConfiguration config) {
-            config.AddEnrichment<ReferenceIdEnrichment>();
+            config.AddPlugin<ReferenceIdPlugin>();
         }
 
         /// <summary>

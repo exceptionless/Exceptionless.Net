@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Web.Mvc;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 
 namespace Exceptionless.Mvc {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]

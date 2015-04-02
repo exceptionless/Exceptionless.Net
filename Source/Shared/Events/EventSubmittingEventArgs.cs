@@ -1,13 +1,13 @@
 using System;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Models;
 
 namespace Exceptionless {
     public class EventSubmittingEventArgs : EventArgs {
-        public EventSubmittingEventArgs(ExceptionlessClient client, Event data, ContextData enrichmentContextData) {
+        public EventSubmittingEventArgs(ExceptionlessClient client, Event data, ContextData pluginContextData) {
             Client = client;
             Event = data;
-            EnrichmentContextData = enrichmentContextData;
+            PluginContextData = pluginContextData;
         }
 
         /// <summary>
@@ -21,16 +21,16 @@ namespace Exceptionless {
         public Event Event { get; private set; }
         
         /// <summary>
-        /// Any contextual data objects to be used by Exceptionless enrichments to gather default
+        /// Any contextual data objects to be used by Exceptionless plugins to gather default
         /// information to add to the event data.
         /// </summary>
-        public ContextData EnrichmentContextData { get; private set; }
+        public ContextData PluginContextData { get; private set; }
 
         /// <summary>
         /// Wether the event is an unhandled error.
         /// </summary>
         public bool IsUnhandledError {
-            get { return EnrichmentContextData != null && EnrichmentContextData.IsUnhandledError; }
+            get { return PluginContextData != null && PluginContextData.IsUnhandledError; }
         }
 
         /// <summary>

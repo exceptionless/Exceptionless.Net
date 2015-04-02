@@ -1,13 +1,13 @@
 ﻿using System;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Nancy {
-    internal class ExceptionlessNancyEnrichment : IEventEnrichment {
-        public void Enrich(EventEnrichmentContext context, Event ev) {
+    internal class ExceptionlessNancyPlugin : IEventPlugin {
+        public void Run(EventPluginContext context) {
             //error.ExceptionlessClientInfo.Platform = "Nancy";
 
             var nancyContext = context.Data.GetNancyContext();
@@ -15,24 +15,24 @@ namespace Exceptionless.Nancy {
                 return;
 
             if (nancyContext.CurrentUser != null && context.Client.Configuration.IncludePrivateInformation)
-                ev.SetUserIdentity(nancyContext.CurrentUser.UserName);
+                context.Event.SetUserIdentity(nancyContext.CurrentUser.UserName);
 
             RequestInfo requestInfo = null;
             try {
                 requestInfo = nancyContext.GetRequestInfo(context.Client.Configuration);
             } catch (Exception ex) {
-                context.Log.Error(typeof(ExceptionlessNancyEnrichment), ex, "Error adding request info.");
+                context.Log.Error(typeof(ExceptionlessNancyPlugin), ex, "Error adding request info.");
             }
 
             if (requestInfo == null)
                 return;
 
-            if (ev.Type == Event.KnownTypes.NotFound) {
-                ev.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-                ev.Data.Clear();
+            if (context.Event.Type == Event.KnownTypes.NotFound) {
+                context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+                context.Event.Data.Clear();
             }
 
-            ev.AddRequestInfo(requestInfo);
+            context.Event.AddRequestInfo(requestInfo);
         }
     }
 }

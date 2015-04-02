@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Exceptionless.Dependency;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 using Exceptionless.Extras.Extensions;
 using Exceptionless.Extras.Submission;
 using Exceptionless.Logging;
@@ -14,10 +14,10 @@ namespace Exceptionless {
             client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
             client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
             client.Configuration.ReadAllConfig();
-            client.Configuration.UseErrorEnrichment();
-            client.Configuration.UseTraceLogEntriesEnrichment();
-            client.Configuration.AddEnrichment<VersionEnrichment>();
-            client.Configuration.AddEnrichment<PrivateInformationEnrichment>();
+            client.Configuration.UseErrorPlugin();
+            client.Configuration.UseTraceLogEntriesPlugin();
+            client.Configuration.AddPlugin<VersionPlugin>();
+            client.Configuration.AddPlugin<PrivateInformationPlugin>();
             
             client.RegisterAppDomainUnhandledExceptionHandler(appDomain);
             client.RegisterTaskSchedulerUnobservedTaskExceptionHandler();

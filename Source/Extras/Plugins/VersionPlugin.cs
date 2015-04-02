@@ -4,17 +4,18 @@ using System.Reflection;
 using Exceptionless.Extras;
 using Exceptionless.Models;
 
-namespace Exceptionless.Enrichments {
-    public class VersionEnrichment : IEventEnrichment {
+namespace Exceptionless.Plugins {
+    [Priority(80)]
+    public class VersionPlugin : IEventPlugin {
         private static bool _checkedForVersion;
 
-        public void Enrich(EventEnrichmentContext context, Event ev) {
-            if (ev.Data.ContainsKey(Event.KnownDataKeys.Version))
+        public void Run(EventPluginContext context) {
+            if (context.Event.Data.ContainsKey(Event.KnownDataKeys.Version))
                 return;
 
             object value;
             if (context.Client.Configuration.DefaultData.TryGetValue(Event.KnownDataKeys.Version, out value) && value is string) {
-                ev.Data[Event.KnownDataKeys.Version] = value;
+                context.Event.Data[Event.KnownDataKeys.Version] = value;
                 return;
             }
 
@@ -30,7 +31,7 @@ namespace Exceptionless.Enrichments {
             if (String.IsNullOrEmpty(version))
                 return;
 
-            ev.Data[Event.KnownDataKeys.Version] = context.Client.Configuration.DefaultData[Event.KnownDataKeys.Version] = version;
+            context.Event.Data[Event.KnownDataKeys.Version] = context.Client.Configuration.DefaultData[Event.KnownDataKeys.Version] = version;
         }
 
         private string GetVersionFromAssembly(Assembly assembly) {

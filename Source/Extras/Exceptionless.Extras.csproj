@@ -51,10 +51,10 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Enrichments\ErrorEnrichment.cs" />
-    <Compile Include="Enrichments\PrivateInformationEnrichment.cs" />
-    <Compile Include="Enrichments\TraceLogEnrichment.cs" />
-    <Compile Include="Enrichments\VersionEnrichment.cs" />
+    <Compile Include="Plugins\ErrorPlugin.cs" />
+    <Compile Include="Plugins\PrivateInformationPlugin.cs" />
+    <Compile Include="Plugins\TraceLogPlugin.cs" />
+    <Compile Include="Plugins\VersionPlugin.cs" />
     <Compile Include="ExceptionlessSection.cs" />
     <Compile Include="Extensions\EventBuilderExtensions.cs" />
     <Compile Include="Extensions\ExceptionlessClientExtensions.cs" />

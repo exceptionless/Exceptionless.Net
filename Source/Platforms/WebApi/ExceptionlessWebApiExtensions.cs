@@ -13,7 +13,7 @@ namespace Exceptionless {
     public static class ExceptionlessWebApiExtensions {
         public static void RegisterWebApi(this ExceptionlessClient client, HttpConfiguration config) {
             client.Startup();
-            client.Configuration.AddEnrichment<ExceptionlessWebApiEnrichment>();
+            client.Configuration.AddPlugin<ExceptionlessWebApiPlugin>();
             client.Configuration.IncludePrivateInformation = true;
 
 #if WEBAPI21
@@ -25,7 +25,7 @@ namespace Exceptionless {
 
         public static void UnregisterWebApi(this ExceptionlessClient client) {
             client.Shutdown();
-            client.Configuration.RemoveEnrichment<ExceptionlessWebApiEnrichment>();
+            client.Configuration.RemovePlugin<ExceptionlessWebApiPlugin>();
         }
 
         private static void ReplaceHttpErrorHandler(HttpConfiguration config) {

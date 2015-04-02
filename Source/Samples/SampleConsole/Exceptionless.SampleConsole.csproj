@@ -69,6 +69,7 @@
     <Compile Include="..\..\Tests\Utility\RandomEventGenerator.cs">
       <Link>RandomEventGenerator.cs</Link>
     </Compile>
+    <Compile Include="Plugins\SystemUptimePlugin.cs" />
     <Compile Include="Submission\InMemorySubmissionClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -107,8 +108,6 @@
       <Name>Exceptionless.Portable</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Enrichments\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

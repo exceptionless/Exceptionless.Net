@@ -1,6 +1,6 @@
 ﻿#if WEBAPI21
 using System;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 
 namespace Exceptionless.WebApi {
     public class ExceptionlessExceptionLogger : ExceptionLogger {

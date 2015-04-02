@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Exceptionless.Enrichments;
+using Exceptionless.Plugins;
 
 namespace Exceptionless {
     public static class ExceptionExtensions {
@@ -8,7 +8,7 @@ namespace Exceptionless {
         /// Creates a builder object for constructing error reports in a fluent api.
         /// </summary>
         /// <param name="exception">The exception.</param>
-        /// <param name="enrichmentContextData">
+        /// <param name="pluginContextData">
         /// Any contextual data objects to be used by Exceptionless plugins to gather default
         /// information for inclusion in the report information.
         /// </param>
@@ -17,16 +17,16 @@ namespace Exceptionless {
         /// ExceptionlessClient.Default.
         /// </param>
         /// <returns></returns>
-        public static EventBuilder ToExceptionless(this Exception exception, ContextData enrichmentContextData = null, ExceptionlessClient client = null) {
+        public static EventBuilder ToExceptionless(this Exception exception, ContextData pluginContextData = null, ExceptionlessClient client = null) {
             if (client == null)
                 client = ExceptionlessClient.Default;
 
-            if (enrichmentContextData == null)
-                enrichmentContextData = new ContextData();
+            if (pluginContextData == null)
+                pluginContextData = new ContextData();
 
-            enrichmentContextData.SetException(exception);
+            pluginContextData.SetException(exception);
 
-            return client.CreateEvent(enrichmentContextData);
+            return client.CreateEvent(pluginContextData);
         }
     }
 }

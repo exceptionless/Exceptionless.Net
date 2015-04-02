@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Exceptionless.Enrichments {
+namespace Exceptionless.Plugins {
     public class ContextData : Dictionary<string, object> {
         public ContextData() : base(StringComparer.OrdinalIgnoreCase) { }
         public ContextData(IDictionary<string, object> dictionary) : base(dictionary, StringComparer.OrdinalIgnoreCase) { }
