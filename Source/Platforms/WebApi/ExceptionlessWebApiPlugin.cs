@@ -15,10 +15,10 @@ using Exceptionless.Models.Data;
 namespace Exceptionless.WebApi {
     internal class ExceptionlessWebApiPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            if (!context.Data.ContainsKey("HttpActionContext"))
+            if (!context.ContextData.ContainsKey("HttpActionContext"))
                 return;
 
-            HttpActionContext actionContext = context.Data.GetHttpActionContext();
+            HttpActionContext actionContext = context.ContextData.GetHttpActionContext();
             if (actionContext == null)
                 return;
 

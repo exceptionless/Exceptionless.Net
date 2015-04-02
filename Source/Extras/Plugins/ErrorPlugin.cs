@@ -13,7 +13,7 @@ namespace Exceptionless.Plugins {
         }
 
         public void Run(EventPluginContext context) {
-            var exception = context.Data.GetException();
+            var exception = context.ContextData.GetException();
             if (exception == null)
                 return;
 

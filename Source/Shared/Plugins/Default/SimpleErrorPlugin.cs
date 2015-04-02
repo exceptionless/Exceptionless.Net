@@ -6,7 +6,7 @@ namespace Exceptionless.Plugins.Default {
     [Priority(40)]
     public class SimpleErrorPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            var exception = context.Data.GetException();
+            var exception = context.ContextData.GetException();
             if (exception == null)
                 return;
 

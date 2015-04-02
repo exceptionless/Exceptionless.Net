@@ -11,7 +11,7 @@ namespace Exceptionless.Web {
         private const string TAGS_HTTP_CONTEXT_NAME = "Exceptionless.Tags";
 
         public void Run(EventPluginContext context) {
-            HttpContextBase httpContext = context.Data.GetHttpContext();
+            HttpContextBase httpContext = context.ContextData.GetHttpContext();
 
             // if the context is not passed in, try and grab it
             if (httpContext == null && HttpContext.Current != null)
@@ -40,7 +40,7 @@ namespace Exceptionless.Web {
             if (requestInfo == null)
                 return;
 
-            var httpException = context.Data.GetException() as HttpException;
+            var httpException = context.ContextData.GetException() as HttpException;
             if (httpException != null) {
                 int httpCode = httpException.GetHttpCode();
                 if (httpCode == 404) {

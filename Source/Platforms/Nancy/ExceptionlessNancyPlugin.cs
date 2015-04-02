@@ -10,7 +10,7 @@ namespace Exceptionless.Nancy {
         public void Run(EventPluginContext context) {
             //error.ExceptionlessClientInfo.Platform = "Nancy";
 
-            var nancyContext = context.Data.GetNancyContext();
+            var nancyContext = context.ContextData.GetNancyContext();
             if (nancyContext == null)
                 return;
 
