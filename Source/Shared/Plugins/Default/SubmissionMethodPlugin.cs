@@ -2,7 +2,7 @@
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(30)]
+    [Priority(100)]
     public class SubmissionMethodPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             string submissionMethod = context.ContextData.GetSubmissionMethod();

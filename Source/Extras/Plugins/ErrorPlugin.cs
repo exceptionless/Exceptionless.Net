@@ -4,7 +4,7 @@ using Exceptionless.Logging;
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins {
-    [Priority(40)]
+    [Priority(30)]
     public class ErrorPlugin : IEventPlugin {
         private readonly IExceptionlessLog _log;
 

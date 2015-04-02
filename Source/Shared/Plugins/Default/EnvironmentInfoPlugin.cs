@@ -20,7 +20,7 @@ namespace Exceptionless.Plugins.Default {
                 info.InstallId = context.Client.Configuration.GetInstallId();
                 context.Event.Data.Add(Event.KnownDataKeys.EnvironmentInfo, info);
             } catch (Exception ex) {
-                context.Resolver.GetLog().FormattedError(typeof(EnvironmentInfoPlugin), ex, "Error adding environment information: {0}", ex.Message);
+                context.Log.FormattedError(typeof(EnvironmentInfoPlugin), ex, "Error adding environment information: {0}", ex.Message);
             }
         }
     }

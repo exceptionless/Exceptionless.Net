@@ -42,6 +42,8 @@ namespace SampleConsole {
             Console.CursorVisible = false;
             StartDisplayingLogMessages();
 
+            ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
+            ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
             ExceptionlessClient.Default.Configuration.UseLogger(_log);
             //ExceptionlessClient.Default.Configuration.SubmissionBatchSize = 1;
@@ -62,8 +64,6 @@ namespace SampleConsole {
             if (false)
                 SampleApiUsages();
 
-            ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
-            ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
 
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());

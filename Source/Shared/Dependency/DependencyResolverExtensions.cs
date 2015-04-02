@@ -1,5 +1,4 @@
 ﻿using System;
-using Exceptionless.Duplicates;
 using Exceptionless.Logging;
 using Exceptionless.Queue;
 using Exceptionless.Serializer;
@@ -81,10 +80,6 @@ namespace Exceptionless.Dependency {
 
         public static ILastReferenceIdManager GetLastReferenceIdManager(this IDependencyResolver resolver) {
             return resolver.Resolve<ILastReferenceIdManager>() ?? resolver.Resolve<DefaultLastReferenceIdManager>();
-        }
-
-        public static IDuplicateChecker GetDuplicateChecker(this IDependencyResolver resolver) {
-            return resolver.Resolve<IDuplicateChecker>() ?? resolver.Resolve<DefaultDuplicateChecker>();
         }
     }
 }

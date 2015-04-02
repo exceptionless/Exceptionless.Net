@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Exceptionless.Dependency;
-using Exceptionless.Duplicates;
 using Exceptionless.Plugins;
 using Exceptionless.Logging;
 using Exceptionless.Models;
@@ -15,7 +14,6 @@ namespace Exceptionless {
         private readonly Lazy<IEventQueue> _queue;
         private readonly Lazy<ISubmissionClient> _submissionClient;
         private readonly Lazy<ILastReferenceIdManager> _lastReferenceIdManager;
-        private readonly Lazy<IDuplicateChecker> _duplicateChecker;
 
         public ExceptionlessClient() : this(new ExceptionlessConfiguration(DependencyResolver.CreateDefault())) { }
 
@@ -43,7 +41,6 @@ namespace Exceptionless {
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
-            _duplicateChecker = new Lazy<IDuplicateChecker>(() => Configuration.Resolver.GetDuplicateChecker());
         }
 
         public ExceptionlessConfiguration Configuration { get; private set; }
@@ -142,9 +139,6 @@ namespace Exceptionless {
             var context = new EventPluginContext(this, ev, pluginContextData);
             EventPluginManager.Run(context);
             if (context.Cancel)
-                return;
-
-            if (_duplicateChecker.Value != null && _duplicateChecker.Value.IsDuplicate(ev))
                 return;
 
             // ensure all required data

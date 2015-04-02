@@ -1,5 +1,4 @@
 ﻿using System;
-using Exceptionless.Duplicates;
 using Exceptionless.Logging;
 using Exceptionless.Queue;
 using Exceptionless.Serializer;
@@ -49,9 +48,6 @@ namespace Exceptionless.Dependency {
 
             var lastClientIdManager = new Lazy<ILastReferenceIdManager>(() => resolver.Resolve<DefaultLastReferenceIdManager>());
             resolver.Register(typeof(ILastReferenceIdManager), () => lastClientIdManager.Value);
-
-            var duplicateChecker = new Lazy<IDuplicateChecker>(() => resolver.Resolve<DefaultDuplicateChecker>());
-            resolver.Register(typeof(IDuplicateChecker), () => duplicateChecker.Value);
 
             var persistedClientData = new Lazy<PersistedDictionary>(() => new PersistedDictionary("client-data.json", resolver.Resolve<IObjectStorage>(), resolver.Resolve<IJsonSerializer>()));
             resolver.Register(typeof(PersistedDictionary), () => persistedClientData.Value);
