@@ -16,7 +16,7 @@ namespace Exceptionless.SampleConsole.Plugins {
                 uptime.NextValue();
 
                 // Store the system uptime as an extended property.
-                context.Event.SetProperty("System Uptime", TimeSpan.FromSeconds(uptime.NextValue()).ToString("g"));
+                context.Event.SetProperty("System Uptime", DateTimeOffset.Now.Subtract(TimeSpan.FromSeconds(uptime.NextValue())));
             }
         }
     }
