@@ -12,11 +12,13 @@ namespace Exceptionless.SampleConsole.Plugins {
                 return;
 
             // Get the system uptime
-            using (var uptime = new PerformanceCounter("System", "System Up Time")) {
-                uptime.NextValue();
+            using (var pc = new PerformanceCounter("System", "System Up Time")) {
+                pc.NextValue();
+
+                var uptime = TimeSpan.FromSeconds(pc.NextValue());
 
                 // Store the system uptime as an extended property.
-                context.Event.SetProperty("System Uptime", DateTimeOffset.Now.Subtract(TimeSpan.FromSeconds(uptime.NextValue())).ToString("F"));
+                context.Event.SetProperty("System Uptime", String.Format("{0} Days {1} Hours {2} Minutes {3} Seconds", uptime.Days, uptime.Hours, uptime.Minutes, uptime.Seconds));
             }
         }
     }
