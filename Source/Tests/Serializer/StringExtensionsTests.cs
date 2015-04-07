@@ -17,6 +17,14 @@ namespace Exceptionless.Tests.Serializer
          Assert.Equal("number_of_abcd_things", "NumberOfABCDThings".ToLowerUnderscoredWords());
          Assert.Equal("ip_address_2s", "IPAddress 2s".ToLowerUnderscoredWords());
          Assert.Equal("127.0.0.1", "127.0.0.1".ToLowerUnderscoredWords());
+         Assert.Equal("", "".ToLowerUnderscoredWords());
+         Assert.Equal("_type", "_type".ToLowerUnderscoredWords());
+         Assert.Equal("__type", "__type".ToLowerUnderscoredWords());
+         Assert.Equal("my_custom_type", "myCustom   _type".ToLowerUnderscoredWords());
+         Assert.Equal("my_custom_type", "myCustom_type".ToLowerUnderscoredWords());
+         Assert.Equal("my_custom_type", "myCustom _type".ToLowerUnderscoredWords());
+         Assert.Equal("node.data", "node.data".ToLowerUnderscoredWords());
+         Assert.Equal("match_mapping_type", "match_mapping_type".ToLowerUnderscoredWords());
       }
    }
 }

@@ -17,16 +17,28 @@ using System.Text.RegularExpressions;
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
         public static string ToLowerUnderscoredWords(this string value) {
-           return String.Join("_", SeparatePascalCaseWords(value, " ").ToLower().Split(new[] { ' ', '_' }, StringSplitOptions.RemoveEmptyEntries));
+           string[] tokens = String.Join(" ", SplitPascalCaseWords(value)).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+           var sb = new StringBuilder();
+           if (tokens.Length > 0)
+              sb.Append(tokens[0]);
+
+           for (int i = 1; i < tokens.Length; i++) {
+              if (tokens[i - 1][tokens[i - 1].Length - 1] != '_' && tokens[i][0] != '_')
+                 sb.Append('_');
+              sb.Append(tokens[i]);
+           }
+
+           return sb.ToString().ToLower();
         }
 
-        private static string SeparatePascalCaseWords(string value, string separator)
+        private static string[] SplitPascalCaseWords(string value)
         {
            if (value == null)
               throw new ArgumentNullException("value");
 
            if (value.Length == 0)
-              return value;
+              return new string[0];
 
            char[] chars = value.ToCharArray();
            var words = new List<string>();
@@ -54,7 +66,7 @@ namespace Exceptionless.Extensions {
            }
 
            words.Add(new String(chars, tokenStart, chars.Length - tokenStart));
-           return String.Join(separator, words.ToArray());
+           return words.ToArray();
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
