@@ -18,11 +18,10 @@ namespace Exceptionless.Extensions {
     public static class StringExtensions {
         public static string ToLowerUnderscoredWords(this string value) {
            string[] tokens = String.Join(" ", SplitPascalCaseWords(value)).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+           if (tokens.Length == 0)
+              return String.Empty;
 
-           var sb = new StringBuilder();
-           if (tokens.Length > 0)
-              sb.Append(tokens[0]);
-
+           var sb = new StringBuilder(tokens[0]);
            for (int i = 1; i < tokens.Length; i++) {
               if (tokens[i - 1][tokens[i - 1].Length - 1] != '_' && tokens[i][0] != '_')
                  sb.Append('_');
