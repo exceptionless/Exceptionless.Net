@@ -33,7 +33,7 @@
     <DefineConstants>TRACE;PORTABLE40;EMBEDDED</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.Portable.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\GlobalAssemblyInfo.cs">
