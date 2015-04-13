@@ -6,6 +6,10 @@ namespace Exceptionless {
     public static class ExceptionlessExtensions {
         private static EventHandler _onProcessExit;
 
+        /// <summary>
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
         public static void Register(this ExceptionlessClient client) {
             client.Startup();
 
@@ -13,6 +17,10 @@ namespace Exceptionless {
             client.RegisterOnProcessExitHandler();
         }
 
+        /// <summary>
+        /// Unregisters platform specific exception handlers.
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
         public static void Unregister(this ExceptionlessClient client) {
             client.Shutdown();
             client.UnregisterOnProcessExitHandler();

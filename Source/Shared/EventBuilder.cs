@@ -14,8 +14,8 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        ///     Any contextual data objects to be used by Exceptionless plugins to gather additional
-        ///     information for inclusion in the event.
+        /// Any contextual data objects to be used by Exceptionless plugins to gather additional
+        /// information for inclusion in the event.
         /// </summary>
         public ContextData PluginContextData { get; private set; }
 
@@ -127,7 +127,7 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        ///     Adds one or more tags to the event.
+        /// Adds one or more tags to the event.
         /// </summary>
         /// <param name="tags">The tags to be added to the event.</param>
         public EventBuilder AddTags(params string[] tags) {
@@ -139,8 +139,8 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        ///     Sets an extended property value to include with the event. Use either <paramref name="excludedPropertyNames" /> or
-        ///     <see cref="Exceptionless.Json.JsonIgnoreAttribute" /> to exclude data from being included in the event report.
+        /// Sets an extended property value to include with the event. Use either <paramref name="excludedPropertyNames" /> or
+        /// <see cref="Exceptionless.Json.JsonIgnoreAttribute" /> to exclude data from being included in the event report.
         /// </summary>
         /// <param name="name">The name of the object to add.</param>
         /// <param name="value">The data object to add.</param>
@@ -155,8 +155,8 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        ///     Adds the object to extended data. Use either <paramref name="excludedPropertyNames" /> or
-        ///     <see cref="Exceptionless.Json.JsonIgnoreAttribute" /> to exclude data from being included in the event.
+        /// Adds the object to extended data. Use either <paramref name="excludedPropertyNames" /> or
+        /// <see cref="Exceptionless.Json.JsonIgnoreAttribute" /> to exclude data from being included in the event.
         /// </summary>
         /// <param name="data">The data object to add.</param>
         /// <param name="name">The name of the object to add.</param>
@@ -171,7 +171,7 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        ///     Marks the event as being a critical occurrence.
+        /// Marks the event as being a critical occurrence.
         /// </summary>
         public EventBuilder MarkAsCritical() {
             Target.MarkAsCritical();
@@ -179,7 +179,7 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        ///     Submits the event report.
+        /// Submits the event report.
         /// </summary>
         public void Submit() {
             Client.SubmitEvent(Target, PluginContextData);

@@ -8,6 +8,12 @@ using Exceptionless.Windows.Extensions;
 namespace Exceptionless {
     public static class ExceptionlessWindowsExtensions {
         private static EventHandler _onProcessExit;
+
+        /// <summary>
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
+        /// <param name="showDialog">Controls whether a dialog is shown when an unhandled exception occurs.</param>
         public static void Register(this ExceptionlessClient client, bool showDialog = true) {
             client.Startup();
             client.RegisterApplicationThreadExceptionHandler();
@@ -22,6 +28,10 @@ namespace Exceptionless {
             client.SubmittingEvent += OnSubmittingEvent;
         }
 
+        /// <summary>
+        /// Unregisters platform specific exception handlers.
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
         public static void Unregister(this ExceptionlessClient client) {
             client.Shutdown();
             client.UnregisterApplicationThreadExceptionHandler();

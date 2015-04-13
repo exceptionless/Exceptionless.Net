@@ -21,10 +21,16 @@ namespace Exceptionless.Plugins {
             return  this[KnownKeys.Exception] as Exception;
         }
 
+        /// <summary>
+        /// Marks the event as being a unhandled error occurrence.
+        /// </summary>
         public void MarkAsUnhandledError() {
             this[KnownKeys.IsUnhandledError] = true;
         }
 
+        /// <summary>
+        /// Returns true if the event was an unhandled error.
+        /// </summary>
         public bool IsUnhandledError {
             get {
                 if (!ContainsKey(KnownKeys.IsUnhandledError))
@@ -37,6 +43,9 @@ namespace Exceptionless.Plugins {
             }
         }
 
+        /// <summary>
+        /// Sets the submission method that created the event (E.G., UnobservedTaskException)
+        /// </summary>
         public void SetSubmissionMethod(string method) {
             this[KnownKeys.SubmissionMethod] = method;
         }

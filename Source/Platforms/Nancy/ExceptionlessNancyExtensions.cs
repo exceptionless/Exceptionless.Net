@@ -12,6 +12,11 @@ namespace Exceptionless {
     public static class ExceptionlessNancyExtensions {
         private const string NANCY_CONTEXT = "NancyContext";
 
+        /// <summary>
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
+        /// <param name="pipelines">The IPipelines instance.</param>
         public static void RegisterNancy(this ExceptionlessClient client, IPipelines pipelines) {
             client.Startup();
             client.Configuration.IncludePrivateInformation = true;
@@ -19,6 +24,15 @@ namespace Exceptionless {
 
             pipelines.OnError += OnError;
             pipelines.AfterRequest += AfterRequest;
+        }
+
+        /// <summary>
+        /// Unregisters platform specific exception handlers.
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
+        public static void UnregisterNancy(this ExceptionlessClient client) {
+            client.Shutdown();
+            client.Configuration.RemovePlugin<ExceptionlessNancyPlugin>();
         }
 
         private static Response OnError(NancyContext context, Exception exception) {
@@ -36,11 +50,6 @@ namespace Exceptionless {
             var contextData = new ContextData { { NANCY_CONTEXT, context } };
             if (context.Response.StatusCode == HttpStatusCode.NotFound)
                 ExceptionlessClient.Default.SubmitEvent(new Event { Type = Event.KnownTypes.NotFound }, contextData);
-        }
-
-        public static void UnregisterNancy(this ExceptionlessClient client) {
-            client.Shutdown();
-            client.Configuration.RemovePlugin<ExceptionlessNancyPlugin>();
         }
 
         /// <summary>

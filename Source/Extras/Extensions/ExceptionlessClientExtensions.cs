@@ -10,6 +10,11 @@ using Exceptionless.Submission;
 
 namespace Exceptionless {
     public static class ExceptionlessClientExtensions {
+        /// <summary>
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
+        /// <param name="appDomain">The AppDomain to register the exception handlers on.</param>
         public static void Startup(this ExceptionlessClient client, AppDomain appDomain = null) {
             client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
             client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
@@ -23,6 +28,11 @@ namespace Exceptionless {
             client.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
         }
 
+        /// <summary>
+        /// Unregisters platform specific exception handlers.
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
+        /// <param name="appDomain">The AppDomain to unregister any exception handlers from.</param>
         public static void Shutdown(this ExceptionlessClient client, AppDomain appDomain = null) {
             client.UnregisterAppDomainUnhandledExceptionHandler(appDomain);
             client.UnregisterTaskSchedulerUnobservedTaskExceptionHandler();

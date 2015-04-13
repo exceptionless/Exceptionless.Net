@@ -11,6 +11,11 @@ using Exceptionless.WebApi;
 
 namespace Exceptionless {
     public static class ExceptionlessWebApiExtensions {
+        /// <summary>
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
+        /// <param name="config">The HttpConfiguration instance.</param>        
         public static void RegisterWebApi(this ExceptionlessClient client, HttpConfiguration config) {
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessWebApiPlugin>();
@@ -23,6 +28,10 @@ namespace Exceptionless {
             ReplaceHttpErrorHandler(config);
         }
 
+        /// <summary>
+        /// Unregisters platform specific exception handlers.
+        /// </summary>
+        /// <param name="client">The ExceptionlessClient.</param>
         public static void UnregisterWebApi(this ExceptionlessClient client) {
             client.Shutdown();
             client.Configuration.RemovePlugin<ExceptionlessWebApiPlugin>();
