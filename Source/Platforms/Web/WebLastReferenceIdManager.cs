@@ -59,19 +59,19 @@ namespace Exceptionless {
             httpContext.Response.Cookies.Add(cookie);
         }
 
-        public void SetLast(string errorId) {
+        public void SetLast(string eventId) {
             HttpContext httpContext = HttpContext.Current;
             if (httpContext == null)
                 return;
 
             if (httpContext.Session != null)
-                httpContext.Session[LAST_REFERENCE_ID_KEY] = errorId;
+                httpContext.Session[LAST_REFERENCE_ID_KEY] = eventId;
 
             // Session doesn't seem to be reliable so set it in a cookie as well.
             try {
                 var cookie = new HttpCookie(LAST_REFERENCE_ID_KEY);
                 cookie.HttpOnly = true;
-                cookie.Value = errorId;
+                cookie.Value = eventId;
                 httpContext.Response.Cookies.Add(cookie);
             } catch (Exception e) {
                 Log.Warn("Error setting reference id cookie: {0}", e.Message);

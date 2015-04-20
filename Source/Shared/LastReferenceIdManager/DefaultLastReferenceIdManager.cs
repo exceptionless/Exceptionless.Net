@@ -22,9 +22,9 @@ namespace Exceptionless {
         /// <summary>
         /// Sets the last event's reference id.
         /// </summary>
-        /// <param name="errorId"></param>
-        public void SetLast(string errorId) {
-            _lastReferenceId = errorId;
+        /// <param name="eventId"></param>
+        public void SetLast(string eventId) {
+            _lastReferenceId = eventId;
         }
     }
 }
