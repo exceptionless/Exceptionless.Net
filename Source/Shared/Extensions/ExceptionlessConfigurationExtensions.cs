@@ -134,9 +134,8 @@ namespace Exceptionless {
 namespace Exceptionless.Extensions {
     public static class ExceptionlessConfigurationExtensions {
         public static Uri GetServiceEndPoint(this ExceptionlessConfiguration config) {
-            var builder = new UriBuilder(config.ServerUrl) {
-                Path = "/api/v2/"
-            };
+            var builder = new UriBuilder(config.ServerUrl);
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2/" : "/api/v2/";
 
             // EnableSSL
             if (config.EnableSSL && builder.Port == 80 && !builder.Host.Contains("local")) {

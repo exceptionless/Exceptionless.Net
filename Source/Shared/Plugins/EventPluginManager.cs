@@ -25,9 +25,9 @@ namespace Exceptionless.Plugins {
 
         public static void AddDefaultPlugins(ExceptionlessConfiguration config) {
             config.AddPlugin<ConfigurationDefaultsPlugin>();
-            config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<SimpleErrorPlugin>();
             config.AddPlugin<DuplicateCheckerPlugin>();
+            config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<SubmissionMethodPlugin>();
         }
     }
