@@ -10,7 +10,7 @@
     <iconUrl>https://be.exceptionless.io/img/exceptionless-32.png</iconUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <releaseNotes>http://exceptionless.io/category/versions/</releaseNotes>
+    <releaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</releaseNotes>
     <tags>Error Report Reporting Exception Logging Log ELMAH</tags>
     <dependencies>
       <dependency id="Exceptionless.Portable" version="[$version$]" />
