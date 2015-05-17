@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Exceptionless.Extras.Utility;
 using Exceptionless.Logging;
 using Exceptionless.Models.Data;
 using Microsoft.VisualBasic.Devices;
@@ -43,10 +44,24 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (computerInfo != null)
-                    info.TotalPhysicalMemory = Convert.ToInt64(computerInfo.TotalPhysicalMemory);
-                if (computerInfo != null)
-                    info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
+                if (EnvironmentHelper.IsUnix)
+                {
+                    if (PerformanceCounterCategory.Exists("Mono Memory"))
+                    {
+                        //https://github.com/mono/mono/blob/f0834d5407f492a2a21e2f62f8f8c418d64ba6fa/mono/metadata/mono-perfcounters-def.h
+                        var performanceCounterTotalPhysicalMemory = new PerformanceCounter("Mono Memory", "Total Physical Memory");
+                        var performanceCounterAvailablePhysicalMemory = new PerformanceCounter("Mono Memory", "Available Physical Memory"); //mono 4.0+
+                        info.TotalPhysicalMemory = Convert.ToInt64(performanceCounterTotalPhysicalMemory.RawValue);
+                        info.AvailablePhysicalMemory = Convert.ToInt64(performanceCounterAvailablePhysicalMemory.RawValue);
+                    }
+                }
+                else
+                {
+                    if (computerInfo != null)
+                        info.TotalPhysicalMemory = Convert.ToInt64(computerInfo.TotalPhysicalMemory);
+                    if (computerInfo != null)
+                        info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
             }
@@ -85,19 +100,42 @@ namespace Exceptionless.Services {
             }
 
             try {
-                info.ProcessId = KernelNativeMethods.GetCurrentProcessId().ToString(NumberFormatInfo.InvariantInfo);
+                if (EnvironmentHelper.IsUnix)
+                {
+                    var currentProcess = Process.GetCurrentProcess();
+                    info.ProcessId = currentProcess.Id.ToString();
+                }
+                else
+                {
+                    info.ProcessId = KernelNativeMethods.GetCurrentProcessId().ToString(NumberFormatInfo.InvariantInfo);
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get process id. Error message: {0}", ex.Message);
             }
 
             try {
-                info.ProcessName = GetProcessName();
+                if (EnvironmentHelper.IsUnix)
+                {
+                    var currentProcess = Process.GetCurrentProcess();
+                    info.ProcessName = currentProcess.ProcessName;
+                }
+                else
+                {
+                    info.ProcessName = GetProcessName();
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get process name. Error message: {0}", ex.Message);
             }
 
             try {
-                info.ThreadId = KernelNativeMethods.GetCurrentThreadId().ToString(NumberFormatInfo.InvariantInfo);
+                if (EnvironmentHelper.IsUnix)
+                {
+                    info.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString();
+                }
+                else
+                {
+                    info.ThreadId = KernelNativeMethods.GetCurrentThreadId().ToString(NumberFormatInfo.InvariantInfo);
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get thread id. Error message: {0}", ex.Message);
             }
