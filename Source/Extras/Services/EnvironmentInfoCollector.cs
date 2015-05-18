@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Exceptionless.Extras.Utility;
 using Exceptionless.Logging;
 using Exceptionless.Models.Data;
 using Microsoft.VisualBasic.Devices;
@@ -35,32 +34,31 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (computerInfo != null)
+                if (computerInfo != null) {
                     info.OSName = computerInfo.OSFullName;
-                if (computerInfo != null)
                     info.OSVersion = computerInfo.OSVersion;
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get operating system version. Error message: {0}", ex.Message);
             }
 
             try {
-                if (EnvironmentHelper.IsUnix)
+                if (IsUnix)
                 {
                     if (PerformanceCounterCategory.Exists("Mono Memory"))
                     {
-                        //https://github.com/mono/mono/blob/f0834d5407f492a2a21e2f62f8f8c418d64ba6fa/mono/metadata/mono-perfcounters-def.h
-                        var performanceCounterTotalPhysicalMemory = new PerformanceCounter("Mono Memory", "Total Physical Memory");
-                        var performanceCounterAvailablePhysicalMemory = new PerformanceCounter("Mono Memory", "Available Physical Memory"); //mono 4.0+
-                        info.TotalPhysicalMemory = Convert.ToInt64(performanceCounterTotalPhysicalMemory.RawValue);
-                        info.AvailablePhysicalMemory = Convert.ToInt64(performanceCounterAvailablePhysicalMemory.RawValue);
+                        var totalPhysicalMemory = new PerformanceCounter("Mono Memory", "Total Physical Memory");
+                        var availablePhysicalMemory = new PerformanceCounter("Mono Memory", "Available Physical Memory"); //mono 4.0+
+                        info.TotalPhysicalMemory = Convert.ToInt64(totalPhysicalMemory.RawValue);
+                        info.AvailablePhysicalMemory = Convert.ToInt64(availablePhysicalMemory.RawValue);
                     }
                 }
                 else
                 {
-                    if (computerInfo != null)
+                    if (computerInfo != null) {
                         info.TotalPhysicalMemory = Convert.ToInt64(computerInfo.TotalPhysicalMemory);
-                    if (computerInfo != null)
                         info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
+                    }
                 }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
@@ -100,10 +98,10 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (EnvironmentHelper.IsUnix)
+                if (IsUnix)
                 {
                     var currentProcess = Process.GetCurrentProcess();
-                    info.ProcessId = currentProcess.Id.ToString();
+                    info.ProcessId = currentProcess.Id.ToString(NumberFormatInfo.InvariantInfo);
                 }
                 else
                 {
@@ -114,7 +112,7 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (EnvironmentHelper.IsUnix)
+                if (IsUnix)
                 {
                     var currentProcess = Process.GetCurrentProcess();
                     info.ProcessName = currentProcess.ProcessName;
@@ -128,9 +126,9 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (EnvironmentHelper.IsUnix)
+                if (IsUnix)
                 {
-                    info.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString();
+                    info.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
                 }
                 else
                 {
@@ -183,6 +181,19 @@ namespace Exceptionless.Services {
             bool methodExist = KernelNativeMethods.MethodExists("kernel32.dll", "IsWow64Process");
 
             return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out is64)) && is64);
+        }
+
+        /// <summary>
+        /// Determine current os platform.
+        /// </summary>
+        /// <exception cref="InvalidOperationException" accessor="get"></exception>
+        private static bool IsUnix
+        {
+            get
+            {
+                int p = (int)Environment.OSVersion.Platform;
+                return (p == 4) || (p == 6) || (p == 128);
+            }
         }
     }
 
