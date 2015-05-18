@@ -34,19 +34,32 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (computerInfo != null)
+                if (computerInfo != null) {
                     info.OSName = computerInfo.OSFullName;
-                if (computerInfo != null)
                     info.OSVersion = computerInfo.OSVersion;
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get operating system version. Error message: {0}", ex.Message);
             }
 
             try {
-                if (computerInfo != null)
-                    info.TotalPhysicalMemory = Convert.ToInt64(computerInfo.TotalPhysicalMemory);
-                if (computerInfo != null)
-                    info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
+                if (IsUnix)
+                {
+                    if (PerformanceCounterCategory.Exists("Mono Memory"))
+                    {
+                        var totalPhysicalMemory = new PerformanceCounter("Mono Memory", "Total Physical Memory");
+                        var availablePhysicalMemory = new PerformanceCounter("Mono Memory", "Available Physical Memory"); //mono 4.0+
+                        info.TotalPhysicalMemory = Convert.ToInt64(totalPhysicalMemory.RawValue);
+                        info.AvailablePhysicalMemory = Convert.ToInt64(availablePhysicalMemory.RawValue);
+                    }
+                }
+                else
+                {
+                    if (computerInfo != null) {
+                        info.TotalPhysicalMemory = Convert.ToInt64(computerInfo.TotalPhysicalMemory);
+                        info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
+                    }
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
             }
@@ -85,19 +98,42 @@ namespace Exceptionless.Services {
             }
 
             try {
-                info.ProcessId = KernelNativeMethods.GetCurrentProcessId().ToString(NumberFormatInfo.InvariantInfo);
+                if (IsUnix)
+                {
+                    var currentProcess = Process.GetCurrentProcess();
+                    info.ProcessId = currentProcess.Id.ToString(NumberFormatInfo.InvariantInfo);
+                }
+                else
+                {
+                    info.ProcessId = KernelNativeMethods.GetCurrentProcessId().ToString(NumberFormatInfo.InvariantInfo);
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get process id. Error message: {0}", ex.Message);
             }
 
             try {
-                info.ProcessName = GetProcessName();
+                if (IsUnix)
+                {
+                    var currentProcess = Process.GetCurrentProcess();
+                    info.ProcessName = currentProcess.ProcessName;
+                }
+                else
+                {
+                    info.ProcessName = GetProcessName();
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get process name. Error message: {0}", ex.Message);
             }
 
             try {
-                info.ThreadId = KernelNativeMethods.GetCurrentThreadId().ToString(NumberFormatInfo.InvariantInfo);
+                if (IsUnix)
+                {
+                    info.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
+                }
+                else
+                {
+                    info.ThreadId = KernelNativeMethods.GetCurrentThreadId().ToString(NumberFormatInfo.InvariantInfo);
+                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get thread id. Error message: {0}", ex.Message);
             }
@@ -145,6 +181,19 @@ namespace Exceptionless.Services {
             bool methodExist = KernelNativeMethods.MethodExists("kernel32.dll", "IsWow64Process");
 
             return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out is64)) && is64);
+        }
+
+        /// <summary>
+        /// Determine current os platform.
+        /// </summary>
+        /// <exception cref="InvalidOperationException" accessor="get"></exception>
+        private static bool IsUnix
+        {
+            get
+            {
+                int p = (int)Environment.OSVersion.Platform;
+                return (p == 4) || (p == 6) || (p == 128);
+            }
         }
     }
 
