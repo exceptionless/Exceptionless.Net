@@ -43,18 +43,15 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (IsUnix)
-                {
-                    if (PerformanceCounterCategory.Exists("Mono Memory"))
-                    {
+                if (IsUnix) {
+                    if (PerformanceCounterCategory.Exists("Mono Memory")) {
                         var totalPhysicalMemory = new PerformanceCounter("Mono Memory", "Total Physical Memory");
-                        var availablePhysicalMemory = new PerformanceCounter("Mono Memory", "Available Physical Memory"); //mono 4.0+
                         info.TotalPhysicalMemory = Convert.ToInt64(totalPhysicalMemory.RawValue);
+
+                        var availablePhysicalMemory = new PerformanceCounter("Mono Memory", "Available Physical Memory"); //mono 4.0+
                         info.AvailablePhysicalMemory = Convert.ToInt64(availablePhysicalMemory.RawValue);
                     }
-                }
-                else
-                {
+                } else {
                     if (computerInfo != null) {
                         info.TotalPhysicalMemory = Convert.ToInt64(computerInfo.TotalPhysicalMemory);
                         info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
@@ -98,13 +95,10 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (IsUnix)
-                {
+                if (IsUnix) {
                     var currentProcess = Process.GetCurrentProcess();
                     info.ProcessId = currentProcess.Id.ToString(NumberFormatInfo.InvariantInfo);
-                }
-                else
-                {
+                } else {
                     info.ProcessId = KernelNativeMethods.GetCurrentProcessId().ToString(NumberFormatInfo.InvariantInfo);
                 }
             } catch (Exception ex) {
@@ -112,13 +106,10 @@ namespace Exceptionless.Services {
             }
 
             try {
-                if (IsUnix)
-                {
+                if (IsUnix) {
                     var currentProcess = Process.GetCurrentProcess();
                     info.ProcessName = currentProcess.ProcessName;
-                }
-                else
-                {
+                } else {
                     info.ProcessName = GetProcessName();
                 }
             } catch (Exception ex) {
@@ -127,13 +118,9 @@ namespace Exceptionless.Services {
 
             try {
                 if (IsUnix)
-                {
-                    info.ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
-                }
+                    info.ThreadId = Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
                 else
-                {
                     info.ThreadId = KernelNativeMethods.GetCurrentThreadId().ToString(NumberFormatInfo.InvariantInfo);
-                }
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get thread id. Error message: {0}", ex.Message);
             }
@@ -183,16 +170,10 @@ namespace Exceptionless.Services {
             return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out is64)) && is64);
         }
 
-        /// <summary>
-        /// Determine current os platform.
-        /// </summary>
-        /// <exception cref="InvalidOperationException" accessor="get"></exception>
-        private static bool IsUnix
-        {
-            get
-            {
-                int p = (int)Environment.OSVersion.Platform;
-                return (p == 4) || (p == 6) || (p == 128);
+        private static bool IsUnix {
+            get {
+                int platform = (int)Environment.OSVersion.Platform;
+                return platform == 4 || platform == 6 || platform == 128;
             }
         }
     }
