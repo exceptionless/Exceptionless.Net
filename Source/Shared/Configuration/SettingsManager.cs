@@ -27,7 +27,6 @@ namespace Exceptionless.Configuration {
                 return new SettingsDictionary();
 
             try {
-                config.Resolver.GetJsonSerializer();
                 return fileStorage.GetObject<SettingsDictionary>(configPath);
             } catch (Exception ex) {
                 config.Resolver.GetLog().FormattedError(typeof(SettingsManager), ex, "Unable to read and apply saved server settings: {0}", ex.Message);
