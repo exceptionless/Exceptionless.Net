@@ -59,6 +59,10 @@ namespace Exceptionless.Extras.Submission {
                 return new SubmissionResponse(500, message: ex.Message);
             }
 
+            int settingsVersion;
+            if (Int32.TryParse(response.Headers[ExceptionlessHeaders.ConfigurationVersion], out settingsVersion))
+                SettingsManager.CheckVersion(settingsVersion, config);
+
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
 
