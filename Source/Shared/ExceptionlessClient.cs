@@ -51,7 +51,6 @@ namespace Exceptionless {
         /// <param name="referenceId">The reference id of the event to update.</param>
         /// <param name="email">The user's email address to set on the event.</param>
         /// <param name="description">The user's description of the event.</param>
-        /// <returns></returns>
         public bool UpdateUserEmailAndDescription(string referenceId, string email, string description) {
             if (String.IsNullOrEmpty(referenceId))
                 throw new ArgumentNullException("referenceId");
@@ -75,7 +74,7 @@ namespace Exceptionless {
             try {
                 var response = _submissionClient.Value.PostUserDescription(referenceId, new UserDescription(email, description), Configuration, Configuration.Resolver.GetJsonSerializer());
                 if (!response.Success)
-                    _log.Value.FormattedError(typeof(ExceptionlessClient), "Failed to submit user email and description for event: {0} {1}", response.StatusCode, response.Message);
+                    _log.Value.FormattedError(typeof(ExceptionlessClient), "Failed to submit user email and description for event '{0}': {1} {2}", referenceId, response.StatusCode, response.Message);
 
                 return response.Success;
             } catch (Exception ex) {
@@ -175,7 +174,7 @@ namespace Exceptionless {
         /// <summary>
         /// Gets the last event client id that was submitted to the server.
         /// </summary>
-        /// <returns>The event client id</returns>
+        /// <returns>The event client id.</returns>
         public string GetLastReferenceId() {
             return _lastReferenceIdManager.Value.GetLast();
         }
