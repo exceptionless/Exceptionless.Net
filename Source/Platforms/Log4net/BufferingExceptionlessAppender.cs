@@ -21,7 +21,7 @@ namespace Exceptionless.Log4net {
                 return;
 
             _client = new ExceptionlessClient(config => {
-                if (!String.IsNullOrEmpty(ApiKey))
+                if (!String.IsNullOrEmpty(ApiKey) && ApiKey != "API_KEY_HERE")
                     config.ApiKey = ApiKey;
                 if (!String.IsNullOrEmpty(ServerUrl))
                     config.ServerUrl = ServerUrl;

@@ -1,49 +1,40 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Exceptionless;
-using Exceptionless.Dependency;
 using Exceptionless.Models;
-using Exceptionless.Storage;
-using Foundatio.Metrics;
-using Foundatio.Queues;
-using Microsoft.Owin.Hosting;
-using SimpleInjector;
 using Xunit;
 
 namespace Exceptionless.Tests {
     public class ExceptionlessClientTests {
-        //private ExceptionlessClient CreateClient() {
-        //    return new ExceptionlessClient(c => {
-        //        c.ApiKey = DataHelper.TEST_API_KEY;
-        //        c.ServerUrl = Settings.Current.BaseURL;
-        //        c.EnableSSL = false;
-        //        c.UseDebugLogger();
-        //        c.UserAgent = "testclient/1.0.0.0";
-        //    });
-        //}
-        
-        //[Fact]
-        //public async Task CanAddMultipleDataObjectsToEvent() {
-        //    var client = CreateClient();
-        //    var ev = client.CreateLog("Test");
-        //    Assert.Equal(ev.Target.Type, Event.KnownTypes.Log);
-        //    ev.AddObject(new Person { Name = "Blake" });
-        //    ev.AddObject(new Person { Name = "Eric" });
-        //    ev.AddObject(new Person { Name = "Ryan" });
-        //    Assert.Equal(ev.Target.Data.Count, 3);
+        private ExceptionlessClient CreateClient() {
+            return new ExceptionlessClient(c => {
+                c.EnableSSL = false;
+                c.UseDebugLogger();
+                c.ReadFromAttributes();
+                c.UserAgent = "testclient/1.0.0.0";
+            });
+        }
 
-        //    ev.Target.Data.Clear();
-        //    Assert.Equal(ev.Target.Data.Count, 0);
-            
-        //    // The last one in wins.
-        //    ev.AddObject(new Person { Name = "Eric" }, "Blake");
-        //    ev.AddObject(new Person { Name = "Blake" }, "Blake");
-        //    Assert.Equal(ev.Target.Data.Count, 1);
+        [Fact]
+        public async Task CanAddMultipleDataObjectsToEvent() {
+            var client = CreateClient();
+            var ev = client.CreateLog("Test");
+            Assert.Equal(ev.Target.Type, Event.KnownTypes.Log);
+            ev.AddObject(new Person { Name = "Blake" });
+            ev.AddObject(new Person { Name = "Eric" });
+            ev.AddObject(new Person { Name = "Ryan" });
+            Assert.Equal(ev.Target.Data.Count, 3);
 
-        //    var person = ev.Target.Data["Blake"].ToString();
-        //    Assert.True(person.Contains("Blake"));
-        //}
+            ev.Target.Data.Clear();
+            Assert.Equal(ev.Target.Data.Count, 0);
+
+            // The last one in wins.
+            ev.AddObject(new Person { Name = "Eric" }, "Blake");
+            ev.AddObject(new Person { Name = "Blake" }, "Blake");
+            Assert.Equal(ev.Target.Data.Count, 1);
+
+            var person = ev.Target.Data["Blake"].ToString();
+            Assert.True(person.Contains("Blake"));
+        }
 
         //[Fact]
         //public async Task CanSubmitSimpleEvent() {
@@ -52,10 +43,10 @@ namespace Exceptionless.Tests {
         //        var queue = container.GetInstance<IQueue<EventPost>>();
         //        Assert.NotNull(queue);
         //        Assert.Equal(0, queue.GetQueueCount());
-                
+
         //        var statsCounter = container.GetInstance<IMetricsClient>() as InMemoryMetricsClient;
         //        Assert.NotNull(statsCounter);
-                
+
         //        EnsureSampleData(container);
 
         //        var client = CreateClient();
@@ -102,7 +93,7 @@ namespace Exceptionless.Tests {
         //        var storage = client.Configuration.Resolver.GetFileStorage() as InMemoryObjectStorage; 
         //        Assert.NotNull(storage);
         //        Assert.Equal(1, storage.GetObjectList().Count());
-                
+
         //        Assert.True(statsCounter.WaitForCounter(MetricNames.EventsProcessed, work: client.ProcessQueue));
 
         //        Assert.Equal(0, queue.GetQueueCount());

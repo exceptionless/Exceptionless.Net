@@ -111,9 +111,9 @@ namespace Exceptionless {
 
                 config.Enabled = attr.Enabled;
                 
-                if (attr.ApiKey != null)
+                if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
                     config.ApiKey = attr.ApiKey;
-                if (attr.ServerUrl != null)
+                if (!String.IsNullOrEmpty(attr.ServerUrl))
                     config.ServerUrl = attr.ServerUrl;
                 
                 config.EnableSSL = attr.EnableSSL;

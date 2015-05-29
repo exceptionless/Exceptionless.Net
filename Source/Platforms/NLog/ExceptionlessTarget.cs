@@ -24,7 +24,7 @@ namespace Exceptionless.NLog {
 
             if (!String.IsNullOrEmpty(ApiKey) || !String.IsNullOrEmpty(ServerUrl))
                 _client = new ExceptionlessClient(config => {
-                    if (!String.IsNullOrEmpty(ApiKey))
+                    if (!String.IsNullOrEmpty(ApiKey) && ApiKey != "API_KEY_HERE")
                         config.ApiKey = ApiKey;
                     if (!String.IsNullOrEmpty(ServerUrl))
                         config.ServerUrl = ServerUrl;

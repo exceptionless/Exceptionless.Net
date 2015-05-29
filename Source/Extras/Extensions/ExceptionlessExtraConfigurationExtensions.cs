@@ -90,12 +90,12 @@ namespace Exceptionless {
             config.Enabled = section.Enabled;
 
             // Only update if it is not null
-            if (!String.IsNullOrEmpty(section.ApiKey))
+            if (!String.IsNullOrEmpty(section.ApiKey) && section.ApiKey != "API_KEY_HERE")
                 config.ApiKey = section.ApiKey;
 
             // If an appsetting is present for ApiKey, then it will override the other api keys
             string apiKeyOverride = ConfigurationManager.AppSettings["Exceptionless:ApiKey"] ?? String.Empty;
-            if (!String.IsNullOrEmpty(apiKeyOverride))
+            if (!String.IsNullOrEmpty(apiKeyOverride) && apiKeyOverride != "API_KEY_HERE")
                 config.ApiKey = apiKeyOverride;
 
             if (!String.IsNullOrEmpty(section.ServerUrl))
