@@ -63,6 +63,11 @@ namespace Exceptionless {
                 return false;
             }
 
+            if (!Configuration.IsValid) {
+                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Configuration is invalid: {0}. The event will not be updated with the user email and description.", String.Join(", ", Configuration.Validate().Messages));
+                return false;
+            }
+
             if (!Configuration.IsLocked) {
                 Configuration.LockConfig();
                 if (!Configuration.IsValid) {
@@ -89,6 +94,11 @@ namespace Exceptionless {
         public Task ProcessQueueAsync() {
             if (!Configuration.Enabled) {
                 _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The queue will not be processed.");
+                return Threading.Tasks.TaskExtensions.FromResult(0);
+            }
+
+            if (!Configuration.IsValid) {
+                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Configuration is invalid: {0}. The queue will not be processed.", String.Join(", ", Configuration.Validate().Messages));
                 return Threading.Tasks.TaskExtensions.FromResult(0);
             }
 
@@ -123,7 +133,12 @@ namespace Exceptionless {
                 throw new ArgumentNullException("ev");
 
             if (!Configuration.Enabled) {
-                _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The error will not be submitted.");
+                _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The event will not be submitted.");
+                return;
+            }
+            
+            if (!Configuration.IsValid) {
+                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Configuration is invalid: {0}. The event will not be submitted.", String.Join(", ", Configuration.Validate().Messages));
                 return;
             }
 
