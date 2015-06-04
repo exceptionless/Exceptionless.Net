@@ -135,9 +135,12 @@ namespace Exceptionless.Extras {
                     } catch {}
                 }
 
-                var module = assembly.ToModuleInfo(log);
+                var module = assembly.ToModuleInfo();
+                if (module.ModuleId > 0)
+                    continue;
+
                 module.ModuleId = id;
-                modules.Add(assembly.ToModuleInfo(log));
+                modules.Add(module);
 
                 id++;
             }
@@ -221,18 +224,15 @@ namespace Exceptionless.Extras {
             return -1;
         }
 
-        public static Module ToModuleInfo(this System.Reflection.Module module, IExceptionlessLog log = null) {
-            return ToModuleInfo(module.Assembly, log);
+        public static Module ToModuleInfo(this System.Reflection.Module module) {
+            return ToModuleInfo(module.Assembly);
         }
 
-        public static Module ToModuleInfo(this Assembly assembly, IExceptionlessLog log = null) {
+        public static Module ToModuleInfo(this Assembly assembly) {
             if (assembly == null)
                 return null;
 
-            if (log == null)
-                log = new NullExceptionlessLog();
-
-            Module module = _moduleCache.GetOrAdd(assembly.FullName, k => {
+            return _moduleCache.GetOrAdd(assembly.FullName, k => {
                 var mod = new Module();
                 AssemblyName name = assembly.GetAssemblyName();
                 if (name != null) {
@@ -258,16 +258,12 @@ namespace Exceptionless.Extras {
                 DateTime? lastWriteTime = assembly.GetLastWriteTime();
                 if (lastWriteTime.HasValue)
                     mod.ModifiedDate = lastWriteTime.Value;
+                
+                if (assembly == Assembly.GetEntryAssembly())
+                    mod.IsEntry = true;
 
                 return mod;
             });
-
-            if (module != null) {
-                if (assembly == Assembly.GetEntryAssembly())
-                    module.IsEntry = true;
-            }
-
-            return module;
         }
     }
 }
