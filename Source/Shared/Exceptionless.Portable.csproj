@@ -11,7 +11,8 @@
     <RootNamespace>Exceptionless</RootNamespace>
     <AssemblyName>Exceptionless.Portable</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile328</TargetFrameworkProfile>
+    <UseNet40 Condition=" '$(UseNet40)' == '' ">false</UseNet40>
+    <TargetFrameworkProfile Condition="$(UseNet40) == false">Profile328</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
@@ -342,7 +343,9 @@
   <ItemGroup>
     <Content Include="NuGet\readme.txt" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <Import Condition="$(UseNet40) == true" Project="$(SolutionDir)\Exceptionless.Portable.targets" />
+  <Import Condition="$(UseNet40) == true" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Condition="$(UseNet40) == false" Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

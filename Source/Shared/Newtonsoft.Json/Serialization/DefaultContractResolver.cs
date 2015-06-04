@@ -48,7 +48,7 @@ using System.Runtime.CompilerServices;
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
-
+using MemberTypes = Exceptionless.Json.Utilities.MemberTypes;
 #endif
 
 namespace Exceptionless.Json.Serialization

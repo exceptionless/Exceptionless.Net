@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ItemGroup> 
+        <ProjectToBuild Include="Exceptionless.Net.sln">
+            <Properties>Configuration=Release;</Properties>
+        </ProjectToBuild>
+        <ProjectToBuild Include="Exceptionless.Net.sln">
+            <Properties>Configuration=Release;OutputPath=bin\Release40\;IntermediateOutputPath=obj\Release40\;UseNet40=true;</Properties>
+        </ProjectToBuild>
+    </ItemGroup>
+    <Target Name="Build">
+        <MSBuild Projects="@(ProjectToBuild)"/>
+    </Target>
+</Project>
