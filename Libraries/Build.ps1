@@ -8,6 +8,11 @@ ForEach ($p in $client_projects) {
             Continue;
         }
         
+        $isWebApi = ($($p.Name) -eq "Exceptionless.WebApi") -or ($($p.Name) -eq "Exceptionless.WebApi.Signed")
+        If ($isWebApi -and ($($b.TargetFrameworkVersionProperty) -ne "NET45")) {
+            Continue;
+        }
+        
         $targetPortable = 'false';
         If ($isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80")) {
             $targetPortable = 'true';
