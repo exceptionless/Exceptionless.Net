@@ -29,7 +29,7 @@ $client_projects = @(
 )
 
 $client_build_configurations = @(
-    @{ Constants = "PORTABLE40";	TargetFrameworkVersionProperty="NET40";	NuGetDir = "portable-net40+sl50+win+wpa81+wp80"; }
-    @{ Constants = "PORTABLE40"; 	TargetFrameworkVersionProperty="NET40";	NuGetDir = "net40"; },
-    @{ Constants = "PORTABLE40"; 	TargetFrameworkVersionProperty="NET45";	NuGetDir = "net45"; }
+    @{ Constants = "PORTABLE40";    TargetFrameworkVersionProperty="NET40";	NuGetDir = "portable-net40+sl50+win+wpa81+wp80"; }
+    @{ Constants = "NET40";         TargetFrameworkVersionProperty="NET40";	NuGetDir = "net40"; },
+    @{ Constants = "";              TargetFrameworkVersionProperty="NET45";	NuGetDir = "net45"; }
 )

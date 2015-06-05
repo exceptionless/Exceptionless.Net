@@ -20,7 +20,7 @@ ForEach ($p in $client_projects) {
     #copy assemblies from build directory to working directory.
     ForEach ($b in $client_build_configurations) {
         $isPclClient = ($($p.Name) -eq "Exceptionless.Portable") -or ($($p.Name) -eq "Exceptionless.Portable.Signed")
-        If (($isPclClient -and ($($b.NuGetDir) -ne "portable-net40+sl50+win+wpa81+wp80")) -or (!$isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80"))) {
+        If (!$isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80")) {
             Continue;
         }
 

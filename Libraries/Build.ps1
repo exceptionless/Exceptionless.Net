@@ -4,10 +4,15 @@
 ForEach ($p in $client_projects) {
     ForEach ($b in $client_build_configurations) {
         $isPclClient = ($($p.Name) -eq "Exceptionless.Portable") -or ($($p.Name) -eq "Exceptionless.Portable.Signed")
-        If (($isPclClient -and ($($b.NuGetDir) -ne "portable-net40+sl50+win+wpa81+wp80")) -or (!$isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80"))) {
+        If (!$isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80")) {
             Continue;
         }
-
+        
+        $targetPortable = 'false';
+        If ($isPclClient -and ($($b.NuGetDir) -eq "portable-net40+sl50+win+wpa81+wp80")) {
+            $targetPortable = 'true';
+        }
+        
         $outputDirectory = "$build_dir\$configuration\$($p.Name)\lib\$($b.NuGetDir)"
 
         Write-Host "Building $($p.Name) ($($b.TargetFrameworkVersionProperty))" -ForegroundColor Yellow
@@ -23,6 +28,7 @@ ForEach ($p in $client_projects) {
                         /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;SIGNED;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
+                        /p:TargetPortable="$targetPortable" `
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
                         /t:"Rebuild"
         } else {
@@ -34,6 +40,7 @@ ForEach ($p in $client_projects) {
                         /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
+                        /p:TargetPortable="$targetPortable" `
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
                         /t:"Rebuild"
         }

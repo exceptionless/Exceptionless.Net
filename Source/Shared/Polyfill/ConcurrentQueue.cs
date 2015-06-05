@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if PFX_LEGACY_3_5 || PORTABLE40
+
+using System;
 using System.Threading;
 using System.Collections.Generic;
 
@@ -208,3 +210,5 @@ namespace System.Collections.Concurrent
         }
     }
 }
+
+#endif

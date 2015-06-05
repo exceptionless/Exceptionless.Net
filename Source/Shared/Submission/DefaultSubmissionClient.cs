@@ -98,7 +98,11 @@ namespace Exceptionless.Submission {
         }
 
         private HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string endPoint) {
+#if PORTABLE40
             var request = WebRequest.CreateHttp(String.Concat(config.GetServiceEndPoint(), endPoint));
+#else 
+            var request = (HttpWebRequest)WebRequest.Create(String.Concat(config.GetServiceEndPoint(), endPoint));            
+#endif
             request.AddAuthorizationHeader(config);
             request.SetUserAgent(config);
             return request;
