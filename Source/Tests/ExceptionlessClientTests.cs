@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using Exceptionless.Models;
+using Exceptionless.Plugins;
 using Xunit;
 
 namespace Exceptionless.Tests {
@@ -15,7 +16,7 @@ namespace Exceptionless.Tests {
         }
 
         [Fact]
-        public async Task CanAddMultipleDataObjectsToEvent() {
+        public void CanAddMultipleDataObjectsToEvent() {
             var client = CreateClient();
             var ev = client.CreateLog("Test");
             Assert.Equal(ev.Target.Type, Event.KnownTypes.Log);
@@ -34,6 +35,42 @@ namespace Exceptionless.Tests {
 
             var person = ev.Target.Data["Blake"].ToString();
             Assert.True(person.Contains("Blake"));
+        }
+
+        [Fact]
+        public void CanFireOnSubmittingEvent() {
+            var client = CreateClient();
+            var ev = new Event { Message = "Unit Test" };
+            var list = new List<EventSubmittingEventArgs>();
+
+            client.SubmittingEvent += (sender, e) => {
+                list.Add(e);
+            }; 
+
+            new EventBuilder(ev, client).Submit();
+            Assert.Equal(1, list.Count);
+
+            new EventBuilder(ev, client, new ContextData()).Submit();
+            Assert.Equal(2, list.Count);  
+        }
+
+        [Fact (Skip = "This test shows off throwing a stack overflow exception: Issue #26")]
+        public void WillThrowStackOverflowExceptionDuringOnSubmitting() {
+            var client = CreateClient();
+            var list = new List<EventSubmittingEventArgs>();
+
+            client.SubmittingEvent += (sender, e) => {
+                list.Add(e);
+                if (e.IsUnhandledError) {
+                    new EventBuilder(e.Event, e.Client, e.PluginContextData).AddTags("Unhandled").Submit();
+                    e.Cancel = true;
+                }
+            };
+
+            var contextData = new ContextData();
+            contextData.MarkAsUnhandledError();
+            new Exception("Test").ToExceptionless(contextData, client).Submit();
+            Assert.Equal(2, list.Count);  
         }
 
         //[Fact]
