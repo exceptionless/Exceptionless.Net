@@ -3,7 +3,7 @@ using Exceptionless.Extensions;
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(30)]
+    [Priority(20)]
     public class SimpleErrorPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             var exception = context.ContextData.GetException();

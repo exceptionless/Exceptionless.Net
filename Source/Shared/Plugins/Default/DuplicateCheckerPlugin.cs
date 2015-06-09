@@ -5,7 +5,7 @@ using Exceptionless.Logging;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(40)]
+    [Priority(30)]
     public class DuplicateCheckerPlugin : IEventPlugin {
         private readonly ConcurrentQueue<Tuple<int, DateTime>> _recentlyProcessedErrors = new ConcurrentQueue<Tuple<int, DateTime>>();
 

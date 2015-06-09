@@ -2,7 +2,7 @@
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(20)]
+    [Priority(40)]
     public class ReferenceIdPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             if (!String.IsNullOrEmpty(context.Event.ReferenceId) || context.Event.Type != Event.KnownTypes.Error)
