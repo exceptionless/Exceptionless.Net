@@ -79,6 +79,22 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
+        public void ShouldUseReferenceIds() {
+            var client = new ExceptionlessClient();
+            foreach (var plugin in client.Configuration.Plugins)
+                client.Configuration.RemovePlugin(plugin.Key);
+
+            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Error });
+            EventPluginManager.Run(context);
+            Assert.Null(context.Event.ReferenceId);
+
+            client.Configuration.UseReferenceIds();
+            context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Error });
+            EventPluginManager.Run(context);
+            Assert.NotNull(context.Event.ReferenceId);
+        }
+
+        [Fact]
         public void VerifyPriority() {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             foreach (var plugin in config.Plugins)
