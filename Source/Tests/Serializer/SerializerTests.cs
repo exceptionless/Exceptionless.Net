@@ -88,6 +88,13 @@ namespace Exceptionless.Tests.Serializer {
 
             string newJson = JsonConvert.SerializeObject(m, settings);
         }
+
+        [Fact]
+        public void WillDeserializeReferenceIds() {
+            IJsonSerializer serializer = GetSerializer();
+            var ev = (Event)serializer.Deserialize(@"{""reference_id"": ""123"" }", typeof(Event));
+            Assert.Equal("123", ev.ReferenceId);
+        }
     }
 
     public class Blah {
