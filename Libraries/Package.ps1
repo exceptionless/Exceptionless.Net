@@ -24,6 +24,17 @@ ForEach ($p in $client_projects) {
             Continue;
         }
 
+        $isWebApi = ($($p.Name) -eq "Exceptionless.WebApi") -or ($($p.Name) -eq "Exceptionless.WebApi.Signed")
+        If ($isWebApi -and ($($b.TargetFrameworkVersionProperty) -ne "NET45")) {
+            Continue;
+        }
+        
+        # Temporary fix for nlog until https://github.com/NLog/NLog/issues/729 is fixed.
+        $isNLog = ($($p.Name) -eq "Exceptionless.NLog") -or ($($p.Name) -eq "Exceptionless.NLog.Signed")
+        If ($isNLog -and ($($b.TargetFrameworkVersionProperty) -ne "NET45")) {
+            Continue;
+        }
+
         $buildDirectory = "$build_dir\$configuration\$($p.Name)\lib\$($b.NuGetDir)"
         $workingLibDirectory = "$workingDirectory\lib\$($b.NuGetDir)"
         Create-Directory $workingLibDirectory
