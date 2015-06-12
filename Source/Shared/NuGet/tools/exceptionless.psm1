@@ -106,7 +106,7 @@ function update_config($configPath, $platform) {
 	}
 }
 
-function remove_config($configPath) {
+function remove_config($configPath, $platform) {
 	[xml] $configXml = gc $configPath
 	$shouldSave = $false
 
@@ -127,16 +127,18 @@ function remove_config($configPath) {
 			}
 		}
 		
-		$webModule = $configXml.SelectSingleNode("configuration/system.web/httpModules/add[@name='ExceptionlessModule']")
-		if ($webModule -ne $null) {
-			[Void]$webModule.ParentNode.RemoveChild($webModule)
-			$shouldSave = $true
-		}
+		if ($platform -ne $null -and $platform -ne 'WebApi') {
+			$webModule = $configXml.SelectSingleNode("configuration/system.web/httpModules/add[@name='ExceptionlessModule']")
+			if ($webModule -ne $null) {
+				[Void]$webModule.ParentNode.RemoveChild($webModule)
+				$shouldSave = $true
+			}
 		
-		$webServerModule = $configXml.SelectSingleNode("configuration/system.webServer/modules/add[@name='ExceptionlessModule']")
-		if ($webServerModule -ne $null) {
-			[Void]$webServerModule.ParentNode.RemoveChild($webServerModule)
-			$shouldSave = $true
+			$webServerModule = $configXml.SelectSingleNode("configuration/system.webServer/modules/add[@name='ExceptionlessModule']")
+			if ($webServerModule -ne $null) {
+				[Void]$webServerModule.ParentNode.RemoveChild($webServerModule)
+				$shouldSave = $true
+			}
 		}
 		
 		
