@@ -17,7 +17,8 @@ namespace Exceptionless.Serializer {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore,
                 DefaultValueHandling = DefaultValueHandling.Ignore,
-                PreserveReferencesHandling = PreserveReferencesHandling.None
+                PreserveReferencesHandling = PreserveReferencesHandling.None,
+                ContractResolver = new ExceptionlessContractResolver()
             };
 
             _serializerSettings.Converters.Add(new StringEnumConverter());
