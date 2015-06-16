@@ -76,6 +76,11 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
         public static void ReadFromConfigSection(this ExceptionlessConfiguration config) {
+            // If an appsetting is present for ApiKey, then it will override the other api keys
+            string apiKeyOverride = ConfigurationManager.AppSettings["Exceptionless:ApiKey"];
+            if (IsValidApiKey(apiKeyOverride))
+                config.ApiKey = apiKeyOverride;
+
             ExceptionlessSection section = null;
 
             try {
@@ -89,15 +94,10 @@ namespace Exceptionless {
 
             config.Enabled = section.Enabled;
 
-            // Only update if it is not null
-            if (!String.IsNullOrEmpty(section.ApiKey) && section.ApiKey != "API_KEY_HERE")
+            // Only update if it hasn't already been set via app settings.
+            if (!IsValidApiKey(apiKeyOverride) && IsValidApiKey(section.ApiKey))
                 config.ApiKey = section.ApiKey;
-
-            // If an appsetting is present for ApiKey, then it will override the other api keys
-            string apiKeyOverride = ConfigurationManager.AppSettings["Exceptionless:ApiKey"] ?? String.Empty;
-            if (!String.IsNullOrEmpty(apiKeyOverride) && apiKeyOverride != "API_KEY_HERE")
-                config.ApiKey = apiKeyOverride;
-
+            
             if (!String.IsNullOrEmpty(section.ServerUrl))
                 config.ServerUrl = section.ServerUrl;
 
@@ -159,6 +159,10 @@ namespace Exceptionless {
                     }
                 }
             }
+        }
+
+        private static bool IsValidApiKey(string apiKey) {
+            return !String.IsNullOrEmpty(apiKey) && apiKey != "API_KEY_HERE";
         }
     }
 }
