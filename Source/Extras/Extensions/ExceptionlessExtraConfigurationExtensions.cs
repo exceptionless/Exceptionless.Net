@@ -176,7 +176,7 @@ namespace Exceptionless {
             
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
-                config.ApiKey = serverUrl;
+                config.ServerUrl = serverUrl;
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Exceptionless {
             
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
-                config.ApiKey = serverUrl;
+                config.ServerUrl = serverUrl;
         }
 
         private static string GetEnvironmentalVariable(string name) {
