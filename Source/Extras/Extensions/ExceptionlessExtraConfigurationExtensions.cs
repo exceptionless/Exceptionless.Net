@@ -173,10 +173,6 @@ namespace Exceptionless {
             bool enabled;
             if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled))
                 config.Enabled = enabled;
-
-            bool enableSSL;
-            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:EnableSSL"], out enableSSL))
-                config.EnableSSL = enableSSL;
             
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
@@ -195,11 +191,7 @@ namespace Exceptionless {
             bool enabled;
             if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled"), out enabled))
                 config.Enabled = enabled;
-
-            bool enableSSL;
-            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:EnableSSL"), out enableSSL))
-                config.EnableSSL = enableSSL;
-
+            
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ApiKey = serverUrl;

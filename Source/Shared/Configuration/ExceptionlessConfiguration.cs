@@ -97,6 +97,7 @@ namespace Exceptionless {
         /// <summary>
         /// Whether or not the client should use SSL when communicating with the server.
         /// </summary>
+        [ObsoleteAttribute("This property will be removed in a future release.")]
         public bool EnableSSL { get; set; }
 
         /// <summary>
