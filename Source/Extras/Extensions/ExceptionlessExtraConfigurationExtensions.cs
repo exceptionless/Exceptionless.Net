@@ -72,6 +72,8 @@ namespace Exceptionless {
                 config.ReadFromAttributes(configAttributesAssemblies);
 
             config.ReadFromConfigSection();
+            config.ReadFromAppSettings();
+            config.ReadFromEnvironmentalVariables();
             config.ApplySavedServerSettings();
         }
 
