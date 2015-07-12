@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -15,6 +17,8 @@ using Exceptionless.Storage;
 
 namespace Exceptionless {
     public static class ExceptionlessExtraConfigurationExtensions {
+        private static Dictionary<string, string> _environmentVariables;
+
         /// <summary>
         /// Reads the Exceptionless configuration from the app.config or web.config file.
         /// </summary>
@@ -68,19 +72,16 @@ namespace Exceptionless {
                 config.ReadFromAttributes(configAttributesAssemblies);
 
             config.ReadFromConfigSection();
+            config.ReadFromAppSettings();
+            config.ReadFromEnvironmentalVariables();
             config.ApplySavedServerSettings();
         }
 
         /// <summary>
-        /// Reads the Exceptionless configuration from the app.config or web.config file.
+        /// Reads the Exceptionless configuration from the app.config or web.config files configuration section.
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
         public static void ReadFromConfigSection(this ExceptionlessConfiguration config) {
-            // If an appsetting is present for ApiKey, then it will override the other api keys
-            string apiKeyOverride = ConfigurationManager.AppSettings["Exceptionless:ApiKey"];
-            if (IsValidApiKey(apiKeyOverride))
-                config.ApiKey = apiKeyOverride;
-
             ExceptionlessSection section = null;
 
             try {
@@ -93,9 +94,8 @@ namespace Exceptionless {
                 return;
 
             config.Enabled = section.Enabled;
-
-            // Only update if it hasn't already been set via app settings.
-            if (!IsValidApiKey(apiKeyOverride) && IsValidApiKey(section.ApiKey))
+            
+            if (IsValidApiKey(section.ApiKey))
                 config.ApiKey = section.ApiKey;
             
             if (!String.IsNullOrEmpty(section.ServerUrl))
@@ -159,6 +159,61 @@ namespace Exceptionless {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Reads the Exceptionless configuration from the app.config or web.config files app settings.
+        /// </summary>
+        /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
+        public static void ReadFromAppSettings(this ExceptionlessConfiguration config) {
+            string apiKey = ConfigurationManager.AppSettings["Exceptionless:ApiKey"];
+            if (IsValidApiKey(apiKey))
+                config.ApiKey = apiKey;
+
+            bool enabled;
+            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled))
+                config.Enabled = enabled;
+            
+            string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
+            if (!String.IsNullOrEmpty(serverUrl))
+                config.ServerUrl = serverUrl;
+        }
+
+        /// <summary>
+        /// Reads the Exceptionless configuration from Environment Variables.
+        /// </summary>
+        /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
+        public static void ReadFromEnvironmentalVariables(this ExceptionlessConfiguration config) {
+            string apiKey = GetEnvironmentalVariable("Exceptionless:ApiKey");
+            if (IsValidApiKey(apiKey))
+                config.ApiKey = apiKey;
+
+            bool enabled;
+            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled"), out enabled))
+                config.Enabled = enabled;
+            
+            string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
+            if (!String.IsNullOrEmpty(serverUrl))
+                config.ServerUrl = serverUrl;
+        }
+
+        private static string GetEnvironmentalVariable(string name) {
+            if (String.IsNullOrEmpty(name))
+                return null;
+            
+            if (_environmentVariables == null) {
+                try {
+                    _environmentVariables = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().ToDictionary(e => e.Key.ToString(), e => e.Value.ToString());
+                } catch (Exception ex) {
+                    _environmentVariables = new Dictionary<string, string>();
+                    return null;
+                }
+            }
+            
+            if (!_environmentVariables.ContainsKey(name))
+                return null;
+
+            return _environmentVariables[name];
         }
 
         private static bool IsValidApiKey(string apiKey) {

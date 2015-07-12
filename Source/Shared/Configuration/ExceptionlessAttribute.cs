@@ -32,6 +32,7 @@ namespace Exceptionless.Configuration {
         /// </summary>
         /// ///
         /// <value><c>true</c> to enable SSL; otherwise, <c>false</c>.</value>
+        [ObsoleteAttribute("This property will be removed in a future release.")]
         public bool EnableSSL { get; set; }
 
         /// <summary>
