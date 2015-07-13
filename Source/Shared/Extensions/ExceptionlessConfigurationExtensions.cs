@@ -138,10 +138,8 @@ namespace Exceptionless.Extensions {
             builder.Path += builder.Path.EndsWith("/") ? "api/v2/" : "/api/v2/";
 
             // EnableSSL
-            if (config.EnableSSL && builder.Port == 80 && !builder.Host.Contains("local")) {
+            if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
                 builder.Port = 443;
-                builder.Scheme = "https";
-            }
 
             return builder.Uri;
         }
