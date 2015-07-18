@@ -7,6 +7,7 @@ using Exceptionless.Storage;
 
 namespace Exceptionless.Dialogs {
     public sealed partial class CrashReportForm : Form {
+        private int _originalHeight;
         public ExceptionlessClient Client { get; internal set; }
         public Event Event { get; internal set; }
 
@@ -58,5 +59,24 @@ namespace Exceptionless.Dialogs {
             DialogResult = DialogResult.OK;
             Close();
         }
+
+        private void CrashReportForm_Load(object sender, EventArgs e) {
+            _originalHeight = Height;
+            ErrorContentsBox.Text = Client.Configuration.Resolver.GetJsonSerializer().Serialize(Event);
+        }
+
+        private void ExpandButton_Click(object sender, EventArgs e) {
+            if (Height == 660)
+            {
+                Height = _originalHeight;
+                ExpandButton.Text = ">>";
+            }
+            else
+            {
+                Height = 660;
+                ExpandButton.Text = "<<";
+            }
+        }
+        
     }
 }

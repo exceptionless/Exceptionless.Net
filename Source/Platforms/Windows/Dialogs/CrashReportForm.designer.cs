@@ -38,8 +38,11 @@ namespace Exceptionless.Dialogs
             this.InformationHeaderLabel = new System.Windows.Forms.Label();
             this.InformationBodyLabel = new System.Windows.Forms.Label();
             this.buttonGroupBox = new System.Windows.Forms.GroupBox();
+            this.ExpandButton = new System.Windows.Forms.Button();
             this.ExitButton = new System.Windows.Forms.Button();
             this.SendReportButton = new System.Windows.Forms.Button();
+            this.ErrorContentsLabel = new System.Windows.Forms.Label();
+            this.ErrorContentsBox = new System.Windows.Forms.TextBox();
             this.titleGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.InformationHeaderPictureBox)).BeginInit();
             this.buttonGroupBox.SuspendLayout();
@@ -133,6 +136,7 @@ namespace Exceptionless.Dialogs
             // 
             this.buttonGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonGroupBox.Controls.Add(this.ExpandButton);
             this.buttonGroupBox.Controls.Add(this.ExitButton);
             this.buttonGroupBox.Controls.Add(this.SendReportButton);
             this.buttonGroupBox.Location = new System.Drawing.Point(-3, 395);
@@ -140,6 +144,15 @@ namespace Exceptionless.Dialogs
             this.buttonGroupBox.Size = new System.Drawing.Size(401, 54);
             this.buttonGroupBox.TabIndex = 8;
             this.buttonGroupBox.TabStop = false;
+            // 
+            // ExpandButton
+            // 
+            this.ExpandButton.Location = new System.Drawing.Point(16, 19);
+            this.ExpandButton.Name = "ExpandButton";
+            this.ExpandButton.Size = new System.Drawing.Size(45, 23);
+            this.ExpandButton.TabIndex = 6;
+            this.ExpandButton.Text = ">>";
+            this.ExpandButton.Click += new System.EventHandler(this.ExpandButton_Click);
             // 
             // ExitButton
             // 
@@ -163,6 +176,25 @@ namespace Exceptionless.Dialogs
             this.SendReportButton.Text = "&Submit Report";
             this.SendReportButton.Click += new System.EventHandler(this.OnSubmitReportButtonClick);
             // 
+            // ErrorContentsLabel
+            // 
+            this.ErrorContentsLabel.AutoSize = true;
+            this.ErrorContentsLabel.Location = new System.Drawing.Point(11, 462);
+            this.ErrorContentsLabel.Name = "ErrorContentsLabel";
+            this.ErrorContentsLabel.Size = new System.Drawing.Size(133, 13);
+            this.ErrorContentsLabel.TabIndex = 7;
+            this.ErrorContentsLabel.Text = "Application Error Message:";
+            // 
+            // ErrorContentsBox
+            // 
+            this.ErrorContentsBox.Location = new System.Drawing.Point(12, 483);
+            this.ErrorContentsBox.Multiline = true;
+            this.ErrorContentsBox.Name = "ErrorContentsBox";
+            this.ErrorContentsBox.ReadOnly = true;
+            this.ErrorContentsBox.Size = new System.Drawing.Size(372, 127);
+            this.ErrorContentsBox.TabIndex = 8;
+            this.ErrorContentsBox.Text = "(none available)";
+            // 
             // CrashReportForm
             // 
             this.AcceptButton = this.SendReportButton;
@@ -170,6 +202,8 @@ namespace Exceptionless.Dialogs
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.ExitButton;
             this.ClientSize = new System.Drawing.Size(396, 447);
+            this.Controls.Add(this.ErrorContentsBox);
+            this.Controls.Add(this.ErrorContentsLabel);
             this.Controls.Add(this.buttonGroupBox);
             this.Controls.Add(this.InformationBodyLabel);
             this.Controls.Add(this.titleGroupBox);
@@ -184,6 +218,7 @@ namespace Exceptionless.Dialogs
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "[AppName] Error";
+            this.Load += new System.EventHandler(this.CrashReportForm_Load);
             this.titleGroupBox.ResumeLayout(false);
             this.titleGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.InformationHeaderPictureBox)).EndInit();
@@ -206,6 +241,9 @@ namespace Exceptionless.Dialogs
         private System.Windows.Forms.GroupBox buttonGroupBox;
         private System.Windows.Forms.Button ExitButton;
         private System.Windows.Forms.Button SendReportButton;
+        private System.Windows.Forms.Button ExpandButton;
+        private System.Windows.Forms.Label ErrorContentsLabel;
+        private System.Windows.Forms.TextBox ErrorContentsBox;
     }
 }
 
