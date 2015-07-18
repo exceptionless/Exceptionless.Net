@@ -70,8 +70,7 @@ namespace Exceptionless {
         /// <param name="source">The log source.</param>
         /// <param name="level">The log level.</param>
         /// <param name="message">The log message.</param>
-        public static void SubmitLog(this ExceptionlessClient client, string source, string message, LogLevel level)
-        {
+        public static void SubmitLog(this ExceptionlessClient client, string source, string message, LogLevel level) {
             client.CreateLog(source, message, level.ToString()).Submit();
         }
 
@@ -117,15 +116,8 @@ namespace Exceptionless {
         /// <param name="source">The log source.</param>
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
-        public static EventBuilder CreateLog(this ExceptionlessClient client, string source, string message, LogLevel level)
-        {
-            var builder = client.CreateLog(source, message);
-
-            var stringLogLevel = level.ToString();
-            if (!String.IsNullOrWhiteSpace(stringLogLevel))
-                builder.AddObject(stringLogLevel.Trim(), Event.KnownDataKeys.Level);
-
-            return builder;
+        public static EventBuilder CreateLog(this ExceptionlessClient client, string source, string message, LogLevel level) {
+            return CreateLog(client, source, message, level.ToString());
         }
 
         /// <summary>
