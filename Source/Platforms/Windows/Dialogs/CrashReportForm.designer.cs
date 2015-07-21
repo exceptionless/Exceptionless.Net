@@ -147,7 +147,7 @@ namespace Exceptionless.Dialogs
             // 
             // ExpandButton
             // 
-            this.ExpandButton.Location = new System.Drawing.Point(16, 19);
+            this.ExpandButton.Location = new System.Drawing.Point(15, 19);
             this.ExpandButton.Name = "ExpandButton";
             this.ExpandButton.Size = new System.Drawing.Size(45, 23);
             this.ExpandButton.TabIndex = 6;
@@ -179,7 +179,7 @@ namespace Exceptionless.Dialogs
             // ErrorContentsLabel
             // 
             this.ErrorContentsLabel.AutoSize = true;
-            this.ErrorContentsLabel.Location = new System.Drawing.Point(11, 462);
+            this.ErrorContentsLabel.Location = new System.Drawing.Point(9, 463);
             this.ErrorContentsLabel.Name = "ErrorContentsLabel";
             this.ErrorContentsLabel.Size = new System.Drawing.Size(133, 13);
             this.ErrorContentsLabel.TabIndex = 7;
@@ -187,12 +187,13 @@ namespace Exceptionless.Dialogs
             // 
             // ErrorContentsBox
             // 
-            this.ErrorContentsBox.Location = new System.Drawing.Point(12, 483);
+            this.ErrorContentsBox.Location = new System.Drawing.Point(12, 479);
             this.ErrorContentsBox.Multiline = true;
             this.ErrorContentsBox.Name = "ErrorContentsBox";
             this.ErrorContentsBox.ReadOnly = true;
-            this.ErrorContentsBox.Size = new System.Drawing.Size(372, 127);
-            this.ErrorContentsBox.TabIndex = 8;
+            this.ErrorContentsBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.ErrorContentsBox.Size = new System.Drawing.Size(372, 130);
+            this.ErrorContentsBox.TabIndex = 9;
             this.ErrorContentsBox.Text = "(none available)";
             // 
             // CrashReportForm

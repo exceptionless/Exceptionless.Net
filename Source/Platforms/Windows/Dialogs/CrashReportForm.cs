@@ -62,7 +62,11 @@ namespace Exceptionless.Dialogs {
 
         private void CrashReportForm_Load(object sender, EventArgs e) {
             _originalHeight = Height;
-            ErrorContentsBox.Text = Client.Configuration.Resolver.GetJsonSerializer().Serialize(Event);
+            try {
+                ErrorContentsBox.Text = Client.Configuration.Resolver.GetJsonSerializer().Serialize(Event);
+            } catch (Exception ex) {
+                ErrorContentsBox.Text = "An error occurred running the serializer.";
+            }
         }
 
         private void ExpandButton_Click(object sender, EventArgs e) {
