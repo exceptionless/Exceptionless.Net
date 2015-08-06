@@ -1,9 +1,13 @@
 ﻿using System;
 using Exceptionless.Logging;
+using NLog;
 using NLog.Fluent;
+using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.NLog {
     public class NLogExceptionlessLog : IExceptionlessLog {
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public NLogExceptionlessLog(LogLevel? minimumLogLevel = null) {
             if (minimumLogLevel.HasValue)
                 MinimumLogLevel = minimumLogLevel.Value;
@@ -15,35 +19,35 @@ namespace Exceptionless.NLog {
             if (LogLevel.Error < MinimumLogLevel)
                 return;
 
-            Log.Error().Message(message).LoggerName(source).Exception(exception).Write();
+            _logger.Error().Message(message).LoggerName(source).Exception(exception).Write();
         }
 
         public void Info(string message, string source = null) {
             if (LogLevel.Info < MinimumLogLevel)
                 return;
 
-            Log.Info().Message(message).LoggerName(source).Write();
+            _logger.Info().Message(message).LoggerName(source).Write();
         }
 
         public void Debug(string message, string source = null) {
             if (LogLevel.Debug < MinimumLogLevel)
                 return;
 
-            Log.Debug().Message(message).LoggerName(source).Write();
+            _logger.Debug().Message(message).LoggerName(source).Write();
         }
 
         public void Warn(string message, string source = null) {
             if (LogLevel.Warn < MinimumLogLevel)
                 return;
 
-            Log.Warn().Message(message).LoggerName(source).Write();
+            _logger.Warn().Message(message).LoggerName(source).Write();
         }
 
         public void Trace(string message, string source = null) {
             if (LogLevel.Trace < MinimumLogLevel)
                 return;
 
-            Log.Trace().Message(message).LoggerName(source).Write();
+            _logger.Trace().Message(message).LoggerName(source).Write();
         }
 
         public void Flush() { }
