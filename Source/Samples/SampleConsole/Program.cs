@@ -53,6 +53,8 @@ namespace SampleConsole {
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
             Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
+            ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
+
             // test log4net
             XmlConfigurator.Configure();
             GlobalContext.Properties["GlobalProp"] = "GlobalValue";

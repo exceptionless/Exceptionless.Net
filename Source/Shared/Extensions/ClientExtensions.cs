@@ -57,8 +57,8 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="source">The log source.</param>
-        /// <param name="level">The log level.</param>
         /// <param name="message">The log message.</param>
+        /// <param name="level">The log level.</param>
         public static void SubmitLog(this ExceptionlessClient client, string source, string message, string level) {
             client.CreateLog(source, message, level).Submit();
         }
@@ -68,8 +68,8 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="source">The log source.</param>
-        /// <param name="level">The log level.</param>
         /// <param name="message">The log message.</param>
+        /// <param name="level">The log level.</param>
         public static void SubmitLog(this ExceptionlessClient client, string source, string message, LogLevel level) {
             client.CreateLog(source, message, level.ToString()).Submit();
         }
