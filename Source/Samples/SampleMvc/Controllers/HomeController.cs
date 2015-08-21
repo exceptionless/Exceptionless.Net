@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Web;
 using System.Web.Mvc;
 
 namespace Exceptionless.SampleMvc.Controllers {
@@ -27,6 +28,11 @@ namespace Exceptionless.SampleMvc.Controllers {
         [HttpGet]
         public ViewResult CustomError() {
             return View("CustomError");
+        }
+
+        [HttpGet]
+        public ViewResult FourZeroFour() {
+            throw new HttpException(404, "custom 404");
         }
 
         [HttpPost]
