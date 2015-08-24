@@ -174,7 +174,7 @@ namespace Exceptionless {
                 _lastReferenceIdManager.Value.SetLast(ev.ReferenceId);
             }
 
-            OnSubmittedEvent(new EventSubmittingEventArgs(this, ev, pluginContextData));
+            OnSubmittedEvent(new EventSubmittedEventArgs(this, ev, pluginContextData));
         }
 
         /// <summary>Creates a new instance of <see cref="Event" />.</summary>
@@ -229,13 +229,13 @@ namespace Exceptionless {
         /// <summary>
         /// Occurs when the event has been submitted.
         /// </summary>
-        public event EventHandler<EventSubmittingEventArgs> SubmittedEvent;
+        public event EventHandler<EventSubmittedEventArgs> SubmittedEvent;
         
         /// <summary>
         /// Raises the <see cref="SubmittedEvent" /> event.
         /// </summary>
         /// <param name="e">The <see cref="EventSubmittingEventArgs" /> instance containing the event data.</param>
-        protected void OnSubmittedEvent(EventSubmittingEventArgs e) {
+        protected void OnSubmittedEvent(EventSubmittedEventArgs e) {
             if (SubmittedEvent == null)
                 return;
 
@@ -243,8 +243,6 @@ namespace Exceptionless {
             foreach (var handler in handlers) {
                 try {
                     handler.DynamicInvoke(this, e);
-                    if (e.Cancel)
-                        return;
                 } catch (Exception ex) {
                     _log.Value.FormattedError(typeof(ExceptionlessClient), ex, "Error while invoking SubmittedEvent handler: {0}", ex.Message);
                 }
