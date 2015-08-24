@@ -169,11 +169,12 @@ namespace Exceptionless {
             _log.Value.FormattedTrace(typeof(ExceptionlessClient), "Submitting event: type={0}{1}", ev.Type, !String.IsNullOrEmpty(ev.ReferenceId) ? " refid=" + ev.ReferenceId : String.Empty);
             _queue.Value.Enqueue(ev);
 
-            if (String.IsNullOrEmpty(ev.ReferenceId))
-                return;
+            if (!String.IsNullOrEmpty(ev.ReferenceId)) {
+                _log.Value.FormattedTrace(typeof(ExceptionlessClient), "Setting last reference id '{0}'", ev.ReferenceId);
+                _lastReferenceIdManager.Value.SetLast(ev.ReferenceId);
+            }
 
-            _log.Value.FormattedTrace(typeof(ExceptionlessClient), "Setting last reference id '{0}'", ev.ReferenceId);
-            _lastReferenceIdManager.Value.SetLast(ev.ReferenceId);
+            OnSubmittedEvent(new EventSubmittedEventArgs(this, ev, pluginContextData));
         }
 
         /// <summary>Creates a new instance of <see cref="Event" />.</summary>
@@ -221,6 +222,29 @@ namespace Exceptionless {
                         return;
                 } catch (Exception ex) {
                     _log.Value.FormattedError(typeof(ExceptionlessClient), ex, "Error while invoking SubmittingEvent handler: {0}", ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the event has been submitted.
+        /// </summary>
+        public event EventHandler<EventSubmittedEventArgs> SubmittedEvent;
+
+        /// <summary>
+        /// Raises the <see cref="SubmittedEvent" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="EventSubmittedEventArgs" /> instance containing the event data.</param>
+        protected void OnSubmittedEvent(EventSubmittedEventArgs e) {
+            if (SubmittedEvent == null)
+                return;
+
+            var handlers = SubmittedEvent.GetInvocationList();
+            foreach (var handler in handlers) {
+                try {
+                    handler.DynamicInvoke(this, e);
+                } catch (Exception ex) {
+                    _log.Value.FormattedError(typeof(ExceptionlessClient), ex, "Error while invoking SubmittedEvent handler: {0}", ex.Message);
                 }
             }
         }
