@@ -5,16 +5,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Exceptionless.Models.Collections;
+using Exceptionless.Plugins;
 
 namespace Exceptionless.SampleWpf {
     public partial class MainWindow : Window {
+        private const string FORCE_CLOSE_APPLICATION_KEY = "ForceCloseApplication";
+
         public MainWindow() {
             InitializeComponent();
 
             ExceptionlessClient.Default.SubmittingEvent += OnSubmittingEvent;
+            ExceptionlessClient.Default.SubmittedEvent += OnSubmittedEvent;
             ExceptionlessClient.Default.Configuration.Settings.Changed += SettingsOnChanged;
         }
-
+        
         private void SettingsOnChanged(object sender, ChangedEventArgs<KeyValuePair<string, string>> args) {
             WriteLog("Configuration updated.");
         }
@@ -28,6 +32,13 @@ namespace Exceptionless.SampleWpf {
                 WriteLog(String.Format("Submitting Event: {0}{1}", e.Event.ReferenceId, Environment.NewLine));
             else
                 WriteLog("Submitting Event");
+        }
+        
+        private void OnSubmittedEvent(object sender, EventSubmittedEventArgs e) {
+            if (e.PluginContextData.ContainsKey(FORCE_CLOSE_APPLICATION_KEY)) {
+                WriteLog("Shutting down application");
+                Application.Current.Shutdown();
+            }
         }
 
         private void WriteLog(string message) {
@@ -70,6 +81,15 @@ namespace Exceptionless.SampleWpf {
 
         private void OnProcessQueue(object sender, RoutedEventArgs e) {
             ExceptionlessClient.Default.ProcessQueueAsync();
+        }
+        
+        private void OnGenerateExceptionAndClose(object sender, RoutedEventArgs e) {
+            try {
+                throw new Exception("TEST!");
+            } catch (Exception ex) {
+                var pluginContextData = new ContextData { { FORCE_CLOSE_APPLICATION_KEY, true } };
+                ex.ToExceptionless(pluginContextData).Submit();
+            }
         }
 
         private void OnGenerateThreadException(object sender, RoutedEventArgs e) {

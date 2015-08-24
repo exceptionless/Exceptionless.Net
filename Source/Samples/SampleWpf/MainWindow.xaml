@@ -37,6 +37,8 @@
                           Click="OnGenerateThreadException" />
                 <MenuItem Header="Handled Thread Exception"
                           Click="OnHandledThreadException" />
+                <MenuItem Header="Close After Throwing Exception"
+                          Click="OnGenerateExceptionAndClose" />
                 <MenuItem Header="Start Flooding Queue" x:Name="FloodQueueMenuItem" Click="OnFloodQueue" />
                 <Separator />
                 <MenuItem Header="Import Demo Reports"
