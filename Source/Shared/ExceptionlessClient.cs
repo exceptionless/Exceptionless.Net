@@ -230,11 +230,11 @@ namespace Exceptionless {
         /// Occurs when the event has been submitted.
         /// </summary>
         public event EventHandler<EventSubmittedEventArgs> SubmittedEvent;
-        
+
         /// <summary>
         /// Raises the <see cref="SubmittedEvent" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="EventSubmittingEventArgs" /> instance containing the event data.</param>
+        /// <param name="e">The <see cref="EventSubmittedEventArgs" /> instance containing the event data.</param>
         protected void OnSubmittedEvent(EventSubmittedEventArgs e) {
             if (SubmittedEvent == null)
                 return;
