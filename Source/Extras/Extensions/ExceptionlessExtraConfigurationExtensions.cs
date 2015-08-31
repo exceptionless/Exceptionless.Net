@@ -29,7 +29,7 @@ namespace Exceptionless {
         }
 
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
-            config.Resolver.Register<IObjectStorage, IsolatedStorageObjectStorage>();
+            config.Resolver.Register<IObjectStorage>(new IsolatedStorageObjectStorage(config.Resolver));
         }
 
         public static void UseFolderStorage(this ExceptionlessConfiguration config, string folder) {
@@ -94,6 +94,8 @@ namespace Exceptionless {
                 return;
 
             config.Enabled = section.Enabled;
+
+            config.PersistQueue = section.PersistQueue ?? true;
             
             if (IsValidApiKey(section.ApiKey))
                 config.ApiKey = section.ApiKey;
@@ -177,6 +179,10 @@ namespace Exceptionless {
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
+
+            bool persistQueue;
+            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:PersistQueue"], out persistQueue))
+                config.PersistQueue = persistQueue;
         }
 
         /// <summary>
@@ -195,6 +201,10 @@ namespace Exceptionless {
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
+
+            bool persistQueue;
+            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:PersistQueue"), out persistQueue))
+                config.PersistQueue = persistQueue;
         }
 
         private static string GetEnvironmentalVariable(string name) {

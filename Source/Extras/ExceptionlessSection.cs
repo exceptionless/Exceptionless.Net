@@ -24,6 +24,9 @@ namespace Exceptionless {
         [ConfigurationProperty("storagePath")]
         public string StoragePath { get { return base["storagePath"] as string; } set { base["storagePath"] = value; } }
 
+        [ConfigurationProperty("persistQueue")]
+        public bool? PersistQueue { get { return (bool?)base["persistQueue"]; } set { base["persistQueue"] = value; } }
+
         [ConfigurationProperty("tags")]
         public string Tags { get { return this["tags"] as string; } set { this["tags"] = value; } }
 
