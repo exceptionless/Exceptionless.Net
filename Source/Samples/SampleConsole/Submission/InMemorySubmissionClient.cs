@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission;
+using System.Net;
 
 namespace Exceptionless.SampleConsole
 {
-    public class InMemorySubmissionClient: ISubmissionClient {
+    public class InMemorySubmissionClient : ISubmissionClient
+    {
         private static readonly Dictionary<string, object> _eventRepository = new Dictionary<string, object>();
         private static readonly Dictionary<string, object> _userDescriptionRepository = new Dictionary<string, object>();
 
-        public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer)
+        {
             foreach (Event e in events)
             {
                 string data = serializer.Serialize(e);
@@ -19,17 +22,19 @@ namespace Exceptionless.SampleConsole
                     : Guid.NewGuid().ToString("D");
                 _eventRepository[referenceId] = data;
             }
-            return new SubmissionResponse(200);
+            return new SubmissionResponse(HttpStatusCode.OK);
 
         }
 
-        public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer)
+        {
             string data = serializer.Serialize(description);
             _userDescriptionRepository[referenceId] = data;
-            return new SubmissionResponse(200);
+            return new SubmissionResponse(HttpStatusCode.OK);
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer)
+        {
             return new SettingsResponse(true);
         }
     }

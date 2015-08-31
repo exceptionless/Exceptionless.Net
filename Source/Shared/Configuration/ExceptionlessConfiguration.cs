@@ -20,6 +20,7 @@ namespace Exceptionless {
         private string _serverUrl;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
+        private bool _persistQueue;
         private readonly List<string> _exclusions = new List<string>(); 
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
@@ -27,6 +28,7 @@ namespace Exceptionless {
             UserAgent = DEFAULT_USER_AGENT;
             SubmissionBatchSize = DEFAULT_SUBMISSION_BATCH_SIZE;
             Enabled = true;
+            PersistQueue = true;
             EnableSSL = true;
             DefaultTags = new TagSet();
             DefaultData = new DataDictionary();
@@ -93,6 +95,11 @@ namespace Exceptionless {
         /// Whether the client is currently enabled or not. If it is disabled, submitted errors will be discarded and no data will be sent to the server.
         /// </summary>
         public bool Enabled { get; set; }
+
+        /// <summary>
+        /// Whether or not queued items will be deleted after a finite number of retries or age
+        /// </summary>
+        public bool PersistQueue { get; set; }
 
         /// <summary>
         /// Whether or not the client should use SSL when communicating with the server.

@@ -30,16 +30,16 @@ namespace Exceptionless.Extras.Submission {
                 if (ex != null)
                     response = (HttpWebResponse)ex.Response;
                 else
-                    return new SubmissionResponse(500, message: aex.GetMessage());
+                    return new SubmissionResponse(HttpStatusCode.InternalServerError, message: aex.GetMessage());
             } catch (Exception ex) {
-                return new SubmissionResponse(500, message: ex.Message);
+                return new SubmissionResponse(HttpStatusCode.InternalServerError, message: ex.Message);
             }
 
             int settingsVersion;
             if (Int32.TryParse(response.Headers[ExceptionlessHeaders.ConfigurationVersion], out settingsVersion))
                 SettingsManager.CheckVersion(settingsVersion, config);
 
-            return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
+            return new SubmissionResponse(response.StatusCode, GetResponseMessage(response));
         }
 
         public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
@@ -54,16 +54,16 @@ namespace Exceptionless.Extras.Submission {
                 if (ex != null)
                     response = (HttpWebResponse)ex.Response;
                 else
-                    return new SubmissionResponse(500, message: aex.GetMessage());
+                    return new SubmissionResponse(HttpStatusCode.InternalServerError, message: aex.GetMessage());
             } catch (Exception ex) {
-                return new SubmissionResponse(500, message: ex.Message);
+                return new SubmissionResponse(HttpStatusCode.InternalServerError, message: ex.Message);
             }
 
             int settingsVersion;
             if (Int32.TryParse(response.Headers[ExceptionlessHeaders.ConfigurationVersion], out settingsVersion))
                 SettingsManager.CheckVersion(settingsVersion, config);
 
-            return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
+            return new SubmissionResponse(response.StatusCode, GetResponseMessage(response));
         }
 
         public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {

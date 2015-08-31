@@ -7,6 +7,7 @@ using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Storage;
 using Exceptionless.Submission;
+using System.Net;
 
 namespace Exceptionless.Queue {
     public class DefaultEventQueue : IEventQueue {
@@ -61,7 +62,10 @@ namespace Exceptionless.Queue {
             _processingQueue = true;
             
             try {
-                _storage.CleanupQueueFiles(_config.GetQueueName());
+                // Unless persistence has been specified in the config, remove older files
+                if (!_config.PersistQueue)
+                    _storage.CleanupQueueFiles(_config.GetQueueName());
+
                 _storage.ReleaseStaleLocks(_config.GetQueueName());
 
                 DateTime maxCreatedDate = DateTime.Now;
@@ -74,35 +78,51 @@ namespace Exceptionless.Queue {
                         var response = _client.PostEvents(batch.Select(b => b.Item2), _config, _serializer);
                         if (response.Success) {
                             _log.FormattedInfo(typeof(DefaultEventQueue), "Sent {0} events to \"{1}\".", batch.Count, _config.ServerUrl);
-                        } else if (response.ServiceUnavailable) {
-                            // You are currently over your rate limit or the servers are under stress.
-                            _log.Error(typeof(DefaultEventQueue), "Server returned service unavailable.");
-                            SuspendProcessing();
-                            deleteBatch = false;
-                        } else if (response.PaymentRequired) {
-                            // If the organization over the rate limit then discard the event.
-                            _log.Info(typeof(DefaultEventQueue), "Too many events have been submitted, please upgrade your plan.");
-                            SuspendProcessing(discardFutureQueuedItems: true, clearQueue: true);
-                        } else if (response.UnableToAuthenticate) {
+                        }
+                        else if (response.UnableToAuthenticate) {
                             // The api key was suspended or could not be authorized.
                             _log.Info(typeof(DefaultEventQueue), "Unable to authenticate, please check your configuration. The event will not be submitted.");
                             SuspendProcessing(TimeSpan.FromMinutes(15));
-                        } else if (response.NotFound || response.BadRequest) {
-                            // The service end point could not be found.
-                            _log.FormattedError(typeof(DefaultEventQueue), "Error while trying to submit data: {0}", response.Message);
-                            SuspendProcessing(TimeSpan.FromHours(4));
-                        } else if (response.RequestEntityTooLarge) {
-                            if (batchSize > 1) {
-                                _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will be retried with a smaller batch size.");
-                                batchSize = Math.Max(1, (int)Math.Round(batchSize / 1.5d, 0));
-                                deleteBatch = false;
-                            } else {
-                                _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
+                        }
+                        else {
+                            switch ((HttpStatusCode)response.StatusCode)
+                            {
+                                case HttpStatusCode.ServiceUnavailable:
+                                    // You are currently over your rate limit or the servers are under stress.
+                                    _log.Error(typeof(DefaultEventQueue), "Server returned service unavailable.");
+                                    SuspendProcessing();
+                                    deleteBatch = false;
+                                    break;
+
+                                case HttpStatusCode.PaymentRequired:
+                                    // If the organization over the rate limit then discard the event.
+                                    _log.Info(typeof(DefaultEventQueue), "Too many events have been submitted, please upgrade your plan.");
+                                    SuspendProcessing(discardFutureQueuedItems: true, clearQueue: true);
+                                    break;
+
+                                case HttpStatusCode.NotFound:
+                                case HttpStatusCode.BadRequest:
+                                    // The service end point could not be found.
+                                    _log.FormattedError(typeof(DefaultEventQueue), "Error while trying to submit data: {0}", response.Message);
+                                    SuspendProcessing(TimeSpan.FromHours(4));
+                                    break;
+
+                                case HttpStatusCode.RequestEntityTooLarge:
+                                    if (batchSize > 1) {
+                                        _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will be retried with a smaller batch size.");
+                                        batchSize = Math.Max(1, (int)Math.Round(batchSize / 1.5d, 0));
+                                        deleteBatch = false;
+                                    } else {
+                                        _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
+                                    }
+                                    break;
+
+                                default:
+                                    _log.Error(typeof(DefaultEventQueue), String.Format("An error occurred while submitting events: {0}", response.Message));
+                                    SuspendProcessing();
+                                    deleteBatch = false;
+                                    break;
                             }
-                        } else if (!response.Success) {
-                            _log.Error(typeof(DefaultEventQueue), String.Format("An error occurred while submitting events: {0}", response.Message));
-                            SuspendProcessing();
-                            deleteBatch = false;
                         }
                     } catch (AggregateException ex) {
                         _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while submitting events: ", ex.Flatten().Message));
@@ -154,7 +174,7 @@ namespace Exceptionless.Queue {
             // Account is over the limit and we want to ensure that the sample size being sent in will contain newer errors.
             try {
 #pragma warning disable 4014
-                _storage.CleanupQueueFiles(_config.GetQueueName(), TimeSpan.Zero);
+                _storage.CleanupAllQueueFiles(_config.GetQueueName());
 #pragma warning restore 4014
             } catch (Exception) { }
         }
