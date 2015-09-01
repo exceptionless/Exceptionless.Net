@@ -61,7 +61,7 @@ namespace Exceptionless.Queue {
             _processingQueue = true;
             
             try {
-                _storage.CleanupQueueFiles(_config.GetQueueName());
+                _storage.CleanupQueueFiles(_config.GetQueueName(), _config.QueueMaxAge, _config.QueueMaxAttempts);
                 _storage.ReleaseStaleLocks(_config.GetQueueName());
 
                 DateTime maxCreatedDate = DateTime.Now;

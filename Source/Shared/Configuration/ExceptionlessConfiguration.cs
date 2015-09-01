@@ -18,6 +18,8 @@ namespace Exceptionless {
         private bool _configLocked;
         private string _apiKey;
         private string _serverUrl;
+        private TimeSpan _queueMaxAge;
+        private int _queueMaxAttempts;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
         private readonly List<string> _exclusions = new List<string>(); 
@@ -28,6 +30,8 @@ namespace Exceptionless {
             SubmissionBatchSize = DEFAULT_SUBMISSION_BATCH_SIZE;
             Enabled = true;
             EnableSSL = true;
+            QueueMaxAge = TimeSpan.FromDays(7);
+            QueueMaxAttempts = 3;
             DefaultTags = new TagSet();
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
@@ -99,6 +103,16 @@ namespace Exceptionless {
         /// </summary>
         [ObsoleteAttribute("This property will be removed in a future release.")]
         public bool EnableSSL { get; set; }
+
+        /// <summary>
+        /// Maximum time (provided in days) that the queue will persist events
+        /// </summary>
+        public TimeSpan QueueMaxAge { get; set; }
+
+        /// <summary>
+        /// Maximum number of times the client will try to upload an event in the queue
+        /// </summary>
+        public int QueueMaxAttempts { get; set; }
 
         /// <summary>
         /// A default list of tags that will automatically be added to every report submitted to the server.

@@ -12,17 +12,14 @@ namespace Exceptionless.Extensions {
             storage.SaveObject(String.Concat(queueName, "\\q\\", Guid.NewGuid().ToString("N"), ".0.json"), ev);
         }
 
-        public static void CleanupQueueFiles(this IObjectStorage storage, string queueName, TimeSpan? maxAge = null, int? maxAttempts = 3) {
-            if (!maxAge.HasValue)
-                maxAge = TimeSpan.FromDays(1);
-
-            if (!maxAttempts.HasValue || maxAttempts.Value <= 0)
-                maxAttempts = 3;
+        public static void CleanupQueueFiles(this IObjectStorage storage, string queueName, TimeSpan? maxAge = null, int? maxAttempts = null) {
+            maxAge = maxAge ?? TimeSpan.FromDays(7);
+            maxAttempts = maxAttempts ?? 3;
 
             foreach (var file in storage.GetObjectList(queueName + "\\q\\*", 500).ToList()) {
-                if (file.Created < DateTime.Now.Subtract(maxAge.Value))
+                if (DateTime.Now.Subtract(file.Created) > maxAge.Value)
                     storage.DeleteObject(file.Path);
-                if (GetAttempts(file) >= maxAttempts)
+                if (GetAttempts(file) >= maxAttempts.Value)
                     storage.DeleteObject(file.Path);
             }
         }
