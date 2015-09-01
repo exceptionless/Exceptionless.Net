@@ -18,6 +18,12 @@ namespace Exceptionless {
         [ConfigurationProperty("enableLogging", DefaultValue = null)]
         public bool? EnableLogging { get { return (bool?)base["enableLogging"]; } set { base["enableLogging"] = value; } }
 
+        [ConfigurationProperty("queueMaxAge", DefaultValue = null)]
+        public TimeSpan? QueueMaxAge { get { return (TimeSpan?)base["queueMaxAge"]; } set { base["queueMaxAge"] = value; } }
+
+        [ConfigurationProperty("queueMaxAttempts", DefaultValue = null)]
+        public int? QueueMaxAttempts { get { return (int?)base["queueMaxAttempts"]; } set { base["queueMaxAttempts"] = value; } }
+
         [ConfigurationProperty("logPath")]
         public string LogPath { get { return base["logPath"] as string; } set { base["logPath"] = value; } }
 

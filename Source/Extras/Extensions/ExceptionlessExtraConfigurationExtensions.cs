@@ -104,6 +104,12 @@ namespace Exceptionless {
             if (section.EnableSSL.HasValue)
                 config.EnableSSL = section.EnableSSL.Value;
 
+            if (section.QueueMaxAge.HasValue)
+                config.QueueMaxAge = section.QueueMaxAge.Value;
+
+            if (section.QueueMaxAttempts.HasValue)
+                config.QueueMaxAttempts = section.QueueMaxAttempts.Value;
+
             if (!String.IsNullOrEmpty(section.StoragePath))
                 config.UseFolderStorage(section.StoragePath);
 
