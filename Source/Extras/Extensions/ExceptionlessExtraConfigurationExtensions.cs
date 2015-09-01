@@ -29,7 +29,7 @@ namespace Exceptionless {
         }
 
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
-            config.Resolver.Register<IObjectStorage, IsolatedStorageObjectStorage>();
+            config.Resolver.Register<IObjectStorage>(new IsolatedStorageObjectStorage(config.Resolver));
         }
 
         public static void UseFolderStorage(this ExceptionlessConfiguration config, string folder) {

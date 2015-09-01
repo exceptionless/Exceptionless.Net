@@ -13,12 +13,8 @@ namespace Exceptionless.Dependency {
         private static IDependencyResolver _resolver;
 
         public static IDependencyResolver Default {
-            get {
-                return _resolver ?? _defaultResolver.Value;
-            }
-            set {
-                _resolver = value;
-            }
+            get { return _resolver ?? _defaultResolver.Value; }
+            set { _resolver = value; }
         }
 
         public static IDependencyResolver CreateDefault() {
