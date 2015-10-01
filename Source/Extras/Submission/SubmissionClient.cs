@@ -105,7 +105,7 @@ namespace Exceptionless.Extras.Submission {
             return message;
         }
 
-        private HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string endPoint) {
+        protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string endPoint) {
             var request = (HttpWebRequest)WebRequest.Create(String.Concat(config.GetServiceEndPoint(), endPoint));
             request.AddAuthorizationHeader(config);
             request.SetUserAgent(config.UserAgent);

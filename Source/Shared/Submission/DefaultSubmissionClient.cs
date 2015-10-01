@@ -97,7 +97,7 @@ namespace Exceptionless.Submission {
             return message;
         }
 
-        private HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string endPoint) {
+        protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string endPoint) {
 #if PORTABLE40
             var request = WebRequest.CreateHttp(String.Concat(config.GetServiceEndPoint(), endPoint));
 #else 
