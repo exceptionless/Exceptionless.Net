@@ -23,7 +23,7 @@ namespace Exceptionless.Wpf.Extensions {
                 System.Windows.Forms.Application.ThreadException -= _onApplicationThreadException;
                 System.Windows.Forms.Application.ThreadException += _onApplicationThreadException;
             } catch (Exception ex) {
-                client.Configuration.Resolver.GetLog().Error(typeof(ExceptionlessClientExtensions), ex, "An error occurred while wiring up to the unobserved task exception event.");
+                client.Configuration.Resolver.GetLog().Error(typeof(ExceptionlessClientExtensions), ex, "An error occurred while wiring up to the application thread exception event.");
             }
         }
 
@@ -55,7 +55,7 @@ namespace Exceptionless.Wpf.Extensions {
                 System.Windows.Application.Current.DispatcherUnhandledException -= _onApplicationDispatcherUnhandledException;
                 System.Windows.Application.Current.DispatcherUnhandledException += _onApplicationDispatcherUnhandledException;
             } catch (Exception ex) {
-                client.Configuration.Resolver.GetLog().Error(typeof(ExceptionlessClientExtensions), ex, "An error occurred while wiring up to the unobserved task exception event.");
+                client.Configuration.Resolver.GetLog().Error(typeof(ExceptionlessClientExtensions), ex, "An error occurred while wiring up to the application dispatcher exception event.");
             }
         }
 
