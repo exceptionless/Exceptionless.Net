@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
@@ -50,6 +51,20 @@ namespace Exceptionless.Tests.Plugins {
             var plugin = new EnvironmentInfoPlugin();
             plugin.Run(context);
             Assert.Equal(0, context.Event.Data.Count);
+        }
+
+        [Fact]
+        public void EnvironmentInfo_CanRunInParallel() {
+            var client = new ExceptionlessClient();
+            var ev = new Event { Type = Event.KnownTypes.SessionStart };
+            var plugin = new EnvironmentInfoPlugin();
+
+            Parallel.For(0, 10000, i => {
+                var context = new EventPluginContext(client, ev);
+                plugin.Run(context);
+                Assert.Equal(1, context.Event.Data.Count);
+                Assert.NotNull(context.Event.Data[Event.KnownDataKeys.EnvironmentInfo]);
+            });
         }
 
         [Fact]
