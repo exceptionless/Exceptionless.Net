@@ -52,7 +52,7 @@
                    Margin="0,6,0,0"
                    Content="_Describe what you were doing when the error occurred (optional): " />
             <TextBox Name="DescriptionTextBox" 
-                     Height="120"
+                     Height="158"
                      HorizontalAlignment="Stretch" 
                      VerticalAlignment="Top" 
                      TextWrapping="Wrap" 
