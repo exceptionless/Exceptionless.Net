@@ -16,8 +16,12 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="appDomain">The AppDomain to register the exception handlers on.</param>
         public static void Startup(this ExceptionlessClient client, AppDomain appDomain = null) {
-            client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
-            client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
+            if (client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>())
+                client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
+
+            if (client.Configuration.Resolver.HasDefaultRegistration<IEnvironmentInfoCollector, DefaultEnvironmentInfoCollector>())
+                client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
+
             client.Configuration.ReadAllConfig();
             client.Configuration.UseErrorPlugin();
             client.Configuration.UseTraceLogEntriesPlugin();

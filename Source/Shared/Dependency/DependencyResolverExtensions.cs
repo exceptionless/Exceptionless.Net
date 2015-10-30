@@ -15,6 +15,14 @@ namespace Exceptionless.Dependency {
             return resolver.Resolve(typeof(TService)) != null;
         }
 
+        public static bool HasDefaultRegistration<TService, TDefaultImplementation>(this IDependencyResolver resolver) where TService : class where TDefaultImplementation : TService {
+            if (resolver == null)
+                return false;
+
+            var instance = resolver.Resolve(typeof(TService));
+            return instance is TDefaultImplementation;
+        }
+
         public static object Resolve(this IDependencyResolver resolver, Type type) {
             if (resolver == null)
                 throw new ArgumentNullException("resolver");

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Exceptionless.Dependency;
 using Exceptionless.Models;
+using Exceptionless.Models.Data;
 using Exceptionless.Plugins;
+using Exceptionless.Submission;
 using Xunit;
 
 namespace Exceptionless.Tests {
@@ -52,6 +55,22 @@ namespace Exceptionless.Tests {
 
             new EventBuilder(ev, client, new ContextData()).Submit();
             Assert.Equal(2, list.Count);  
+        }
+
+        [Fact]
+        public void CanCallStartupWithCustomSubmissionClient() {
+            var client = CreateClient();
+            Assert.True(client.Configuration.Resolver.HasRegistration<ISubmissionClient>());
+            Assert.True(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
+            
+            client.Configuration.Resolver.Register<ISubmissionClient, MySubmissionClient>();
+            Assert.False(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
+            Assert.True(client.Configuration.Resolver.Resolve<ISubmissionClient>() is MySubmissionClient);
+
+            client.Startup();
+            Assert.True(client.Configuration.Resolver.Resolve<ISubmissionClient>() is MySubmissionClient);
+            Assert.False(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
+            client.Shutdown();
         }
 
         [Fact (Skip = "This test shows off throwing a stack overflow exception: Issue #26")]
@@ -154,6 +173,20 @@ namespace Exceptionless.Tests {
 
         private class Person {
             public string Name { get; set; }
+        }
+
+        public class MySubmissionClient : ISubmissionClient {
+            public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+                throw new NotImplementedException();
+            }
+
+            public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+                throw new NotImplementedException();
+            }
+
+            public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
+                throw new NotImplementedException();
+            }
         }
     }
 }
