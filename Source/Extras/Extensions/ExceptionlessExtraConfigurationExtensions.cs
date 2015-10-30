@@ -63,9 +63,6 @@ namespace Exceptionless {
         }
 
         public static void ReadAllConfig(this ExceptionlessConfiguration config, params Assembly[] configAttributesAssemblies) {
-            if (!config.Resolver.HasRegistration<IObjectStorage>())
-                config.UseIsolatedStorage();
-
             if (configAttributesAssemblies == null || configAttributesAssemblies.Length == 0)
                 config.ReadFromAttributes(Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly());
             else
