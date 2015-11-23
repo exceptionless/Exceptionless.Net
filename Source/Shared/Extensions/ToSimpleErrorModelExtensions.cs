@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Exceptionless.Logging;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Extensions {
@@ -12,7 +13,13 @@ namespace Exceptionless.Extensions {
             "Entries", "StateEntries",  "PersistedState", "Results"
         };
 
-        public static SimpleError ToSimpleErrorModel(this Exception exception) {
+        /// <summary>
+        /// Sets the properties from an exception.
+        /// </summary>
+        /// <param name="exception">The exception to populate properties from.</param>
+        /// <param name="log">The log implementation used for diagnostic information.</param>
+        /// <param name="dataExclusions">Data exclusions that get run on extra exception properties.</param>
+        public static SimpleError ToSimpleErrorModel(this Exception exception, IExceptionlessLog log, IEnumerable<string> dataExclusions) {
             Type type = exception.GetType();
 
             var error = new SimpleError {
@@ -22,7 +29,8 @@ namespace Exceptionless.Extensions {
             };
 
             try {
-                Dictionary<string, object> extraProperties = type.GetPublicProperties().Where(p => !_exceptionExclusions.Contains(p.Name)).ToDictionary(p => p.Name, p => {
+                var exclusions = _exceptionExclusions.Union(dataExclusions ?? new List<string>());
+                var extraProperties = type.GetPublicProperties().Where(p => !exclusions.Contains(p.Name)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);
                     } catch {}
@@ -42,7 +50,7 @@ namespace Exceptionless.Extensions {
             } catch {}
 
             if (exception.InnerException != null)
-                error.Inner = exception.InnerException.ToSimpleErrorModel();
+                error.Inner = exception.InnerException.ToSimpleErrorModel(log, dataExclusions);
 
             return error;
         }

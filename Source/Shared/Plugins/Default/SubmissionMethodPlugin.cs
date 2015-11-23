@@ -7,7 +7,7 @@ namespace Exceptionless.Plugins.Default {
         public void Run(EventPluginContext context) {
             string submissionMethod = context.ContextData.GetSubmissionMethod();
             if (!String.IsNullOrEmpty(submissionMethod))
-                context.Event.AddObject(submissionMethod, Event.KnownDataKeys.SubmissionMethod);
+                context.Event.Data[Event.KnownDataKeys.SubmissionMethod] = submissionMethod;
         }
     }
 }

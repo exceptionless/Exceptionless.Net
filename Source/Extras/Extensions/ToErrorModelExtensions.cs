@@ -28,11 +28,12 @@ namespace Exceptionless.Extras {
         /// </summary>
         /// <param name="exception">The exception to populate properties from.</param>
         /// <param name="log">The log implementation used for diagnostic information.</param>
-        public static Error ToErrorModel(this Exception exception, IExceptionlessLog log) {
-            return ToErrorModelInternal(exception, log);
+        /// <param name="dataExclusions">Data exclusions that get run on extra exception properties.</param>
+        public static Error ToErrorModel(this Exception exception, IExceptionlessLog log, IEnumerable<string> dataExclusions) {
+            return ToErrorModelInternal(exception, log, dataExclusions);
         }
 
-        private static Error ToErrorModelInternal(Exception exception, IExceptionlessLog log, bool isInner = false) {
+        private static Error ToErrorModelInternal(Exception exception, IExceptionlessLog log, IEnumerable<string> dataExclusions, bool isInner = false) {
             Type type = exception.GetType();
 
             var error = new Error {
@@ -61,7 +62,8 @@ namespace Exceptionless.Extras {
             }
 
             try {
-                Dictionary<string, object> extraProperties = type.GetPublicProperties().Where(p => !_exceptionExclusions.Contains(p.Name)).ToDictionary(p => p.Name, p => {
+                var exclusions = _exceptionExclusions.Union(dataExclusions ?? new List<string>());
+                var extraProperties = type.GetPublicProperties().Where(p => !exclusions.Contains(p.Name)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);
                     } catch { }
@@ -81,7 +83,7 @@ namespace Exceptionless.Extras {
             } catch { }
 
             if (exception.InnerException != null)
-                error.Inner = ToErrorModelInternal(exception.InnerException, log, true);
+                error.Inner = ToErrorModelInternal(exception.InnerException, log, dataExclusions, true);
 
             return error;
         }
@@ -173,8 +175,12 @@ namespace Exceptionless.Extras {
                     FileName = frame.GetFileName()
                 };
 
-                stackFrame.Data["ILOffset"] = frame.GetILOffset();
-                stackFrame.Data["NativeOffset"] = frame.GetNativeOffset();
+                try {
+                    stackFrame.Data["ILOffset"] = frame.GetILOffset();
+                    stackFrame.Data["NativeOffset"] = frame.GetNativeOffset();
+                } catch (Exception ex) {
+                    log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame offset info: " + ex.Message);
+                }
 
                 try {
                     stackFrame.PopulateMethod(root, frame.GetMethod());
