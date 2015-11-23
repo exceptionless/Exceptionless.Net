@@ -28,10 +28,8 @@ namespace Exceptionless.Nancy {
             if (requestInfo == null)
                 return;
 
-            if (context.Event.Type == Event.KnownTypes.NotFound) {
+            if (context.Event.Type == Event.KnownTypes.NotFound)
                 context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-                context.Event.Data.Clear();
-            }
 
             context.Event.AddRequestInfo(requestInfo);
         }

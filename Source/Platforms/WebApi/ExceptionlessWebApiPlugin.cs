@@ -41,7 +41,6 @@ namespace Exceptionless.WebApi {
             if (error != null && error.Code == "404") {
                 context.Event.Type = Event.KnownTypes.NotFound;
                 context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-                context.Event.Data.Clear();
             }
 
             context.Event.AddRequestInfo(requestInfo);
