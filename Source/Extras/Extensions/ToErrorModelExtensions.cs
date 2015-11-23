@@ -43,7 +43,7 @@ namespace Exceptionless.Extras {
             if (!isInner)
                 error.Modules = GetLoadedModules(log);
 
-            error.PopulateStackTrace(error, exception);
+            error.PopulateStackTrace(error, exception, log);
 
             try {
                 PropertyInfo info = type.GetProperty("HResult", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -51,9 +51,13 @@ namespace Exceptionless.Extras {
                     error.Code = info.GetValue(exception, null).ToString();
             } catch (Exception) { }
 
-            if (exception.TargetSite != null) {
-                error.TargetMethod = new Method();
-                error.TargetMethod.PopulateMethod(error, exception.TargetSite);
+            try {
+                if (exception.TargetSite != null) {
+                    error.TargetMethod = new Method();
+                    error.TargetMethod.PopulateMethod(error, exception.TargetSite);
+                }
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error populating TargetMethod: " + ex.Message);
             }
 
             try {
@@ -110,45 +114,49 @@ namespace Exceptionless.Extras {
         private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
             var modules = new ModuleCollection();
 
-            int id = 1;
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                if (!includeDynamic && assembly.IsDynamic)
-                    continue;
-
-                try {
-                    if (!includeDynamic && String.IsNullOrEmpty(assembly.Location))
+            try {
+                int id = 1;
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                    if (!includeDynamic && assembly.IsDynamic)
                         continue;
-                } catch (SecurityException ex) {
-                    const string message = "An error occurred while getting the Assembly.Location value. This error will occur when when you are not running under full trust.";
-                    log.Error(typeof(ExceptionlessClient), ex, message);
-                }
 
-                if (!includeSystem) {
                     try {
-                        string publicKeyToken = assembly.GetAssemblyName().GetPublicKeyToken().ToHex();
-                        if (_msPublicKeyTokens.Contains(publicKeyToken))
+                        if (!includeDynamic && String.IsNullOrEmpty(assembly.Location))
                             continue;
+                    } catch (SecurityException ex) {
+                        const string message = "An error occurred while getting the Assembly.Location value. This error will occur when when you are not running under full trust.";
+                        log.Error(typeof(ExceptionlessClient), ex, message);
+                    }
 
-                        object[] attrs = assembly.GetCustomAttributes(typeof(GeneratedCodeAttribute), true);
-                        if (attrs.Length > 0)
-                            continue;
-                    } catch {}
+                    if (!includeSystem) {
+                        try {
+                            string publicKeyToken = assembly.GetAssemblyName().GetPublicKeyToken().ToHex();
+                            if (_msPublicKeyTokens.Contains(publicKeyToken))
+                                continue;
+
+                            object[] attrs = assembly.GetCustomAttributes(typeof(GeneratedCodeAttribute), true);
+                            if (attrs.Length > 0)
+                                continue;
+                        } catch {}
+                    }
+
+                    var module = assembly.ToModuleInfo();
+                    if (module.ModuleId > 0)
+                        continue;
+
+                    module.ModuleId = id;
+                    modules.Add(module);
+
+                    id++;
                 }
-
-                var module = assembly.ToModuleInfo();
-                if (module.ModuleId > 0)
-                    continue;
-
-                module.ModuleId = id;
-                modules.Add(module);
-
-                id++;
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error loading modules: " + ex.Message);
             }
 
             return modules;
         }
 
-        private static void PopulateStackTrace(this Error error, Error root, Exception exception) {
+        private static void PopulateStackTrace(this Error error, Error root, Exception exception, IExceptionlessLog log) {
             StackFrame[] frames = null;
             try {
                 var st = new StackTrace(exception, true);
@@ -159,7 +167,7 @@ namespace Exceptionless.Extras {
                 return;
 
             foreach (StackFrame frame in frames) {
-                var stackFrame = new Exceptionless.Models.Data.StackFrame {
+                var stackFrame = new Models.Data.StackFrame {
                     LineNumber = frame.GetFileLineNumber(),
                     Column = frame.GetFileColumnNumber(),
                     FileName = frame.GetFileName()
@@ -168,7 +176,11 @@ namespace Exceptionless.Extras {
                 stackFrame.Data["ILOffset"] = frame.GetILOffset();
                 stackFrame.Data["NativeOffset"] = frame.GetNativeOffset();
 
-                stackFrame.PopulateMethod(root, frame.GetMethod());
+                try {
+                    stackFrame.PopulateMethod(root, frame.GetMethod());
+                } catch (Exception ex) {
+                    log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame method info: " + ex.Message);
+                }
 
                 error.StackTrace.Add(stackFrame);
             }
@@ -181,7 +193,7 @@ namespace Exceptionless.Extras {
             method.Name = methodBase.Name;
             if (methodBase.DeclaringType != null) {
                 method.DeclaringNamespace = methodBase.DeclaringType.Namespace;
-                if (methodBase.DeclaringType.MemberType == MemberTypes.NestedType)
+                if (methodBase.DeclaringType.MemberType == MemberTypes.NestedType && methodBase.DeclaringType.DeclaringType != null)
                     method.DeclaringType = methodBase.DeclaringType.DeclaringType.Name + "+" + methodBase.DeclaringType.Name;
                 else
                     method.DeclaringType = methodBase.DeclaringType.Name;
