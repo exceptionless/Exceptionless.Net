@@ -8,7 +8,7 @@ namespace Exceptionless.Plugins.Default {
                 context.Event.Tags.Add(tag);
 
             foreach (var data in context.Client.Configuration.DefaultData)
-                context.Event.SetProperty(data.Key, data.Value, excludedPropertyNames: context.Client.Configuration.DataExclusions);
+                context.Event.SetProperty(data.Key, data.Value, client: context.Client);
         }
     }
 }

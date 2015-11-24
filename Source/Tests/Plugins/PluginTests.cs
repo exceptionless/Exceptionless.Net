@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
+using Exceptionless.Models.Data;
 using Exceptionless.Tests.Utility;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,6 +37,61 @@ namespace Exceptionless.Tests.Plugins {
                 plugin.Run(context);
                 Assert.Equal(1, context.Event.Tags.Count);
                 Assert.Equal(1, context.Event.Data.Count);
+            }
+        }
+
+         [Fact]
+        public void ConfigurationDefaults_IgnoredProperties() {
+            var client = new ExceptionlessClient();
+            client.Configuration.DefaultData.Add("Message", "Test");
+
+            var context = new EventPluginContext(client, new Event());
+            var plugin = new ConfigurationDefaultsPlugin();
+            plugin.Run(context);
+            Assert.Equal(1, context.Event.Data.Count);
+            Assert.Equal("Test", context.Event.Data["Message"]);
+            
+            client.Configuration.AddDataExclusions("Ignore*");
+            client.Configuration.DefaultData.Add("Ignored", "Test");
+            plugin.Run(context);
+            Assert.Equal(1, context.Event.Data.Count);
+            Assert.Equal("Test", context.Event.Data["Message"]);
+        }
+
+        [Fact]
+        public void ErrorPlugin_IgnoredProperties() {
+            var exception = new MyApplicationException("Test") {
+                IgnoredProperty = "Test",
+                RandomValue = "Test"
+            };
+            
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                var client = new ExceptionlessClient();
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+
+                plugin.Run(context);
+                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+                Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
+                var json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
+                Assert.Equal("{\"ignored_property\":\"Test\",\"random_value\":\"Test\"}", json);
+
+                client.Configuration.AddDataExclusions("Ignore*");
+                context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+
+                plugin.Run(context);
+                error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+                Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
+                json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
+                Assert.Equal("{\"random_value\":\"Test\"}", json);
             }
         }
 
@@ -146,6 +203,14 @@ namespace Exceptionless.Tests.Plugins {
         [Priority(11)]
         public class PluginWithPriority11 : IEventPlugin {
             public void Run(EventPluginContext context) {}
+        }
+        
+        public class MyApplicationException : ApplicationException {
+            public MyApplicationException(string message) : base(message) {}
+
+            public string IgnoredProperty { get; set; }
+
+            public string RandomValue { get; set; }
         }
     }
 }

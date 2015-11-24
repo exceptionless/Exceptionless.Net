@@ -23,7 +23,7 @@ namespace Exceptionless.Extensions {
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
-            if (patternsToMatch == null)
+            if (patternsToMatch == null || value == null)
                 return false;
 
             if (ignoreCase)
@@ -33,6 +33,9 @@ namespace Exceptionless.Extensions {
         }
 
         private static bool CheckForMatch(string pattern, string value, bool ignoreCase = true) {
+            if (pattern == null || value == null)
+                return false;
+
             bool startsWithWildcard = pattern.StartsWith("*");
             if (startsWithWildcard)
                 pattern = pattern.Substring(1);

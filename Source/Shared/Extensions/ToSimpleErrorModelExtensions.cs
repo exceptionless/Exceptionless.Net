@@ -17,9 +17,14 @@ namespace Exceptionless.Extensions {
         /// Sets the properties from an exception.
         /// </summary>
         /// <param name="exception">The exception to populate properties from.</param>
-        /// <param name="log">The log implementation used for diagnostic information.</param>
-        /// <param name="dataExclusions">Data exclusions that get run on extra exception properties.</param>
-        public static SimpleError ToSimpleErrorModel(this Exception exception, IExceptionlessLog log, IEnumerable<string> dataExclusions) {
+        /// <param name="client">
+        /// The ExceptionlessClient instance used for configuration. If a client is not specified, it will use
+        /// ExceptionlessClient.Default.
+        /// </param>
+        public static SimpleError ToSimpleErrorModel(this Exception exception, ExceptionlessClient client = null) {
+            if (client == null)
+                client = ExceptionlessClient.Default;
+
             Type type = exception.GetType();
 
             var error = new SimpleError {
@@ -29,8 +34,8 @@ namespace Exceptionless.Extensions {
             };
 
             try {
-                var exclusions = _exceptionExclusions.Union(dataExclusions ?? new List<string>());
-                var extraProperties = type.GetPublicProperties().Where(p => !exclusions.Contains(p.Name)).ToDictionary(p => p.Name, p => {
+                var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions);
+                var extraProperties = type.GetPublicProperties().Where(p => !p.Name.AnyWildcardMatches(exclusions, true)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);
                     } catch {}
@@ -45,12 +50,12 @@ namespace Exceptionless.Extensions {
                         Name = SimpleError.KnownDataKeys.ExtraProperties,
                         IgnoreSerializationErrors = true,
                         MaxDepthToSerialize = 5
-                    });
+                    }, client);
                 }
             } catch {}
 
             if (exception.InnerException != null)
-                error.Inner = exception.InnerException.ToSimpleErrorModel(log, dataExclusions);
+                error.Inner = exception.InnerException.ToSimpleErrorModel(client);
 
             return error;
         }

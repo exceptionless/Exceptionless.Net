@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Security;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
@@ -27,13 +28,19 @@ namespace Exceptionless.Extras {
         /// Sets the properties from an exception.
         /// </summary>
         /// <param name="exception">The exception to populate properties from.</param>
-        /// <param name="log">The log implementation used for diagnostic information.</param>
-        /// <param name="dataExclusions">Data exclusions that get run on extra exception properties.</param>
-        public static Error ToErrorModel(this Exception exception, IExceptionlessLog log, IEnumerable<string> dataExclusions) {
-            return ToErrorModelInternal(exception, log, dataExclusions);
+        /// <param name="client">
+        /// The ExceptionlessClient instance used for configuration. If a client is not specified, it will use
+        /// ExceptionlessClient.Default.
+        /// </param>
+        public static Error ToErrorModel(this Exception exception, ExceptionlessClient client = null) {
+            if (client == null)
+                client = ExceptionlessClient.Default;
+
+            return ToErrorModelInternal(exception, client);
         }
 
-        private static Error ToErrorModelInternal(Exception exception, IExceptionlessLog log, IEnumerable<string> dataExclusions, bool isInner = false) {
+        private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, bool isInner = false) {
+            var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
 
             var error = new Error {
@@ -62,8 +69,8 @@ namespace Exceptionless.Extras {
             }
 
             try {
-                var exclusions = _exceptionExclusions.Union(dataExclusions ?? new List<string>());
-                var extraProperties = type.GetPublicProperties().Where(p => !exclusions.Contains(p.Name)).ToDictionary(p => p.Name, p => {
+                var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions);
+                var extraProperties = type.GetPublicProperties().Where(p => !p.Name.AnyWildcardMatches(exclusions, true)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);
                     } catch { }
@@ -78,12 +85,12 @@ namespace Exceptionless.Extras {
                         Name = Error.KnownDataKeys.ExtraProperties,
                         IgnoreSerializationErrors = true,
                         MaxDepthToSerialize = 5
-                    });
+                    }, client);
                 }
             } catch { }
 
             if (exception.InnerException != null)
-                error.Inner = ToErrorModelInternal(exception.InnerException, log, dataExclusions, true);
+                error.Inner = ToErrorModelInternal(exception.InnerException, client, true);
 
             return error;
         }

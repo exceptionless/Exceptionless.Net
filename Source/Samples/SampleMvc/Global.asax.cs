@@ -15,6 +15,8 @@ namespace Exceptionless.SampleMvc {
         protected void Application_Start() {
             Trace.Listeners.Add(new NLogTraceListener());
             //ExceptionlessClient.Default.Log = new NLogExceptionlessLog();
+            ExceptionlessClient.Default.Configuration.DefaultData["FirstName"] = "Blake";
+            ExceptionlessClient.Default.Configuration.DefaultData["IgnoredProperty"] = "Some random data";
 
             AreaRegistration.RegisterAllAreas();
 

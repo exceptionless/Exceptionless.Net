@@ -71,12 +71,14 @@ namespace Exceptionless {
                     Data = value,
                     Name = name,
                     MaxDepthToSerialize = maxDepth,
-                    ExcludedPropertyNames = excludedPropertyNames != null ? client.Configuration.DataExclusions.Union(excludedPropertyNames).ToArray() : client.Configuration.DataExclusions.ToArray(),
                     IgnoreSerializationErrors = ignoreSerializationErrors
                 };
+
+                if (excludedPropertyNames != null)
+                    info.ExcludedPropertyNames.AddRange(excludedPropertyNames);
             }
 
-            AddObject(data, info);
+            AddObject(data, info, client);
         }
 
         /// <summary>
@@ -94,6 +96,10 @@ namespace Exceptionless {
 
             if (info == null || info.Data == null)
                 return;
+            
+            string[] exclusions = info.ExcludedPropertyNames != null
+                ? client.Configuration.DataExclusions.Union(info.ExcludedPropertyNames).ToArray()
+                : client.Configuration.DataExclusions.ToArray();
 
             string name = !String.IsNullOrWhiteSpace(info.Name) ? info.Name.Trim() : null;
             if (String.IsNullOrEmpty(name)) {
@@ -101,6 +107,8 @@ namespace Exceptionless {
                 int index = 1;
                 while (data.Data.ContainsKey(name))
                     name = info.Data.GetType().Name + index++;
+            } else if (name.AnyWildcardMatches(exclusions, true)) {
+                return;
             }
 
             Type dataType = info.Data.GetType();
@@ -118,10 +126,8 @@ namespace Exceptionless {
                 if (dataType.IsPrimitiveType()) {
                     json = info.Data.ToString();
                 } else {
-                    string[] excludedPropertyNames = info.ExcludedPropertyNames != null ? client.Configuration.DataExclusions.Union(info.ExcludedPropertyNames).ToArray() : client.Configuration.DataExclusions.ToArray();
-
-                    var serializer = DependencyResolver.Default.GetJsonSerializer();
-                    json = serializer.Serialize(info.Data, excludedPropertyNames, info.MaxDepthToSerialize.HasValue ? info.MaxDepthToSerialize.Value : 5, info.IgnoreSerializationErrors);
+                    var serializer = client.Configuration.Resolver.GetJsonSerializer();
+                    json = serializer.Serialize(info.Data, exclusions, info.MaxDepthToSerialize.HasValue ? info.MaxDepthToSerialize.Value : 5, info.IgnoreSerializationErrors);
                 }
             } catch (Exception ex) {
                 json = ex.ToString();

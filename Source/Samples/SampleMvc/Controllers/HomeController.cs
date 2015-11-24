@@ -17,7 +17,10 @@ namespace Exceptionless.SampleMvc.Controllers {
 
         [HttpPost]
         public ViewResult Index(SomeModel model) {
-            throw new ApplicationException("Error on form submit.");
+            throw new MyApplicationException("Error on form submit.") {
+                IgnoredProperty = "Index Test",
+                RandomValue = Guid.NewGuid().ToString()
+            };
         }
 
         [HttpGet]
@@ -72,15 +75,16 @@ namespace Exceptionless.SampleMvc.Controllers {
         public ActionResult Boom25() {
             for (int i = 0; i < 25; i++) {
                 try {
-                    throw new ApplicationException("Boom!");
+                    throw new MyApplicationException("Boom!") {
+                        IgnoredProperty = "Test",
+                        RandomValue = Guid.NewGuid().ToString()
+                    };
                 } catch (Exception ex) {
-                   ex.ToExceptionless()
+                    ex.ToExceptionless()
                         .SetUserIdentity("some@email.com")
                         .AddRecentTraceLogEntries()
                         .AddRequestInfo()
-                        .AddObject(new {
-                            Blah = "Hello"
-                        }, name: "Hello")
+                        .AddObject(new { Blah = "Hello" }, name: "Hello")
                         .AddTags("SomeTag", "AnotherTag")
                         .MarkAsCritical()
                         .Submit();
@@ -92,9 +96,7 @@ namespace Exceptionless.SampleMvc.Controllers {
                         .SetUserDescription("some@email.com", "Some description.")
                         .AddRecentTraceLogEntries()
                         .AddRequestInfo()
-                        .AddObject(new {
-                            Blah = "Hello"
-                        }, name: "Hello", excludedPropertyNames: new[] { "Blah" })
+                        .AddObject(new { Blah = "Hello" }, name: "Hello", excludedPropertyNames: new[] { "Blah" })
                         .AddTags("SomeTag", "AnotherTag")
                         .MarkAsCritical()
                         .Submit();
@@ -109,5 +111,13 @@ namespace Exceptionless.SampleMvc.Controllers {
         public ActionResult CreateRequestValidationException(string value) {
             return RedirectToAction("Index");
         }
+    }
+
+    public class MyApplicationException : ApplicationException {
+        public MyApplicationException(string message) : base(message) {}
+
+        public string IgnoredProperty { get; set; }
+
+        public string RandomValue { get; set; }   
     }
 }

@@ -11,7 +11,7 @@ namespace Exceptionless.Plugins {
                 return;
 
             context.Event.Type = Event.KnownTypes.Error;
-            context.Event.Data[Event.KnownDataKeys.Error] = exception.ToErrorModel(context.Log, context.Client.Configuration.DataExclusions);
+            context.Event.Data[Event.KnownDataKeys.Error] = exception.ToErrorModel(context.Client);
         }
     }
 }
