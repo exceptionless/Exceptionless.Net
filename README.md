@@ -1,5 +1,8 @@
 # Exceptionless .NET Clients
-[![Build status](https://ci.appveyor.com/api/projects/status/xk17pk0u7a5r7yrw?svg=true)](https://ci.appveyor.com/project/Exceptionless/exceptionless-net) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/exceptionless/Discuss)
+[![Build status](https://ci.appveyor.com/api/projects/status/xk17pk0u7a5r7yrw?svg=true)](https://ci.appveyor.com/project/Exceptionless/exceptionless-net) 
+[![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.Portable.svg?style=flat)](https://www.nuget.org/packages/Exceptionless.Portable/) [![NuGet Downloads](http://img.shields.io/nuget/dt/Exceptionless.Portable.svg?style=flat)](https://www.nuget.org/packages/Exceptionless.Portable/) 
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/exceptionless/Discuss)
+[![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless) 
 
 The definition of the word exceptionless is: to be without exception. [Exceptionless](http://exceptionless.io) provides real-time .NET error reporting for your ASP.NET, Web API, WebForms, WPF, Console, and MVC apps. It organizes the gathered information into simple actionable data that will help your app become exceptionless!
 
