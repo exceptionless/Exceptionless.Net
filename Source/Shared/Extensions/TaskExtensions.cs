@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Exceptionless.Threading.Tasks {
     public static class TaskExtensions {
         public static Task Then(this Task task, Action<Task> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<AsyncVoid>();
 
@@ -29,8 +29,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task Then(this Task task, Func<Task, Task> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<AsyncVoid>();
 
@@ -54,8 +54,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task<TNextResult> Then<TNextResult>(this Task task, Func<Task, TNextResult> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<TNextResult>();
 
@@ -75,8 +75,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task<TNextResult> Then<TNextResult>(this Task task, Func<Task, Task<TNextResult>> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<TNextResult>();
 
@@ -106,8 +106,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task Then<TResult>(this Task<TResult> task, Action<Task<TResult>> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<AsyncVoid>();
 
@@ -128,8 +128,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task Then<TResult>(this Task<TResult> task, Func<Task<TResult>, Task> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<AsyncVoid>();
 
@@ -153,8 +153,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task<TNextResult> Then<TResult, TNextResult>(this Task<TResult> task, Func<Task<TResult>, TNextResult> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<TNextResult>();
 
@@ -174,8 +174,8 @@ namespace Exceptionless.Threading.Tasks {
         }
 
         public static Task<TNextResult> Then<TResult, TNextResult>(this Task<TResult> task, Func<Task<TResult>, Task<TNextResult>> next) {
-            if (task == null) throw new ArgumentNullException("task");
-            if (next == null) throw new ArgumentNullException("next");
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (next == null) throw new ArgumentNullException(nameof(next));
 
             var tcs = new TaskCompletionSource<TNextResult>();
 

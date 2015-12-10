@@ -7,6 +7,7 @@ using Exceptionless.Dependency;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
+using Exceptionless.Models.Data;
 using Exceptionless.Storage;
 
 namespace Exceptionless {
@@ -38,10 +39,7 @@ namespace Exceptionless {
         }
 
         public static string GetInstallId(this ExceptionlessConfiguration config) {
-            if (config == null)
-                return null;
-
-            var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
+            var persistedClientData = config?.Resolver.Resolve<PersistedDictionary>();
             if (persistedClientData == null)
                 return null;
 
@@ -82,7 +80,7 @@ namespace Exceptionless {
         /// <param name="assemblies">The assembly that contains the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, params Assembly[] assemblies) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             config.ReadFromAttributes(assemblies.ToList());
         }
@@ -95,7 +93,7 @@ namespace Exceptionless {
         /// <param name="assemblies">A list of assemblies that should be checked for the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, ICollection<Assembly> assemblies = null) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             if (assemblies == null)
                 assemblies = new List<Assembly> { Assembly.GetCallingAssembly() };
@@ -116,7 +114,6 @@ namespace Exceptionless {
                 if (!String.IsNullOrEmpty(attr.ServerUrl))
                     config.ServerUrl = attr.ServerUrl;
                 
-                config.EnableSSL = attr.EnableSSL;
                 break;
             }
 

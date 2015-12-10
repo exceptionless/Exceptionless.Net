@@ -11,7 +11,6 @@ namespace Exceptionless.Tests {
     public class ExceptionlessClientTests {
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
-                c.EnableSSL = false;
                 c.UseDebugLogger();
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";

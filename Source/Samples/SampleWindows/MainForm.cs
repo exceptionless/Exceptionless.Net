@@ -33,7 +33,7 @@ namespace Exceptionless.SampleWindows {
                 e.Event.Tags.Add("Important");
 
             if (!String.IsNullOrEmpty(e.Event.ReferenceId))
-                logTextBox.AppendText(String.Format("Submitting Event: {0}{1}", e.Event.ReferenceId, Environment.NewLine));
+                logTextBox.AppendText($"Submitting Event: {e.Event.ReferenceId}{Environment.NewLine}");
             else
                 logTextBox.AppendText("Submitting Event");
 
