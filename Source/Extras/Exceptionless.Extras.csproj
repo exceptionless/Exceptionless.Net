@@ -54,6 +54,7 @@
     <Compile Include="Plugins\ErrorPlugin.cs" />
     <Compile Include="Plugins\PrivateInformationPlugin.cs" />
     <Compile Include="Plugins\TraceLogPlugin.cs" />
+    <Compile Include="Plugins\SingleSessionPlugin.cs" />
     <Compile Include="Plugins\VersionPlugin.cs" />
     <Compile Include="ExceptionlessSection.cs" />
     <Compile Include="Extensions\EventBuilderExtensions.cs" />

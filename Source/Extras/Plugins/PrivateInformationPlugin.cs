@@ -8,7 +8,7 @@ namespace Exceptionless.Plugins {
                 return;
 
             var user = context.Event.GetUserIdentity();
-            if (user == null || String.IsNullOrEmpty(user.Identity))
+            if (String.IsNullOrEmpty(user?.Identity))
                 context.Event.SetUserIdentity(Environment.UserName);
         }
     }

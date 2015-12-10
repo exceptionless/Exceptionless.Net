@@ -16,6 +16,7 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="showDialog">Controls whether a dialog is shown when an unhandled exception occurs.</param>
         public static void Register(this ExceptionlessClient client, bool showDialog = true) {
+            client.Configuration.UseSingleSessionPlugin();
             client.Startup();
             client.RegisterApplicationThreadExceptionHandler();
             client.RegisterApplicationDispatcherUnhandledExceptionHandler();
