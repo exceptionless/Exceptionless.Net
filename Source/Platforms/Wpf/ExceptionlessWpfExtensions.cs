@@ -18,6 +18,7 @@ namespace Exceptionless {
         public static void Register(this ExceptionlessClient client, bool showDialog = true) {
             client.Configuration.UseSingleSessionPlugin();
             client.Startup();
+            client.SubmitSessionStart();
             client.RegisterApplicationThreadExceptionHandler();
             client.RegisterApplicationDispatcherUnhandledExceptionHandler();
 
@@ -42,6 +43,9 @@ namespace Exceptionless {
             client.UnregisterOnProcessExitHandler();
 
             client.SubmittingEvent -= OnSubmittingEvent;
+            
+            client.SubmitSessionEnd();
+            client.ProcessQueue();
         }
 
         private static void OnSubmittingEvent(object sender, EventSubmittingEventArgs e) {
@@ -62,8 +66,12 @@ namespace Exceptionless {
         }
 
         private static void RegisterOnProcessExitHandler(this ExceptionlessClient client) {
-            if (_onProcessExit == null)
-                _onProcessExit = (sender, args) => client.ProcessQueue();
+            if (_onProcessExit == null) {
+                _onProcessExit = (sender, args) => {
+                    client.SubmitSessionEnd();
+                    client.ProcessQueue();
+                };
+            }
 
             try {
                 AppDomain.CurrentDomain.ProcessExit -= _onProcessExit;
