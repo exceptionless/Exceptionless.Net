@@ -18,7 +18,7 @@ namespace Exceptionless.SampleConsole.Plugins {
                 var uptime = TimeSpan.FromSeconds(pc.NextValue());
 
                 // Store the system uptime as an extended property.
-                context.Event.SetProperty("System Uptime", String.Format("{0} Days {1} Hours {2} Minutes {3} Seconds", uptime.Days, uptime.Hours, uptime.Minutes, uptime.Seconds));
+                context.Event.SetProperty("System Uptime", $"{uptime.Days} Days {uptime.Hours} Hours {uptime.Minutes} Minutes {uptime.Seconds} Seconds");
             }
         }
     }

@@ -28,7 +28,7 @@ namespace Exceptionless {
 
         public ExceptionlessClient(ExceptionlessConfiguration configuration) {
             if (configuration == null)
-                throw new ArgumentNullException("configuration");
+                throw new ArgumentNullException(nameof(configuration));
 
             Configuration = configuration;
             configuration.Resolver.Register(typeof(ExceptionlessConfiguration), () => Configuration);
@@ -53,7 +53,7 @@ namespace Exceptionless {
         /// <param name="description">The user's description of the event.</param>
         public bool UpdateUserEmailAndDescription(string referenceId, string email, string description) {
             if (String.IsNullOrEmpty(referenceId))
-                throw new ArgumentNullException("referenceId");
+                throw new ArgumentNullException(nameof(referenceId));
 
             if (String.IsNullOrEmpty(email) && String.IsNullOrEmpty(description))
                 return true;
@@ -130,7 +130,7 @@ namespace Exceptionless {
         /// </param>
         public void SubmitEvent(Event ev, ContextData pluginContextData = null) {
             if (ev == null)
-                throw new ArgumentNullException("ev");
+                throw new ArgumentNullException(nameof(ev));
 
             if (!Configuration.Enabled) {
                 _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The event will not be submitted.");

@@ -47,7 +47,7 @@ namespace Exceptionless.Extras.Submission {
 
             HttpWebResponse response;
             try {
-                var request = CreateHttpWebRequest(config, String.Format("events/by-ref/{0}/user-description", referenceId));
+                var request = CreateHttpWebRequest(config, $"events/by-ref/{referenceId}/user-description");
                 response = request.PostJsonAsyncWithCompression(data).Result as HttpWebResponse;
             } catch (AggregateException aex) {
                 var ex = aex.GetInnermostException() as WebException;
@@ -77,7 +77,7 @@ namespace Exceptionless.Extras.Submission {
             }
 
             if (response == null || response.StatusCode != HttpStatusCode.OK)
-                return new SettingsResponse(false, message: String.Format("Unable to retrieve configuration settings: {0}", GetResponseMessage(response)));
+                return new SettingsResponse(false, message: $"Unable to retrieve configuration settings: {GetResponseMessage(response)}");
 
             var json = response.GetResponseText();
             if (String.IsNullOrWhiteSpace(json))
@@ -127,7 +127,7 @@ namespace Exceptionless.Extras.Submission {
                 ServicePointManager.Expect100Continue = false;
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             } catch (Exception ex) {
-                Trace.WriteLine(String.Format("An error occurred while configuring SSL certificate validation. Exception: {0}", ex));
+                Trace.WriteLine($"An error occurred while configuring SSL certificate validation. Exception: {ex}");
             }
         }
     }

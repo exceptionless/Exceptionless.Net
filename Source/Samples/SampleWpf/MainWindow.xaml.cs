@@ -29,7 +29,7 @@ namespace Exceptionless.SampleWpf {
                 e.Event.Tags.Add("Important");
 
             if (!String.IsNullOrEmpty(e.Event.ReferenceId))
-                WriteLog(String.Format("Submitting Event: {0}{1}", e.Event.ReferenceId, Environment.NewLine));
+                WriteLog($"Submitting Event: {e.Event.ReferenceId}{Environment.NewLine}");
             else
                 WriteLog("Submitting Event");
         }

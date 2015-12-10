@@ -63,10 +63,7 @@ namespace SampleConsole {
 
             var tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
-            if (false)
-                SampleApiUsages();
-
-
+            
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => {
@@ -74,7 +71,7 @@ namespace SampleConsole {
                 if (ctx.Client.Configuration.Settings.GetBoolean("IncludeConditionalData", true))
                     ctx.Event.AddObject(new { Total = 32.34, ItemCount = 2, Email = "someone@somewhere.com" }, "ConditionalData");
             });
-            ExceptionlessClient.Default.Configuration.Settings.Changed += (sender, args) => Trace.WriteLine(String.Format("Action: {0} Key: {1} Value: {2}", args.Action, args.Item.Key, args.Item.Value ));
+            ExceptionlessClient.Default.Configuration.Settings.Changed += (sender, args) => Trace.WriteLine($"Action: {args.Action} Key: {args.Item.Key} Value: {args.Item.Value}");
 
             WriteOptionsMenu();
 

@@ -8,7 +8,7 @@ namespace Exceptionless.Services {
         public EnvironmentInfo GetEnvironmentInfo() {
             if (_environmentInfo == null)
                 _environmentInfo = new EnvironmentInfo {
-                    MachineName = Guid.NewGuid().ToString("N")
+                    MachineName = Guid.NewGuid().ToString("N"),
                 };
 
             return _environmentInfo;

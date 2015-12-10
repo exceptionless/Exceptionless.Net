@@ -16,8 +16,8 @@ namespace Exceptionless.Dialogs {
 
             Client = client;
             Event = ev;
-            Text = String.Format("{0} Error", AssemblyHelper.GetAssemblyTitle());
-            InformationHeaderLabel.Text = String.Format("{0} has encountered a problem and needs to close.  We are sorry for the inconvenience.", AssemblyHelper.GetAssemblyTitle());
+            Text = $"{AssemblyHelper.GetAssemblyTitle()} Error";
+            InformationHeaderLabel.Text = $"{AssemblyHelper.GetAssemblyTitle()} has encountered a problem and needs to close.  We are sorry for the inconvenience.";
 
             var userInfo = ev.GetUserIdentity();
             if (userInfo != null && !String.IsNullOrEmpty(userInfo.Identity)) {

@@ -9,7 +9,7 @@ using Exceptionless.Tests.Utility;
 using Moq;
 using Xunit;
 
-[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:45000", EnableSSL = false)]
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:45000")]
 [assembly: ExceptionlessSetting("testing", "configuration")]
 namespace Exceptionless.Tests.Configuration {
     public class ConfigurationTests {
@@ -27,13 +27,11 @@ namespace Exceptionless.Tests.Configuration {
             var client = new ExceptionlessClient(c => {
                 c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
                 c.ServerUrl = "http://localhost:45000";
-                c.EnableSSL = false;
                 c.SetVersion(version);
             });
 
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", client.Configuration.ApiKey);
             Assert.Equal("http://localhost:45000", client.Configuration.ServerUrl);
-            Assert.False(client.Configuration.EnableSSL);
             Assert.Equal(version, client.Configuration.DefaultData[Event.KnownDataKeys.Version].ToString());
         }
 
@@ -42,13 +40,11 @@ namespace Exceptionless.Tests.Configuration {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             Assert.Null(config.ApiKey);
             Assert.Equal("https://collector.exceptionless.io", config.ServerUrl);
-            Assert.True(config.EnableSSL);
             Assert.Equal(0, config.Settings.Count);
 
             config.ReadFromAttributes(typeof(ConfigurationTests).Assembly);
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", config.ApiKey);
             Assert.Equal("http://localhost:45000", config.ServerUrl);
-            Assert.False(config.EnableSSL);
             Assert.Equal(1, config.Settings.Count);
             Assert.Equal("configuration", config.Settings["testing"]);
         }

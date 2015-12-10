@@ -18,33 +18,30 @@ namespace Exceptionless {
         private bool _configLocked;
         private string _apiKey;
         private string _serverUrl;
-        private TimeSpan _queueMaxAge;
-        private int _queueMaxAttempts;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
         private readonly List<string> _exclusions = new List<string>(); 
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
+            if (resolver == null)
+                throw new ArgumentNullException(nameof(resolver));
+
             ServerUrl = DEFAULT_SERVER_URL;
             UserAgent = DEFAULT_USER_AGENT;
             SubmissionBatchSize = DEFAULT_SUBMISSION_BATCH_SIZE;
             Enabled = true;
-            EnableSSL = true;
             QueueMaxAge = TimeSpan.FromDays(7);
             QueueMaxAttempts = 3;
             DefaultTags = new TagSet();
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
-            if (resolver == null)
-                throw new ArgumentNullException("resolver");
+
             _resolver = resolver;
 
             EventPluginManager.AddDefaultPlugins(this);
         }
 
-        internal bool IsLocked {
-            get { return _configLocked; }
-        }
+        internal bool IsLocked => _configLocked;
 
         internal void LockConfig() {
             if (_configLocked)
@@ -185,7 +182,7 @@ namespace Exceptionless {
         /// <summary>
         /// The dependency resolver to use for this configuration.
         /// </summary>
-        public IDependencyResolver Resolver { get { return _resolver; } }
+        public IDependencyResolver Resolver => _resolver;
 
         #region Plugins
 
@@ -284,7 +281,7 @@ namespace Exceptionless {
 
             try {
                 var priorityAttribute = type.GetCustomAttributes(typeof(PriorityAttribute), true).FirstOrDefault() as PriorityAttribute;
-                return priorityAttribute != null ? priorityAttribute.Priority : 0;
+                return priorityAttribute?.Priority ?? 0;
             } catch (Exception ex) {
                 Resolver.GetLog().Error(typeof(ExceptionlessConfiguration), ex, "An error occurred while getting the priority for type: " + type.FullName);
             }
@@ -309,12 +306,12 @@ namespace Exceptionless {
 
             var result = new ValidationResult();
 
-            string key = ApiKey != null ? ApiKey.Trim() : null;
+            string key = ApiKey?.Trim();
             if (String.IsNullOrEmpty(key) || String.Equals(key, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase))
                 result.Messages.Add("ApiKey is not set.");
 
             if (key != null && (key.Length < 10 || key.Contains(" ")))
-                result.Messages.Add(String.Format("ApiKey \"{0}\" is not valid.", key));
+                result.Messages.Add($"ApiKey \"{key}\" is not valid.");
 
             if (String.IsNullOrEmpty(ServerUrl))
                 result.Messages.Add("ServerUrl is not set.");
@@ -327,7 +324,7 @@ namespace Exceptionless {
                 Messages = new List<string>();
             }
 
-            public bool IsValid { get { return Messages.Count == 0; } }
+            public bool IsValid => Messages.Count == 0;
             public ICollection<string> Messages { get; private set; }
         }
 
@@ -344,12 +341,10 @@ namespace Exceptionless {
 
             public string Key { get; private set; }
 
-            public IEventPlugin Plugin {
-                get { return _plugin.Value; }
-            }
+            public IEventPlugin Plugin => _plugin.Value;
 
             public override string ToString() {
-                return String.Format("Key: {0}, Priority: {1}", Key, Priority);
+                return $"Key: {Key}, Priority: {Priority}";
             }
         }
     }

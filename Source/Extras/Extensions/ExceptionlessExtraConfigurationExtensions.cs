@@ -98,9 +98,6 @@ namespace Exceptionless {
             if (!String.IsNullOrEmpty(section.ServerUrl))
                 config.ServerUrl = section.ServerUrl;
 
-            if (section.EnableSSL.HasValue)
-                config.EnableSSL = section.EnableSSL.Value;
-
             if (section.QueueMaxAge.HasValue)
                 config.QueueMaxAge = section.QueueMaxAge.Value;
 
@@ -145,20 +142,20 @@ namespace Exceptionless {
 
                     Type resolverInterface = types.FirstOrDefault(t => t.Name.Equals(resolver.Service) || t.FullName.Equals(resolver.Service));
                     if (resolverInterface == null) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), String.Format("An error occurred while retrieving service type \"{0}\".", resolver.Service));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), $"An error occurred while retrieving service type \"{resolver.Service}\".");
                         continue;
                     }
 
                     try {
                         Type implementationType = Type.GetType(resolver.Type);
                         if (!resolverInterface.IsAssignableFrom(implementationType)) {
-                            config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), String.Format("Type \"{0}\" does not implement \"{1}\".", resolver.Type, resolver.Service));
+                            config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), $"Type \"{resolver.Type}\" does not implement \"{resolver.Service}\".");
                             continue;
                         }
 
                         config.Resolver.Register(resolverInterface, implementationType);
                     } catch (Exception ex) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), ex, String.Format("An error occurred while registering service \"{0}\" implementation \"{1}\".", resolver.Service, resolver.Type));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), ex, $"An error occurred while registering service \"{resolver.Service}\" implementation \"{resolver.Type}\".");
                     }
                 }
             }
@@ -207,7 +204,7 @@ namespace Exceptionless {
             if (_environmentVariables == null) {
                 try {
                     _environmentVariables = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().ToDictionary(e => e.Key.ToString(), e => e.Value.ToString());
-                } catch (Exception ex) {
+                } catch (Exception) {
                     _environmentVariables = new Dictionary<string, string>();
                     return null;
                 }
