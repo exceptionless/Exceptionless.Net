@@ -161,7 +161,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionId">The session id.</param>
-        public static EventBuilder CreateSessionStart(this ExceptionlessClient client, string sessionId) {
+        public static EventBuilder CreateSessionStart(this ExceptionlessClient client, string sessionId = null) {
             return client.CreateEvent().SetType(Event.KnownTypes.SessionStart).SetSessionId(sessionId);
         }
         
@@ -170,7 +170,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionId">The session id.</param>
-        public static void SubmitSessionStart(this ExceptionlessClient client, string sessionId) {
+        public static void SubmitSessionStart(this ExceptionlessClient client, string sessionId = null) {
             client.CreateSessionStart(sessionId).Submit();
         }
 
@@ -179,7 +179,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionId">The session id.</param>
-        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client, string sessionId) {
+        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client, string sessionId = null) {
             return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd).SetSessionId(sessionId);
         }
         
@@ -188,7 +188,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionId">The session id.</param>
-        public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionId) {
+        public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionId = null) {
             client.CreateSessionEnd(sessionId).Submit();
         }
     }
