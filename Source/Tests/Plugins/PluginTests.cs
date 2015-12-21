@@ -193,6 +193,74 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("Blake", user?.Name);
         }
 
+
+        [Fact]
+        public void LazyLoadAndRemovePlugin() {
+            var configuration = new ExceptionlessConfiguration(DependencyResolver.Default);
+            foreach (var plugin in configuration.Plugins)
+                configuration.RemovePlugin(plugin.Key);
+
+            configuration.AddPlugin<ThrowIfInitializedTestPlugin>();
+            configuration.RemovePlugin<ThrowIfInitializedTestPlugin>();
+        }
+
+        private class ThrowIfInitializedTestPlugin : IEventPlugin, IDisposable {
+            public ThrowIfInitializedTestPlugin() {
+                throw new ApplicationException("Plugin shouldn't be constructed");
+            }
+
+            public void Run(EventPluginContext context) {}
+            
+            public void Dispose() {
+                throw new ApplicationException("Plugin shouldn't be created or disposed");
+            }
+        }
+
+        [Fact]
+        public void CanDisposePlugin() {
+            var configuration = new ExceptionlessConfiguration(DependencyResolver.Default);
+            foreach (var plugin in configuration.Plugins)
+                configuration.RemovePlugin(plugin.Key);
+
+            Assert.Equal(0, CounterTestPlugin.ConstructorCount);
+            Assert.Equal(0, CounterTestPlugin.RunCount);
+            Assert.Equal(0, CounterTestPlugin.DisposeCount);
+
+            configuration.AddPlugin<CounterTestPlugin>();
+            configuration.AddPlugin<CounterTestPlugin>();
+
+            for (int i = 0; i < 2; i++) {
+                foreach (var pluginRegistration in configuration.Plugins)
+                    pluginRegistration.Plugin.Run(new EventPluginContext(new ExceptionlessClient(), new Event()));
+            }
+
+            configuration.RemovePlugin<CounterTestPlugin>();
+            configuration.RemovePlugin<CounterTestPlugin>();
+
+
+            Assert.Equal(1, CounterTestPlugin.ConstructorCount);
+            Assert.Equal(2, CounterTestPlugin.RunCount);
+            Assert.Equal(1, CounterTestPlugin.DisposeCount);
+        }
+
+        public class CounterTestPlugin : IEventPlugin, IDisposable {
+            public static byte ConstructorCount = 0;
+            public static byte RunCount = 0;
+            public static byte DisposeCount = 0;
+
+            public CounterTestPlugin() {
+                ConstructorCount++;
+            }
+
+            public void Run(EventPluginContext context) {
+                RunCount++;
+            }
+            
+            public void Dispose() {
+                DisposeCount++;
+            }
+        }
+
         [Fact]
         public void VerifyPriority() {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());

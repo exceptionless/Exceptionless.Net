@@ -271,8 +271,10 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key for the plugin to be removed.</param>
         public void RemovePlugin(string key) {
-            if (_plugins.ContainsKey(key))
+            if (_plugins.ContainsKey(key)) {
+                _plugins[key].Dispose();
                 _plugins.Remove(key);
+            }
         }
 
         private int GetPriority(Type type) {
@@ -329,7 +331,7 @@ namespace Exceptionless {
         }
 
         [DebuggerDisplay("Key: {Key}, Priority: {Priority}")]
-        public class PluginRegistration {
+        public class PluginRegistration : IDisposable {
             private readonly Lazy<IEventPlugin> _plugin;
             public PluginRegistration(string key, int priority, Lazy<IEventPlugin> plugin) {
                 Key = key;
@@ -345,6 +347,14 @@ namespace Exceptionless {
 
             public override string ToString() {
                 return $"Key: {Key}, Priority: {Priority}";
+            }
+
+            public void Dispose() {
+                if (!_plugin.IsValueCreated)
+                    return;
+
+                var disposable = _plugin.Value as IDisposable;
+                disposable?.Dispose();
             }
         }
     }
