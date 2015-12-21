@@ -133,7 +133,10 @@ namespace Exceptionless.Queue {
         }
 
         private void OnProcessQueue(object state) {
-            if (!IsQueueProcessingSuspended && !_processingQueue)
+            if (IsQueueProcessingSuspended)
+                return;
+            
+            if (!_processingQueue)
                 Process();
         }
 
@@ -159,13 +162,9 @@ namespace Exceptionless.Queue {
             } catch (Exception) { }
         }
 
-        private bool IsQueueProcessingSuspended {
-            get { return _suspendProcessingUntil.HasValue && _suspendProcessingUntil.Value > DateTime.Now; }
-        }
+        private bool IsQueueProcessingSuspended => _suspendProcessingUntil.HasValue && _suspendProcessingUntil.Value > DateTime.Now;
 
-        private bool AreQueuedItemsDiscarded {
-            get { return _discardQueuedItemsUntil.HasValue && _discardQueuedItemsUntil.Value > DateTime.Now; }
-        }
+        private bool AreQueuedItemsDiscarded => _discardQueuedItemsUntil.HasValue && _discardQueuedItemsUntil.Value > DateTime.Now;
 
         public void Dispose() {
             if (_queueTimer == null)

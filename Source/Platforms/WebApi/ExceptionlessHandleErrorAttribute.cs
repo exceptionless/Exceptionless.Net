@@ -28,7 +28,7 @@ namespace Exceptionless.WebApi {
         public Task ExecuteExceptionFilterAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
             ExceptionlessClient.Default.Configuration.Resolver.GetLog().Trace("ExecuteExceptionFilterAsync executing...");
             if (actionExecutedContext == null)
-                throw new ArgumentNullException("actionExecutedContext");
+                throw new ArgumentNullException(nameof(actionExecutedContext));
 
             OnHttpException(actionExecutedContext, cancellationToken);
             return TaskExtensions.Completed();

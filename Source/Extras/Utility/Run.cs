@@ -12,7 +12,7 @@ namespace Exceptionless.Utility {
 
         public static T WithRetries<T>(Func<T> action, int attempts = 3, TimeSpan? retryInterval = null) {
             if (action == null)
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
 
             if (!retryInterval.HasValue)
                 retryInterval = TimeSpan.FromMilliseconds(new Random().Next(75, 125));

@@ -36,31 +36,9 @@ namespace Exceptionless.ExtendedData {
 
             var exclusionList = exclusions as string[] ?? exclusions.ToArray();
             info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
-
-            //if (context.Request.Form.Count > 0) {
-            //    info.PostData = context.Request.Form.AllKeys.Distinct().Where(k => !String.IsNullOrEmpty(k) && !_ignoredFormFields.Contains(k)).ToDictionary(k => k, k => {
-            //        try {
-            //            return context.Request.Form.Get(k);
-            //        } catch (Exception ex) {
-            //            return ex.Message;
-            //        }
-            //    });
-            //} else if (context.Request.ContentLength > 0 && context.Request.ContentLength < 1024 * 4) {
-            //    try {
-            //        context.Request.InputStream.Position = 0;
-            //        using (var inputStream = new StreamReader(context.Request.InputStream)) {
-            //            info.PostData = inputStream.ReadToEnd();
-            //        }
-            //    } catch (Exception ex) {
-            //        info.PostData = "Error retrieving POST data: " + ex.Message;
-            //    }
-            //} else if (context.Request.ContentLength > 0) {
-            //    string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
-            //    info.PostData = String.Format("Data is too large ({0}) to be included.", value + "kb");
-            //}
-
             info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
-
+            
+            // TODO Collect form data.
             return info;
         }
 
@@ -78,8 +56,8 @@ namespace Exceptionless.ExtendedData {
             var d = new Dictionary<string, string>();
 
             foreach (CookieHeaderValue cookie in cookies) {
-                foreach (CookieState innerCookie in cookie.Cookies.Where(k => !String.IsNullOrEmpty(k.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies, true) && !k.Name.AnyWildcardMatches(exclusions, true))) {
-                    if (innerCookie != null && !d.ContainsKey(innerCookie.Name))
+                foreach (CookieState innerCookie in cookie.Cookies.Where(k => !String.IsNullOrEmpty(k?.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies, true) && !k.Name.AnyWildcardMatches(exclusions, true))) {
+                    if (!d.ContainsKey(innerCookie.Name))
                         d.Add(innerCookie.Name, innerCookie.Value);
                 }
             }
@@ -111,14 +89,12 @@ namespace Exceptionless.ExtendedData {
             try {
                 if (request.Properties.ContainsKey("MS_HttpContext")) {
                     object context = request.Properties["MS_HttpContext"];
-                    if (context != null) {
-                        PropertyInfo webRequestProperty = context.GetType().GetProperty("Request");
-                        if (webRequestProperty != null) {
-                            object webRequest = webRequestProperty.GetValue(context, null);
-                            PropertyInfo userHostAddressProperty = webRequestProperty.PropertyType.GetProperty("UserHostAddress");
-                            if (userHostAddressProperty != null)
-                                return userHostAddressProperty.GetValue(webRequest, null) as string;
-                        }
+                    PropertyInfo webRequestProperty = context?.GetType().GetProperty("Request");
+                    if (webRequestProperty != null) {
+                        object webRequest = webRequestProperty.GetValue(context, null);
+                        PropertyInfo userHostAddressProperty = webRequestProperty.PropertyType.GetProperty("UserHostAddress");
+                        if (userHostAddressProperty != null)
+                            return userHostAddressProperty.GetValue(webRequest, null) as string;
                     }
                 }
 
