@@ -167,6 +167,33 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
+        public void PrivateInformation_WillSetIdentity() {
+            var client = new ExceptionlessClient(c => c.IncludePrivateInformation = true);
+            var plugin = new PrivateInformationPlugin();
+
+            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Log, Message = "test" });
+            plugin.Run(context);
+
+            var user = context.Event.GetUserIdentity();
+            Assert.Equal(Environment.UserName, user?.Identity);
+        }
+        
+        [Fact]
+        public void PrivateInformation_WillNotUpdateIdentity() {
+            var client = new ExceptionlessClient(c => c.IncludePrivateInformation = true);
+            var plugin = new PrivateInformationPlugin();
+
+            var ev = new Event { Type = Event.KnownTypes.Log, Message = "test" };
+            ev.SetUserIdentity(null, "Blake");
+            var context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+
+            var user = context.Event.GetUserIdentity();
+            Assert.Null(user?.Identity);
+            Assert.Equal("Blake", user?.Name);
+        }
+
+        [Fact]
         public void VerifyPriority() {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             foreach (var plugin in config.Plugins)
