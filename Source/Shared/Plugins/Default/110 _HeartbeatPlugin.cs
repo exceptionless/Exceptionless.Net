@@ -20,17 +20,16 @@ namespace Exceptionless.Plugins.Default {
         public void Run(EventPluginContext context) {
             var sessionIdentifier = context.Event.SessionId ?? context.Event.GetUserIdentity()?.Identity;
             if (String.IsNullOrEmpty(sessionIdentifier) || context.Event.IsSessionEnd()) {
-                _timer?.Change(Timeout.Infinite, Timeout.Infinite);
                 _lastEvent = null;
+                _timer?.Change(Timeout.Infinite, Timeout.Infinite);
                 return;
             }
-            
+
+            _lastEvent = context.Event;
             if (_timer == null)
                 _timer = new Timer(OnEnqueueHeartbeat, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
             else
                 _timer.Change(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
-
-            _lastEvent = context.Event;
         }
 
         private void OnEnqueueHeartbeat(object state) {
@@ -38,7 +37,7 @@ namespace Exceptionless.Plugins.Default {
             if (heartbeatEvent == null)
                 return;
 
-            _log.Trace(nameof(HeartbeatPlugin), $"Enqueuing heartbeat for session: {_lastEvent.SessionId}");
+            _log.Trace(nameof(HeartbeatPlugin), $"Enqueuing heartbeat for session: {heartbeatEvent.SessionId}");
             _eventQueue.Enqueue(heartbeatEvent);
         }
 
