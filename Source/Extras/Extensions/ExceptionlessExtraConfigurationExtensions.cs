@@ -33,8 +33,8 @@ namespace Exceptionless {
         /// Ensures only a single user session will be created unless you specify a session id via the event builder.
         /// NOTE: This should only be used on deskop applications. Using this in web farm scenarios is not advisable.
         /// </summary>
-        public static void UseSingleSessionPlugin(this ExceptionlessConfiguration config) {
-            config.AddPlugin<SingleSessionPlugin>();
+        public static void UseSessionIdManagementPlugin(this ExceptionlessConfiguration config) {
+            config.AddPlugin<SessionIdManagerPlugin>();
         }
         
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
