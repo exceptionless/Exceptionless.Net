@@ -61,9 +61,11 @@
     <Compile Include="Events\EventSubmittedEventArgs.cs" />
     <Compile Include="Plugins\Default\30_DuplicateCheckerPlugin.cs" />
     <Compile Include="Plugins\ContextData.cs" />
+    <Compile Include="Plugins\Default\110 _HeartbeatPlugin.cs" />
+    <Compile Include="Plugins\Default\100_SessionIdManagerPlugin.cs" />
     <Compile Include="Plugins\Default\ActionPlugin.cs" />
     <Compile Include="Plugins\Default\10_ConfigurationDefaultsPlugin.cs" />
-    <Compile Include="Plugins\Default\100_SubmissionMethodPlugin.cs" />
+    <Compile Include="Plugins\Default\90_SubmissionMethodPlugin.cs" />
     <Compile Include="Plugins\Default\40_ReferenceIdPlugin.cs" />
     <Compile Include="Plugins\Default\20_SimpleErrorPlugin.cs" />
     <Compile Include="Plugins\Default\50_EnvironmentInfoPlugin.cs" />

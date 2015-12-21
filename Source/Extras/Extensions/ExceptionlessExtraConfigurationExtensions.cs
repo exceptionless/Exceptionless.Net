@@ -13,7 +13,6 @@ using Exceptionless.Extras;
 using Exceptionless.Extras.Storage;
 using Exceptionless.Extras.Utility;
 using Exceptionless.Logging;
-using Exceptionless.Plugins;
 using Exceptionless.Storage;
 
 namespace Exceptionless {
@@ -27,14 +26,6 @@ namespace Exceptionless {
         public static void UseErrorPlugin(this ExceptionlessConfiguration config) {
             config.RemovePlugin<SimpleErrorPlugin>();
             config.AddPlugin<Plugins.ErrorPlugin>();
-        }
-
-        /// <summary>
-        /// Ensures only a single user session will be created unless you specify a session id via the event builder.
-        /// NOTE: This should only be used on deskop applications. Using this in web farm scenarios is not advisable.
-        /// </summary>
-        public static void UseSessionIdManagementPlugin(this ExceptionlessConfiguration config) {
-            config.AddPlugin<SessionIdManagerPlugin>();
         }
         
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {

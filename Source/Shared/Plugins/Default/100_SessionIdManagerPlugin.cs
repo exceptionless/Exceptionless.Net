@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Exceptionless.Plugins {
-    [Priority(90)]
+    [Priority(100)]
     public class SessionIdManagerPlugin : IEventPlugin {
-        private ConcurrentDictionary<string, string> _sessionIdMap = new ConcurrentDictionary<string, string>();
+        private Dictionary<string, string> _sessionIdMap = new Dictionary<string, string>();
 
         public void Run(EventPluginContext context) {
             string sessionId;

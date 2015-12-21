@@ -59,9 +59,10 @@ namespace Exceptionless.Models {
 
         public static class KnownTypes {
             public const string Error = "error";
-            public const string NotFound = "404";
-            public const string Log = "log";
             public const string FeatureUsage = "usage";
+            public const string Heartbeat = "heart";
+            public const string Log = "log";
+            public const string NotFound = "404";
             public const string SessionStart = "start";
             public const string SessionEnd = "end";
         }
