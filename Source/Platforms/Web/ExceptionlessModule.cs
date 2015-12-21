@@ -10,7 +10,6 @@ namespace Exceptionless.Web {
         public virtual void Init(HttpApplication app) {
             ExceptionlessClient.Default.Startup();
             ExceptionlessClient.Default.RegisterHttpApplicationErrorHandler(app);
-            ExceptionlessClient.Default.Configuration.IncludePrivateInformation = true;
             ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
             ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
             

@@ -19,7 +19,6 @@ namespace Exceptionless {
         public static void RegisterWebApi(this ExceptionlessClient client, HttpConfiguration config) {
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessWebApiPlugin>();
-            client.Configuration.IncludePrivateInformation = true;
 
 #if WEBAPI21
             config.Services.Add(typeof(IExceptionLogger), new ExceptionlessExceptionLogger());

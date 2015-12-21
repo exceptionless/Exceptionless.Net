@@ -35,6 +35,7 @@ namespace Exceptionless {
             DefaultTags = new TagSet();
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
+            IncludePrivateInformation = true;
 
             _resolver = resolver;
 
