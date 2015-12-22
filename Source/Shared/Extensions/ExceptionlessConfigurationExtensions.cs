@@ -84,13 +84,10 @@ namespace Exceptionless {
             return persistedClientData[INSTALL_ID_KEY];
         }
 
-        /// <summary>
-        /// Ensures only a single user session will be created unless you specify a session id via the event builder.
-        /// NOTE: This should only be used on deskop applications. Using this in web farm scenarios is not advisable.
-        /// </summary>
-        public static void UseSessions(this ExceptionlessConfiguration config) {
-            config.AddPlugin<SessionIdManagerPlugin>();
-            config.AddPlugin<HeartbeatPlugin>();
+        public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true) {
+            config.AddPlugin<SessionManagerPlugin>();
+            if (sendHeartbeats)
+                config.AddPlugin<HeartbeatPlugin>();
         }
         
         public static void UseDebugLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
