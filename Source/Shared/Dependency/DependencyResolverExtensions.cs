@@ -89,5 +89,9 @@ namespace Exceptionless.Dependency {
         public static ILastReferenceIdManager GetLastReferenceIdManager(this IDependencyResolver resolver) {
             return resolver.Resolve<ILastReferenceIdManager>() ?? resolver.Resolve<DefaultLastReferenceIdManager>();
         }
+
+        public static ISessionManager GetSessionManager(this IDependencyResolver resolver) {
+            return resolver.Resolve<ISessionManager>() ?? resolver.Resolve<DefaultSessionManager>();
+        }
     }
 }

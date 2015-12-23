@@ -10,7 +10,7 @@ namespace Exceptionless.Plugins {
             if (!String.IsNullOrEmpty(context.Event.SessionId))
                 return;
 
-            var sessionManager = context.Resolver.Resolve<ISessionManager>();
+            var sessionManager = context.Resolver.GetSessionManager();
 
             string identity = context.Event.GetUserIdentity()?.Identity ?? context.Event.GetRequestInfo()?.ClientIpAddress;
             if (String.IsNullOrEmpty(identity))
