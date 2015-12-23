@@ -26,8 +26,9 @@ namespace Exceptionless.Plugins {
             } else {
                 sessionId = sessionManager.GetSessionId(identity);
                 if (String.IsNullOrEmpty(sessionId)) {
+                    // no session found for identity, start new one and assign the session id
+                    // server will automatically create a session start event
                     sessionId = sessionManager.StartSession(identity);
-                    context.Client.CreateSessionStart(sessionId).;
                 }
             }
 

@@ -1,67 +1,62 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
-using Exceptionless.Logging;
 using Exceptionless.Models;
-using Exceptionless.Queue;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(110)]
     public class HeartbeatPlugin : IEventPlugin, IDisposable {
-        private readonly IEventQueue _eventQueue;
-        private readonly IExceptionlessLog _log;
-        private Timer _timer;
-        private Event _lastEvent;
-
-        public HeartbeatPlugin(IEventQueue eventQueue, IExceptionlessLog log) {
-            _eventQueue = eventQueue;
-            _log = log;
-        }
+        private readonly Dictionary<string, SessionHeartbeat> _sessionHeartbeats = new Dictionary<string, SessionHeartbeat>();
+        private readonly object _lock = new object();
 
         public void Run(EventPluginContext context) {
             var sessionIdentifier = context.Event.SessionId ?? context.Event.GetUserIdentity()?.Identity;
-            if (String.IsNullOrEmpty(sessionIdentifier) || context.Event.IsSessionEnd()) {
-                _lastEvent = null;
-                _timer?.Change(Timeout.Infinite, Timeout.Infinite);
+            if (String.IsNullOrEmpty(sessionIdentifier) || context.Event.Type == Event.KnownTypes.SessionHeartbeat)
                 return;
+
+            lock (_lock) {
+                if (!_sessionHeartbeats.ContainsKey(sessionIdentifier))
+                    _sessionHeartbeats.Add(sessionIdentifier, new SessionHeartbeat(sessionIdentifier, context.Client));
+                else if (context.Event.IsSessionEnd()) {
+                    _sessionHeartbeats[sessionIdentifier].Dispose();
+                    _sessionHeartbeats.Remove(sessionIdentifier);
+                } else
+                    _sessionHeartbeats[sessionIdentifier].DelayNext();
             }
-
-            _lastEvent = context.Event;
-            if (_timer == null)
-                _timer = new Timer(OnEnqueueHeartbeat, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
-            else
-                _timer.Change(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
-        }
-
-        private void OnEnqueueHeartbeat(object state) {
-            var heartbeatEvent = CreateHeartbeatEvent(_lastEvent);
-            if (heartbeatEvent == null)
-                return;
-
-            _log.Trace(nameof(HeartbeatPlugin), $"Enqueuing heartbeat for session: {heartbeatEvent.SessionId}");
-            _eventQueue.Enqueue(heartbeatEvent);
-        }
-
-        private Event CreateHeartbeatEvent(Event source) {
-            if (source == null)
-                return null;
-
-            var heartbeatEvent = new Event {
-                Date = DateTimeOffset.Now,
-                Type = Event.KnownTypes.Heartbeat,
-                SessionId = source.SessionId
-            };
-
-            heartbeatEvent.SetUserIdentity(source.GetUserIdentity());
-
-            return heartbeatEvent;
         }
 
         public void Dispose() {
-            if (_timer == null)
-                return;
-            
-            _timer.Dispose();
-            _timer = null;
+            lock (_lock) {
+                foreach (var kvp in _sessionHeartbeats)
+                    kvp.Value.Dispose();
+            }
+
+            _sessionHeartbeats.Clear();
+        }
+    }
+    public class SessionHeartbeat : IDisposable {
+        private readonly Timer _timer;
+        private readonly int _interval = 30 * 1000;
+        private readonly ExceptionlessClient _client;
+
+        public SessionHeartbeat(string sessionId, ExceptionlessClient client) {
+            SessionId = sessionId;
+            _client = client;
+            _timer = new Timer(SendHeartbeat, null, _interval, _interval);
+        }
+
+        public string SessionId { get; set; }
+
+        public void DelayNext() {
+            _timer.Change(_interval, _interval);
+        }
+
+        private void SendHeartbeat(object state) {
+            _client.SubmitEvent(new Event { Type = Event.KnownTypes.SessionHeartbeat, SessionId = SessionId });
+        }
+
+        public void Dispose() {
+            _timer?.Dispose();
         }
     }
 }
