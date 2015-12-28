@@ -41,6 +41,9 @@ place the above attribute outside of the  entry assembly or calling assembly.
 
 Exceptionless.ExceptionlessClient.Default.Configuration.ReadFromAttributes(typeof(MyClass).Assembly)
 
+Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
+for examples on sending events to Exceptionless.
+
 -------------------------------------
    Manually reporting an exception
 -------------------------------------
