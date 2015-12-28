@@ -34,6 +34,9 @@ of code to start reporting unhandled exceptions.
 
 Exceptionless.ExceptionlessClient.Default.Register()
 
+Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
+for examples on sending events to Exceptionless.
+
 -------------------------------------
    Manually reporting an exception
 -------------------------------------
