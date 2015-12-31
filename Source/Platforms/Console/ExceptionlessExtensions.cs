@@ -11,7 +11,6 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void Register(this ExceptionlessClient client) {
-            client.Configuration.UseSessions();
             client.Startup();
             client.SubmitSessionStart();
 

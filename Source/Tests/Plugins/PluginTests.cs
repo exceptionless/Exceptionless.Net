@@ -169,7 +169,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void PrivateInformation_WillSetIdentity() {
             var client = new ExceptionlessClient();
-            var plugin = new PrivateInformationPlugin();
+            var plugin = new SetEnvironmentUserPlugin();
 
             var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Log, Message = "test" });
             plugin.Run(context);
@@ -181,7 +181,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void PrivateInformation_WillNotUpdateIdentity() {
             var client = new ExceptionlessClient();
-            var plugin = new PrivateInformationPlugin();
+            var plugin = new SetEnvironmentUserPlugin();
 
             var ev = new Event { Type = Event.KnownTypes.Log, Message = "test" };
             ev.SetUserIdentity(null, "Blake");

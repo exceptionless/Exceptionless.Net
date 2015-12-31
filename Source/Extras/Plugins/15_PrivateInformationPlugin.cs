@@ -2,7 +2,7 @@
 
 namespace Exceptionless.Plugins {
     [Priority(15)]
-    public class PrivateInformationPlugin : IEventPlugin {
+    public class SetEnvironmentUserPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             if (!context.Client.Configuration.IncludePrivateInformation)
                 return;

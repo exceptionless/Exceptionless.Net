@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Exceptionless.Dependency;
 using Exceptionless.Dialogs;
 using Exceptionless.Logging;
+using Exceptionless.Plugins;
 using Exceptionless.Windows.Extensions;
 
 namespace Exceptionless {
@@ -16,6 +17,7 @@ namespace Exceptionless {
         /// <param name="showDialog">Controls whether a dialog is shown when an unhandled exception occurs.</param>
         public static void Register(this ExceptionlessClient client, bool showDialog = true) {
             client.Configuration.UseSessions();
+            client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
             client.Startup();
             client.SubmitSessionStart();
             client.RegisterApplicationThreadExceptionHandler();
