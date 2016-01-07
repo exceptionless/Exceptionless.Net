@@ -52,7 +52,7 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private void SendHeartbeat(object state) {
-            _client.SubmitEvent(new Event { Type = Event.KnownTypes.SessionHeartbeat, SessionId = SessionId });
+            _client.SubmitSessionHeartbeat(SessionId);
         }
 
         public void Dispose() {

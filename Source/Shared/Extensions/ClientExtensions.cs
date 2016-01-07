@@ -162,7 +162,7 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="sessionId">The session id.</param>
         public static EventBuilder CreateSessionStart(this ExceptionlessClient client, string sessionId = null) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionStart).SetSessionId(sessionId);
+            return client.CreateEvent().SetType(Event.KnownTypes.Session).SetSessionId(sessionId);
         }
         
         /// <summary>
@@ -190,6 +190,24 @@ namespace Exceptionless {
         /// <param name="sessionId">The session id.</param>
         public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionId = null) {
             client.CreateSessionEnd(sessionId).Submit();
+        }
+
+        /// <summary>
+        /// Creates a session heartbeat event.
+        /// </summary>
+        /// <param name="client">The client instance.</param>
+        /// <param name="sessionId">The session id.</param>
+        public static EventBuilder CreateSessionHeartbeat(this ExceptionlessClient client, string sessionId = null) {
+            return client.CreateEvent().SetType(Event.KnownTypes.SessionHeartbeat).SetSessionId(sessionId);
+        }
+
+        /// <summary>
+        /// Submits a session heartbeat event.
+        /// </summary>
+        /// <param name="client">The client instance.</param>
+        /// <param name="sessionId">The session id.</param>
+        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionId = null) {
+            client.CreateSessionHeartbeat(sessionId).Submit();
         }
     }
 }

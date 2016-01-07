@@ -60,11 +60,11 @@ namespace Exceptionless.Models {
         public static class KnownTypes {
             public const string Error = "error";
             public const string FeatureUsage = "usage";
-            public const string SessionHeartbeat = "heartbeat";
             public const string Log = "log";
             public const string NotFound = "404";
-            public const string SessionStart = "start";
-            public const string SessionEnd = "end";
+            public const string Session = "session";
+            public const string SessionEnd = "sessionend";
+            public const string SessionHeartbeat = "heartbeat";
         }
 
         public static class KnownTags {
