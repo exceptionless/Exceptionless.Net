@@ -10,7 +10,7 @@ namespace Exceptionless {
         public EventBuilder(Event ev, ExceptionlessClient client = null, ContextData pluginContextData = null) {
             Client = client ?? ExceptionlessClient.Default;
             Target = ev;
-            PluginContextData = pluginContextData;
+            PluginContextData = pluginContextData ?? new ContextData();
         }
 
         /// <summary>

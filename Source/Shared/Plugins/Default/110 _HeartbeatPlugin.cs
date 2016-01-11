@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Exceptionless.Models;
+using Exceptionless;
+using Exceptionless.Models.Data;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(110)]
@@ -10,18 +11,23 @@ namespace Exceptionless.Plugins.Default {
         private readonly object _lock = new object();
 
         public void Run(EventPluginContext context) {
-            var sessionIdentifier = context.Event.SessionId ?? context.Event.GetUserIdentity()?.Identity;
-            if (String.IsNullOrEmpty(sessionIdentifier) || context.Event.Type == Event.KnownTypes.SessionHeartbeat)
+            if (context.Event.IsSessionHeartbeat())
+                return;
+
+            var user = context.Event.GetUserIdentity();
+            var sessionIdentifier = context.Event.SessionId ?? user?.Identity;
+            if (String.IsNullOrEmpty(sessionIdentifier))
                 return;
 
             lock (_lock) {
-                if (!_sessionHeartbeats.ContainsKey(sessionIdentifier))
-                    _sessionHeartbeats.Add(sessionIdentifier, new SessionHeartbeat(sessionIdentifier, context.Client));
-                else if (context.Event.IsSessionEnd()) {
+                if (!_sessionHeartbeats.ContainsKey(sessionIdentifier)) {
+                    _sessionHeartbeats.Add(sessionIdentifier, new SessionHeartbeat(context.Event.SessionId, user, context.Client));
+                } else if (context.Event.IsSessionEnd()) {
                     _sessionHeartbeats[sessionIdentifier].Dispose();
                     _sessionHeartbeats.Remove(sessionIdentifier);
-                } else
+                } else {
                     _sessionHeartbeats[sessionIdentifier].DelayNext();
+                }
             }
         }
 
@@ -34,6 +40,7 @@ namespace Exceptionless.Plugins.Default {
             _sessionHeartbeats.Clear();
         }
     }
+
     public class SessionHeartbeat : IDisposable {
         private readonly Timer _timer;
         private readonly int _interval = 30 * 1000;
@@ -45,14 +52,20 @@ namespace Exceptionless.Plugins.Default {
             _timer = new Timer(SendHeartbeat, null, _interval, _interval);
         }
 
+        public SessionHeartbeat(string sessionId, UserInfo user, ExceptionlessClient client) : this(sessionId, client) {
+            UserInfo = user;
+        }
+
         public string SessionId { get; set; }
+
+        public UserInfo UserInfo { get; set; }
 
         public void DelayNext() {
             _timer.Change(_interval, _interval);
         }
 
         private void SendHeartbeat(object state) {
-            _client.SubmitSessionHeartbeat(SessionId);
+            _client.CreateSessionHeartbeat(SessionId).SetUserIdentity(UserInfo?.Identity, UserInfo?.Name).Submit();
         }
 
         public void Dispose() {
