@@ -13,15 +13,14 @@ namespace Exceptionless.Plugins.Default {
         public void Run(EventPluginContext context) {
             if (context.Event.IsSessionHeartbeat())
                 return;
-
-            var user = context.Event.GetUserIdentity();
-            var sessionIdentifier = context.Event.SessionId ?? user?.Identity;
+            
+            var sessionIdentifier = context.Event.SessionId;
             if (String.IsNullOrEmpty(sessionIdentifier))
                 return;
 
             lock (_lock) {
                 if (!_sessionHeartbeats.ContainsKey(sessionIdentifier)) {
-                    _sessionHeartbeats.Add(sessionIdentifier, new SessionHeartbeat(context.Event.SessionId, user, context.Client));
+                    _sessionHeartbeats.Add(sessionIdentifier, new SessionHeartbeat(sessionIdentifier, context.Client));
                 } else if (context.Event.IsSessionEnd()) {
                     _sessionHeartbeats[sessionIdentifier].Dispose();
                     _sessionHeartbeats.Remove(sessionIdentifier);
@@ -51,21 +50,15 @@ namespace Exceptionless.Plugins.Default {
             _client = client;
             _timer = new Timer(SendHeartbeat, null, _interval, _interval);
         }
-
-        public SessionHeartbeat(string sessionId, UserInfo user, ExceptionlessClient client) : this(sessionId, client) {
-            UserInfo = user;
-        }
-
+        
         public string SessionId { get; set; }
-
-        public UserInfo UserInfo { get; set; }
-
+        
         public void DelayNext() {
             _timer.Change(_interval, _interval);
         }
 
         private void SendHeartbeat(object state) {
-            _client.CreateSessionHeartbeat(SessionId).SetUserIdentity(UserInfo?.Identity, UserInfo?.Name).Submit();
+            _client.SubmitSessionHeartbeat(SessionId);
         }
 
         public void Dispose() {

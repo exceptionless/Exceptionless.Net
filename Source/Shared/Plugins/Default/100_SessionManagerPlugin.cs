@@ -16,7 +16,7 @@ namespace Exceptionless.Plugins {
             if (String.IsNullOrEmpty(identity))
                 return;
 
-            string sessionId = null;
+            string sessionId;
 
             if (context.Event.IsSessionStart()) {
                 sessionId = sessionManager.StartSession(identity);

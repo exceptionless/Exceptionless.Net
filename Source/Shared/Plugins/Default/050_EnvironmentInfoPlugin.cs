@@ -10,6 +10,9 @@ namespace Exceptionless.Plugins.Default {
             if (context.Event.Data.ContainsKey(Event.KnownDataKeys.EnvironmentInfo))
                 return;
 
+            if (!String.IsNullOrEmpty(context.Event.SessionId) && context.Event.IsSessionEnd() || context.Event.IsSessionHeartbeat())
+                return;
+
             try {
                 var collector = context.Resolver.GetEnvironmentInfoCollector();
                 if (collector == null)
