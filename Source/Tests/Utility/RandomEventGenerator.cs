@@ -234,8 +234,9 @@ namespace Exceptionless.Helpers {
             Event.KnownTypes.FeatureUsage,
             Event.KnownTypes.Log,
             Event.KnownTypes.NotFound,
-            Event.KnownTypes.SessionStart,
-            Event.KnownTypes.SessionEnd
+            Event.KnownTypes.Session,
+            Event.KnownTypes.SessionEnd,
+            Event.KnownTypes.SessionHeartbeat
         };
 
         public readonly List<string> ExceptionTypes = new List<string> {

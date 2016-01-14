@@ -40,19 +40,7 @@ namespace Exceptionless {
             Target.Source = source;
             return this;
         }
-
-        /// <summary>
-        /// Sets the event session id.
-        /// </summary>
-        /// <param name="sessionId">The event session id.</param>
-        public EventBuilder SetSessionId(string sessionId) {
-            if (!IsValidIdentifier(sessionId))
-                throw new ArgumentException("SessionId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(sessionId));
-
-            Target.SessionId = sessionId;
-            return this;
-        }
-
+        
         /// <summary>
         /// Sets the event reference id.
         /// </summary>

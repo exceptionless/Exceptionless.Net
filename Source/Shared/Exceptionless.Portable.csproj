@@ -61,8 +61,7 @@
     <Compile Include="Events\EventSubmittedEventArgs.cs" />
     <Compile Include="Plugins\Default\030_DuplicateCheckerPlugin.cs" />
     <Compile Include="Plugins\ContextData.cs" />
-    <Compile Include="Plugins\Default\110 _HeartbeatPlugin.cs" />
-    <Compile Include="Plugins\Default\100_SessionManagerPlugin.cs" />
+    <Compile Include="Plugins\Default\100 _HeartbeatPlugin.cs" />
     <Compile Include="Plugins\Default\ActionPlugin.cs" />
     <Compile Include="Plugins\Default\010_ConfigurationDefaultsPlugin.cs" />
     <Compile Include="Plugins\Default\090_SubmissionMethodPlugin.cs" />
@@ -114,7 +113,6 @@
     <Compile Include="Models\Client\Data\UserDescription.cs" />
     <Compile Include="Models\Client\Data\UserInfo.cs" />
     <Compile Include="Models\Client\Event.cs" />
-    <Compile Include="Models\Client\SessionInfo.cs" />
     <Compile Include="Models\Collections\DataDictionary.cs" />
     <Compile Include="Models\Collections\GenericArguments.cs" />
     <Compile Include="Models\Collections\ModuleCollection.cs" />
@@ -333,9 +331,7 @@
     <Compile Include="Serializer\JsonTextWriterWithDepth.cs" />
     <Compile Include="Serializer\RequestInfoConverter.cs" />
     <Compile Include="Services\DefaultEnvironmentInfoCollector.cs" />
-    <Compile Include="Services\DefaultSessionManager.cs" />
     <Compile Include="Services\IEnvironmentInfoCollector.cs" />
-    <Compile Include="Services\ISessionManager.cs" />
     <Compile Include="Storage\InMemoryObjectStorage.cs" />
     <Compile Include="Storage\IObjectStorage.cs" />
     <Compile Include="Storage\PersistedDictionary.cs" />

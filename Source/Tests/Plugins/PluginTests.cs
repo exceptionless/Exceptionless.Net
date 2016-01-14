@@ -113,7 +113,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {
             var client = new ExceptionlessClient();
-            var ev = new Event { Type = Event.KnownTypes.SessionStart };
+            var ev = new Event { Type = Event.KnownTypes.Session };
             var plugin = new EnvironmentInfoPlugin();
 
             Parallel.For(0, 10000, i => {
@@ -127,7 +127,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void EnvironmentInfo_ShouldAddSessionStart() {
             var client = new ExceptionlessClient();
-            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.SessionStart });
+            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Session });
          
             var plugin = new EnvironmentInfoPlugin();
             plugin.Run(context);
