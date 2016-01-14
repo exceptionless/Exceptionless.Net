@@ -13,6 +13,15 @@ using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class PluginTests {
+        private ExceptionlessClient CreateClient()
+        {
+            return new ExceptionlessClient(c => {
+                c.UseDebugLogger();
+                c.ReadFromAttributes();
+                c.UserAgent = "testclient/1.0.0.0";
+            });
+        }
+
         private readonly TestOutputWriter _writer;
         public PluginTests(ITestOutputHelper output) {
             _writer = new TestOutputWriter(output);
@@ -194,6 +203,33 @@ namespace Exceptionless.Tests.Plugins {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             foreach (var plugin in config.Plugins)
                 _writer.WriteLine(plugin);
+        }
+
+        [Fact]
+        public void VerifyDeduplication()
+        {
+            var client = new ExceptionlessClient();
+
+            var errorPlugin = new ErrorPlugin();
+            var duplicatCheckedPlugin = new DuplicateCheckerPlugin();
+
+            var eventBuilder = new Exception("Test").ToExceptionless();
+            
+            var context = new EventPluginContext(client, eventBuilder.Target, eventBuilder.PluginContextData);
+
+            errorPlugin.Run(context);
+            duplicatCheckedPlugin.Run(context);
+
+            Assert.False(context.Cancel);
+
+            eventBuilder = new Exception("Test").ToExceptionless();
+
+            context = new EventPluginContext(client, eventBuilder.Target, eventBuilder.PluginContextData);
+
+            errorPlugin.Run(context);
+            duplicatCheckedPlugin.Run(context);
+
+            Assert.True(context.Cancel);
         }
 
         public class PluginWithNoPriority : IEventPlugin {
