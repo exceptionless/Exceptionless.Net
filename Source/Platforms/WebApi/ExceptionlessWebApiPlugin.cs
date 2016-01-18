@@ -48,7 +48,7 @@ namespace Exceptionless.WebApi {
 
         private static IPrincipal GetPrincipal(HttpRequestMessage request) {
             if (request == null)
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
 
             const string RequestContextKey = "MS_RequestContext";
 

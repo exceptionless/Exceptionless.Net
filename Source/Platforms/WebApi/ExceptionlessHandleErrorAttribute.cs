@@ -10,17 +10,14 @@ namespace Exceptionless.WebApi {
     public class ExceptionlessHandleErrorAttribute : IExceptionFilter {
         private readonly ExceptionlessClient _client;
 
-        public bool HasWrappedFilter { get { return WrappedFilter != null; } }
+        public bool HasWrappedFilter => WrappedFilter != null;
 
         public IExceptionFilter WrappedFilter { get; set; }
-        public bool AllowMultiple { get { return HasWrappedFilter && WrappedFilter.AllowMultiple; } }
 
-        public ExceptionlessHandleErrorAttribute() : this(ExceptionlessClient.Default) {
-            
-        }
+        public bool AllowMultiple => HasWrappedFilter && WrappedFilter.AllowMultiple;
 
-        public ExceptionlessHandleErrorAttribute(ExceptionlessClient client) {
-            _client = client;
+        public ExceptionlessHandleErrorAttribute(ExceptionlessClient client = null) {
+            _client = client ?? ExceptionlessClient.Default;
         }
 
         public virtual void OnHttpException(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
@@ -32,13 +29,13 @@ namespace Exceptionless.WebApi {
             contextData.SetSubmissionMethod("ExceptionHttpFilter");
             contextData.Add("HttpActionContext", actionExecutedContext.ActionContext);
 
-            actionExecutedContext.Exception.ToExceptionless(contextData, client: _client).Submit();
+            actionExecutedContext.Exception.ToExceptionless(contextData, _client).Submit();
         }
 
         public Task ExecuteExceptionFilterAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
-            ExceptionlessClient.Default.Configuration.Resolver.GetLog().Trace("ExecuteExceptionFilterAsync executing...");
+            _client.Configuration.Resolver.GetLog().Trace("ExecuteExceptionFilterAsync executing...");
             if (actionExecutedContext == null)
-                throw new ArgumentNullException("actionExecutedContext");
+                throw new ArgumentNullException(nameof(actionExecutedContext));
 
             OnHttpException(actionExecutedContext, cancellationToken);
             return TaskExtensions.Completed();
