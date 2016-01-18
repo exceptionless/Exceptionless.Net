@@ -31,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET40' ">
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
