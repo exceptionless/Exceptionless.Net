@@ -24,7 +24,7 @@ namespace Exceptionless {
             config.Services.Add(typeof(IExceptionLogger), new ExceptionlessExceptionLogger());
 #endif
 
-            ReplaceHttpErrorHandler(config);
+            ReplaceHttpErrorHandler(config, client);
         }
 
         /// <summary>
@@ -36,9 +36,9 @@ namespace Exceptionless {
             client.Configuration.RemovePlugin<ExceptionlessWebApiPlugin>();
         }
 
-        private static void ReplaceHttpErrorHandler(HttpConfiguration config) {
+        private static void ReplaceHttpErrorHandler(HttpConfiguration config, ExceptionlessClient client) {
             FilterInfo filter = config.Filters.FirstOrDefault(f => f.Instance is IExceptionFilter);
-            var handler = new ExceptionlessHandleErrorAttribute();
+            var handler = new ExceptionlessHandleErrorAttribute(client);
 
             if (filter != null) {
                 if (filter.Instance is ExceptionlessHandleErrorAttribute)
