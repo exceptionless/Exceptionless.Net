@@ -53,6 +53,22 @@ namespace Exceptionless {
             return this;
         }
 
+        /// <summary>
+        /// Allows you to reference a parent event by it's <seealso cref="Event.ReferenceId" /> property. This allows you to have parent and child relationships.
+        /// </summary>
+        /// <param name="name">Reference name</param>
+        /// <param name="id">The reference id that points to a specific event</param>
+        public EventBuilder SetEventReference(string name, string id) {
+            if (String.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            if (!IsValidIdentifier(id))
+                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", nameof(id));
+
+           Target.SetProperty($"@ref:{name}", id);
+            return this;
+        }
+
         private bool IsValidIdentifier(string value) {
             if (value == null)
                 return true;
