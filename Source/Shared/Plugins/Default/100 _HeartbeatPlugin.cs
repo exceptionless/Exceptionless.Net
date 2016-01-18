@@ -55,7 +55,7 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private void SendHeartbeat(object state) {
-            _client.SubmitSessionHeartbeat(User.Identity, User.Name);
+            _client.CreateSessionHeartbeat().SetUserIdentity(User).Submit();
         }
 
         public void Dispose() {
