@@ -62,7 +62,7 @@ namespace Exceptionless {
             if (String.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
 
-            if (!IsValidIdentifier(id))
+            if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
                 throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", nameof(id));
 
            Target.SetProperty($"@ref:{name}", id);
