@@ -160,60 +160,48 @@ namespace Exceptionless {
         /// Creates a session start event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="userIdentity">The user's id.</param>
-        /// <param name="userDisplayName">The user's friendly name</param>
-        public static EventBuilder CreateSessionStart(this ExceptionlessClient client, string userIdentity = null, string userDisplayName = null) {
-            return client.CreateEvent().SetType(Event.KnownTypes.Session).SetUserIdentity(userIdentity, userDisplayName);
+        public static EventBuilder CreateSessionStart(this ExceptionlessClient client) {
+            return client.CreateEvent().SetType(Event.KnownTypes.Session);
         }
 
         /// <summary>
         /// Submits a session start event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="userIdentity">The user's id.</param>
-        /// <param name="userDisplayName">The user's friendly name</param>
-        public static void SubmitSessionStart(this ExceptionlessClient client, string userIdentity = null, string userDisplayName = null) {
-            client.CreateSessionStart(userIdentity, userDisplayName).Submit();
+        public static void SubmitSessionStart(this ExceptionlessClient client) {
+            client.CreateSessionStart().Submit();
         }
 
         /// <summary>
         /// Creates a session end event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="userIdentity">The user's id.</param>
-        /// <param name="userDisplayName">The user's friendly name</param>
-        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client, string userIdentity = null, string userDisplayName = null) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd).SetUserIdentity(userIdentity, userDisplayName);
+        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client) {
+            return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd);
         }
 
         /// <summary>
         /// Submits a session end event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="userIdentity">The user's id.</param>
-        /// <param name="userDisplayName">The user's friendly name</param>
-        public static void SubmitSessionEnd(this ExceptionlessClient client, string userIdentity = null, string userDisplayName = null) {
-            client.CreateSessionEnd(userIdentity, userDisplayName).Submit();
+        public static void SubmitSessionEnd(this ExceptionlessClient client) {
+            client.CreateSessionEnd().Submit();
         }
 
         /// <summary>
         /// Creates a session heartbeat event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="userIdentity">The user's id.</param>
-        /// <param name="userDisplayName">The user's friendly name</param>
-        public static EventBuilder CreateSessionHeartbeat(this ExceptionlessClient client, string userIdentity = null, string userDisplayName = null) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionHeartbeat).SetUserIdentity(userIdentity, userDisplayName);
+        public static EventBuilder CreateSessionHeartbeat(this ExceptionlessClient client) {
+            return client.CreateEvent().SetType(Event.KnownTypes.SessionHeartbeat);
         }
 
         /// <summary>
         /// Submits a session heartbeat event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="userIdentity">The user's id.</param>
-        /// <param name="userDisplayName">The user's friendly name</param>
-        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string userIdentity = null, string userDisplayName = null) {
-            client.CreateSessionHeartbeat(userIdentity, userDisplayName).Submit();
+        public static void SubmitSessionHeartbeat(this ExceptionlessClient client) {
+            client.CreateSessionHeartbeat().Submit();
         }
     }
 }
