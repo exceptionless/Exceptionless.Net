@@ -8,6 +8,7 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Plugins;
 using Exceptionless.Storage;
 
 namespace Exceptionless {
@@ -33,7 +34,41 @@ namespace Exceptionless {
 
             config.DefaultData[Event.KnownDataKeys.Version] = version.ToString();
         }
-        
+
+        /// <summary>
+        /// Automatically set the user identity (ie. email address, username, user id) on events.
+        /// </summary>
+        /// <param name="config">The configuration object</param>
+        /// <param name="identity">The user's identity that the event happened to.</param>
+        public static void SetUserIdentity(this ExceptionlessConfiguration config, string identity) {
+            config.SetUserIdentity(identity, null);
+        }
+
+        /// <summary>
+        /// Automatically set the user identity (ie. email address, username, user id) on events.
+        /// </summary>
+        /// <param name="config">The configuration object</param>
+        /// <param name="identity">The user's identity that the event happened to.</param>
+        /// <param name="name">The user's friendly name that the event happened to.</param>
+        public static void SetUserIdentity(this ExceptionlessConfiguration config, string identity, string name) {
+            if (String.IsNullOrWhiteSpace(identity) && String.IsNullOrWhiteSpace(name))
+                return;
+
+            config.DefaultData[Event.KnownDataKeys.UserInfo] = new UserInfo(identity, name);
+        }
+
+        /// <summary>
+        /// Automatically set the user identity (ie. email address, username, user id) on events.
+        /// </summary>
+        /// <param name="config">The configuration object</param>
+        /// <param name="userInfo">The user's identity that the event happened to.</param>
+        public static void SetUserIdentity(this ExceptionlessConfiguration config, UserInfo userInfo) {
+            if (userInfo == null)
+                return;
+
+            config.DefaultData[Event.KnownDataKeys.UserInfo] = userInfo;
+        }
+
         public static string GetQueueName(this ExceptionlessConfiguration config) {
             return !String.IsNullOrEmpty(config.ApiKey) ? config.ApiKey.Substring(0, 8) : null;
         }
@@ -49,6 +84,11 @@ namespace Exceptionless {
             return persistedClientData[INSTALL_ID_KEY];
         }
 
+        public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true) {
+           if (sendHeartbeats)
+                config.AddPlugin<HeartbeatPlugin>();
+        }
+        
         public static void UseDebugLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
             config.Resolver.Register<IExceptionlessLog>(new DebugExceptionlessLog { MinimumLogLevel = minLogLevel });
         }

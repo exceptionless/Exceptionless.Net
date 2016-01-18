@@ -1,4 +1,5 @@
 ﻿using System;
+using Exceptionless.Models.Data;
 
 namespace Exceptionless {
     public static class EventBuilderExtensions {
@@ -20,6 +21,16 @@ namespace Exceptionless {
         /// <param name="name">The user's friendly name that the event happened to.</param>
         public static EventBuilder SetUserIdentity(this EventBuilder builder, string identity, string name) {
             builder.Target.SetUserIdentity(identity, name);
+            return builder;
+        }
+
+        /// <summary>
+        /// Sets the user's identity (ie. email address, username, user id) that the event happened to.
+        /// </summary>
+        /// <param name="builder">The event builder object.</param>
+        /// <param name="userInfo">The user's identity that the event happened to.</param>
+        public static EventBuilder SetUserIdentity(this EventBuilder builder, UserInfo userInfo) {
+            builder.Target.SetUserIdentity(userInfo);
             return builder;
         }
 

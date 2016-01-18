@@ -7,7 +7,7 @@ namespace Exceptionless.Dependency {
 
         public object Resolve(Type serviceType) {
             if (serviceType == null)
-                throw new ArgumentNullException("serviceType");
+                throw new ArgumentNullException(nameof(serviceType));
 
             return _container.Resolve(serviceType);
         }

@@ -27,7 +27,7 @@ namespace Exceptionless {
             config.RemovePlugin<SimpleErrorPlugin>();
             config.AddPlugin<Plugins.ErrorPlugin>();
         }
-
+        
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
             config.Resolver.Register<IObjectStorage>(new IsolatedStorageObjectStorage(config.Resolver));
         }

@@ -10,7 +10,7 @@ namespace Exceptionless {
         public EventBuilder(Event ev, ExceptionlessClient client = null, ContextData pluginContextData = null) {
             Client = client ?? ExceptionlessClient.Default;
             Target = ev;
-            PluginContextData = pluginContextData;
+            PluginContextData = pluginContextData ?? new ContextData();
         }
 
         /// <summary>
@@ -40,19 +40,7 @@ namespace Exceptionless {
             Target.Source = source;
             return this;
         }
-
-        /// <summary>
-        /// Sets the event session id.
-        /// </summary>
-        /// <param name="sessionId">The event session id.</param>
-        public EventBuilder SetSessionId(string sessionId) {
-            if (!IsValidIdentifier(sessionId))
-                throw new ArgumentException("SessionId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(sessionId));
-
-            Target.SessionId = sessionId;
-            return this;
-        }
-
+        
         /// <summary>
         /// Sets the event reference id.
         /// </summary>
@@ -62,6 +50,22 @@ namespace Exceptionless {
                 throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(referenceId));
 
             Target.ReferenceId = referenceId;
+            return this;
+        }
+
+        /// <summary>
+        /// Allows you to reference a parent event by it's <seealso cref="Event.ReferenceId" /> property. This allows you to have parent and child relationships.
+        /// </summary>
+        /// <param name="name">Reference name</param>
+        /// <param name="id">The reference id that points to a specific event</param>
+        public EventBuilder SetEventReference(string name, string id) {
+            if (String.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
+                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", nameof(id));
+
+           Target.SetProperty($"@ref:{name}", id);
             return this;
         }
 
