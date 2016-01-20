@@ -95,21 +95,6 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Theory(Skip = "TODO: This needs to be skipped until the client is sending session start and end.")]
-        [InlineData(Event.KnownTypes.Error)]
-        [InlineData(Event.KnownTypes.FeatureUsage)]
-        [InlineData(Event.KnownTypes.Log)]
-        [InlineData(Event.KnownTypes.NotFound)]
-        [InlineData(Event.KnownTypes.SessionEnd)]
-        public void EnvironmentInfo_IncorrectEventType(string eventType) {
-            var client = new ExceptionlessClient();
-            var context = new EventPluginContext(client, new Event { Type = eventType });
-
-            var plugin = new EnvironmentInfoPlugin();
-            plugin.Run(context);
-            Assert.Equal(0, context.Event.Data.Count);
-        }
-
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {
             var client = new ExceptionlessClient();
@@ -193,7 +178,27 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("Blake", user.Name);
         }
 
+        [Theory]
+        [InlineData(Event.KnownTypes.Error, null, false)]
+        [InlineData(Event.KnownTypes.FeatureUsage, null, false)]
+        [InlineData(Event.KnownTypes.Log, null, false)]
+        [InlineData(Event.KnownTypes.NotFound, null, false)]
+        [InlineData(Event.KnownTypes.Session, null, true)]
+        [InlineData(Event.KnownTypes.Session, "123456789", false)]
+        [InlineData(Event.KnownTypes.SessionEnd, null, true)]
+        [InlineData(Event.KnownTypes.SessionEnd, "123456789", false)]
+        [InlineData(Event.KnownTypes.SessionHeartbeat, null, true)]
+        [InlineData(Event.KnownTypes.SessionHeartbeat, "123456789", false)]
+        public void CancelSessionsWithNoUserTest(string eventType, string identity, bool cancelled) {
+            var ev = new Event { Type = eventType };
+            ev.SetUserIdentity(identity);
 
+            var context = new EventPluginContext(new ExceptionlessClient(), ev);
+            var plugin = new CancelSessionsWithNoUserPlugin();
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+        }
+        
         [Fact]
         public void LazyLoadAndRemovePlugin() {
             var configuration = new ExceptionlessConfiguration(DependencyResolver.Default);

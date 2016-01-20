@@ -88,10 +88,12 @@ namespace Exceptionless {
         }
 
         public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true) {
-           if (sendHeartbeats)
+            config.AddPlugin<CancelSessionsWithNoUserPlugin>();
+
+            if (sendHeartbeats)
                 config.AddPlugin<HeartbeatPlugin>();
         }
-        
+
         public static void UseDebugLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
             config.Resolver.Register<IExceptionlessLog>(new DebugExceptionlessLog { MinimumLogLevel = minLogLevel });
         }

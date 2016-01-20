@@ -62,7 +62,8 @@
     <Compile Include="Events\EventSubmittedEventArgs.cs" />
     <Compile Include="Plugins\Default\030_DuplicateCheckerPlugin.cs" />
     <Compile Include="Plugins\ContextData.cs" />
-    <Compile Include="Plugins\Default\100 _HeartbeatPlugin.cs" />
+    <Compile Include="Plugins\Default\1000_CancelSessionsWithNoUserPlugin.cs" />
+    <Compile Include="Plugins\Default\100_HeartbeatPlugin.cs" />
     <Compile Include="Plugins\Default\ActionPlugin.cs" />
     <Compile Include="Plugins\Default\010_ConfigurationDefaultsPlugin.cs" />
     <Compile Include="Plugins\Default\090_SubmissionMethodPlugin.cs" />
