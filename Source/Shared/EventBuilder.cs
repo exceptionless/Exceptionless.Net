@@ -54,7 +54,7 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Allows you to reference a parent event by it's <seealso cref="Event.ReferenceId" /> property. This allows you to have parent and child relationships.
+        /// Allows you to reference a parent event by its <seealso cref="Event.ReferenceId" /> property. This allows you to have parent and child relationships.
         /// </summary>
         /// <param name="name">Reference name</param>
         /// <param name="id">The reference id that points to a specific event</param>
