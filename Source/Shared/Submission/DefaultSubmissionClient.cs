@@ -39,7 +39,7 @@ namespace Exceptionless.Submission {
 
             HttpWebResponse response;
             try {
-                var request = CreateHttpWebRequest(config, $"events/by-ref/{referenceId}/user-description");
+                var request = CreateHttpWebRequest(config, String.Format("events/by-ref/{0}/user-description", referenceId));
                 response = request.PostJsonAsync(data).Result as HttpWebResponse;
             } catch (AggregateException aex) {
                 var ex = aex.GetInnermostException() as WebException;
@@ -69,7 +69,7 @@ namespace Exceptionless.Submission {
             }
 
             if (response == null || response.StatusCode != HttpStatusCode.OK)
-                return new SettingsResponse(false, message: $"Unable to retrieve configuration settings: {GetResponseMessage(response)}");
+                return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", GetResponseMessage(response)));
 
             var json = response.GetResponseText();
             if (String.IsNullOrWhiteSpace(json))

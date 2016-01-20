@@ -31,7 +31,7 @@ namespace Exceptionless.Extras.Storage {
 
         public T GetObject<T>(string path) where T : class {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
             try {
                 var json = File.ReadAllText(Path.Combine(Folder, path));
@@ -64,7 +64,7 @@ namespace Exceptionless.Extras.Storage {
 
         public bool SaveObject<T>(string path, T value) where T : class {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
             string directory = Path.GetDirectoryName(Path.Combine(Folder, path));
             if (!Directory.Exists(directory))
@@ -84,9 +84,9 @@ namespace Exceptionless.Extras.Storage {
 
         public bool RenameObject(string oldpath, string newpath) {
             if (String.IsNullOrWhiteSpace(oldpath))
-                throw new ArgumentNullException(nameof(oldpath));
+                throw new ArgumentNullException("oldpath");
             if (String.IsNullOrWhiteSpace(newpath))
-                throw new ArgumentNullException(nameof(newpath));
+                throw new ArgumentNullException("newpath");
 
             try {
                 lock (_lockObject) {
@@ -101,7 +101,7 @@ namespace Exceptionless.Extras.Storage {
 
         public bool DeleteObject(string path) {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
             try {
                 File.Delete(Path.Combine(Folder, path));

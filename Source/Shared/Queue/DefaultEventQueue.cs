@@ -100,7 +100,7 @@ namespace Exceptionless.Queue {
                                 _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
                             }
                         } else if (!response.Success) {
-                            _log.Error(typeof(DefaultEventQueue), $"An error occurred while submitting events: {response.Message}");
+                            _log.Error(typeof(DefaultEventQueue), String.Concat("An error occurred while submitting events: ", response.Message));
                             SuspendProcessing();
                             deleteBatch = false;
                         }
@@ -144,7 +144,7 @@ namespace Exceptionless.Queue {
             if (!duration.HasValue)
                 duration = TimeSpan.FromMinutes(5);
 
-            _log.Info(typeof(ExceptionlessClient), $"Suspending processing for: {duration.Value}.");
+            _log.Info(typeof(ExceptionlessClient), String.Format("Suspending processing for: {0}.", duration.Value));
             _suspendProcessingUntil = DateTime.Now.Add(duration.Value);
             _queueTimer.Change(duration.Value, _processQueueInterval);
 

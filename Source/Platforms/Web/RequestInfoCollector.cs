@@ -58,7 +58,7 @@ namespace Exceptionless.ExtendedData {
                 }
             } else if (context.Request.ContentLength > 0) {
                 string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
-                info.PostData = $"Data is too large ({value}kb) to be included.";
+                info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
             }
 
             try {
@@ -88,7 +88,7 @@ namespace Exceptionless.ExtendedData {
             foreach (string key in cookies.AllKeys.Distinct().Where(k => !String.IsNullOrEmpty(k) && !k.AnyWildcardMatches(_ignoredCookies, true) && !k.AnyWildcardMatches(exclusions, true))) {
                 try {
                     HttpCookie cookie = cookies.Get(key);
-                    if (cookie?.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
+                    if ( cookie != null && cookie.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
                         d.Add(key, cookie.Value);
                 } catch (Exception ex) {
                     if (!d.ContainsKey(key))

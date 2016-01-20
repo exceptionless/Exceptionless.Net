@@ -10,7 +10,7 @@ namespace Exceptionless.SampleWcf {
 
         public CompositeType GetDataUsingDataContract(CompositeType composite) {
             if (composite == null)
-                throw new ArgumentNullException(nameof(composite));
+                throw new ArgumentNullException("composite");
 
             if (composite.BoolValue)
                 composite.StringValue += "Suffix";

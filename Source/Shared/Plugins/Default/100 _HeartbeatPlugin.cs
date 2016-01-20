@@ -12,28 +12,36 @@ namespace Exceptionless.Plugins.Default {
                 return;
             
             if (context.Event.IsSessionEnd()) {
-                _heartbeat?.Dispose();
-                _heartbeat = null;
+                if (_heartbeat != null) {
+                    _heartbeat.Dispose();
+                    _heartbeat = null;
+                }
+
                 return;
             }
 
             var user = context.Event.GetUserIdentity();
-            if (String.IsNullOrEmpty(user?.Identity))
+            if (user == null || String.IsNullOrEmpty(user.Identity))
                 return;
             
             if (_heartbeat == null) {
                 _heartbeat = new SessionHeartbeat(user, context.Client);
             } else if (_heartbeat.User.Identity != user.Identity) {
-                _heartbeat?.Dispose();
+                if (_heartbeat != null)
+                    _heartbeat.Dispose();
+
                 _heartbeat = new SessionHeartbeat(user, context.Client);
             } else {
-                _heartbeat?.DelayNext();
+                if (_heartbeat != null)
+                    _heartbeat.DelayNext();
             }
         }
 
         public void Dispose() {
-            _heartbeat?.Dispose();
-            _heartbeat = null;
+            if (_heartbeat != null) {
+                _heartbeat.Dispose();
+                _heartbeat = null;
+            }
         }
     }
 

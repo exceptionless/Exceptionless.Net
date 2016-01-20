@@ -24,7 +24,7 @@ namespace Exceptionless {
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
             if (resolver == null)
-                throw new ArgumentNullException(nameof(resolver));
+                throw new ArgumentNullException("resolver");
 
             ServerUrl = DEFAULT_SERVER_URL;
             UserAgent = DEFAULT_USER_AGENT;
@@ -284,7 +284,7 @@ namespace Exceptionless {
 
             try {
                 var priorityAttribute = type.GetCustomAttributes(typeof(PriorityAttribute), true).FirstOrDefault() as PriorityAttribute;
-                return priorityAttribute?.Priority ?? 0;
+                return priorityAttribute != null ? priorityAttribute.Priority : 0;
             } catch (Exception ex) {
                 Resolver.GetLog().Error(typeof(ExceptionlessConfiguration), ex, "An error occurred while getting the priority for type: " + type.FullName);
             }
@@ -309,12 +309,12 @@ namespace Exceptionless {
 
             var result = new ValidationResult();
 
-            string key = ApiKey?.Trim();
+            string key = ApiKey != null ? ApiKey.Trim() : null;
             if (String.IsNullOrEmpty(key) || String.Equals(key, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase))
                 result.Messages.Add("ApiKey is not set.");
 
             if (key != null && (key.Length < 10 || key.Contains(" ")))
-                result.Messages.Add($"ApiKey \"{key}\" is not valid.");
+                result.Messages.Add(String.Format("ApiKey \"{0}\" is not valid.", key));
 
             if (String.IsNullOrEmpty(ServerUrl))
                 result.Messages.Add("ServerUrl is not set.");
@@ -347,7 +347,7 @@ namespace Exceptionless {
             public IEventPlugin Plugin => _plugin.Value;
 
             public override string ToString() {
-                return $"Key: {Key}, Priority: {Priority}";
+                return String.Format("Key: {0}, Priority: {1}", Key, Priority);
             }
 
             public void Dispose() {
@@ -355,7 +355,8 @@ namespace Exceptionless {
                     return;
 
                 var disposable = _plugin.Value as IDisposable;
-                disposable?.Dispose();
+                if (disposable != null)
+                    disposable.Dispose();
             }
         }
     }

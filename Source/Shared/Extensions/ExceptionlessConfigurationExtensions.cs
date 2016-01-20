@@ -74,7 +74,10 @@ namespace Exceptionless {
         }
 
         public static string GetInstallId(this ExceptionlessConfiguration config) {
-            var persistedClientData = config?.Resolver.Resolve<PersistedDictionary>();
+            if (config == null)
+                return null;
+
+            var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
             if (persistedClientData == null)
                 return null;
 
@@ -120,7 +123,7 @@ namespace Exceptionless {
         /// <param name="assemblies">The assembly that contains the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, params Assembly[] assemblies) {
             if (config == null)
-                throw new ArgumentNullException(nameof(config));
+                throw new ArgumentNullException("config");
 
             config.ReadFromAttributes(assemblies.ToList());
         }
@@ -133,7 +136,7 @@ namespace Exceptionless {
         /// <param name="assemblies">A list of assemblies that should be checked for the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, ICollection<Assembly> assemblies = null) {
             if (config == null)
-                throw new ArgumentNullException(nameof(config));
+                throw new ArgumentNullException("config");
 
             if (assemblies == null)
                 assemblies = new List<Assembly> { Assembly.GetCallingAssembly() };

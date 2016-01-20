@@ -47,7 +47,7 @@ namespace Exceptionless {
         /// <param name="referenceId">The event reference id.</param>
         public EventBuilder SetReferenceId(string referenceId) {
             if (!IsValidIdentifier(referenceId))
-                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(referenceId));
+                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", "referenceId");
 
             Target.ReferenceId = referenceId;
             return this;
@@ -60,12 +60,12 @@ namespace Exceptionless {
         /// <param name="id">The reference id that points to a specific event</param>
         public EventBuilder SetEventReference(string name, string id) {
             if (String.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException("name");
 
             if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
-                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", nameof(id));
+                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", "id");
 
-           Target.SetProperty($"@ref:{name}", id);
+           Target.SetProperty(String.Format("@ref:{0}", name), id);
             return this;
         }
 
@@ -101,7 +101,7 @@ namespace Exceptionless {
             if (coordinates.Contains(",") || coordinates.Contains(".") || coordinates.Contains(":"))
                 Target.Geo = coordinates;
             else
-                throw new ArgumentException("Must be either lat,lon or an IP address.", nameof(coordinates));
+                throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
 
             return this;
         }
@@ -113,9 +113,9 @@ namespace Exceptionless {
         /// <param name="longitude">The event longitude.</param>
         public EventBuilder SetGeo(double latitude, double longitude) {
             if (latitude < -90.0 || latitude > 90.0)
-                throw new ArgumentOutOfRangeException(nameof(latitude), "Must be a valid latitude value between -90.0 and 90.0.");
+                throw new ArgumentOutOfRangeException("latitude", "Must be a valid latitude value between -90.0 and 90.0.");
             if (longitude < -180.0 || longitude > 180.0)
-                throw new ArgumentOutOfRangeException(nameof(longitude), "Must be a valid longitude value between -180.0 and 180.0.");
+                throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
             
             Target.Geo = latitude + "," + longitude;
             return this;

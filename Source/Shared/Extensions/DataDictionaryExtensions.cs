@@ -9,14 +9,14 @@ namespace Exceptionless {
     public static class DataDictionaryExtensions {
         public static T GetValue<T>(this DataDictionary items, string key, IJsonSerializer serializer = null) {
             if (items == null)
-                throw new ArgumentNullException(nameof(items));
+                throw new ArgumentNullException("items");
 
             if (String.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key));
+                throw new ArgumentNullException("key");
 
             object data;
             if (!items.TryGetValue(key, out data))
-                throw new KeyNotFoundException($"The key '{key}' was not found.");
+                throw new KeyNotFoundException(String.Format("The key '{0}' was not found.", key));
 
             if (data == null || data is T)
                 return (T)data;

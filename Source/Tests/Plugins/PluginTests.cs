@@ -175,7 +175,7 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
 
             var user = context.Event.GetUserIdentity();
-            Assert.Equal(Environment.UserName, user?.Identity);
+            Assert.Equal(Environment.UserName, user.Identity);
         }
         
         [Fact]
@@ -189,8 +189,8 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
 
             var user = context.Event.GetUserIdentity();
-            Assert.Null(user?.Identity);
-            Assert.Equal("Blake", user?.Name);
+            Assert.Null(user.Identity);
+            Assert.Equal("Blake", user.Name);
         }
 
 

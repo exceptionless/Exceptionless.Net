@@ -9,12 +9,12 @@ using TaskExtensions = Exceptionless.Threading.Tasks.TaskExtensions;
 namespace Exceptionless.WebApi {
     public class ExceptionlessHandleErrorAttribute : IExceptionFilter {
         private readonly ExceptionlessClient _client;
-
-        public bool HasWrappedFilter => WrappedFilter != null;
+        
+        public bool HasWrappedFilter { get { return WrappedFilter != null; } }
 
         public IExceptionFilter WrappedFilter { get; set; }
-
-        public bool AllowMultiple => HasWrappedFilter && WrappedFilter.AllowMultiple;
+        
+        public bool AllowMultiple { get { return HasWrappedFilter && WrappedFilter.AllowMultiple; } }
 
         public ExceptionlessHandleErrorAttribute(ExceptionlessClient client = null) {
             _client = client ?? ExceptionlessClient.Default;
@@ -35,7 +35,7 @@ namespace Exceptionless.WebApi {
         public Task ExecuteExceptionFilterAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
             _client.Configuration.Resolver.GetLog().Trace("ExecuteExceptionFilterAsync executing...");
             if (actionExecutedContext == null)
-                throw new ArgumentNullException(nameof(actionExecutedContext));
+                throw new ArgumentNullException("actionExecutedContext");
 
             OnHttpException(actionExecutedContext, cancellationToken);
             return TaskExtensions.Completed();

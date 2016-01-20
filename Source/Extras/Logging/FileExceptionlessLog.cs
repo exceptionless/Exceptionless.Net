@@ -15,7 +15,7 @@ namespace Exceptionless.Logging {
 
         public FileExceptionlessLog(string filePath, bool append = false) {
             if (String.IsNullOrEmpty(filePath))
-                throw new ArgumentNullException(nameof(filePath));
+                throw new ArgumentNullException("filePath");
 
             FilePath = filePath;
             _append = append;

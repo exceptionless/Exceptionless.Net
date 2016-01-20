@@ -56,7 +56,7 @@ namespace Exceptionless.ExtendedData {
             var d = new Dictionary<string, string>();
 
             foreach (CookieHeaderValue cookie in cookies) {
-                foreach (CookieState innerCookie in cookie.Cookies.Where(k => !String.IsNullOrEmpty(k?.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies, true) && !k.Name.AnyWildcardMatches(exclusions, true))) {
+                foreach (CookieState innerCookie in cookie.Cookies.Where(k => k != null && !String.IsNullOrEmpty(k.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies, true) && !k.Name.AnyWildcardMatches(exclusions, true))) {
                     if (!d.ContainsKey(innerCookie.Name))
                         d.Add(innerCookie.Name, innerCookie.Value);
                 }
@@ -89,12 +89,14 @@ namespace Exceptionless.ExtendedData {
             try {
                 if (request.Properties.ContainsKey("MS_HttpContext")) {
                     object context = request.Properties["MS_HttpContext"];
-                    PropertyInfo webRequestProperty = context?.GetType().GetProperty("Request");
-                    if (webRequestProperty != null) {
-                        object webRequest = webRequestProperty.GetValue(context, null);
-                        PropertyInfo userHostAddressProperty = webRequestProperty.PropertyType.GetProperty("UserHostAddress");
-                        if (userHostAddressProperty != null)
-                            return userHostAddressProperty.GetValue(webRequest, null) as string;
+                    if (context != null) {
+                        PropertyInfo webRequestProperty = context.GetType().GetProperty("Request");
+                        if (webRequestProperty != null) {
+                            object webRequest = webRequestProperty.GetValue(context, null);
+                            PropertyInfo userHostAddressProperty = webRequestProperty.PropertyType.GetProperty("UserHostAddress");
+                            if (userHostAddressProperty != null)
+                                return userHostAddressProperty.GetValue(webRequest, null) as string;
+                        }
                     }
                 }
 
