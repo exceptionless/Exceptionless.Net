@@ -29,7 +29,7 @@ ForEach ($p in $client_projects) {
                         /p:AssemblyOriginatorKeyFile="$sign_file" `
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
-                        /p:NoWarn="1591,1711,1712,1572,1573,1574" `
+                        /p:NoWarn="1591" `
                         /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;SIGNED;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
@@ -41,7 +41,7 @@ ForEach ($p in $client_projects) {
                         /p:SignAssembly=false `
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `
-                        /p:NoWarn="1591,1711,1712,1572,1573,1574" `
+                        /p:NoWarn="1591" `
                         /verbosity:minimal `
                         /p:DefineConstants="`"TRACE;$($b.Constants)`"" `
                         /p:OutputPath="$outputDirectory" `
