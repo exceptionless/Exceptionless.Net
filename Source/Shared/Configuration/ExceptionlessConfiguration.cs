@@ -42,7 +42,9 @@ namespace Exceptionless {
             EventPluginManager.AddDefaultPlugins(this);
         }
 
-        internal bool IsLocked => _configLocked;
+        internal bool IsLocked {
+            get { return _configLocked; }
+        }
 
         internal void LockConfig() {
             if (_configLocked)
@@ -183,7 +185,7 @@ namespace Exceptionless {
         /// <summary>
         /// The dependency resolver to use for this configuration.
         /// </summary>
-        public IDependencyResolver Resolver => _resolver;
+        public IDependencyResolver Resolver { get { return _resolver; } }
 
         #region Plugins
 
@@ -327,7 +329,7 @@ namespace Exceptionless {
                 Messages = new List<string>();
             }
 
-            public bool IsValid => Messages.Count == 0;
+            public bool IsValid { get { return Messages.Count == 0; } }
             public ICollection<string> Messages { get; private set; }
         }
 
@@ -344,7 +346,9 @@ namespace Exceptionless {
 
             public string Key { get; private set; }
 
-            public IEventPlugin Plugin => _plugin.Value;
+            public IEventPlugin Plugin {
+                get { return _plugin.Value; }
+            }
 
             public override string ToString() {
                 return String.Format("Key: {0}, Priority: {1}", Key, Priority);
