@@ -56,7 +56,7 @@ namespace Exceptionless.Plugins.Default {
             _timer = new Timer(SendHeartbeat, null, _interval, _interval);
         }
         
-        public UserInfo User { get; }
+        public UserInfo User { get; private set; }
         
         public void DelayNext() {
             _timer.Change(_interval, _interval);
