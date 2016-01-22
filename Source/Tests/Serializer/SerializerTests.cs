@@ -150,7 +150,7 @@ namespace Exceptionless.Tests.Serializer {
                 var ev = new Event { Data = { [Event.KnownDataKeys.Error] = error } };
 
                 IJsonSerializer serializer = GetSerializer();
-                string json = serializer.Serialize(ev, maxDepth: 10);
+                string json = serializer.Serialize(ev);
                 
                 Assert.Contains(String.Format("\"line_number\":{0}", error.Inner.Inner.StackTrace.Single().LineNumber), json);
             }
