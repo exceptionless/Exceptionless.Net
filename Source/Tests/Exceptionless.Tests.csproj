@@ -161,6 +161,10 @@
       <Project>{693F3CBF-5BC7-457D-9F31-BDD89C72677E}</Project>
       <Name>Exceptionless.Extras</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Platforms\Console\Exceptionless.csproj">
+      <Project>{1e53d5cd-1719-4bfb-a9a8-7d46baca6402}</Project>
+      <Name>Exceptionless</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Shared\Exceptionless.Portable.csproj">
       <Project>{14dfd206-b445-4d52-9c3c-8b2f69b22b91}</Project>
       <Name>Exceptionless.Portable</Name>

@@ -6,6 +6,12 @@ using Exceptionless.Json;
 using Exceptionless.Models;
 using Exceptionless.Serializer;
 using Xunit;
+using System.Reflection;
+using Exceptionless.Submission;
+using Moq;
+using System.Linq;
+using Exceptionless.Models.Data;
+using Exceptionless.Dependency;
 
 namespace Exceptionless.Tests.Serializer {
     public class SerializerTests {
@@ -97,6 +103,59 @@ namespace Exceptionless.Tests.Serializer {
             IJsonSerializer serializer = GetSerializer();
             var ev = (Event)serializer.Deserialize(@"{""reference_id"": ""123"" }", typeof(Event));
             Assert.Equal("123", ev.ReferenceId);
+        }
+
+        [Fact]
+        public void WillSerializeDeepExceptionWithStackInformation()
+        {
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        throw new ArgumentException("This is the inner argument exception", "wrongArg");
+                    }
+                    catch (Exception e1)
+                    {
+                        throw new TargetInvocationException("Target invocation exception. Blah blah blah blah.", e1);
+                    }
+                }
+                catch (Exception e2)
+                {
+                    throw new TargetInvocationException("Outer Exception. This is some text of the outer exception.", e2);
+                }
+            }
+            catch (Exception exception)
+            {
+                Event e = null;
+                IJsonSerializer serializer = null;
+
+                var submissionMock = new Mock<ISubmissionClient>();
+                submissionMock.Setup(c => c.PostEvents(It.IsAny<IEnumerable<Event>>(), It.IsAny<ExceptionlessConfiguration>(), It.IsAny<IJsonSerializer>()))
+                    .Returns((IEnumerable<Event> a, ExceptionlessConfiguration b, IJsonSerializer c) => {
+                        e = a.Single();
+                        serializer = c;
+                        return new SubmissionResponse(200);
+                    });
+
+                ExceptionlessClient.Default.Configuration.Resolver.Register(submissionMock.Object);
+                ExceptionlessClient.Default.Configuration.ApiKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+                ExceptionlessExtensions.Register(ExceptionlessClient.Default);
+                exception.ToExceptionless().Submit();
+                ExceptionlessClient.Default.ProcessQueue();
+
+                var innerLineNumber = e.Data.GetValue<Error>(Event.KnownDataKeys.Error)
+                    .Inner
+                    .Inner
+                    .StackTrace.Single()
+                    .LineNumber;
+
+                var serialized = serializer.Serialize(e);
+                var expected = string.Format("\"line_number\":{0}", innerLineNumber);
+
+                Assert.Contains(expected, serialized);
+            }
         }
     }
 
