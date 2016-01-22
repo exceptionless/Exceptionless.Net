@@ -76,7 +76,7 @@ namespace Exceptionless.Json.Serialization
     public delegate IEnumerable<KeyValuePair<object, object>> ExtensionDataGetter(object o);
 
     /// <summary>
-    /// Contract details for a <see cref="System.Type"/> used by the <see cref="JsonSerializer"/>.
+    /// Contract details for a <see cref="Type"/> used by the <see cref="JsonSerializer"/>.
     /// </summary>
     public abstract class JsonContract
     {
@@ -144,9 +144,7 @@ namespace Exceptionless.Json.Serialization
             get
             {
                 if (_onDeserializedCallbacks == null)
-                {
                     _onDeserializedCallbacks = new List<SerializationCallback>();
-                }
 
                 return _onDeserializedCallbacks;
             }
@@ -161,9 +159,7 @@ namespace Exceptionless.Json.Serialization
             get
             {
                 if (_onDeserializingCallbacks == null)
-                {
                     _onDeserializingCallbacks = new List<SerializationCallback>();
-                }
 
                 return _onDeserializingCallbacks;
             }
@@ -178,9 +174,7 @@ namespace Exceptionless.Json.Serialization
             get
             {
                 if (_onSerializedCallbacks == null)
-                {
                     _onSerializedCallbacks = new List<SerializationCallback>();
-                }
 
                 return _onSerializedCallbacks;
             }
@@ -195,9 +189,7 @@ namespace Exceptionless.Json.Serialization
             get
             {
                 if (_onSerializingCallbacks == null)
-                {
                     _onSerializingCallbacks = new List<SerializationCallback>();
-                }
 
                 return _onSerializingCallbacks;
             }
@@ -212,9 +204,7 @@ namespace Exceptionless.Json.Serialization
             get
             {
                 if (_onErrorCallbacks == null)
-                {
                     _onErrorCallbacks = new List<SerializationErrorCallback>();
-                }
 
                 return _onErrorCallbacks;
             }
@@ -309,7 +299,7 @@ namespace Exceptionless.Json.Serialization
 
         internal JsonContract(Type underlyingType)
         {
-            ValidationUtils.ArgumentNotNull(underlyingType, nameof(underlyingType));
+            ValidationUtils.ArgumentNotNull(underlyingType, "underlyingType");
 
             UnderlyingType = underlyingType;
 
@@ -321,7 +311,36 @@ namespace Exceptionless.Json.Serialization
             IsConvertable = ConvertUtils.IsConvertible(NonNullableUnderlyingType);
             IsEnum = NonNullableUnderlyingType.IsEnum();
 
-            InternalReadType = ReadType.Read;
+            if (NonNullableUnderlyingType == typeof(byte[]))
+            {
+                InternalReadType = ReadType.ReadAsBytes;
+            }
+            else if (NonNullableUnderlyingType == typeof(int))
+            {
+                InternalReadType = ReadType.ReadAsInt32;
+            }
+            else if (NonNullableUnderlyingType == typeof(decimal))
+            {
+                InternalReadType = ReadType.ReadAsDecimal;
+            }
+            else if (NonNullableUnderlyingType == typeof(string))
+            {
+                InternalReadType = ReadType.ReadAsString;
+            }
+            else if (NonNullableUnderlyingType == typeof(DateTime))
+            {
+                InternalReadType = ReadType.ReadAsDateTime;
+            }
+#if !NET20
+            else if (NonNullableUnderlyingType == typeof(DateTimeOffset))
+            {
+                InternalReadType = ReadType.ReadAsDateTimeOffset;
+            }
+#endif
+            else
+            {
+                InternalReadType = ReadType.Read;
+            }
         }
 
         internal void InvokeOnSerializing(object o, StreamingContext context)

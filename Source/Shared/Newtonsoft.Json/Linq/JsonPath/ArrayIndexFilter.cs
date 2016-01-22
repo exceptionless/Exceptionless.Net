@@ -14,12 +14,10 @@ namespace Exceptionless.Json.Linq.JsonPath
             {
                 if (Index != null)
                 {
-                    JToken v = GetTokenIndex(t, errorWhenNoMatch, Index.GetValueOrDefault());
+                    JToken v = GetTokenIndex(t, errorWhenNoMatch, Index.Value);
 
                     if (v != null)
-                    {
                         yield return v;
-                    }
                 }
                 else
                 {
@@ -33,9 +31,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                     else
                     {
                         if (errorWhenNoMatch)
-                        {
                             throw new JsonException("Index * not valid on {0}.".FormatWith(CultureInfo.InvariantCulture, t.GetType().Name));
-                        }
                     }
                 }
             }

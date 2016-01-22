@@ -71,9 +71,9 @@ namespace Exceptionless.Json.Serialization
         public Type DeclaringType { get; set; }
 
         /// <summary>
-        /// Gets or sets the order of serialization of a member.
+        /// Gets or sets the order of serialization and deserialization of a member.
         /// </summary>
-        /// <value>The numeric order of serialization.</value>
+        /// <value>The numeric order of serialization or deserialization.</value>
         public int? Order { get; set; }
 
         /// <summary>
@@ -157,9 +157,7 @@ namespace Exceptionless.Json.Serialization
             get
             {
                 if (!_hasExplicitDefaultValue)
-                {
                     return null;
-                }
 
                 return _defaultValue;
             }
@@ -173,9 +171,7 @@ namespace Exceptionless.Json.Serialization
         internal object GetResolvedDefaultValue()
         {
             if (_propertyType == null)
-            {
                 return null;
-            }
 
             if (!_hasExplicitDefaultValue && !_hasGeneratedDefaultValue)
             {
@@ -241,12 +237,6 @@ namespace Exceptionless.Json.Serialization
         public Predicate<object> ShouldSerialize { get; set; }
 
         /// <summary>
-        /// Gets or sets a predicate used to determine whether the property should be deserialized.
-        /// </summary>
-        /// <value>A predicate used to determine whether the property should be deserialized.</value>
-        public Predicate<object> ShouldDeserialize { get; set; }
-
-        /// <summary>
         /// Gets or sets a predicate used to determine whether the property should be serialized.
         /// </summary>
         /// <value>A predicate used to determine whether the property should be serialized.</value>
@@ -296,13 +286,9 @@ namespace Exceptionless.Json.Serialization
         internal void WritePropertyName(JsonWriter writer)
         {
             if (_skipPropertyNameEscape)
-            {
                 writer.WritePropertyName(PropertyName, false);
-            }
             else
-            {
                 writer.WritePropertyName(PropertyName);
-            }
         }
     }
 }

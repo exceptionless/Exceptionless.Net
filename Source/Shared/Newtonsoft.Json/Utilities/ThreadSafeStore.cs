@@ -42,9 +42,7 @@ namespace Exceptionless.Json.Utilities
         public ThreadSafeStore(Func<TKey, TValue> creator)
         {
             if (creator == null)
-            {
-                throw new ArgumentNullException(nameof(creator));
-            }
+                throw new ArgumentNullException("creator");
 
             _creator = creator;
             _store = new Dictionary<TKey, TValue>();
@@ -54,9 +52,7 @@ namespace Exceptionless.Json.Utilities
         {
             TValue value;
             if (!_store.TryGetValue(key, out value))
-            {
                 return AddValue(key);
-            }
 
             return value;
         }
@@ -77,14 +73,12 @@ namespace Exceptionless.Json.Utilities
                     // double check locking
                     TValue checkValue;
                     if (_store.TryGetValue(key, out checkValue))
-                    {
                         return checkValue;
-                    }
 
                     Dictionary<TKey, TValue> newStore = new Dictionary<TKey, TValue>(_store);
                     newStore[key] = value;
 
-#if !(DOTNET || PORTABLE)
+#if !(NETFX_CORE || PORTABLE)
                     Thread.MemoryBarrier();
 #endif
                     _store = newStore;

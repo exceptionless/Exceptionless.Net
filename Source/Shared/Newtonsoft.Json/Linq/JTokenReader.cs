@@ -52,7 +52,7 @@ namespace Exceptionless.Json.Linq
         /// <param name="token">The token to read from.</param>
         public JTokenReader(JToken token)
         {
-            ValidationUtils.ArgumentNotNull(token, nameof(token));
+            ValidationUtils.ArgumentNotNull(token, "token");
 
             _root = token;
         }
@@ -64,29 +64,75 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream.
+        /// Reads the next JSON token from the stream as a <see cref="Byte"/>[].
         /// </summary>
         /// <returns>
-        /// true if the next token was read successfully; false if there are no more tokens to read.
+        /// A <see cref="Byte"/>[] or a null reference if the next JSON token is null. This method will return <c>null</c> at the end of an array.
         /// </returns>
-        public override bool Read()
+        public override byte[] ReadAsBytes()
+        {
+            return ReadAsBytesInternal();
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Decimal}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Decimal}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public override decimal? ReadAsDecimal()
+        {
+            return ReadAsDecimalInternal();
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Int32}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Int32}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public override int? ReadAsInt32()
+        {
+            return ReadAsInt32Internal();
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="String"/>.
+        /// </summary>
+        /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public override string ReadAsString()
+        {
+            return ReadAsStringInternal();
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTime}"/>.
+        /// </summary>
+        /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public override DateTime? ReadAsDateTime()
+        {
+            return ReadAsDateTimeInternal();
+        }
+
+#if !NET20
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{DateTimeOffset}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public override DateTimeOffset? ReadAsDateTimeOffset()
+        {
+            return ReadAsDateTimeOffsetInternal();
+        }
+#endif
+
+        internal override bool ReadInternal()
         {
             if (CurrentState != State.Start)
             {
                 if (_current == null)
-                {
                     return false;
-                }
 
                 JContainer container = _current as JContainer;
                 if (container != null && _parent != container)
-                {
                     return ReadInto(container);
-                }
                 else
-                {
                     return ReadOver(_current);
-                }
             }
 
             _current = _root;
@@ -94,20 +140,29 @@ namespace Exceptionless.Json.Linq
             return true;
         }
 
+        /// <summary>
+        /// Reads the next JSON token from the stream.
+        /// </summary>
+        /// <returns>
+        /// true if the next token was read successfully; false if there are no more tokens to read.
+        /// </returns>
+        public override bool Read()
+        {
+            _readType = ReadType.Read;
+
+            return ReadInternal();
+        }
+
         private bool ReadOver(JToken t)
         {
             if (t == _root)
-            {
                 return ReadToEnd();
-            }
 
             JToken next = t.Next;
             if ((next == null || next == t) || t == t.Parent.Last)
             {
                 if (t.Parent == null)
-                {
                     return ReadToEnd();
-                }
 
                 return SetEnd(t.Parent);
             }
@@ -164,7 +219,7 @@ namespace Exceptionless.Json.Linq
             JsonToken? endToken = GetEndToken(c);
             if (endToken != null)
             {
-                SetToken(endToken.GetValueOrDefault());
+                SetToken(endToken.Value);
                 _current = c;
                 _parent = c;
                 return true;
@@ -225,15 +280,7 @@ namespace Exceptionless.Json.Linq
                     SetToken(JsonToken.String, SafeToString(((JValue)token).Value));
                     break;
                 case JTokenType.Uri:
-                    object v = ((JValue)token).Value;
-                    if (v is Uri)
-                    {
-                        SetToken(JsonToken.String, ((Uri)v).OriginalString);
-                    }
-                    else
-                    {
-                        SetToken(JsonToken.String, SafeToString(v));
-                    }
+                    SetToken(JsonToken.String, SafeToString(((JValue)token).Value));
                     break;
                 case JTokenType.TimeSpan:
                     SetToken(JsonToken.String, SafeToString(((JValue)token).Value));
@@ -251,9 +298,7 @@ namespace Exceptionless.Json.Linq
         bool IJsonLineInfo.HasLineInfo()
         {
             if (CurrentState == State.Start)
-            {
                 return false;
-            }
 
             IJsonLineInfo info = _current;
             return (info != null && info.HasLineInfo());
@@ -264,15 +309,11 @@ namespace Exceptionless.Json.Linq
             get
             {
                 if (CurrentState == State.Start)
-                {
                     return 0;
-                }
 
                 IJsonLineInfo info = _current;
                 if (info != null)
-                {
                     return info.LineNumber;
-                }
 
                 return 0;
             }
@@ -283,15 +324,11 @@ namespace Exceptionless.Json.Linq
             get
             {
                 if (CurrentState == State.Start)
-                {
                     return 0;
-                }
 
                 IJsonLineInfo info = _current;
                 if (info != null)
-                {
                     return info.LinePosition;
-                }
 
                 return 0;
             }
@@ -309,18 +346,13 @@ namespace Exceptionless.Json.Linq
                 if (!string.IsNullOrEmpty(_initialPath))
                 {
                     if (string.IsNullOrEmpty(path))
-                    {
                         return _initialPath;
-                    }
 
-                    if (path.StartsWith('['))
-                    {
+                    if (_initialPath.EndsWith(']')
+                        || path.StartsWith('['))
                         path = _initialPath + path;
-                    }
                     else
-                    {
                         path = _initialPath + "." + path;
-                    }
                 }
 
                 return path;

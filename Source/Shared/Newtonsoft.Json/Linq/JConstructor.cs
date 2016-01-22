@@ -52,14 +52,10 @@ namespace Exceptionless.Json.Linq
         {
             JConstructor c = content as JConstructor;
             if (c == null)
-            {
                 return;
-            }
 
             if (c.Name != null)
-            {
                 Name = c.Name;
-            }
             MergeEnumerableContent(this, c, settings);
         }
 
@@ -126,15 +122,7 @@ namespace Exceptionless.Json.Linq
         /// <param name="name">The constructor name.</param>
         public JConstructor(string name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (name.Length == 0)
-            {
-                throw new ArgumentException("Constructor name cannot be empty.", nameof(name));
-            }
+            ValidationUtils.ArgumentNotNullOrEmpty(name, "name");
 
             _name = name;
         }
@@ -175,23 +163,19 @@ namespace Exceptionless.Json.Linq
         {
             get
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "o");
 
                 if (!(key is int))
-                {
                     throw new ArgumentException("Accessed JConstructor values with invalid key value: {0}. Argument position index expected.".FormatWith(CultureInfo.InvariantCulture, MiscellaneousUtils.ToString(key)));
-                }
 
                 return GetItem((int)key);
             }
             set
             {
-                ValidationUtils.ArgumentNotNull(key, nameof(key));
+                ValidationUtils.ArgumentNotNull(key, "o");
 
                 if (!(key is int))
-                {
                     throw new ArgumentException("Set JConstructor values with invalid key value: {0}. Argument position index expected.".FormatWith(CultureInfo.InvariantCulture, MiscellaneousUtils.ToString(key)));
-                }
 
                 SetItem((int)key, value);
             }
@@ -209,37 +193,24 @@ namespace Exceptionless.Json.Linq
         /// <returns>A <see cref="JConstructor"/> that contains the JSON that was read from the specified <see cref="JsonReader"/>.</returns>
         public new static JConstructor Load(JsonReader reader)
         {
-            return Load(reader, null);
-        }
-
-        /// <summary>
-        /// Loads an <see cref="JConstructor"/> from a <see cref="JsonReader"/>. 
-        /// </summary>
-        /// <param name="reader">A <see cref="JsonReader"/> that will be read for the content of the <see cref="JConstructor"/>.</param>
-        /// <param name="settings">The <see cref="JsonLoadSettings"/> used to load the JSON.
-        /// If this is null, default load settings will be used.</param>
-        /// <returns>A <see cref="JConstructor"/> that contains the JSON that was read from the specified <see cref="JsonReader"/>.</returns>
-        public new static JConstructor Load(JsonReader reader, JsonLoadSettings settings)
-        {
             if (reader.TokenType == JsonToken.None)
             {
                 if (!reader.Read())
-                {
                     throw JsonReaderException.Create(reader, "Error reading JConstructor from JsonReader.");
-                }
             }
 
-            reader.MoveToContent();
+            while (reader.TokenType == JsonToken.Comment)
+            {
+                reader.Read();
+            }
 
             if (reader.TokenType != JsonToken.StartConstructor)
-            {
                 throw JsonReaderException.Create(reader, "Error reading JConstructor from JsonReader. Current JsonReader item is not a constructor: {0}".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
-            }
 
             JConstructor c = new JConstructor((string)reader.Value);
-            c.SetLineInfo(reader as IJsonLineInfo, settings);
+            c.SetLineInfo(reader as IJsonLineInfo);
 
-            c.ReadTokenFrom(reader, settings);
+            c.ReadTokenFrom(reader);
 
             return c;
         }

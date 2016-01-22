@@ -54,7 +54,7 @@ namespace Exceptionless.Json.Linq
         /// <param name="enumerable">The enumerable.</param>
         public JEnumerable(IEnumerable<T> enumerable)
         {
-            ValidationUtils.ArgumentNotNull(enumerable, nameof(enumerable));
+            ValidationUtils.ArgumentNotNull(enumerable, "enumerable");
 
             _enumerable = enumerable;
         }
@@ -68,9 +68,7 @@ namespace Exceptionless.Json.Linq
         public IEnumerator<T> GetEnumerator()
         {
             if (_enumerable == null)
-            {
                 return Empty.GetEnumerator();
-            }
 
             return _enumerable.GetEnumerator();
         }
@@ -95,9 +93,7 @@ namespace Exceptionless.Json.Linq
             get
             {
                 if (_enumerable == null)
-                {
                     return JEnumerable<JToken>.Empty;
-                }
 
                 return new JEnumerable<JToken>(_enumerable.Values<T, JToken>(key));
             }
@@ -125,9 +121,7 @@ namespace Exceptionless.Json.Linq
         public override bool Equals(object obj)
         {
             if (obj is JEnumerable<T>)
-            {
                 return Equals((JEnumerable<T>)obj);
-            }
 
             return false;
         }
@@ -141,9 +135,7 @@ namespace Exceptionless.Json.Linq
         public override int GetHashCode()
         {
             if (_enumerable == null)
-            {
                 return 0;
-            }
 
             return _enumerable.GetHashCode();
         }

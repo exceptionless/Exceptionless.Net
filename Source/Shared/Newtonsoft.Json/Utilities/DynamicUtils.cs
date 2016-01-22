@@ -65,9 +65,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     Type binderType = Type.GetType(BinderTypeName, false);
                     if (binderType == null)
-                    {
                         throw new InvalidOperationException("Could not resolve type '{0}'. You may need to add a reference to Microsoft.CSharp.dll to work with dynamic types.".FormatWith(CultureInfo.InvariantCulture, BinderTypeName));
-                    }
 
                     // None
                     _getCSharpArgumentInfoArray = CreateSharpArgumentInfoArray(0);
@@ -198,9 +196,7 @@ namespace Exceptionless.Json.Utilities
         {
             // if the result of a test is to throw an error, rewrite to result an error result value
             if (node.IfFalse.NodeType == ExpressionType.Throw)
-            {
                 return Expression.Condition(node.Test, node.IfTrue, Expression.Constant(ErrorResult));
-            }
 
             return base.VisitConditional(node);
         }

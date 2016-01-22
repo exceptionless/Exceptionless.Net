@@ -86,9 +86,7 @@ namespace Exceptionless.Json.Converters
 
                 if ((_dateTimeStyles & DateTimeStyles.AdjustToUniversal) == DateTimeStyles.AdjustToUniversal
                     || (_dateTimeStyles & DateTimeStyles.AssumeUniversal) == DateTimeStyles.AssumeUniversal)
-                {
                     dateTime = dateTime.ToUniversalTime();
-                }
 
                 text = dateTime.ToString(_dateTimeFormat ?? DefaultDateTimeFormat, Culture);
             }
@@ -98,9 +96,7 @@ namespace Exceptionless.Json.Converters
                 DateTimeOffset dateTimeOffset = (DateTimeOffset)value;
                 if ((_dateTimeStyles & DateTimeStyles.AdjustToUniversal) == DateTimeStyles.AdjustToUniversal
                     || (_dateTimeStyles & DateTimeStyles.AssumeUniversal) == DateTimeStyles.AssumeUniversal)
-                {
                     dateTimeOffset = dateTimeOffset.ToUniversalTime();
-                }
 
                 text = dateTimeOffset.ToString(_dateTimeFormat ?? DefaultDateTimeFormat, Culture);
             }
@@ -133,9 +129,7 @@ namespace Exceptionless.Json.Converters
             if (reader.TokenType == JsonToken.Null)
             {
                 if (!ReflectionUtils.IsNullableType(objectType))
-                {
                     throw JsonSerializationException.Create(reader, "Cannot convert null value to {0}.".FormatWith(CultureInfo.InvariantCulture, objectType));
-                }
 
                 return null;
             }
@@ -144,54 +138,34 @@ namespace Exceptionless.Json.Converters
             {
 #if !NET20
                 if (t == typeof(DateTimeOffset))
-                {
-                    return (reader.Value is DateTimeOffset) ? reader.Value : new DateTimeOffset((DateTime)reader.Value);
-                }
-
-                // converter is expected to return a DateTime
-                if (reader.Value is DateTimeOffset)
-                {
-                    return ((DateTimeOffset)reader.Value).DateTime;
-                }
+                    return reader.Value is DateTimeOffset ? reader.Value : new DateTimeOffset((DateTime)reader.Value);
 #endif
 
                 return reader.Value;
             }
 
             if (reader.TokenType != JsonToken.String)
-            {
                 throw JsonSerializationException.Create(reader, "Unexpected token parsing date. Expected String, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
-            }
 
             string dateText = reader.Value.ToString();
 
             if (string.IsNullOrEmpty(dateText) && nullable)
-            {
                 return null;
-            }
 
 #if !NET20
             if (t == typeof(DateTimeOffset))
             {
                 if (!string.IsNullOrEmpty(_dateTimeFormat))
-                {
                     return DateTimeOffset.ParseExact(dateText, _dateTimeFormat, Culture, _dateTimeStyles);
-                }
                 else
-                {
                     return DateTimeOffset.Parse(dateText, Culture, _dateTimeStyles);
-                }
             }
 #endif
 
             if (!string.IsNullOrEmpty(_dateTimeFormat))
-            {
                 return DateTime.ParseExact(dateText, _dateTimeFormat, Culture, _dateTimeStyles);
-            }
             else
-            {
                 return DateTime.Parse(dateText, Culture, _dateTimeStyles);
-            }
         }
     }
 }

@@ -49,9 +49,7 @@ namespace Exceptionless.Json.Utilities
         public string Get(char[] key, int start, int length)
         {
             if (length == 0)
-            {
                 return string.Empty;
-            }
 
             int hashCode = length + HashCodeRandomizer;
             hashCode += (hashCode << 7) ^ key[start];
@@ -66,9 +64,7 @@ namespace Exceptionless.Json.Utilities
             for (Entry entry = _entries[hashCode & _mask]; entry != null; entry = entry.Next)
             {
                 if (entry.HashCode == hashCode && TextEquals(entry.Value, key, start, length))
-                {
                     return entry.Value;
-                }
             }
 
             return null;
@@ -77,15 +73,11 @@ namespace Exceptionless.Json.Utilities
         public string Add(string key)
         {
             if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+                throw new ArgumentNullException("key");
 
             int length = key.Length;
             if (length == 0)
-            {
                 return string.Empty;
-            }
 
             int hashCode = length + HashCodeRandomizer;
             for (int i = 0; i < key.Length; i++)
@@ -98,13 +90,12 @@ namespace Exceptionless.Json.Utilities
             for (Entry entry = _entries[hashCode & _mask]; entry != null; entry = entry.Next)
             {
                 if (entry.HashCode == hashCode && entry.Value.Equals(key))
-                {
                     return entry.Value;
-                }
             }
 
             return AddEntry(key, hashCode);
         }
+
 
         private string AddEntry(string str, int hashCode)
         {
@@ -142,16 +133,12 @@ namespace Exceptionless.Json.Utilities
         private static bool TextEquals(string str1, char[] str2, int str2Start, int str2Length)
         {
             if (str1.Length != str2Length)
-            {
                 return false;
-            }
 
             for (int i = 0; i < str1.Length; i++)
             {
                 if (str1[i] != str2[str2Start + i])
-                {
                     return false;
-                }
             }
             return true;
         }

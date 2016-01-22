@@ -20,13 +20,9 @@ namespace Exceptionless.Json.Linq.JsonPath
                         JToken v = o[Name];
 
                         if (v != null)
-                        {
                             yield return v;
-                        }
                         else if (errorWhenNoMatch)
-                        {
                             throw new JsonException("Property '{0}' does not exist on JObject.".FormatWith(CultureInfo.InvariantCulture, Name));
-                        }
                     }
                     else
                     {
@@ -39,9 +35,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                 else
                 {
                     if (errorWhenNoMatch)
-                    {
                         throw new JsonException("Property '{0}' not valid on {1}.".FormatWith(CultureInfo.InvariantCulture, Name ?? "*", t.GetType().Name));
-                    }
                 }
             }
         }

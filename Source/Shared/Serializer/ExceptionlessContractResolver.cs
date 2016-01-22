@@ -28,7 +28,7 @@ namespace Exceptionless.Serializer {
                 return base.CreateDictionaryContract(objectType);
 
             JsonDictionaryContract contract = base.CreateDictionaryContract(objectType);
-            contract.DictionaryKeyResolver = propertyName => propertyName;
+            contract.PropertyNameResolver = propertyName => propertyName;
             return contract;
         }
 

@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(PORTABLE || NETFX_CORE || PORTABLE40)
 using System;
 using System.Collections.Generic;
 #if NET20
@@ -49,7 +49,7 @@ namespace Exceptionless.Json.Utilities
             return dynamicMethod;
         }
 
-        public override ObjectConstructor<object> CreateParameterizedConstructor(MethodBase method)
+        public override ObjectConstructor<object> CreateParametrizedConstructor(MethodBase method)
         {
             DynamicMethod dynamicMethod = CreateDynamicMethod(method.ToString(), typeof(object), new[] { typeof(object[]) }, method.DeclaringType);
             ILGenerator generator = dynamicMethod.GetILGenerator();
@@ -86,9 +86,7 @@ namespace Exceptionless.Json.Utilities
             generator.MarkLabel(argsOk);
 
             if (!method.IsConstructor && !method.IsStatic)
-            {
                 generator.PushInstance(method.DeclaringType);
-            }
 
             int localVariableCount = 0;
 
@@ -169,7 +167,7 @@ namespace Exceptionless.Json.Utilities
                     generator.MarkLabel(finishedProcessingParameter);
                     localVariableCount++;
                 }
-                else
+                else 
                 {
                     generator.PushArrayInstance(argsIndex, i);
 
@@ -178,26 +176,18 @@ namespace Exceptionless.Json.Utilities
             }
 
             if (method.IsConstructor)
-            {
                 generator.Emit(OpCodes.Newobj, (ConstructorInfo)method);
-            }
             else
-            {
                 generator.CallMethod((MethodInfo)method);
-            }
 
             Type returnType = method.IsConstructor
                 ? method.DeclaringType
                 : ((MethodInfo)method).ReturnType;
 
             if (returnType != typeof(void))
-            {
                 generator.BoxIfNeeded(returnType);
-            }
             else
-            {
                 generator.Emit(OpCodes.Ldnull);
-            }
 
             generator.Return();
         }
@@ -228,9 +218,7 @@ namespace Exceptionless.Json.Utilities
                         ReflectionUtils.EmptyTypes, null);
 
                 if (constructorInfo == null)
-                {
                     throw new ArgumentException("Could not get constructor for {0}.".FormatWith(CultureInfo.InvariantCulture, type));
-                }
 
                 generator.Emit(OpCodes.Newobj, constructorInfo);
             }
@@ -252,14 +240,10 @@ namespace Exceptionless.Json.Utilities
         {
             MethodInfo getMethod = propertyInfo.GetGetMethod(true);
             if (getMethod == null)
-            {
                 throw new ArgumentException("Property '{0}' does not have a getter.".FormatWith(CultureInfo.InvariantCulture, propertyInfo.Name));
-            }
 
             if (!getMethod.IsStatic)
-            {
                 generator.PushInstance(propertyInfo.DeclaringType);
-            }
 
             generator.CallMethod(getMethod);
             generator.BoxIfNeeded(propertyInfo.PropertyType);
@@ -312,21 +296,15 @@ namespace Exceptionless.Json.Utilities
         internal static void GenerateCreateSetFieldIL(FieldInfo fieldInfo, ILGenerator generator)
         {
             if (!fieldInfo.IsStatic)
-            {
                 generator.PushInstance(fieldInfo.DeclaringType);
-            }
 
             generator.Emit(OpCodes.Ldarg_1);
             generator.UnboxIfNeeded(fieldInfo.FieldType);
 
             if (!fieldInfo.IsStatic)
-            {
                 generator.Emit(OpCodes.Stfld, fieldInfo);
-            }
             else
-            {
                 generator.Emit(OpCodes.Stsfld, fieldInfo);
-            }
 
             generator.Return();
         }
@@ -345,9 +323,7 @@ namespace Exceptionless.Json.Utilities
         {
             MethodInfo setMethod = propertyInfo.GetSetMethod(true);
             if (!setMethod.IsStatic)
-            {
                 generator.PushInstance(propertyInfo.DeclaringType);
-            }
 
             generator.Emit(OpCodes.Ldarg_1);
             generator.UnboxIfNeeded(propertyInfo.PropertyType);
@@ -356,5 +332,4 @@ namespace Exceptionless.Json.Utilities
         }
     }
 }
-
 #endif

@@ -23,11 +23,12 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET35 || NET20)
+#if !(NET35 || NET20 || NETFX_CORE)
 using Exceptionless.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 #if NET20
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
@@ -45,66 +46,8 @@ namespace Exceptionless.Json.Converters
     /// </summary>
     public class DiscriminatedUnionConverter : JsonConverter
     {
-        #region UnionDefinition
-        internal class Union
-        {
-            public List<UnionCase> Cases;
-            public FSharpFunction TagReader { get; set; }
-        }
-
-        internal class UnionCase
-        {
-            public int Tag;
-            public string Name;
-            public PropertyInfo[] Fields;
-            public FSharpFunction FieldReader;
-            public FSharpFunction Constructor;
-        }
-        #endregion
-
         private const string CasePropertyName = "Case";
         private const string FieldsPropertyName = "Fields";
-
-        private static readonly ThreadSafeStore<Type, Union> UnionCache = new ThreadSafeStore<Type, Union>(CreateUnion);
-        private static readonly ThreadSafeStore<Type, Type> UnionTypeLookupCache = new ThreadSafeStore<Type, Type>(CreateUnionTypeLookup);
-
-        private static Type CreateUnionTypeLookup(Type t)
-        {
-            // this lookup is because cases with fields are derived from union type
-            // need to get declaring type to avoid duplicate Unions in cache
-
-            // hacky but I can't find an API to get the declaring type without GetUnionCases
-            object[] cases = (object[])FSharpUtils.GetUnionCases(null, t, null);
-
-            object caseInfo = cases.First();
-
-            Type unionType = (Type)FSharpUtils.GetUnionCaseInfoDeclaringType(caseInfo);
-            return unionType;
-        }
-
-        private static Union CreateUnion(Type t)
-        {
-            Union u = new Union();
-
-            u.TagReader = (FSharpFunction)FSharpUtils.PreComputeUnionTagReader(null, t, null);
-            u.Cases = new List<UnionCase>();
-
-            object[] cases = (object[])FSharpUtils.GetUnionCases(null, t, null);
-
-            foreach (object unionCaseInfo in cases)
-            {
-                UnionCase unionCase = new UnionCase();
-                unionCase.Tag = (int)FSharpUtils.GetUnionCaseInfoTag(unionCaseInfo);
-                unionCase.Name = (string)FSharpUtils.GetUnionCaseInfoName(unionCaseInfo);
-                unionCase.Fields = (PropertyInfo[])FSharpUtils.GetUnionCaseInfoFields(unionCaseInfo);
-                unionCase.FieldReader = (FSharpFunction)FSharpUtils.PreComputeUnionReader(null, unionCaseInfo, null);
-                unionCase.Constructor = (FSharpFunction)FSharpUtils.PreComputeUnionConstructor(null, unionCaseInfo, null);
-
-                u.Cases.Add(unionCase);
-            }
-
-            return u;
-        }
 
         /// <summary>
         /// Writes the JSON representation of the object.
@@ -116,26 +59,21 @@ namespace Exceptionless.Json.Converters
         {
             DefaultContractResolver resolver = serializer.ContractResolver as DefaultContractResolver;
 
-            Type unionType = UnionTypeLookupCache.Get(value.GetType());
-            Union union = UnionCache.Get(unionType);
+            Type t = value.GetType();
 
-            int tag = (int)union.TagReader.Invoke(value);
-            UnionCase caseInfo = union.Cases.Single(c => c.Tag == tag);
+            object result = FSharpUtils.GetUnionFields(null, value, t, null);
+            object info = FSharpUtils.GetUnionCaseInfo(result);
+            object fields = FSharpUtils.GetUnionCaseFields(result);
+            object caseName = FSharpUtils.GetUnionCaseInfoName(info);
+            object[] fieldsAsArray = fields as object[];
 
             writer.WriteStartObject();
             writer.WritePropertyName((resolver != null) ? resolver.GetResolvedPropertyName(CasePropertyName) : CasePropertyName);
-            writer.WriteValue(caseInfo.Name);
-            if (caseInfo.Fields != null && caseInfo.Fields.Length > 0)
+            writer.WriteValue((string)caseName);
+            if (fieldsAsArray != null && fieldsAsArray.Length > 0)
             {
-                object[] fields = (object[])caseInfo.FieldReader.Invoke(value);
-
                 writer.WritePropertyName((resolver != null) ? resolver.GetResolvedPropertyName(FieldsPropertyName) : FieldsPropertyName);
-                writer.WriteStartArray();
-                foreach (object field in fields)
-                {
-                    serializer.Serialize(writer, field);
-                }
-                writer.WriteEndArray();
+                serializer.Serialize(writer, fields);    
             }
             writer.WriteEndObject();
         }
@@ -151,42 +89,43 @@ namespace Exceptionless.Json.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
-            {
                 return null;
-            }
 
-            UnionCase caseInfo = null;
+            object matchingCaseInfo = null;
             string caseName = null;
             JArray fields = null;
 
             // start object
-            reader.ReadAndAssert();
+            ReadAndAssert(reader);
 
             while (reader.TokenType == JsonToken.PropertyName)
             {
                 string propertyName = reader.Value.ToString();
                 if (string.Equals(propertyName, CasePropertyName, StringComparison.OrdinalIgnoreCase))
                 {
-                    reader.ReadAndAssert();
+                    ReadAndAssert(reader);
 
-                    Union union = UnionCache.Get(objectType);
+                    IEnumerable cases = (IEnumerable)FSharpUtils.GetUnionCases(null, objectType, null);
 
                     caseName = reader.Value.ToString();
 
-                    caseInfo = union.Cases.SingleOrDefault(c => c.Name == caseName);
-
-                    if (caseInfo == null)
+                    foreach (object c in cases)
                     {
-                        throw JsonSerializationException.Create(reader, "No union type found with the name '{0}'.".FormatWith(CultureInfo.InvariantCulture, caseName));
+                        if ((string)FSharpUtils.GetUnionCaseInfoName(c) == caseName)
+                        {
+                            matchingCaseInfo = c;
+                            break;
+                        }
                     }
+
+                    if (matchingCaseInfo == null)
+                        throw JsonSerializationException.Create(reader, "No union type found with the name '{0}'.".FormatWith(CultureInfo.InvariantCulture, caseName));
                 }
                 else if (string.Equals(propertyName, FieldsPropertyName, StringComparison.OrdinalIgnoreCase))
                 {
-                    reader.ReadAndAssert();
+                    ReadAndAssert(reader);
                     if (reader.TokenType != JsonToken.StartArray)
-                    {
                         throw JsonSerializationException.Create(reader, "Union fields must been an array.");
-                    }
 
                     fields = (JArray)JToken.ReadFrom(reader);
                 }
@@ -195,40 +134,34 @@ namespace Exceptionless.Json.Converters
                     throw JsonSerializationException.Create(reader, "Unexpected property '{0}' found when reading union.".FormatWith(CultureInfo.InvariantCulture, propertyName));
                 }
 
-                reader.ReadAndAssert();
+                ReadAndAssert(reader);
             }
 
-            if (caseInfo == null)
-            {
+            if (matchingCaseInfo == null)
                 throw JsonSerializationException.Create(reader, "No '{0}' property with union name found.".FormatWith(CultureInfo.InvariantCulture, CasePropertyName));
-            }
+            
+            PropertyInfo[] fieldProperties = (PropertyInfo[])FSharpUtils.GetUnionCaseInfoFields(matchingCaseInfo);
+            object[] typedFieldValues = new object[fieldProperties.Length];
 
-            object[] typedFieldValues = new object[caseInfo.Fields.Length];
-
-            if (caseInfo.Fields.Length > 0 && fields == null)
-            {
+            if (fieldProperties.Length > 0 && fields == null)
                 throw JsonSerializationException.Create(reader, "No '{0}' property with union fields found.".FormatWith(CultureInfo.InvariantCulture, FieldsPropertyName));
-            }
 
             if (fields != null)
             {
-                if (caseInfo.Fields.Length != fields.Count)
-                {
+                if (fieldProperties.Length != fields.Count)
                     throw JsonSerializationException.Create(reader, "The number of field values does not match the number of properties definied by union '{0}'.".FormatWith(CultureInfo.InvariantCulture, caseName));
-                }
+
 
                 for (int i = 0; i < fields.Count; i++)
                 {
                     JToken t = fields[i];
-                    PropertyInfo fieldProperty = caseInfo.Fields[i];
+                    PropertyInfo fieldProperty = fieldProperties[i];
 
                     typedFieldValues[i] = t.ToObject(fieldProperty.PropertyType, serializer);
-                }
+                }    
             }
 
-            object[] args = { typedFieldValues };
-
-            return caseInfo.Constructor.Invoke(args);
+            return FSharpUtils.MakeUnion(null, matchingCaseInfo, typedFieldValues, null);
         }
 
         /// <summary>
@@ -241,14 +174,12 @@ namespace Exceptionless.Json.Converters
         public override bool CanConvert(Type objectType)
         {
             if (typeof(IEnumerable).IsAssignableFrom(objectType))
-            {
                 return false;
-            }
 
             // all fsharp objects have CompilationMappingAttribute
             // get the fsharp assembly from the attribute and initialize latebound methods
             object[] attributes;
-#if !(DOTNET || PORTABLE)
+#if !(NETFX_CORE || PORTABLE)
             attributes = objectType.GetCustomAttributes(true);
 #else
             attributes = objectType.GetTypeInfo().GetCustomAttributes(true).ToArray();
@@ -268,13 +199,16 @@ namespace Exceptionless.Json.Converters
             }
 
             if (!isFSharpType)
-            {
                 return false;
-            }
 
             return (bool)FSharpUtils.IsUnion(null, objectType, null);
         }
+
+        private static void ReadAndAssert(JsonReader reader)
+        {
+            if (!reader.Read())
+                throw JsonSerializationException.Create(reader, "Unexpected end when reading union.");
+        }
     }
 }
-
 #endif

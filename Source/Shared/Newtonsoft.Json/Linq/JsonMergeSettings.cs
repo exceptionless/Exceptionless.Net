@@ -19,10 +19,8 @@ namespace Exceptionless.Json.Linq
             set
             {
                 if (value < MergeArrayHandling.Concat || value > MergeArrayHandling.Merge)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                }
-
+                    throw new ArgumentOutOfRangeException("value");
+                
                 _mergeArrayHandling = value;
             }
         }

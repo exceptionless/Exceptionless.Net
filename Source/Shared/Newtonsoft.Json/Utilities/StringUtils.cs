@@ -69,7 +69,7 @@ namespace Exceptionless.Json.Utilities
         {
             // leave this a private to force code to use an explicit overload
             // avoids stack memory being reserved for the object array
-            ValidationUtils.ArgumentNotNull(format, nameof(format));
+            ValidationUtils.ArgumentNotNull(format, "format");
 
             return string.Format(provider, format, args);
         }
@@ -84,21 +84,15 @@ namespace Exceptionless.Json.Utilities
         public static bool IsWhiteSpace(string s)
         {
             if (s == null)
-            {
-                throw new ArgumentNullException(nameof(s));
-            }
+                throw new ArgumentNullException("s");
 
             if (s.Length == 0)
-            {
                 return false;
-            }
 
             for (int i = 0; i < s.Length; i++)
             {
                 if (!char.IsWhiteSpace(s[i]))
-                {
                     return false;
-                }
             }
 
             return true;
@@ -125,13 +119,9 @@ namespace Exceptionless.Json.Utilities
         public static int? GetLength(string value)
         {
             if (value == null)
-            {
                 return null;
-            }
             else
-            {
                 return value.Length;
-            }
         }
 
         public static void ToCharAsUnicode(char c, char[] buffer)
@@ -147,13 +137,9 @@ namespace Exceptionless.Json.Utilities
         public static TSource ForgivingCaseSensitiveFind<TSource>(this IEnumerable<TSource> source, Func<TSource, string> valueSelector, string testValue)
         {
             if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+                throw new ArgumentNullException("source");
             if (valueSelector == null)
-            {
-                throw new ArgumentNullException(nameof(valueSelector));
-            }
+                throw new ArgumentNullException("valueSelector");
 
             var caseInsensitiveResults = source.Where(s => string.Equals(valueSelector(s), testValue, StringComparison.OrdinalIgnoreCase));
             if (caseInsensitiveResults.Count() <= 1)
@@ -171,14 +157,10 @@ namespace Exceptionless.Json.Utilities
         public static string ToCamelCase(string s)
         {
             if (string.IsNullOrEmpty(s))
-            {
                 return s;
-            }
 
             if (!char.IsUpper(s[0]))
-            {
                 return s;
-            }
 
             char[] chars = s.ToCharArray();
 
@@ -186,11 +168,9 @@ namespace Exceptionless.Json.Utilities
             {
                 bool hasNext = (i + 1 < chars.Length);
                 if (i > 0 && hasNext && !char.IsUpper(chars[i + 1]))
-                {
                     break;
-                }
 
-#if !(DOTNET || PORTABLE)
+#if !(NETFX_CORE || PORTABLE)
                 chars[i] = char.ToLower(chars[i], CultureInfo.InvariantCulture);
 #else
                 chars[i] = char.ToLowerInvariant(chars[i]);

@@ -65,7 +65,7 @@ namespace Exceptionless.Json.Bson
         /// <param name="stream">The stream.</param>
         public BsonWriter(Stream stream)
         {
-            ValidationUtils.ArgumentNotNull(stream, nameof(stream));
+            ValidationUtils.ArgumentNotNull(stream, "stream");
             _writer = new BsonBinaryWriter(new BinaryWriter(stream));
         }
 
@@ -75,7 +75,7 @@ namespace Exceptionless.Json.Bson
         /// <param name="writer">The writer.</param>
         public BsonWriter(BinaryWriter writer)
         {
-            ValidationUtils.ArgumentNotNull(writer, nameof(writer));
+            ValidationUtils.ArgumentNotNull(writer, "writer");
             _writer = new BsonBinaryWriter(writer);
         }
 
@@ -139,7 +139,7 @@ namespace Exceptionless.Json.Bson
         }
 
         /// <summary>
-        /// Writes the beginning of a JSON array.
+        /// Writes the beginning of a Json array.
         /// </summary>
         public override void WriteStartArray()
         {
@@ -149,7 +149,7 @@ namespace Exceptionless.Json.Bson
         }
 
         /// <summary>
-        /// Writes the beginning of a JSON object.
+        /// Writes the beginning of a Json object.
         /// </summary>
         public override void WriteStartObject()
         {
@@ -159,7 +159,7 @@ namespace Exceptionless.Json.Bson
         }
 
         /// <summary>
-        /// Writes the property name of a name/value pair on a JSON object.
+        /// Writes the property name of a name/value pair on a Json object.
         /// </summary>
         /// <param name="name">The name of the property.</param>
         public override void WritePropertyName(string name)
@@ -177,9 +177,7 @@ namespace Exceptionless.Json.Bson
             base.Close();
 
             if (CloseOutput && _writer != null)
-            {
                 _writer.Close();
-            }
         }
 
         private void AddParent(BsonToken container)
@@ -215,9 +213,7 @@ namespace Exceptionless.Json.Bson
             else
             {
                 if (token.Type != BsonType.Object && token.Type != BsonType.Array)
-                {
                     throw JsonWriterException.Create(this, "Error writing {0} value. BSON must start with an Object or Array.".FormatWith(CultureInfo.InvariantCulture, token.Type), null);
-                }
 
                 _parent = token;
                 _root = token;
@@ -271,13 +267,9 @@ namespace Exceptionless.Json.Bson
         {
             base.WriteValue(value);
             if (value == null)
-            {
                 AddValue(null, BsonType.Null);
-            }
             else
-            {
                 AddToken(new BsonString(value, true));
-            }
         }
 
         /// <summary>
@@ -298,9 +290,7 @@ namespace Exceptionless.Json.Bson
         public override void WriteValue(uint value)
         {
             if (value > int.MaxValue)
-            {
                 throw JsonWriterException.Create(this, "Value is too large to fit in a signed 32 bit integer. BSON does not support unsigned values.", null);
-            }
 
             base.WriteValue(value);
             AddValue(value, BsonType.Integer);
@@ -324,9 +314,7 @@ namespace Exceptionless.Json.Bson
         public override void WriteValue(ulong value)
         {
             if (value > long.MaxValue)
-            {
                 throw JsonWriterException.Create(this, "Value is too large to fit in a signed 64 bit integer. BSON does not support unsigned values.", null);
-            }
 
             base.WriteValue(value);
             AddValue(value, BsonType.Long);
@@ -391,7 +379,7 @@ namespace Exceptionless.Json.Bson
         {
             base.WriteValue(value);
             string s = null;
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
             s = value.ToString(CultureInfo.InvariantCulture);
 #else
             s = value.ToString();
@@ -500,12 +488,10 @@ namespace Exceptionless.Json.Bson
         /// <param name="value">The Object ID value to write.</param>
         public void WriteObjectId(byte[] value)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
 
             if (value.Length != 12)
-            {
                 throw JsonWriterException.Create(this, "An object id must be 12 bytes", null);
-            }
 
             // hack to update the writer state
             UpdateScopeWithFinishedValue();
@@ -520,7 +506,7 @@ namespace Exceptionless.Json.Bson
         /// <param name="options">The regex options.</param>
         public void WriteRegex(string pattern, string options)
         {
-            ValidationUtils.ArgumentNotNull(pattern, nameof(pattern));
+            ValidationUtils.ArgumentNotNull(pattern, "pattern");
 
             // hack to update the writer state
             UpdateScopeWithFinishedValue();

@@ -54,9 +54,7 @@ namespace Exceptionless.Json.Linq
         public int GetHashCode(JToken obj)
         {
             if (obj == null)
-            {
                 return 0;
-            }
 
             return obj.GetDeepHashCode();
         }

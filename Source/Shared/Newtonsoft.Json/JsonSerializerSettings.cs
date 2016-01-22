@@ -24,7 +24,6 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.Serialization.Formatters;
@@ -138,7 +137,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Gets or sets a <see cref="JsonConverter"/> collection that will be used during serialization.
+        /// Gets or sets a collection <see cref="JsonConverter"/> that will be used during serialization.
         /// </summary>
         /// <value>The converters.</value>
         public IList<JsonConverter> Converters { get; set; }
@@ -156,11 +155,6 @@ namespace Exceptionless.Json
         /// <summary>
         /// Gets or sets how type name writing and reading is handled by the serializer.
         /// </summary>
-        /// <remarks>
-        /// <see cref="TypeNameHandling"/> should be used with caution when your application deserializes JSON from an external source.
-        /// Incoming types should be validated with a custom <see cref="T:System.Runtime.Serialization.SerializationBinder"/>
-        /// when deserializing with a value other than <c>TypeNameHandling.None</c>.
-        /// </remarks>
         /// <value>The type name handling.</value>
         public TypeNameHandling TypeNameHandling
         {
@@ -206,40 +200,10 @@ namespace Exceptionless.Json
         public IContractResolver ContractResolver { get; set; }
 
         /// <summary>
-        /// Gets or sets the equality comparer used by the serializer when comparing references.
-        /// </summary>
-        /// <value>The equality comparer.</value>
-        public IEqualityComparer EqualityComparer { get; set; }
-
-        /// <summary>
         /// Gets or sets the <see cref="IReferenceResolver"/> used by the serializer when resolving references.
         /// </summary>
         /// <value>The reference resolver.</value>
-        [ObsoleteAttribute("ReferenceResolver property is obsolete. Use the ReferenceResolverProvider property to set the IReferenceResolver: settings.ReferenceResolverProvider = () => resolver")]
-        public IReferenceResolver ReferenceResolver
-        {
-            get
-            {
-                if (ReferenceResolverProvider == null)
-                {
-                    return null;
-                }
-
-                return ReferenceResolverProvider();
-            }
-            set
-            {
-                ReferenceResolverProvider = (value != null)
-                    ? () => value
-                    : (Func<IReferenceResolver>)null;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a function that creates the <see cref="IReferenceResolver"/> used by the serializer when resolving references.
-        /// </summary>
-        /// <value>A function that creates the <see cref="IReferenceResolver"/> used by the serializer when resolving references.</value>
-        public Func<IReferenceResolver> ReferenceResolverProvider { get; set; }
+        public IReferenceResolver ReferenceResolver { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="ITraceWriter"/> used by the serializer when writing trace messages.
@@ -270,7 +234,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Get or set how <see cref="DateTime"/> and <see cref="DateTimeOffset"/> values are formatted when writing JSON text, and the expected date format when reading JSON text.
+        /// Get or set how <see cref="DateTime"/> and <see cref="DateTimeOffset"/> values are formatting when writing JSON text.
         /// </summary>
         public string DateFormatString
         {
@@ -291,9 +255,7 @@ namespace Exceptionless.Json
             set
             {
                 if (value <= 0)
-                {
-                    throw new ArgumentException("Value must be positive.", nameof(value));
-                }
+                    throw new ArgumentException("Value must be positive.", "value");
 
                 _maxDepth = value;
                 _maxDepthSet = true;

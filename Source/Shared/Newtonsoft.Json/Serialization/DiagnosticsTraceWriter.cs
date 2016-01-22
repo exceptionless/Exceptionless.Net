@@ -1,4 +1,4 @@
-#if !(PORTABLE40 || PORTABLE || DOTNET)
+#if !(PORTABLE40 || PORTABLE || NETFX_CORE)
 using System;
 using System.Diagnostics;
 using DiagnosticsTrace = System.Diagnostics.Trace;
@@ -33,7 +33,7 @@ namespace Exceptionless.Json.Serialization
                 case TraceLevel.Verbose:
                     return TraceEventType.Verbose;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(level));
+                    throw new ArgumentOutOfRangeException("level");
             }
         }
 
@@ -46,9 +46,7 @@ namespace Exceptionless.Json.Serialization
         public void Trace(TraceLevel level, string message, Exception ex)
         {
             if (level == TraceLevel.Off)
-            {
                 return;
-            }
 
             TraceEventCache eventCache = new TraceEventCache();
             TraceEventType traceEventType = GetTraceEventType(level);
@@ -68,9 +66,7 @@ namespace Exceptionless.Json.Serialization
                 }
 
                 if (DiagnosticsTrace.AutoFlush)
-                {
                     listener.Flush();
-                }
             }
         }
     }

@@ -43,11 +43,6 @@ namespace Exceptionless.Json
         /// <summary>
         /// The property must be defined in JSON and cannot be a null value.
         /// </summary>
-        Always = 2,
-
-        /// <summary>
-        /// The property is not required but it cannot be a null value.
-        /// </summary>
-        DisallowNull = 3
+        Always = 2
     }
 }

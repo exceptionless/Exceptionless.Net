@@ -41,19 +41,12 @@ namespace Exceptionless.Json.Serialization
         /// <param name="ex">The trace exception. This parameter is optional.</param>
         public void Trace(TraceLevel level, string message, Exception ex)
         {
+            string traceMessage = DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff", CultureInfo.InvariantCulture) + " " + level.ToString("g") + " " + message;
+
             if (_traceMessages.Count >= 1000)
-            {
                 _traceMessages.Dequeue();
-            }
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append(DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff", CultureInfo.InvariantCulture));
-            sb.Append(" ");
-            sb.Append(level.ToString("g"));
-            sb.Append(" ");
-            sb.Append(message);
-
-            _traceMessages.Enqueue(sb.ToString());
+            _traceMessages.Enqueue(traceMessage);
         }
 
         /// <summary>
@@ -77,9 +70,7 @@ namespace Exceptionless.Json.Serialization
             foreach (string traceMessage in _traceMessages)
             {
                 if (sb.Length > 0)
-                {
                     sb.AppendLine();
-                }
 
                 sb.Append(traceMessage);
             }

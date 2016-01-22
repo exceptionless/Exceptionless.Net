@@ -31,9 +31,9 @@ using System.Text;
 namespace Exceptionless.Json
 {
     /// <summary>
-    /// The exception thrown when an error occurs during JSON serialization or deserialization.
+    /// The exception thrown when an error occurs during Json serialization or deserialization.
     /// </summary>
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
     [Serializable]
 #endif
     public class JsonSerializationException : JsonException
@@ -66,7 +66,7 @@ namespace Exceptionless.Json
         {
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSerializationException"/> class.
         /// </summary>

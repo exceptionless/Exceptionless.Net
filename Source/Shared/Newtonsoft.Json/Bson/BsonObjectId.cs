@@ -45,11 +45,9 @@ namespace Exceptionless.Json.Bson
         /// <param name="value">The Oid value.</param>
         public BsonObjectId(byte[] value)
         {
-            ValidationUtils.ArgumentNotNull(value, nameof(value));
+            ValidationUtils.ArgumentNotNull(value, "value");
             if (value.Length != 12)
-            {
-                throw new ArgumentException("An ObjectId must be 12 bytes", nameof(value));
-            }
+                throw new ArgumentException("An ObjectId must be 12 bytes", "value");
 
             Value = value;
         }

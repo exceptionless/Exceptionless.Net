@@ -40,7 +40,7 @@ namespace Exceptionless.Json.Linq.JsonPath
 
         public JPath(string expression)
         {
-            ValidationUtils.ArgumentNotNull(expression, nameof(expression));
+            ValidationUtils.ArgumentNotNull(expression, "expression");
             _expression = expression;
             Filters = new List<PathFilter>();
 
@@ -54,16 +54,12 @@ namespace Exceptionless.Json.Linq.JsonPath
             EatWhitespace();
 
             if (_expression.Length == _currentIndex)
-            {
                 return;
-            }
 
             if (_expression[_currentIndex] == '$')
             {
                 if (_expression.Length == 1)
-                {
                     return;
-                }
 
                 // only increment position for "$." or "$["
                 // otherwise assume property that starts with $
@@ -82,9 +78,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                 EatWhitespace();
 
                 if (_currentIndex < _expression.Length)
-                {
                     throw new JsonException("Unexpected character while parsing path: " + _expression[lastCharacterIndex]);
-                }
             }
         }
 
@@ -124,18 +118,14 @@ namespace Exceptionless.Json.Linq.JsonPath
                     case ' ':
                         //EatWhitespace();
                         if (_currentIndex < _expression.Length)
-                        {
                             ended = true;
-                        }
                         break;
                     case '.':
                         if (_currentIndex > currentPartStartIndex)
                         {
                             string member = _expression.Substring(currentPartStartIndex, _currentIndex - currentPartStartIndex);
                             if (member == "*")
-                            {
                                 member = null;
-                            }
                             PathFilter filter = (scan) ? (PathFilter)new ScanFilter() { Name = member } : new FieldFilter() { Name = member };
                             filters.Add(filter);
                             scan = false;
@@ -158,9 +148,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                         else
                         {
                             if (followingIndexer)
-                            {
                                 throw new JsonException("Unexpected character following indexer: " + currentChar);
-                            }
 
                             _currentIndex++;
                         }
@@ -174,9 +162,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             {
                 string member = _expression.Substring(currentPartStartIndex, _currentIndex - currentPartStartIndex).TrimEnd();
                 if (member == "*")
-                {
                     member = null;
-                }
                 PathFilter filter = (scan) ? (PathFilter)new ScanFilter() { Name = member } : new FieldFilter() { Name = member };
                 filters.Add(filter);
             }
@@ -184,9 +170,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             {
                 // no field name following dot in path and at end of base path/query
                 if (followingDot && (atPathEnd || query))
-                {
                     throw new JsonException("Unexpected end while parsing path.");
-                }
             }
 
             return atPathEnd;
@@ -244,9 +228,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                     if (indexes != null)
                     {
                         if (length == 0)
-                        {
                             throw new JsonException("Array index expected.");
-                        }
 
                         string indexer = _expression.Substring(start, length);
                         int index = Convert.ToInt32(indexer, CultureInfo.InvariantCulture);
@@ -262,13 +244,9 @@ namespace Exceptionless.Json.Linq.JsonPath
                             int index = Convert.ToInt32(indexer, CultureInfo.InvariantCulture);
 
                             if (colonCount == 1)
-                            {
                                 endIndex = index;
-                            }
                             else
-                            {
                                 step = index;
-                            }
                         }
 
                         return new ArraySliceFilter { Start = startIndex, End = endIndex, Step = step };
@@ -276,29 +254,22 @@ namespace Exceptionless.Json.Linq.JsonPath
                     else
                     {
                         if (length == 0)
-                        {
                             throw new JsonException("Array index expected.");
-                        }
 
                         string indexer = _expression.Substring(start, length);
                         int index = Convert.ToInt32(indexer, CultureInfo.InvariantCulture);
 
                         return new ArrayIndexFilter { Index = index };
                     }
-                }
-                else if (currentCharacter == ',')
+                } else if (currentCharacter == ',')
                 {
                     int length = (end ?? _currentIndex) - start;
 
                     if (length == 0)
-                    {
                         throw new JsonException("Array index expected.");
-                    }
 
                     if (indexes == null)
-                    {
                         indexes = new List<int>();
-                    }
 
                     string indexer = _expression.Substring(start, length);
                     indexes.Add(Convert.ToInt32(indexer, CultureInfo.InvariantCulture));
@@ -317,9 +288,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                     EatWhitespace();
 
                     if (_expression[_currentIndex] != indexerCloseChar)
-                    {
                         throw new JsonException("Unexpected character while parsing path indexer: " + currentCharacter);
-                    }
 
                     return new ArrayIndexFilter();
                 }
@@ -333,17 +302,11 @@ namespace Exceptionless.Json.Linq.JsonPath
                         int index = Convert.ToInt32(indexer, CultureInfo.InvariantCulture);
 
                         if (colonCount == 0)
-                        {
                             startIndex = index;
-                        }
                         else if (colonCount == 1)
-                        {
                             endIndex = index;
-                        }
                         else
-                        {
                             step = index;
-                        }
                     }
 
                     colonCount++;
@@ -362,12 +325,11 @@ namespace Exceptionless.Json.Linq.JsonPath
                 else
                 {
                     if (end != null)
-                    {
                         throw new JsonException("Unexpected character while parsing path indexer: " + currentCharacter);
-                    }
 
                     _currentIndex++;
                 }
+
             }
 
             throw new JsonException("Path ended with open indexer.");
@@ -378,9 +340,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             while (_currentIndex < _expression.Length)
             {
                 if (_expression[_currentIndex] != ' ')
-                {
                     break;
-                }
 
                 _currentIndex++;
             }
@@ -392,9 +352,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             EnsureLength("Path ended with open indexer.");
 
             if (_expression[_currentIndex] != '(')
-            {
                 throw new JsonException("Unexpected character while parsing path indexer: " + _expression[_currentIndex]);
-            }
 
             _currentIndex++;
 
@@ -405,9 +363,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             EatWhitespace();
 
             if (_expression[_currentIndex] != indexerCloseChar)
-            {
                 throw new JsonException("Unexpected character while parsing path indexer: " + _expression[_currentIndex]);
-            }
 
             return new QueryFilter
             {
@@ -425,18 +381,14 @@ namespace Exceptionless.Json.Linq.JsonPath
                 EatWhitespace();
 
                 if (_expression[_currentIndex] != '@')
-                {
                     throw new JsonException("Unexpected character while parsing path query: " + _expression[_currentIndex]);
-                }
 
                 _currentIndex++;
 
                 List<PathFilter> expressionPath = new List<PathFilter>();
 
                 if (ParsePath(expressionPath, _currentIndex, true))
-                {
                     throw new JsonException("Path ended with open query.");
-                }
 
                 EatWhitespace();
                 EnsureLength("Path ended with open query.");
@@ -476,7 +428,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                         parentExpression.Expressions.Add(booleanExpression);
                         return rootExpression;
                     }
-
+                    
                     return booleanExpression;
                 }
                 if (_expression[_currentIndex] == '&' && Match("&&"))
@@ -486,16 +438,12 @@ namespace Exceptionless.Json.Linq.JsonPath
                         CompositeExpression andExpression = new CompositeExpression { Operator = QueryOperator.And };
 
                         if (parentExpression != null)
-                        {
                             parentExpression.Expressions.Add(andExpression);
-                        }
 
                         parentExpression = andExpression;
 
                         if (rootExpression == null)
-                        {
                             rootExpression = parentExpression;
-                        }
                     }
 
                     parentExpression.Expressions.Add(booleanExpression);
@@ -507,16 +455,12 @@ namespace Exceptionless.Json.Linq.JsonPath
                         CompositeExpression orExpression = new CompositeExpression { Operator = QueryOperator.Or };
 
                         if (parentExpression != null)
-                        {
                             parentExpression.Expressions.Add(orExpression);
-                        }
 
                         parentExpression = orExpression;
 
                         if (rootExpression == null)
-                        {
                             rootExpression = parentExpression;
-                        }
                     }
 
                     parentExpression.Expressions.Add(booleanExpression);
@@ -550,25 +494,17 @@ namespace Exceptionless.Json.Linq.JsonPath
                         {
                             double d;
                             if (double.TryParse(numberText, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out d))
-                            {
                                 return d;
-                            }
                             else
-                            {
                                 throw new JsonException("Could not read query value.");
-                            }
                         }
                         else
                         {
                             long l;
                             if (long.TryParse(numberText, NumberStyles.Integer, CultureInfo.InvariantCulture, out l))
-                            {
                                 return l;
-                            }
                             else
-                            {
                                 throw new JsonException("Could not read query value.");
-                            }
                         }
                     }
                     else
@@ -581,23 +517,17 @@ namespace Exceptionless.Json.Linq.JsonPath
             else if (currentChar == 't')
             {
                 if (Match("true"))
-                {
                     return true;
-                }
             }
             else if (currentChar == 'f')
             {
                 if (Match("false"))
-                {
                     return false;
-                }
             }
             else if (currentChar == 'n')
             {
                 if (Match("null"))
-                {
                     return null;
-                }
             }
 
             throw new JsonException("Could not read query value.");
@@ -616,17 +546,11 @@ namespace Exceptionless.Json.Linq.JsonPath
                     _currentIndex++;
 
                     if (_expression[_currentIndex] == '\'')
-                    {
                         sb.Append('\'');
-                    }
                     else if (_expression[_currentIndex] == '\\')
-                    {
                         sb.Append('\\');
-                    }
                     else
-                    {
                         throw new JsonException(@"Unknown escape chracter: \" + _expression[_currentIndex]);
-                    }
 
                     _currentIndex++;
                 }
@@ -653,13 +577,9 @@ namespace Exceptionless.Json.Linq.JsonPath
             foreach (char c in s)
             {
                 if (currentPosition < _expression.Length && _expression[currentPosition] == c)
-                {
                     currentPosition++;
-                }
                 else
-                {
                     return false;
-                }
             }
 
             _currentIndex = currentPosition;
@@ -669,34 +589,20 @@ namespace Exceptionless.Json.Linq.JsonPath
         private QueryOperator ParseOperator()
         {
             if (_currentIndex + 1 >= _expression.Length)
-            {
                 throw new JsonException("Path ended with open query.");
-            }
 
             if (Match("=="))
-            {
                 return QueryOperator.Equals;
-            }
             if (Match("!=") || Match("<>"))
-            {
                 return QueryOperator.NotEquals;
-            }
             if (Match("<="))
-            {
                 return QueryOperator.LessThanOrEquals;
-            }
             if (Match("<"))
-            {
                 return QueryOperator.LessThan;
-            }
             if (Match(">="))
-            {
                 return QueryOperator.GreaterThanOrEquals;
-            }
             if (Match(">"))
-            {
                 return QueryOperator.GreaterThan;
-            }
 
             throw new JsonException("Could not read query operator.");
         }
@@ -730,9 +636,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                     EatWhitespace();
 
                     if (fields == null)
-                    {
                         fields = new List<string>();
-                    }
 
                     fields.Add(field);
                 }
@@ -748,9 +652,7 @@ namespace Exceptionless.Json.Linq.JsonPath
         private void EnsureLength(string message)
         {
             if (_currentIndex >= _expression.Length)
-            {
                 throw new JsonException(message);
-            }
         }
 
         internal IEnumerable<JToken> Evaluate(JToken t, bool errorWhenNoMatch)

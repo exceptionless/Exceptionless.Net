@@ -37,9 +37,7 @@ namespace Exceptionless.Json.Serialization
         /// Initializes a new instance of the <see cref="CamelCasePropertyNamesContractResolver"/> class.
         /// </summary>
         public CamelCasePropertyNamesContractResolver()
-#pragma warning disable 612,618
             : base(true)
-#pragma warning restore 612,618
         {
         }
 
@@ -50,7 +48,7 @@ namespace Exceptionless.Json.Serialization
         /// <returns>The property name camel cased.</returns>
         protected internal override string ResolvePropertyName(string propertyName)
         {
-            // lower case the first letter (or more) of the passed in name
+            // lower case the first letter of the passed in name
             return StringUtils.ToCamelCase(propertyName);
         }
     }

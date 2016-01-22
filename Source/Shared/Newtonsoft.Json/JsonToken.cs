@@ -30,7 +30,7 @@ using System.Text;
 namespace Exceptionless.Json
 {
     /// <summary>
-    /// Specifies the type of JSON token.
+    /// Specifies the type of Json token.
     /// </summary>
     public enum JsonToken
     {

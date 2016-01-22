@@ -38,17 +38,11 @@ namespace Exceptionless.Json.Serialization
             JsonSerializerInternalBase internalSerializer;
 
             if (context is JsonSerializerInternalBase)
-            {
                 internalSerializer = (JsonSerializerInternalBase)context;
-            }
             else if (context is JsonSerializerProxy)
-            {
                 internalSerializer = ((JsonSerializerProxy)context).GetInternalSerializer();
-            }
             else
-            {
                 throw new JsonException("The DefaultReferenceResolver can only be used internally.");
-            }
 
             return internalSerializer.DefaultReferenceMappings;
         }

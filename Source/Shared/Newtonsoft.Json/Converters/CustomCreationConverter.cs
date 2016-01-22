@@ -24,7 +24,6 @@
 #endregion
 
 using System;
-using System.Reflection;
 using Exceptionless.Json.Utilities;
 
 namespace Exceptionless.Json.Converters
@@ -57,15 +56,11 @@ namespace Exceptionless.Json.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
-            {
                 return null;
-            }
 
             T value = Create(objectType);
             if (value == null)
-            {
                 throw new JsonSerializationException("No object created.");
-            }
 
             serializer.Populate(reader, value);
             return value;

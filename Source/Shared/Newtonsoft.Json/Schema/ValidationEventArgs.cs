@@ -29,21 +29,15 @@ using Exceptionless.Json.Utilities;
 namespace Exceptionless.Json.Schema
 {
     /// <summary>
-    /// <para>
     /// Returns detailed information related to the <see cref="ValidationEventHandler"/>.
-    /// </para>
-    /// <note type="caution">
-    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
-    /// </note>
     /// </summary>
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     public class ValidationEventArgs : EventArgs
     {
         private readonly JsonSchemaException _ex;
 
         internal ValidationEventArgs(JsonSchemaException ex)
         {
-            ValidationUtils.ArgumentNotNull(ex, nameof(ex));
+            ValidationUtils.ArgumentNotNull(ex, "ex");
             _ex = ex;
         }
 

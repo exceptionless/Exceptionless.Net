@@ -66,9 +66,10 @@ namespace Exceptionless.Json.Converters
 
         private object ReadValue(JsonReader reader)
         {
-            if (!reader.MoveToContent())
+            while (reader.TokenType == JsonToken.Comment)
             {
-                throw JsonSerializationException.Create(reader, "Unexpected end when reading ExpandoObject.");
+                if (!reader.Read())
+                    throw JsonSerializationException.Create(reader, "Unexpected end when reading ExpandoObject.");
             }
 
             switch (reader.TokenType)
@@ -79,9 +80,7 @@ namespace Exceptionless.Json.Converters
                     return ReadList(reader);
                 default:
                     if (JsonTokenUtils.IsPrimitiveToken(reader.TokenType))
-                    {
                         return reader.Value;
-                    }
 
                     throw JsonSerializationException.Create(reader, "Unexpected token when converting ExpandoObject: {0}".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
             }
@@ -122,9 +121,7 @@ namespace Exceptionless.Json.Converters
                         string propertyName = reader.Value.ToString();
 
                         if (!reader.Read())
-                        {
                             throw JsonSerializationException.Create(reader, "Unexpected end when reading ExpandoObject.");
-                        }
 
                         object v = ReadValue(reader);
 

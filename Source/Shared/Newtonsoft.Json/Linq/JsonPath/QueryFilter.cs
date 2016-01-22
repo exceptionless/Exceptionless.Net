@@ -14,9 +14,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                 foreach (JToken v in t)
                 {
                     if (Expression.IsMatch(v))
-                    {
                         yield return v;
-                    }
                 }
             }
         }

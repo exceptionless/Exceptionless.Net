@@ -29,17 +29,11 @@ using System.Runtime.Serialization;
 namespace Exceptionless.Json.Schema
 {
     /// <summary>
-    /// <para>
     /// Returns detailed information about the schema exception.
-    /// </para>
-    /// <note type="caution">
-    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
-    /// </note>
     /// </summary>
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
     [Serializable]
 #endif
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     public class JsonSchemaException : JsonException
     {
         /// <summary>
@@ -47,6 +41,7 @@ namespace Exceptionless.Json.Schema
         /// </summary>
         /// <value>The line number indicating where the error occurred.</value>
         public int LineNumber { get; private set; }
+
 
         /// <summary>
         /// Gets the line position indicating where the error occurred.
@@ -88,7 +83,7 @@ namespace Exceptionless.Json.Schema
         {
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSchemaException"/> class.
         /// </summary>

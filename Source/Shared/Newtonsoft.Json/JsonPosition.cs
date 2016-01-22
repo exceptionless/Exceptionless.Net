@@ -41,7 +41,7 @@ namespace Exceptionless.Json
 
     internal struct JsonPosition
     {
-        private static readonly char[] SpecialCharacters = { '.', ' ', '[', ']', '(', ')' };
+        private static readonly char[] SpecialCharacters = {'.', ' ', '[', ']', '(', ')'};
 
         internal JsonContainerType Type;
         internal int Position;
@@ -56,25 +56,14 @@ namespace Exceptionless.Json
             PropertyName = null;
         }
 
-        internal int CalculateLength()
-        {
-            switch (Type)
-            {
-                case JsonContainerType.Object:
-                    return PropertyName.Length + 5;
-                case JsonContainerType.Array:
-                case JsonContainerType.Constructor:
-                    return MathUtils.IntLength((ulong)Position) + 2;
-                default:
-                    throw new ArgumentOutOfRangeException("Type");
-            }
-        }
-
         internal void WriteTo(StringBuilder sb)
         {
             switch (Type)
             {
                 case JsonContainerType.Object:
+                    if (sb.Length > 0)
+                        sb.Append('.');
+
                     string propertyName = PropertyName;
                     if (propertyName.IndexOfAny(SpecialCharacters) != -1)
                     {
@@ -84,11 +73,6 @@ namespace Exceptionless.Json
                     }
                     else
                     {
-                        if (sb.Length > 0)
-                        {
-                            sb.Append('.');
-                        }
-
                         sb.Append(propertyName);
                     }
                     break;
@@ -106,32 +90,13 @@ namespace Exceptionless.Json
             return (type == JsonContainerType.Array || type == JsonContainerType.Constructor);
         }
 
-        internal static string BuildPath(List<JsonPosition> positions, JsonPosition? currentPosition)
+        internal static string BuildPath(IEnumerable<JsonPosition> positions)
         {
-            int capacity = 0;
-            if (positions != null)
-            {
-                for (int i = 0; i < positions.Count; i++)
-                {
-                    capacity += positions[i].CalculateLength();
-                }
-            }
-            if (currentPosition != null)
-            {
-                capacity += currentPosition.GetValueOrDefault().CalculateLength();
-            }
+            StringBuilder sb = new StringBuilder();
 
-            StringBuilder sb = new StringBuilder(capacity);
-            if (positions != null)
+            foreach (JsonPosition state in positions)
             {
-                foreach (JsonPosition state in positions)
-                {
-                    state.WriteTo(sb);
-                }
-            }
-            if (currentPosition != null)
-            {
-                currentPosition.GetValueOrDefault().WriteTo(sb);
+                state.WriteTo(sb);
             }
 
             return sb.ToString();
@@ -145,9 +110,7 @@ namespace Exceptionless.Json
                 message = message.Trim();
 
                 if (!message.EndsWith('.'))
-                {
                     message += ".";
-                }
 
                 message += " ";
             }
@@ -155,9 +118,7 @@ namespace Exceptionless.Json
             message += "Path '{0}'".FormatWith(CultureInfo.InvariantCulture, path);
 
             if (lineInfo != null && lineInfo.HasLineInfo())
-            {
                 message += ", line {0}, position {1}".FormatWith(CultureInfo.InvariantCulture, lineInfo.LineNumber, lineInfo.LinePosition);
-            }
 
             message += ".";
 

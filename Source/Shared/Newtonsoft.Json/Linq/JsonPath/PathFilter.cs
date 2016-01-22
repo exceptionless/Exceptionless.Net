@@ -18,9 +18,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                 if (a.Count <= index)
                 {
                     if (errorWhenNoMatch)
-                    {
                         throw new JsonException("Index {0} outside the bounds of JArray.".FormatWith(CultureInfo.InvariantCulture, index));
-                    }
 
                     return null;
                 }
@@ -32,9 +30,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                 if (c.Count <= index)
                 {
                     if (errorWhenNoMatch)
-                    {
                         throw new JsonException("Index {0} outside the bounds of JConstructor.".FormatWith(CultureInfo.InvariantCulture, index));
-                    }
 
                     return null;
                 }
@@ -44,9 +40,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             else
             {
                 if (errorWhenNoMatch)
-                {
                     throw new JsonException("Index {0} not valid on {1}.".FormatWith(CultureInfo.InvariantCulture, index, t.GetType().Name));
-                }
 
                 return null;
             }

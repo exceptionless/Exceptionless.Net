@@ -23,14 +23,12 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
 using System.Collections.Generic;
 using Exceptionless.Json.Linq;
 using Exceptionless.Json.Utilities;
 
 namespace Exceptionless.Json.Schema
 {
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaModel
     {
         public bool Required { get; set; }
@@ -103,9 +101,7 @@ namespace Exceptionless.Json.Schema
             if (schema.Enum != null)
             {
                 if (model.Enum == null)
-                {
                     model.Enum = new List<JToken>();
-                }
 
                 model.Enum.AddRangeDistinct(schema.Enum, JToken.EqualityComparer);
             }
@@ -114,9 +110,7 @@ namespace Exceptionless.Json.Schema
             if (schema.Pattern != null)
             {
                 if (model.Patterns == null)
-                {
                     model.Patterns = new List<string>();
-                }
 
                 model.Patterns.AddDistinct(schema.Pattern);
             }

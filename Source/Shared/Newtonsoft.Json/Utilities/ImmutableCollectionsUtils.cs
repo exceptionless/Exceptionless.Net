@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET20 || NET35 || NET40)
+#if !(NET20 || NET35 || NET40 || PORTABLE40)
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,7 +122,7 @@ namespace Exceptionless.Json.Utilities
                         {
                             createdType = createdTypeDefinition.MakeGenericType(collectionItemType);
                             MethodInfo method = mb.MakeGenericMethod(collectionItemType);
-                            parameterizedCreator = JsonTypeReflector.ReflectionDelegateFactory.CreateParameterizedConstructor(method);
+                            parameterizedCreator = JsonTypeReflector.ReflectionDelegateFactory.CreateParametrizedConstructor(method);
                             return true;
                         }
                     }
@@ -145,8 +145,8 @@ namespace Exceptionless.Json.Utilities
                 if (definition != null)
                 {
                     Type createdTypeDefinition = underlyingTypeDefinition.Assembly().GetType(definition.CreatedTypeName);
-                    Type builderTypeDefinition = underlyingTypeDefinition.Assembly().GetType(definition.BuilderTypeName);
-
+                    Type builderTypeDefinition = underlyingTypeDefinition.Assembly().GetType(definition.BuilderTypeName); 
+                    
                     if (createdTypeDefinition != null && builderTypeDefinition != null)
                     {
                         MethodInfo mb = builderTypeDefinition.GetMethods().FirstOrDefault(m =>
@@ -159,7 +159,7 @@ namespace Exceptionless.Json.Utilities
                         {
                             createdType = createdTypeDefinition.MakeGenericType(keyItemType, valueItemType);
                             MethodInfo method = mb.MakeGenericMethod(keyItemType, valueItemType);
-                            parameterizedCreator = JsonTypeReflector.ReflectionDelegateFactory.CreateParameterizedConstructor(method);
+                            parameterizedCreator = JsonTypeReflector.ReflectionDelegateFactory.CreateParametrizedConstructor(method);
                             return true;
                         }
                     }
@@ -172,5 +172,4 @@ namespace Exceptionless.Json.Utilities
         }
     }
 }
-
 #endif

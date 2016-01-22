@@ -11,9 +11,7 @@ namespace Exceptionless.Json.Linq.JsonPath
             foreach (JToken root in current)
             {
                 if (Name == null)
-                {
                     yield return root;
-                }
 
                 JToken value = root;
                 JToken container = root;
@@ -32,9 +30,7 @@ namespace Exceptionless.Json.Linq.JsonPath
                         }
 
                         if (value == null || value == root)
-                        {
                             break;
-                        }
 
                         value = value.Next;
                     }
@@ -43,16 +39,12 @@ namespace Exceptionless.Json.Linq.JsonPath
                     if (e != null)
                     {
                         if (e.Name == Name)
-                        {
                             yield return e.Value;
-                        }
                     }
                     else
                     {
                         if (Name == null)
-                        {
                             yield return value;
-                        }
                     }
 
                     container = value as JContainer;

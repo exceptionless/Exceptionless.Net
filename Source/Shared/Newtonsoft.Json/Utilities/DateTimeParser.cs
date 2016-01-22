@@ -67,8 +67,8 @@ namespace Exceptionless.Json.Utilities
         public int ZoneMinute;
         public ParserTimeZone Zone;
 
-        private char[] _text;
-        private int _end;
+        private string _text;
+        private int _length;
 
         private static readonly int[] Power10;
 
@@ -88,15 +88,13 @@ namespace Exceptionless.Json.Utilities
 
         private const short MaxFractionDigits = 7;
 
-        public bool Parse(char[] text, int startIndex, int length)
+        public bool Parse(string text)
         {
             _text = text;
-            _end = startIndex + length;
+            _length = text.Length;
 
-            if (ParseDate(startIndex) && ParseChar(Lzyyyy_MM_dd + startIndex, 'T') && ParseTimeAndZoneAndWhitespace(Lzyyyy_MM_ddT + startIndex))
-            {
+            if (ParseDate(0) && ParseChar(Lzyyyy_MM_dd, 'T') && ParseTimeAndZoneAndWhitespace(Lzyyyy_MM_ddT))
                 return true;
-            }
 
             return false;
         }
@@ -123,14 +121,13 @@ namespace Exceptionless.Json.Utilities
         private bool ParseTime(ref int start)
         {
             if (!(Parse2Digit(start, out Hour)
-                  && Hour <= 24
+                  && Hour < 24
                   && ParseChar(start + LzHH, ':')
                   && Parse2Digit(start + LzHH_, out Minute)
                   && Minute < 60
                   && ParseChar(start + LzHH_mm, ':')
                   && Parse2Digit(start + LzHH_mm_, out Second)
-                  && Second < 60
-                  && (Hour != 24 || (Minute == 0 && Second == 0)))) // hour can be 24 if minute/second is zero)
+                  && Second < 60))
             {
                 return false;
             }
@@ -141,13 +138,11 @@ namespace Exceptionless.Json.Utilities
                 Fraction = 0;
                 int numberOfDigits = 0;
 
-                while (++start < _end && numberOfDigits < MaxFractionDigits)
+                while (++start < _length && numberOfDigits < MaxFractionDigits)
                 {
                     int digit = _text[start] - '0';
                     if (digit < 0 || digit > 9)
-                    {
                         break;
-                    }
 
                     Fraction = (Fraction * 10) + digit;
 
@@ -157,16 +152,9 @@ namespace Exceptionless.Json.Utilities
                 if (numberOfDigits < MaxFractionDigits)
                 {
                     if (numberOfDigits == 0)
-                    {
                         return false;
-                    }
 
                     Fraction *= Power10[MaxFractionDigits - numberOfDigits];
-                }
-
-                if (Hour == 24 && Fraction != 0)
-                {
-                    return false;
                 }
             }
             return true;
@@ -174,7 +162,7 @@ namespace Exceptionless.Json.Utilities
 
         private bool ParseZone(int start)
         {
-            if (start < _end)
+            if (start < _length)
             {
                 char ch = _text[start];
                 if (ch == 'Z' || ch == 'z')
@@ -184,7 +172,7 @@ namespace Exceptionless.Json.Utilities
                 }
                 else
                 {
-                    if (start + 2 < _end
+                    if (start + 2 < _length
                         && Parse2Digit(start + Lz_, out ZoneHour)
                         && ZoneHour <= 99)
                     {
@@ -202,13 +190,13 @@ namespace Exceptionless.Json.Utilities
                         }
                     }
 
-                    if (start < _end)
+                    if (start < _length)
                     {
                         if (ParseChar(start, ':'))
                         {
                             start += 1;
 
-                            if (start + 1 < _end
+                            if (start + 1 < _length
                                 && Parse2Digit(start, out ZoneMinute)
                                 && ZoneMinute <= 99)
                             {
@@ -217,7 +205,7 @@ namespace Exceptionless.Json.Utilities
                         }
                         else
                         {
-                            if (start + 1 < _end
+                            if (start + 1 < _length
                                 && Parse2Digit(start, out ZoneMinute)
                                 && ZoneMinute <= 99)
                             {
@@ -228,12 +216,12 @@ namespace Exceptionless.Json.Utilities
                 }
             }
 
-            return (start == _end);
+            return (start == _length);
         }
 
         private bool Parse4Digit(int start, out int num)
         {
-            if (start + 3 < _end)
+            if (start + 3 < _length)
             {
                 int digit1 = _text[start] - '0';
                 int digit2 = _text[start + 1] - '0';
@@ -254,7 +242,7 @@ namespace Exceptionless.Json.Utilities
 
         private bool Parse2Digit(int start, out int num)
         {
-            if (start + 1 < _end)
+            if (start + 1 < _length)
             {
                 int digit1 = _text[start] - '0';
                 int digit2 = _text[start + 1] - '0';
@@ -271,7 +259,7 @@ namespace Exceptionless.Json.Utilities
 
         private bool ParseChar(int start, char ch)
         {
-            return (start < _end && _text[start] == ch);
+            return (start < _length && _text[start] == ch);
         }
     }
 }

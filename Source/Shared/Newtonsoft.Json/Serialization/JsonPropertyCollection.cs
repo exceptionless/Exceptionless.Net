@@ -38,7 +38,6 @@ namespace Exceptionless.Json.Serialization
     public class JsonPropertyCollection : KeyedCollection<string, JsonProperty>
     {
         private readonly Type _type;
-        private readonly List<JsonProperty> _list;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonPropertyCollection"/> class.
@@ -49,9 +48,6 @@ namespace Exceptionless.Json.Serialization
         {
             ValidationUtils.ArgumentNotNull(type, "type");
             _type = type;
-
-            // foreach over List<T> to avoid boxing the Enumerator
-            _list = (List<JsonProperty>)Items;
         }
 
         /// <summary>
@@ -74,9 +70,7 @@ namespace Exceptionless.Json.Serialization
             {
                 // don't overwrite existing property with ignored property
                 if (property.Ignored)
-                {
                     return;
-                }
 
                 JsonProperty existingProperty = this[property.PropertyName];
                 bool duplicateProperty = true;
@@ -91,15 +85,13 @@ namespace Exceptionless.Json.Serialization
                 {
                     if (property.DeclaringType != null && existingProperty.DeclaringType != null)
                     {
-                        if (property.DeclaringType.IsSubclassOf(existingProperty.DeclaringType)
-                            || (existingProperty.DeclaringType.IsInterface() && property.DeclaringType.ImplementInterface(existingProperty.DeclaringType)))
+                        if (property.DeclaringType.IsSubclassOf(existingProperty.DeclaringType))
                         {
                             // current property is on a derived class and hides the existing
                             Remove(existingProperty);
                             duplicateProperty = false;
                         }
-                        if (existingProperty.DeclaringType.IsSubclassOf(property.DeclaringType)
-                            || (property.DeclaringType.IsInterface() && existingProperty.DeclaringType.ImplementInterface(property.DeclaringType)))
+                        if (existingProperty.DeclaringType.IsSubclassOf(property.DeclaringType))
                         {
                             // current property is hidden by the existing so don't add it
                             return;
@@ -108,9 +100,7 @@ namespace Exceptionless.Json.Serialization
                 }
 
                 if (duplicateProperty)
-                {
                     throw new JsonSerializationException("A member with the name '{0}' already exists on '{1}'. Use the JsonPropertyAttribute to specify another name.".FormatWith(CultureInfo.InvariantCulture, property.PropertyName, _type));
-                }
             }
 
             Add(property);
@@ -127,9 +117,7 @@ namespace Exceptionless.Json.Serialization
         {
             JsonProperty property = GetProperty(propertyName, StringComparison.Ordinal);
             if (property == null)
-            {
                 property = GetProperty(propertyName, StringComparison.OrdinalIgnoreCase);
-            }
 
             return property;
         }
@@ -158,16 +146,13 @@ namespace Exceptionless.Json.Serialization
             {
                 JsonProperty property;
                 if (TryGetValue(propertyName, out property))
-                {
                     return property;
-                }
 
                 return null;
             }
 
-            for (int i = 0; i < _list.Count; i++)
+            foreach (JsonProperty property in this)
             {
-                JsonProperty property = _list[i];
                 if (string.Equals(propertyName, property.PropertyName, comparisonType))
                 {
                     return property;

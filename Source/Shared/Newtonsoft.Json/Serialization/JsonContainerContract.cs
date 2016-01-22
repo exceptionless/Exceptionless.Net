@@ -38,7 +38,7 @@ using System.Linq;
 namespace Exceptionless.Json.Serialization
 {
     /// <summary>
-    /// Contract details for a <see cref="System.Type"/> used by the <see cref="JsonSerializer"/>.
+    /// Contract details for a <see cref="Type"/> used by the <see cref="JsonSerializer"/>.
     /// </summary>
     public class JsonContainerContract : JsonContract
     {
@@ -105,11 +105,8 @@ namespace Exceptionless.Json.Serialization
             if (jsonContainerAttribute != null)
             {
                 if (jsonContainerAttribute.ItemConverterType != null)
-                {
-                    ItemConverter = JsonTypeReflector.CreateJsonConverterInstance(
-                        jsonContainerAttribute.ItemConverterType,
-                        jsonContainerAttribute.ItemConverterParameters);
-                }
+                    ItemConverter = JsonTypeReflector.CreateJsonConverterInstance(jsonContainerAttribute.ItemConverterType, 
+                                                                                  jsonContainerAttribute.ItemConverterParameters);
 
                 ItemIsReference = jsonContainerAttribute._itemIsReference;
                 ItemReferenceLoopHandling = jsonContainerAttribute._itemReferenceLoopHandling;
