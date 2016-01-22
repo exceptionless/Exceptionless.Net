@@ -37,7 +37,7 @@ using System.Reflection;
 #if NET20
 using Exceptionless.Json.Utilities.LinqBridge;
 #endif
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
 using System.Data.SqlTypes;
 
 #endif
@@ -152,14 +152,15 @@ namespace Exceptionless.Json.Utilities
                 { typeof(Uri), PrimitiveTypeCode.Uri },
                 { typeof(string), PrimitiveTypeCode.String },
                 { typeof(byte[]), PrimitiveTypeCode.Bytes },
-#if !(PORTABLE || PORTABLE40 || NETFX_CORE)
+#if !(PORTABLE || PORTABLE40 || DOTNET)
                 { typeof(DBNull), PrimitiveTypeCode.DBNull }
 #endif
             };
 
-#if !(NETFX_CORE || PORTABLE)
+#if !PORTABLE
         private static readonly TypeInformation[] PrimitiveTypeCodes =
         {
+            // need all of these. lookup against the index with TypeCode value
             new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.Empty },
             new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.Object },
             new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.DBNull },
@@ -219,7 +220,7 @@ namespace Exceptionless.Json.Utilities
             return PrimitiveTypeCode.Object;
         }
 
-#if !(NETFX_CORE || PORTABLE)
+#if !PORTABLE
         public static TypeInformation GetTypeInformation(IConvertible convertable)
         {
             TypeInformation typeInformation = PrimitiveTypeCodes[(int)convertable.GetTypeCode()];
@@ -229,12 +230,12 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsConvertible(Type t)
         {
-#if !(NETFX_CORE || PORTABLE)
+#if !PORTABLE
             return typeof(IConvertible).IsAssignableFrom(t);
 #else
-      return (
-        t == typeof(bool) || t == typeof(byte) || t == typeof(char) || t == typeof(DateTime) || t == typeof(decimal) || t == typeof(double) || t == typeof(short) || t == typeof(int) ||
-        t == typeof(long) || t == typeof(sbyte) || t == typeof(float) || t == typeof(string) || t == typeof(ushort) || t == typeof(uint) || t == typeof(ulong) || t.IsEnum());
+            return (
+                t == typeof(bool) || t == typeof(byte) || t == typeof(char) || t == typeof(DateTime) || t == typeof(decimal) || t == typeof(double) || t == typeof(short) || t == typeof(int) ||
+                t == typeof(long) || t == typeof(sbyte) || t == typeof(float) || t == typeof(string) || t == typeof(ushort) || t == typeof(uint) || t == typeof(ulong) || t.IsEnum());
 #endif
         }
 
@@ -276,7 +277,9 @@ namespace Exceptionless.Json.Utilities
             public override bool Equals(object obj)
             {
                 if (!(obj is TypeConvertKey))
+                {
                     return false;
+                }
 
                 return Equals((TypeConvertKey)obj);
             }
@@ -294,10 +297,14 @@ namespace Exceptionless.Json.Utilities
         {
             MethodInfo castMethodInfo = t.TargetType.GetMethod("op_Implicit", new[] { t.InitialType });
             if (castMethodInfo == null)
+            {
                 castMethodInfo = t.TargetType.GetMethod("op_Explicit", new[] { t.InitialType });
+            }
 
             if (castMethodInfo == null)
+            {
                 return null;
+            }
 
             MethodCall<object, object> call = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object>(castMethodInfo);
 
@@ -308,25 +315,45 @@ namespace Exceptionless.Json.Utilities
         internal static BigInteger ToBigInteger(object value)
         {
             if (value is BigInteger)
+            {
                 return (BigInteger)value;
+            }
             if (value is string)
+            {
                 return BigInteger.Parse((string)value, CultureInfo.InvariantCulture);
+            }
             if (value is float)
+            {
                 return new BigInteger((float)value);
+            }
             if (value is double)
+            {
                 return new BigInteger((double)value);
+            }
             if (value is decimal)
+            {
                 return new BigInteger((decimal)value);
+            }
             if (value is int)
+            {
                 return new BigInteger((int)value);
+            }
             if (value is long)
+            {
                 return new BigInteger((long)value);
+            }
             if (value is uint)
+            {
                 return new BigInteger((uint)value);
+            }
             if (value is ulong)
+            {
                 return new BigInteger((ulong)value);
+            }
             if (value is byte[])
+            {
                 return new BigInteger((byte[])value);
+            }
 
             throw new InvalidCastException("Cannot convert {0} to BigInteger.".FormatWith(CultureInfo.InvariantCulture, value.GetType()));
         }
@@ -334,13 +361,25 @@ namespace Exceptionless.Json.Utilities
         public static object FromBigInteger(BigInteger i, Type targetType)
         {
             if (targetType == typeof(decimal))
+            {
                 return (decimal)i;
+            }
             if (targetType == typeof(double))
+            {
                 return (double)i;
+            }
             if (targetType == typeof(float))
+            {
                 return (float)i;
+            }
             if (targetType == typeof(ulong))
+            {
                 return (ulong)i;
+            }
+            if (targetType == typeof(bool))
+            {
+                return i != 0;
+            }
 
             try
             {
@@ -372,7 +411,7 @@ namespace Exceptionless.Json.Utilities
                 case ConvertResult.CannotConvertNull:
                     throw new Exception("Can not convert null {0} into non-nullable {1}.".FormatWith(CultureInfo.InvariantCulture, initialValue.GetType(), targetType));
                 case ConvertResult.NotInstantiableType:
-                    throw new ArgumentException("Target type {0} is not a value type or a non-abstract class.".FormatWith(CultureInfo.InvariantCulture, targetType), "targetType");
+                    throw new ArgumentException("Target type {0} is not a value type or a non-abstract class.".FormatWith(CultureInfo.InvariantCulture, targetType), nameof(targetType));
                 case ConvertResult.NoValidConversion:
                     throw new InvalidOperationException("Can not convert from {0} to {1}.".FormatWith(CultureInfo.InvariantCulture, initialValue.GetType(), targetType));
                 default:
@@ -385,7 +424,9 @@ namespace Exceptionless.Json.Utilities
             try
             {
                 if (TryConvertInternal(initialValue, culture, targetType, out value) == ConvertResult.Success)
+                {
                     return true;
+                }
 
                 value = null;
                 return false;
@@ -400,10 +441,14 @@ namespace Exceptionless.Json.Utilities
         private static ConvertResult TryConvertInternal(object initialValue, CultureInfo culture, Type targetType, out object value)
         {
             if (initialValue == null)
-                throw new ArgumentNullException("initialValue");
+            {
+                throw new ArgumentNullException(nameof(initialValue));
+            }
 
             if (ReflectionUtils.IsNullableType(targetType))
+            {
                 targetType = Nullable.GetUnderlyingType(targetType);
+            }
 
             Type initialType = initialValue.GetType();
 
@@ -454,31 +499,43 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.Success;
             }
 
-            if (initialValue is string)
+            string s = initialValue as string;
+            if (s != null)
             {
                 if (targetType == typeof(Guid))
                 {
-                    value = new Guid((string)initialValue);
+                    value = new Guid(s);
                     return ConvertResult.Success;
                 }
                 if (targetType == typeof(Uri))
                 {
-                    value = new Uri((string)initialValue, UriKind.RelativeOrAbsolute);
+                    value = new Uri(s, UriKind.RelativeOrAbsolute);
                     return ConvertResult.Success;
                 }
                 if (targetType == typeof(TimeSpan))
                 {
-                    value = ParseTimeSpan((string)initialValue);
+                    value = ParseTimeSpan(s);
                     return ConvertResult.Success;
                 }
                 if (targetType == typeof(byte[]))
                 {
-                    value = System.Convert.FromBase64String((string)initialValue);
+                    value = System.Convert.FromBase64String(s);
                     return ConvertResult.Success;
+                }
+                if (targetType == typeof(Version))
+                {
+                    Version result;
+                    if (VersionTryParse(s, out result))
+                    {
+                        value = result;
+                        return ConvertResult.Success;
+                    }
+                    value = null;
+                    return ConvertResult.NoValidConversion;
                 }
                 if (typeof(Type).IsAssignableFrom(targetType))
                 {
-                    value = Type.GetType((string)initialValue, true);
+                    value = Type.GetType(s, true);
                     return ConvertResult.Success;
                 }
             }
@@ -496,7 +553,7 @@ namespace Exceptionless.Json.Utilities
             }
 #endif
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(PORTABLE40 || PORTABLE)
             // see if source or target types have a TypeConverter that converts between the two
             TypeConverter toConverter = GetConverter(initialType);
 
@@ -514,7 +571,7 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.Success;
             }
 #endif
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
             // handle DBNull and INullable
             if (initialValue == DBNull.Value)
             {
@@ -529,7 +586,7 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.CannotConvertNull;
             }
 #endif
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
             if (initialValue is INullable)
             {
                 value = EnsureTypeAssignable(ToValue((INullable)initialValue), initialType, targetType);
@@ -565,13 +622,19 @@ namespace Exceptionless.Json.Utilities
             object convertedValue;
 
             if (targetType == typeof(object))
+            {
                 return initialValue;
+            }
 
             if (initialValue == null && ReflectionUtils.IsNullable(targetType))
+            {
                 return null;
+            }
 
             if (TryConvert(initialValue, culture, targetType, out convertedValue))
+            {
                 return convertedValue;
+            }
 
             return EnsureTypeAssignable(initialValue, ReflectionUtils.GetObjectType(initialValue), targetType);
         }
@@ -584,47 +647,84 @@ namespace Exceptionless.Json.Utilities
             if (value != null)
             {
                 if (targetType.IsAssignableFrom(valueType))
+                {
                     return value;
+                }
 
                 Func<object, object> castConverter = CastConverters.Get(new TypeConvertKey(valueType, targetType));
                 if (castConverter != null)
+                {
                     return castConverter(value);
+                }
             }
             else
             {
                 if (ReflectionUtils.IsNullable(targetType))
+                {
                     return null;
+                }
             }
 
             throw new ArgumentException("Could not cast or convert from {0} to {1}.".FormatWith(CultureInfo.InvariantCulture, (initialType != null) ? initialType.ToString() : "{null}", targetType));
         }
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
         public static object ToValue(INullable nullableValue)
         {
             if (nullableValue == null)
+            {
                 return null;
+            }
             else if (nullableValue is SqlInt32)
+            {
                 return ToValue((SqlInt32)nullableValue);
+            }
             else if (nullableValue is SqlInt64)
+            {
                 return ToValue((SqlInt64)nullableValue);
+            }
             else if (nullableValue is SqlBoolean)
+            {
                 return ToValue((SqlBoolean)nullableValue);
+            }
             else if (nullableValue is SqlString)
+            {
                 return ToValue((SqlString)nullableValue);
+            }
             else if (nullableValue is SqlDateTime)
+            {
                 return ToValue((SqlDateTime)nullableValue);
+            }
 
             throw new ArgumentException("Unsupported INullable type: {0}".FormatWith(CultureInfo.InvariantCulture, nullableValue.GetType()));
         }
 #endif
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(PORTABLE40 || PORTABLE)
         internal static TypeConverter GetConverter(Type t)
         {
             return JsonTypeReflector.GetTypeConverter(t);
         }
 #endif
+
+        public static bool VersionTryParse(string input, out Version result)
+        {
+#if !(NET20 || NET35)
+            return Version.TryParse(input, out result);
+#else
+    // improve failure performance with regex?
+            try
+            {
+                result = new Version(input);
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+#endif
+        }
 
         public static bool IsInteger(object value)
         {
@@ -649,7 +749,9 @@ namespace Exceptionless.Json.Utilities
             value = 0;
 
             if (length == 0)
+            {
                 return ParseResult.Invalid;
+            }
 
             bool isNegative = (chars[start] == '-');
 
@@ -657,7 +759,9 @@ namespace Exceptionless.Json.Utilities
             {
                 // text just a negative sign
                 if (length == 1)
+                {
                     return ParseResult.Invalid;
+                }
 
                 start++;
                 length--;
@@ -665,12 +769,33 @@ namespace Exceptionless.Json.Utilities
 
             int end = start + length;
 
+            // Int32.MaxValue and MinValue are 10 chars
+            // Or is 10 chars and start is greater than two
+            // Need to improve this!
+            if (length > 10 || (length == 10 && chars[start] - '0' > 2))
+            {
+                // invalid result takes precedence over overflow
+                for (int i = start; i < end; i++)
+                {
+                    int c = chars[i] - '0';
+
+                    if (c < 0 || c > 9)
+                    {
+                        return ParseResult.Invalid;
+                    }
+                }
+
+                return ParseResult.Overflow;
+            }
+
             for (int i = start; i < end; i++)
             {
                 int c = chars[i] - '0';
 
                 if (c < 0 || c > 9)
+                {
                     return ParseResult.Invalid;
+                }
 
                 int newValue = (10 * value) - c;
 
@@ -686,7 +811,9 @@ namespace Exceptionless.Json.Utilities
                         c = chars[i] - '0';
 
                         if (c < 0 || c > 9)
+                        {
                             return ParseResult.Invalid;
+                        }
                     }
 
                     return ParseResult.Overflow;
@@ -701,7 +828,9 @@ namespace Exceptionless.Json.Utilities
             {
                 // negative integer can be one bigger than positive
                 if (value == int.MinValue)
+                {
                     return ParseResult.Overflow;
+                }
 
                 value = -value;
             }
@@ -714,7 +843,9 @@ namespace Exceptionless.Json.Utilities
             value = 0;
 
             if (length == 0)
+            {
                 return ParseResult.Invalid;
+            }
 
             bool isNegative = (chars[start] == '-');
 
@@ -722,7 +853,9 @@ namespace Exceptionless.Json.Utilities
             {
                 // text just a negative sign
                 if (length == 1)
+                {
                     return ParseResult.Invalid;
+                }
 
                 start++;
                 length--;
@@ -730,12 +863,31 @@ namespace Exceptionless.Json.Utilities
 
             int end = start + length;
 
+            // Int64.MaxValue and MinValue are 19 chars
+            if (length > 19)
+            {
+                // invalid result takes precedence over overflow
+                for (int i = start; i < end; i++)
+                {
+                    int c = chars[i] - '0';
+
+                    if (c < 0 || c > 9)
+                    {
+                        return ParseResult.Invalid;
+                    }
+                }
+
+                return ParseResult.Overflow;
+            }
+
             for (int i = start; i < end; i++)
             {
                 int c = chars[i] - '0';
 
                 if (c < 0 || c > 9)
+                {
                     return ParseResult.Invalid;
+                }
 
                 long newValue = (10 * value) - c;
 
@@ -751,7 +903,9 @@ namespace Exceptionless.Json.Utilities
                         c = chars[i] - '0';
 
                         if (c < 0 || c > 9)
+                        {
                             return ParseResult.Invalid;
+                        }
                     }
 
                     return ParseResult.Overflow;
@@ -766,7 +920,9 @@ namespace Exceptionless.Json.Utilities
             {
                 // negative integer can be one bigger than positive
                 if (value == long.MinValue)
+                {
                     return ParseResult.Overflow;
+                }
 
                 value = -value;
             }
@@ -776,14 +932,14 @@ namespace Exceptionless.Json.Utilities
 
         public static bool TryConvertGuid(string s, out Guid g)
         {
+            // GUID has to have format 00000000-0000-0000-0000-000000000000
 #if NET20 || NET35
             if (s == null)
+            {
                 throw new ArgumentNullException("s");
+            }
 
-            Regex format = new Regex(
-                "^[A-Fa-f0-9]{32}$|" +
-                "^({|\\()?[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}(}|\\))?$|" +
-                "^({)?[0xA-Fa-f0-9]{3,10}(, {0,1}[0xA-Fa-f0-9]{3,6}){2}, {0,1}({)([0xA-Fa-f0-9]{3,4}, {0,1}){7}[0xA-Fa-f0-9]{3,4}(}})$");
+            Regex format = new Regex("^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$");
             Match match = format.Match(s);
             if (match.Success)
             {
@@ -794,8 +950,38 @@ namespace Exceptionless.Json.Utilities
             g = Guid.Empty;
             return false;
 #else
-            return Guid.TryParse(s, out g);
+            return Guid.TryParseExact(s, "D", out g);
 #endif
+        }
+
+        public static int HexTextToInt(char[] text, int start, int end)
+        {
+            int value = 0;
+            for (int i = start; i < end; i++)
+            {
+                value += HexCharToInt(text[i]) << ((end - 1 - i) * 4);
+            }
+            return value;
+        }
+
+        private static int HexCharToInt(char ch)
+        {
+            if (ch <= 57 && ch >= 48)
+            {
+                return ch - 48;
+            }
+
+            if (ch <= 70 && ch >= 65)
+            {
+                return ch - 55;
+            }
+
+            if (ch <= 102 && ch >= 97)
+            {
+                return ch - 87;
+            }
+
+            throw new FormatException("Invalid hex character: " + ch);
         }
     }
 }

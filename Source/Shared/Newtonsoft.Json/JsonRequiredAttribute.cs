@@ -24,33 +24,16 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace Exceptionless.Json.Schema
+namespace Exceptionless.Json
 {
     /// <summary>
-    /// <para>
-    /// Specifies undefined schema Id handling options for the <see cref="JsonSchemaGenerator"/>.
-    /// </para>
-    /// <note type="caution">
-    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
-    /// </note>
+    /// Instructs the <see cref="JsonSerializer"/> to always serialize the member, and require the member has a value.
     /// </summary>
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
-    public enum UndefinedSchemaIdHandling
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class JsonRequiredAttribute : Attribute
     {
-        /// <summary>
-        /// Do not infer a schema Id.
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// Use the .NET type name as the schema Id.
-        /// </summary>
-        UseTypeName = 1,
-
-        /// <summary>
-        /// Use the assembly qualified .NET type name as the schema Id.
-        /// </summary>
-        UseAssemblyQualifiedName = 2,
     }
 }

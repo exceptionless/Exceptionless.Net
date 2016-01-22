@@ -27,13 +27,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
+#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+using System.Numerics;
+#endif
 using Exceptionless.Json.Serialization;
 using Exceptionless.Json.Utilities;
 #if NET20
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
-
 #endif
 
 namespace Exceptionless.Json
@@ -119,7 +121,6 @@ namespace Exceptionless.Json
         private object _value;
         internal char _quoteChar;
         internal State _currentState;
-        internal ReadType _readType;
         private JsonPosition _currentPosition;
         private CultureInfo _culture;
         private DateTimeZoneHandling _dateTimeZoneHandling;
@@ -128,7 +129,7 @@ namespace Exceptionless.Json
         internal DateParseHandling _dateParseHandling;
         internal FloatParseHandling _floatParseHandling;
         private string _dateFormatString;
-        private readonly List<JsonPosition> _stack;
+        private List<JsonPosition> _stack;
 
         /// <summary>
         /// Gets the current reader state.
@@ -173,7 +174,15 @@ namespace Exceptionless.Json
         public DateTimeZoneHandling DateTimeZoneHandling
         {
             get { return _dateTimeZoneHandling; }
-            set { _dateTimeZoneHandling = value; }
+            set
+            {
+                if (value < DateTimeZoneHandling.Local || value > DateTimeZoneHandling.RoundtripKind)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _dateTimeZoneHandling = value;
+            }
         }
 
         /// <summary>
@@ -182,7 +191,21 @@ namespace Exceptionless.Json
         public DateParseHandling DateParseHandling
         {
             get { return _dateParseHandling; }
-            set { _dateParseHandling = value; }
+            set
+            {
+                if (value < DateParseHandling.None ||
+#if !NET20
+                    value > DateParseHandling.DateTimeOffset
+#else
+                    value > DateParseHandling.DateTime
+#endif
+                    )
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _dateParseHandling = value;
+            }
         }
 
         /// <summary>
@@ -191,7 +214,15 @@ namespace Exceptionless.Json
         public FloatParseHandling FloatParseHandling
         {
             get { return _floatParseHandling; }
-            set { _floatParseHandling = value; }
+            set
+            {
+                if (value < FloatParseHandling.Double || value > FloatParseHandling.Decimal)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _floatParseHandling = value;
+            }
         }
 
         /// <summary>
@@ -212,7 +243,9 @@ namespace Exceptionless.Json
             set
             {
                 if (value <= 0)
-                    throw new ArgumentException("Value must be positive.", "value");
+                {
+                    throw new ArgumentException("Value must be positive.", nameof(value));
+                }
 
                 _maxDepth = value;
             }
@@ -250,11 +283,15 @@ namespace Exceptionless.Json
         {
             get
             {
-                int depth = _stack.Count;
+                int depth = (_stack != null) ? _stack.Count : 0;
                 if (JsonTokenUtils.IsStartToken(TokenType) || _currentPosition.Type == JsonContainerType.None)
+                {
                     return depth;
+                }
                 else
+                {
                     return depth + 1;
+                }
             }
         }
 
@@ -266,17 +303,17 @@ namespace Exceptionless.Json
             get
             {
                 if (_currentPosition.Type == JsonContainerType.None)
+                {
                     return string.Empty;
+                }
 
                 bool insideContainer = (_currentState != State.ArrayStart
                                         && _currentState != State.ConstructorStart
                                         && _currentState != State.ObjectStart);
 
-                IEnumerable<JsonPosition> positions = (!insideContainer)
-                    ? _stack
-                    : _stack.Concat(new[] { _currentPosition });
+                JsonPosition? current = insideContainer ? (JsonPosition?)_currentPosition : null;
 
-                return JsonPosition.BuildPath(positions);
+                return JsonPosition.BuildPath(_stack, current);
             }
         }
 
@@ -291,8 +328,10 @@ namespace Exceptionless.Json
 
         internal JsonPosition GetPosition(int depth)
         {
-            if (depth < _stack.Count)
+            if (_stack != null && depth < _stack.Count)
+            {
                 return _stack[depth];
+            }
 
             return _currentPosition;
         }
@@ -303,7 +342,6 @@ namespace Exceptionless.Json
         protected JsonReader()
         {
             _currentState = State.Start;
-            _stack = new List<JsonPosition>(4);
             _dateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
             _dateParseHandling = DateParseHandling.DateTime;
             _floatParseHandling = FloatParseHandling.Double;
@@ -321,6 +359,11 @@ namespace Exceptionless.Json
             }
             else
             {
+                if (_stack == null)
+                {
+                    _stack = new List<JsonPosition>();
+                }
+
                 _stack.Add(_currentPosition);
                 _currentPosition = new JsonPosition(value);
 
@@ -336,7 +379,7 @@ namespace Exceptionless.Json
         private JsonContainerType Pop()
         {
             JsonPosition oldPosition;
-            if (_stack.Count > 0)
+            if (_stack != null && _stack.Count > 0)
             {
                 oldPosition = _currentPosition;
                 _currentPosition = _stack[_stack.Count - 1];
@@ -349,7 +392,9 @@ namespace Exceptionless.Json
             }
 
             if (_maxDepth != null && Depth <= _maxDepth)
+            {
                 _hasExceededMaxDepth = false;
+            }
 
             return oldPosition.Type;
         }
@@ -369,348 +414,70 @@ namespace Exceptionless.Json
         /// Reads the next JSON token from the stream as a <see cref="Nullable{Int32}"/>.
         /// </summary>
         /// <returns>A <see cref="Nullable{Int32}"/>. This method will return <c>null</c> at the end of an array.</returns>
-        public abstract int? ReadAsInt32();
+        public virtual int? ReadAsInt32()
+        {
+            JsonToken t = GetContentToken();
+
+            switch (t)
+            {
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Integer:
+                case JsonToken.Float:
+                    if (!(Value is int))
+                    {
+                        SetToken(JsonToken.Integer, Convert.ToInt32(Value, CultureInfo.InvariantCulture), false);
+                    }
+
+                    return (int)Value;
+                case JsonToken.String:
+                    string s = (string)Value;
+                    return ReadInt32String(s);
+            }
+
+            throw JsonReaderException.Create(this, "Error reading integer. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+        }
+
+        internal int? ReadInt32String(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                SetToken(JsonToken.Null, null, false);
+                return null;
+            }
+
+            int i;
+            if (int.TryParse(s, NumberStyles.Integer, Culture, out i))
+            {
+                SetToken(JsonToken.Integer, i, false);
+                return i;
+            }
+            else
+            {
+                SetToken(JsonToken.String, s, false);
+                throw JsonReaderException.Create(this, "Could not convert string to integer: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
+            }
+        }
 
         /// <summary>
         /// Reads the next JSON token from the stream as a <see cref="String"/>.
         /// </summary>
         /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
-        public abstract string ReadAsString();
-
-        /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Byte"/>[].
-        /// </summary>
-        /// <returns>A <see cref="Byte"/>[] or a null reference if the next JSON token is null. This method will return <c>null</c> at the end of an array.</returns>
-        public abstract byte[] ReadAsBytes();
-
-        /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{Decimal}"/>.
-        /// </summary>
-        /// <returns>A <see cref="Nullable{Decimal}"/>. This method will return <c>null</c> at the end of an array.</returns>
-        public abstract decimal? ReadAsDecimal();
-
-        /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTime}"/>.
-        /// </summary>
-        /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
-        public abstract DateTime? ReadAsDateTime();
-
-#if !NET20
-        /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
-        /// </summary>
-        /// <returns>A <see cref="Nullable{DateTimeOffset}"/>. This method will return <c>null</c> at the end of an array.</returns>
-        public abstract DateTimeOffset? ReadAsDateTimeOffset();
-#endif
-
-        internal virtual bool ReadInternal()
+        public virtual string ReadAsString()
         {
-            throw new NotImplementedException();
-        }
+            JsonToken t = GetContentToken();
 
-#if !NET20
-        internal DateTimeOffset? ReadAsDateTimeOffsetInternal()
-        {
-            _readType = ReadType.ReadAsDateTimeOffset;
-
-            JsonToken t;
-
-            do
+            switch (t)
             {
-                if (!ReadInternal())
-                {
-                    SetToken(JsonToken.None);
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
                     return null;
-                }
-                else
-                {
-                    t = TokenType;
-                }
-            } while (t == JsonToken.Comment);
-
-            if (t == JsonToken.Date)
-            {
-                if (Value is DateTime)
-                    SetToken(JsonToken.Date, new DateTimeOffset((DateTime)Value), false);
-
-                return (DateTimeOffset)Value;
+                case JsonToken.String:
+                    return (string)Value;
             }
-
-            if (t == JsonToken.Null)
-                return null;
-
-            if (t == JsonToken.String)
-            {
-                string s = (string)Value;
-                if (string.IsNullOrEmpty(s))
-                {
-                    SetToken(JsonToken.Null);
-                    return null;
-                }
-
-                object temp;
-                DateTimeOffset dt;
-                if (DateTimeUtils.TryParseDateTime(s, DateParseHandling.DateTimeOffset, DateTimeZoneHandling, _dateFormatString, Culture, out temp))
-                {
-                    dt = (DateTimeOffset)temp;
-                    SetToken(JsonToken.Date, dt, false);
-                    return dt;
-                }
-
-                if (DateTimeOffset.TryParse(s, Culture, DateTimeStyles.RoundtripKind, out dt))
-                {
-                    SetToken(JsonToken.Date, dt, false);
-                    return dt;
-                }
-                
-                throw JsonReaderException.Create(this, "Could not convert string to DateTimeOffset: {0}.".FormatWith(CultureInfo.InvariantCulture, Value));
-            }
-
-            if (t == JsonToken.EndArray)
-                return null;
-
-            throw JsonReaderException.Create(this, "Error reading date. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
-        }
-#endif
-
-        internal byte[] ReadAsBytesInternal()
-        {
-            _readType = ReadType.ReadAsBytes;
-
-            JsonToken t;
-
-            do
-            {
-                if (!ReadInternal())
-                {
-                    SetToken(JsonToken.None);
-                    return null;
-                }
-                else
-                {
-                    t = TokenType;
-                }
-            } while (t == JsonToken.Comment);
-
-            if (IsWrappedInTypeObject())
-            {
-                byte[] data = ReadAsBytes();
-                ReadInternal();
-                SetToken(JsonToken.Bytes, data, false);
-                return data;
-            }
-
-            // attempt to convert possible base 64 string to bytes
-            if (t == JsonToken.String)
-            {
-                string s = (string)Value;
-
-                byte[] data;
-
-                Guid g;
-                if (s.Length == 0)
-                {
-                    data = new byte[0];
-                }
-                else if (ConvertUtils.TryConvertGuid(s, out g))
-                {
-                    data = g.ToByteArray();
-                }
-                else
-                {
-                    data = Convert.FromBase64String(s);
-                }
-
-                SetToken(JsonToken.Bytes, data, false);
-                return data;
-            }
-
-            if (t == JsonToken.Null)
-                return null;
-
-            if (t == JsonToken.Bytes)
-            {
-                if (ValueType == typeof(Guid))
-                {
-                    byte[] data = ((Guid)Value).ToByteArray();
-                    SetToken(JsonToken.Bytes, data, false);
-                    return data;
-                }
-
-                return (byte[])Value;
-            }
-
-            if (t == JsonToken.StartArray)
-            {
-                List<byte> data = new List<byte>();
-
-                while (ReadInternal())
-                {
-                    t = TokenType;
-                    switch (t)
-                    {
-                        case JsonToken.Integer:
-                            data.Add(Convert.ToByte(Value, CultureInfo.InvariantCulture));
-                            break;
-                        case JsonToken.EndArray:
-                            byte[] d = data.ToArray();
-                            SetToken(JsonToken.Bytes, d, false);
-                            return d;
-                        case JsonToken.Comment:
-                            // skip
-                            break;
-                        default:
-                            throw JsonReaderException.Create(this, "Unexpected token when reading bytes: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
-                    }
-                }
-
-                throw JsonReaderException.Create(this, "Unexpected end when reading bytes.");
-            }
-
-            if (t == JsonToken.EndArray)
-                return null;
-
-            throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
-        }
-
-        internal decimal? ReadAsDecimalInternal()
-        {
-            _readType = ReadType.ReadAsDecimal;
-
-            JsonToken t;
-
-            do
-            {
-                if (!ReadInternal())
-                {
-                    SetToken(JsonToken.None);
-                    return null;
-                }
-                else
-                {
-                    t = TokenType;
-                }
-            } while (t == JsonToken.Comment);
-
-            if (t == JsonToken.Integer || t == JsonToken.Float)
-            {
-                if (!(Value is decimal))
-                    SetToken(JsonToken.Float, Convert.ToDecimal(Value, CultureInfo.InvariantCulture), false);
-
-                return (decimal)Value;
-            }
-
-            if (t == JsonToken.Null)
-                return null;
-
-            if (t == JsonToken.String)
-            {
-                string s = (string)Value;
-                if (string.IsNullOrEmpty(s))
-                {
-                    SetToken(JsonToken.Null);
-                    return null;
-                }
-
-                decimal d;
-                if (decimal.TryParse(s, NumberStyles.Number, Culture, out d))
-                {
-                    SetToken(JsonToken.Float, d, false);
-                    return d;
-                }
-                else
-                {
-                    throw JsonReaderException.Create(this, "Could not convert string to decimal: {0}.".FormatWith(CultureInfo.InvariantCulture, Value));
-                }
-            }
-
-            if (t == JsonToken.EndArray)
-                return null;
-
-            throw JsonReaderException.Create(this, "Error reading decimal. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
-        }
-
-        internal int? ReadAsInt32Internal()
-        {
-            _readType = ReadType.ReadAsInt32;
-
-            JsonToken t;
-
-            do
-            {
-                if (!ReadInternal())
-                {
-                    SetToken(JsonToken.None);
-                    return null;
-                }
-                else
-                {
-                    t = TokenType;
-                }
-            } while (t == JsonToken.Comment);
-
-            if (t == JsonToken.Integer || t == JsonToken.Float)
-            {
-                if (!(Value is int))
-                    SetToken(JsonToken.Integer, Convert.ToInt32(Value, CultureInfo.InvariantCulture), false);
-
-                return (int)Value;
-            }
-
-            if (t == JsonToken.Null)
-                return null;
-
-            int i;
-            if (t == JsonToken.String)
-            {
-                string s = (string)Value;
-                if (string.IsNullOrEmpty(s))
-                {
-                    SetToken(JsonToken.Null);
-                    return null;
-                }
-
-                if (int.TryParse(s, NumberStyles.Integer, Culture, out i))
-                {
-                    SetToken(JsonToken.Integer, i, false);
-                    return i;
-                }
-                else
-                {
-                    throw JsonReaderException.Create(this, "Could not convert string to integer: {0}.".FormatWith(CultureInfo.InvariantCulture, Value));
-                }
-            }
-
-            if (t == JsonToken.EndArray)
-                return null;
-
-            throw JsonReaderException.Create(this, "Error reading integer. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
-        }
-
-        internal string ReadAsStringInternal()
-        {
-            _readType = ReadType.ReadAsString;
-
-            JsonToken t;
-
-            do
-            {
-                if (!ReadInternal())
-                {
-                    SetToken(JsonToken.None);
-                    return null;
-                }
-                else
-                {
-                    t = TokenType;
-                }
-            } while (t == JsonToken.Comment);
-
-            if (t == JsonToken.String)
-                return (string)Value;
-
-            if (t == JsonToken.Null)
-                return null;
 
             if (JsonTokenUtils.IsPrimitiveToken(t))
             {
@@ -718,101 +485,427 @@ namespace Exceptionless.Json
                 {
                     string s;
                     if (Value is IFormattable)
+                    {
                         s = ((IFormattable)Value).ToString(null, Culture);
+                    }
+                    else if (Value is Uri)
+                    {
+                        s = ((Uri)Value).OriginalString;
+                    }
                     else
+                    {
                         s = Value.ToString();
+                    }
 
                     SetToken(JsonToken.String, s, false);
                     return s;
                 }
             }
 
-            if (t == JsonToken.EndArray)
-                return null;
-
             throw JsonReaderException.Create(this, "Error reading string. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
         }
 
-        internal DateTime? ReadAsDateTimeInternal()
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Byte"/>[].
+        /// </summary>
+        /// <returns>A <see cref="Byte"/>[] or a null reference if the next JSON token is null. This method will return <c>null</c> at the end of an array.</returns>
+        public virtual byte[] ReadAsBytes()
         {
-            _readType = ReadType.ReadAsDateTime;
+            JsonToken t = GetContentToken();
 
-            do
+            if (t == JsonToken.None)
             {
-                if (!ReadInternal())
-                {
-                    SetToken(JsonToken.None);
-                    return null;
-                }
-            } while (TokenType == JsonToken.Comment);
-
-            if (TokenType == JsonToken.Date)
-                return (DateTime)Value;
-
-            if (TokenType == JsonToken.Null)
                 return null;
-
-            if (TokenType == JsonToken.String)
-            {
-                string s = (string)Value;
-                if (string.IsNullOrEmpty(s))
-                {
-                    SetToken(JsonToken.Null);
-                    return null;
-                }
-
-                DateTime dt;
-                object temp;
-                if (DateTimeUtils.TryParseDateTime(s, DateParseHandling.DateTime, DateTimeZoneHandling, _dateFormatString, Culture, out temp))
-                {
-                    dt = (DateTime)temp;
-                    dt = DateTimeUtils.EnsureDateTime(dt, DateTimeZoneHandling);
-                    SetToken(JsonToken.Date, dt, false);
-                    return dt;
-                }
-
-                if (DateTime.TryParse(s, Culture, DateTimeStyles.RoundtripKind, out dt))
-                {
-                    dt = DateTimeUtils.EnsureDateTime(dt, DateTimeZoneHandling);
-                    SetToken(JsonToken.Date, dt, false);
-                    return dt;
-                }
-
-                throw JsonReaderException.Create(this, "Could not convert string to DateTime: {0}.".FormatWith(CultureInfo.InvariantCulture, Value));
             }
 
-            if (TokenType == JsonToken.EndArray)
+            if (TokenType == JsonToken.StartObject)
+            {
+                ReadIntoWrappedTypeObject();
+
+                byte[] data = ReadAsBytes();
+                ReaderReadAndAssert();
+
+                if (TokenType != JsonToken.EndObject)
+                {
+                    throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
+                }
+
+                SetToken(JsonToken.Bytes, data, false);
+                return data;
+            }
+
+            switch (t)
+            {
+                case JsonToken.String:
+                {
+                    // attempt to convert possible base 64 or GUID string to bytes
+                    // GUID has to have format 00000000-0000-0000-0000-000000000000
+                    string s = (string)Value;
+
+                    byte[] data;
+
+                    Guid g;
+                    if (s.Length == 0)
+                    {
+                        data = new byte[0];
+                    }
+                    else if (ConvertUtils.TryConvertGuid(s, out g))
+                    {
+                        data = g.ToByteArray();
+                    }
+                    else
+                    {
+                        data = Convert.FromBase64String(s);
+                    }
+
+                    SetToken(JsonToken.Bytes, data, false);
+                    return data;
+                }
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Bytes:
+                    if (ValueType == typeof(Guid))
+                    {
+                        byte[] data = ((Guid)Value).ToByteArray();
+                        SetToken(JsonToken.Bytes, data, false);
+                        return data;
+                    }
+
+                    return (byte[])Value;
+                case JsonToken.StartArray:
+                    return ReadArrayIntoByteArray();
+            }
+
+            throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+        }
+
+        internal byte[] ReadArrayIntoByteArray()
+        {
+            List<byte> buffer = new List<byte>();
+
+            while (true)
+            {
+                JsonToken t = GetContentToken();
+                switch (t)
+                {
+                    case JsonToken.None:
+                        throw JsonReaderException.Create(this, "Unexpected end when reading bytes.");
+                    case JsonToken.Integer:
+                        buffer.Add(Convert.ToByte(Value, CultureInfo.InvariantCulture));
+                        break;
+                    case JsonToken.EndArray:
+                        byte[] d = buffer.ToArray();
+                        SetToken(JsonToken.Bytes, d, false);
+                        return d;
+                    default:
+                        throw JsonReaderException.Create(this, "Unexpected token when reading bytes: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Decimal}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Decimal}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public virtual double? ReadAsDouble()
+        {
+            JsonToken t = GetContentToken();
+
+            switch (t)
+            {
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Integer:
+                case JsonToken.Float:
+                    if (!(Value is double))
+                    {
+                        SetToken(JsonToken.Float, Convert.ToDouble(Value, CultureInfo.InvariantCulture), false);
+                    }
+
+                    return (double) Value;
+                case JsonToken.String:
+                    return ReadDoubleString((string) Value);
+            }
+
+            throw JsonReaderException.Create(this, "Error reading double. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+        }
+
+        internal double? ReadDoubleString(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                SetToken(JsonToken.Null, null, false);
                 return null;
+            }
+
+            double d;
+            if (double.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, Culture, out d))
+            {
+                SetToken(JsonToken.Float, d, false);
+                return d;
+            }
+            else
+            {
+                SetToken(JsonToken.String, s, false);
+                throw JsonReaderException.Create(this, "Could not convert string to double: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
+            }
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Boolean}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Boolean}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public virtual bool? ReadAsBoolean()
+        {
+            JsonToken t = GetContentToken();
+
+            switch (t)
+            {
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Integer:
+                case JsonToken.Float:
+                    bool b;
+#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+                    if (Value is BigInteger)
+                    {
+                        b = (BigInteger)Value != 0;
+                    }
+                    else
+#endif
+                    {
+                        b = Convert.ToBoolean(Value, CultureInfo.InvariantCulture);
+                    }
+
+                    SetToken(JsonToken.Boolean, b, false);
+
+                    return b;
+                case JsonToken.String:
+                    return ReadBooleanString((string)Value);
+                case JsonToken.Boolean:
+                    return (bool)Value;
+            }
+
+            throw JsonReaderException.Create(this, "Error reading boolean. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+        }
+
+        internal bool? ReadBooleanString(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                SetToken(JsonToken.Null, null, false);
+                return null;
+            }
+
+            bool b;
+            if (bool.TryParse(s, out b))
+            {
+                SetToken(JsonToken.Boolean, b, false);
+                return b;
+            }
+            else
+            {
+                SetToken(JsonToken.String, s, false);
+                throw JsonReaderException.Create(this, "Could not convert string to boolean: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
+            }
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Decimal}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Decimal}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public virtual decimal? ReadAsDecimal()
+        {
+            JsonToken t = GetContentToken();
+
+            switch (t)
+            {
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Integer:
+                case JsonToken.Float:
+                    if (!(Value is decimal))
+                    {
+                        SetToken(JsonToken.Float, Convert.ToDecimal(Value, CultureInfo.InvariantCulture), false);
+                    }
+
+                    return (decimal)Value;
+                case JsonToken.String:
+                    return ReadDecimalString((string)Value);
+            }
+
+            throw JsonReaderException.Create(this, "Error reading decimal. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+        }
+
+        internal decimal? ReadDecimalString(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                SetToken(JsonToken.Null, null, false);
+                return null;
+            }
+
+            decimal d;
+            if (decimal.TryParse(s, NumberStyles.Number, Culture, out d))
+            {
+                SetToken(JsonToken.Float, d, false);
+                return d;
+            }
+            else
+            {
+                SetToken(JsonToken.String, s, false);
+                throw JsonReaderException.Create(this, "Could not convert string to decimal: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
+            }
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTime}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{DateTime}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public virtual DateTime? ReadAsDateTime()
+        {
+            switch (GetContentToken())
+            {
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Date:
+#if !NET20
+                    if (Value is DateTimeOffset)
+                    {
+                        SetToken(JsonToken.Date, ((DateTimeOffset)Value).DateTime, false);
+                    }
+#endif
+
+                    return (DateTime)Value;
+                case JsonToken.String:
+                    string s = (string)Value;
+                    return ReadDateTimeString(s);
+            }
 
             throw JsonReaderException.Create(this, "Error reading date. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
         }
 
-        private bool IsWrappedInTypeObject()
+        internal DateTime? ReadDateTimeString(string s)
         {
-            _readType = ReadType.Read;
-
-            if (TokenType == JsonToken.StartObject)
+            if (string.IsNullOrEmpty(s))
             {
-                if (!ReadInternal())
-                    throw JsonReaderException.Create(this, "Unexpected end when reading bytes.");
-
-                if (Value.ToString() == JsonTypeReflector.TypePropertyName)
-                {
-                    ReadInternal();
-                    if (Value != null && Value.ToString().StartsWith("System.Byte[]", StringComparison.Ordinal))
-                    {
-                        ReadInternal();
-                        if (Value.ToString() == JsonTypeReflector.ValuePropertyName)
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, JsonToken.StartObject));
+                SetToken(JsonToken.Null, null, false);
+                return null;
             }
 
-            return false;
+            DateTime dt;
+            if (DateTimeUtils.TryParseDateTime(s, DateTimeZoneHandling, _dateFormatString, Culture, out dt))
+            {
+                dt = DateTimeUtils.EnsureDateTime(dt, DateTimeZoneHandling);
+                SetToken(JsonToken.Date, dt, false);
+                return dt;
+            }
+
+            if (DateTime.TryParse(s, Culture, DateTimeStyles.RoundtripKind, out dt))
+            {
+                dt = DateTimeUtils.EnsureDateTime(dt, DateTimeZoneHandling);
+                SetToken(JsonToken.Date, dt, false);
+                return dt;
+            }
+
+            throw JsonReaderException.Create(this, "Could not convert string to DateTime: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
+        }
+
+#if !NET20
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{DateTimeOffset}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        public virtual DateTimeOffset? ReadAsDateTimeOffset()
+        {
+            JsonToken t = GetContentToken();
+
+            switch (t)
+            {
+                case JsonToken.None:
+                case JsonToken.Null:
+                case JsonToken.EndArray:
+                    return null;
+                case JsonToken.Date:
+                    if (Value is DateTime)
+                    {
+                        SetToken(JsonToken.Date, new DateTimeOffset((DateTime)Value), false);
+                    }
+
+                    return (DateTimeOffset)Value;
+                case JsonToken.String:
+                    string s = (string)Value;
+                    return ReadDateTimeOffsetString(s);
+                default:
+                    throw JsonReaderException.Create(this, "Error reading date. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
+            }
+        }
+
+        internal DateTimeOffset? ReadDateTimeOffsetString(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                SetToken(JsonToken.Null, null, false);
+                return null;
+            }
+
+            DateTimeOffset dt;
+            if (DateTimeUtils.TryParseDateTimeOffset(s, _dateFormatString, Culture, out dt))
+            {
+                SetToken(JsonToken.Date, dt, false);
+                return dt;
+            }
+
+            if (DateTimeOffset.TryParse(s, Culture, DateTimeStyles.RoundtripKind, out dt))
+            {
+                SetToken(JsonToken.Date, dt, false);
+                return dt;
+            }
+
+            SetToken(JsonToken.String, s, false);
+            throw JsonReaderException.Create(this, "Could not convert string to DateTimeOffset: {0}.".FormatWith(CultureInfo.InvariantCulture, s));
+        }
+#endif
+
+        internal void ReaderReadAndAssert()
+        {
+            if (!Read())
+            {
+                throw CreateUnexpectedEndException();
+            }
+        }
+
+        internal JsonReaderException CreateUnexpectedEndException()
+        {
+            return JsonReaderException.Create(this, "Unexpected end when reading JSON.");
+        }
+
+        internal void ReadIntoWrappedTypeObject()
+        {
+            ReaderReadAndAssert();
+            if (Value.ToString() == JsonTypeReflector.TypePropertyName)
+            {
+                ReaderReadAndAssert();
+                if (Value != null && Value.ToString().StartsWith("System.Byte[]", StringComparison.Ordinal))
+                {
+                    ReaderReadAndAssert();
+                    if (Value.ToString() == JsonTypeReflector.ValuePropertyName)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, JsonToken.StartObject));
         }
 
         /// <summary>
@@ -821,7 +914,9 @@ namespace Exceptionless.Json
         public void Skip()
         {
             if (TokenType == JsonToken.PropertyName)
+            {
                 Read();
+            }
 
             if (JsonTokenUtils.IsStartToken(TokenType))
             {
@@ -902,18 +997,26 @@ namespace Exceptionless.Json
         internal void SetPostValueState(bool updateIndex)
         {
             if (Peek() != JsonContainerType.None)
+            {
                 _currentState = State.PostValue;
+            }
             else
+            {
                 SetFinished();
+            }
 
             if (updateIndex)
+            {
                 UpdateScopeWithFinishedValue();
+            }
         }
 
         private void UpdateScopeWithFinishedValue()
         {
             if (_currentPosition.HasIndex)
+            {
                 _currentPosition.Position++;
+            }
         }
 
         private void ValidateEnd(JsonToken endToken)
@@ -921,12 +1024,18 @@ namespace Exceptionless.Json
             JsonContainerType currentObject = Pop();
 
             if (GetTypeForCloseToken(endToken) != currentObject)
+            {
                 throw JsonReaderException.Create(this, "JsonToken {0} is not valid for closing JsonType {1}.".FormatWith(CultureInfo.InvariantCulture, endToken, currentObject));
+            }
 
             if (Peek() != JsonContainerType.None)
+            {
                 _currentState = State.PostValue;
+            }
             else
+            {
                 SetFinished();
+            }
         }
 
         /// <summary>
@@ -958,9 +1067,13 @@ namespace Exceptionless.Json
         private void SetFinished()
         {
             if (SupportMultipleContent)
+            {
                 _currentState = State.Start;
+            }
             else
+            {
                 _currentState = State.Finished;
+            }
         }
 
         private JsonContainerType GetTypeForCloseToken(JsonToken token)
@@ -984,6 +1097,7 @@ namespace Exceptionless.Json
         void IDisposable.Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -993,7 +1107,9 @@ namespace Exceptionless.Json
         protected virtual void Dispose(bool disposing)
         {
             if (_currentState != State.Closed && disposing)
+            {
                 Close();
+            }
         }
 
         /// <summary>
@@ -1004,6 +1120,54 @@ namespace Exceptionless.Json
             _currentState = State.Closed;
             _tokenType = JsonToken.None;
             _value = null;
+        }
+
+        internal void ReadAndAssert()
+        {
+            if (!Read())
+            {
+                throw JsonSerializationException.Create(this, "Unexpected end when reading JSON.");
+            }
+        }
+
+        internal bool ReadAndMoveToContent()
+        {
+            return Read() && MoveToContent();
+        }
+
+        internal bool MoveToContent()
+        {
+            JsonToken t = TokenType;
+            while (t == JsonToken.None || t == JsonToken.Comment)
+            {
+                if (!Read())
+                {
+                    return false;
+                }
+
+                t = TokenType;
+            }
+
+            return true;
+        }
+
+        private JsonToken GetContentToken()
+        {
+            JsonToken t;
+            do
+            {
+                if (!Read())
+                {
+                    SetToken(JsonToken.None);
+                    return JsonToken.None;
+                }
+                else
+                {
+                    t = TokenType;
+                }
+            } while (t == JsonToken.Comment);
+
+            return t;
         }
     }
 }

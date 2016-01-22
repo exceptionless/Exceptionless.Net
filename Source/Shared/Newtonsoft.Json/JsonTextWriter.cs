@@ -49,6 +49,7 @@ namespace Exceptionless.Json
         private bool _quoteName;
         private bool[] _charEscapeFlags;
         private char[] _writeBuffer;
+        private IArrayPool<char> _arrayPool;
         private char[] _indentChars;
 
         private Base64Encoder Base64Encoder
@@ -56,9 +57,28 @@ namespace Exceptionless.Json
             get
             {
                 if (_base64Encoder == null)
+                {
                     _base64Encoder = new Base64Encoder(_writer);
+                }
 
                 return _base64Encoder;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the writer's character array pool.
+        /// </summary>
+        public IArrayPool<char> ArrayPool
+        {
+            get { return _arrayPool; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _arrayPool = value;
             }
         }
 
@@ -71,7 +91,9 @@ namespace Exceptionless.Json
             set
             {
                 if (value < 0)
+                {
                     throw new ArgumentException("Indentation value must be greater than 0.");
+                }
 
                 _indentation = value;
             }
@@ -86,7 +108,9 @@ namespace Exceptionless.Json
             set
             {
                 if (value != '"' && value != '\'')
+                {
                     throw new ArgumentException(@"Invalid JavaScript string quote character. Valid quote characters are ' and "".");
+                }
 
                 _quoteChar = value;
                 UpdateCharEscapeFlags();
@@ -125,7 +149,9 @@ namespace Exceptionless.Json
         public JsonTextWriter(TextWriter textWriter)
         {
             if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
+            {
+                throw new ArgumentNullException(nameof(textWriter));
+            }
 
             _writer = textWriter;
             _quoteChar = '"';
@@ -151,16 +177,24 @@ namespace Exceptionless.Json
         {
             base.Close();
 
+            if (_writeBuffer != null)
+            {
+                BufferUtils.ReturnBuffer(_arrayPool, _writeBuffer);
+                _writeBuffer = null;
+            }
+
             if (CloseOutput && _writer != null)
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+            {
+#if !(DOTNET || PORTABLE40 || PORTABLE)
                 _writer.Close();
 #else
                 _writer.Dispose();
 #endif
+            }
         }
 
         /// <summary>
-        /// Writes the beginning of a Json object.
+        /// Writes the beginning of a JSON object.
         /// </summary>
         public override void WriteStartObject()
         {
@@ -170,7 +204,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Writes the beginning of a Json array.
+        /// Writes the beginning of a JSON array.
         /// </summary>
         public override void WriteStartArray()
         {
@@ -215,7 +249,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Writes the property name of a name/value pair on a Json object.
+        /// Writes the property name of a name/value pair on a JSON object.
         /// </summary>
         /// <param name="name">The name of the property.</param>
         public override void WritePropertyName(string name)
@@ -243,12 +277,16 @@ namespace Exceptionless.Json
             else
             {
                 if (_quoteName)
+                {
                     _writer.Write(_quoteChar);
+                }
 
                 _writer.Write(name);
 
                 if (_quoteName)
+                {
                     _writer.Write(_quoteChar);
+                }
             }
 
             _writer.Write(':');
@@ -277,7 +315,9 @@ namespace Exceptionless.Json
             if (currentIndentCount > 0)
             {
                 if (_indentChars == null)
+                {
                     _indentChars = new string(_indentChar, 10).ToCharArray();
+                }
 
                 while (currentIndentCount > 0)
                 {
@@ -370,15 +410,19 @@ namespace Exceptionless.Json
             InternalWriteValue(JsonToken.String);
 
             if (value == null)
+            {
                 WriteValueInternal(JsonConvert.Null, JsonToken.Null);
+            }
             else
+            {
                 WriteEscapedString(value, true);
+            }
         }
 
         private void WriteEscapedString(string value, bool quote)
         {
             EnsureWriteBuffer();
-            JavaScriptUtils.WriteEscapedJavaScriptString(_writer, value, _quoteChar, quote, _charEscapeFlags, StringEscapeHandling, ref _writeBuffer);
+            JavaScriptUtils.WriteEscapedJavaScriptString(_writer, value, _quoteChar, quote, _charEscapeFlags, StringEscapeHandling, _arrayPool, ref _writeBuffer);
         }
 
         /// <summary>
@@ -446,7 +490,7 @@ namespace Exceptionless.Json
             else
             {
                 InternalWriteValue(JsonToken.Float);
-                WriteValueInternal(JsonConvert.ToString(value.Value, FloatFormatHandling, QuoteChar, true), JsonToken.Float);
+                WriteValueInternal(JsonConvert.ToString(value.GetValueOrDefault(), FloatFormatHandling, QuoteChar, true), JsonToken.Float);
             }
         }
 
@@ -473,7 +517,7 @@ namespace Exceptionless.Json
             else
             {
                 InternalWriteValue(JsonToken.Float);
-                WriteValueInternal(JsonConvert.ToString(value.Value, FloatFormatHandling, QuoteChar, true), JsonToken.Float);
+                WriteValueInternal(JsonConvert.ToString(value.GetValueOrDefault(), FloatFormatHandling, QuoteChar, true), JsonToken.Float);
             }
         }
 
@@ -636,7 +680,7 @@ namespace Exceptionless.Json
 
             string text = null;
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
             text = value.ToString("D", CultureInfo.InvariantCulture);
 #else
             text = value.ToString("D");
@@ -712,7 +756,10 @@ namespace Exceptionless.Json
         private void EnsureWriteBuffer()
         {
             if (_writeBuffer == null)
-                _writeBuffer = new char[35]; // maximum buffer sized used when writing iso date
+            {
+                // maximum buffer sized used when writing iso date
+                _writeBuffer = BufferUtils.RentBuffer(_arrayPool, 35);
+            }
         }
 
         private void WriteIntegerValue(long value)
@@ -726,7 +773,9 @@ namespace Exceptionless.Json
                 ulong uvalue = (value < 0) ? (ulong)-value : (ulong)value;
 
                 if (value < 0)
+                {
                     _writer.Write('-');
+                }
 
                 WriteIntegerValue(uvalue);
             }

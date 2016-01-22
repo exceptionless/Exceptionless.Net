@@ -28,12 +28,13 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security;
+using Exceptionless.Json.Linq;
 using Exceptionless.Json.Utilities;
 
 namespace Exceptionless.Json.Serialization
 {
     /// <summary>
-    /// Contract details for a <see cref="Type"/> used by the <see cref="JsonSerializer"/>.
+    /// Contract details for a <see cref="System.Type"/> used by the <see cref="JsonSerializer"/>.
     /// </summary>
     public class JsonObjectContract : JsonContainerContract
     {
@@ -69,7 +70,18 @@ namespace Exceptionless.Json.Serialization
         /// <summary>
         /// Gets a collection of <see cref="JsonProperty"/> instances that define the parameters used with <see cref="OverrideCreator"/>.
         /// </summary>
-        public JsonPropertyCollection CreatorParameters { get; private set; }
+        public JsonPropertyCollection CreatorParameters
+        {
+            get
+            {
+                if (_creatorParameters == null)
+                {
+                    _creatorParameters = new JsonPropertyCollection(UnderlyingType);
+                }
+
+                return _creatorParameters;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the override constructor used to create the object.
@@ -84,7 +96,7 @@ namespace Exceptionless.Json.Serialization
             set
             {
                 _overrideConstructor = value;
-                _overrideCreator = (value != null) ? JsonTypeReflector.ReflectionDelegateFactory.CreateParametrizedConstructor(value) : null;
+                _overrideCreator = (value != null) ? JsonTypeReflector.ReflectionDelegateFactory.CreateParameterizedConstructor(value) : null;
             }
         }
 
@@ -99,7 +111,7 @@ namespace Exceptionless.Json.Serialization
             set
             {
                 _parametrizedConstructor = value;
-                _parametrizedCreator = (value != null) ? JsonTypeReflector.ReflectionDelegateFactory.CreateParametrizedConstructor(value) : null;
+                _parameterizedCreator = (value != null) ? JsonTypeReflector.ReflectionDelegateFactory.CreateParameterizedConstructor(value) : null;
             }
         }
 
@@ -118,9 +130,9 @@ namespace Exceptionless.Json.Serialization
             }
         }
 
-        internal ObjectConstructor<object> ParametrizedCreator
+        internal ObjectConstructor<object> ParameterizedCreator
         {
-            get { return _parametrizedCreator; }
+            get { return _parameterizedCreator; }
         }
 
         /// <summary>
@@ -133,11 +145,27 @@ namespace Exceptionless.Json.Serialization
         /// </summary>
         public ExtensionDataGetter ExtensionDataGetter { get; set; }
 
+        /// <summary>
+        /// Gets or sets the extension data value type.
+        /// </summary>
+        public Type ExtensionDataValueType
+        {
+            get { return _extensionDataValueType; }
+            set
+            {
+                _extensionDataValueType = value;
+                ExtensionDataIsJToken = (value != null && typeof(JToken).IsAssignableFrom(value));
+            }
+        }
+
+        internal bool ExtensionDataIsJToken;
         private bool? _hasRequiredOrDefaultValueProperties;
         private ConstructorInfo _parametrizedConstructor;
         private ConstructorInfo _overrideConstructor;
         private ObjectConstructor<object> _overrideCreator;
-        private ObjectConstructor<object> _parametrizedCreator;
+        private ObjectConstructor<object> _parameterizedCreator;
+        private JsonPropertyCollection _creatorParameters;
+        private Type _extensionDataValueType;
 
         internal bool HasRequiredOrDefaultValueProperties
         {
@@ -155,7 +183,7 @@ namespace Exceptionless.Json.Serialization
                     {
                         foreach (JsonProperty property in Properties)
                         {
-                            if (property.Required != Required.Default || ((property.DefaultValueHandling & DefaultValueHandling.Populate) == DefaultValueHandling.Populate) && property.Writable)
+                            if (property.Required != Required.Default || (property.DefaultValueHandling & DefaultValueHandling.Populate) == DefaultValueHandling.Populate)
                             {
                                 _hasRequiredOrDefaultValueProperties = true;
                                 break;
@@ -164,7 +192,7 @@ namespace Exceptionless.Json.Serialization
                     }
                 }
 
-                return _hasRequiredOrDefaultValueProperties.Value;
+                return _hasRequiredOrDefaultValueProperties.GetValueOrDefault();
             }
         }
 
@@ -178,10 +206,9 @@ namespace Exceptionless.Json.Serialization
             ContractType = JsonContractType.Object;
 
             Properties = new JsonPropertyCollection(UnderlyingType);
-            CreatorParameters = new JsonPropertyCollection(UnderlyingType);
         }
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
 #if !(NET20 || NET35)
         [SecuritySafeCritical]
 #endif
@@ -189,7 +216,9 @@ namespace Exceptionless.Json.Serialization
         {
             // we should never get here if the environment is not fully trusted, check just in case
             if (!JsonTypeReflector.FullyTrusted)
+            {
                 throw new JsonException("Insufficient permissions. Creating an uninitialized '{0}' type requires full trust.".FormatWith(CultureInfo.InvariantCulture, NonNullableUnderlyingType));
+            }
 
             return FormatterServices.GetUninitializedObject(NonNullableUnderlyingType);
         }

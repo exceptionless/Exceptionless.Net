@@ -60,7 +60,9 @@ namespace Exceptionless.Json.Linq
             get
             {
                 if (_token != null)
+                {
                     return _token;
+                }
 
                 return _value;
             }
@@ -72,7 +74,7 @@ namespace Exceptionless.Json.Linq
         /// <param name="container">The container being written to.</param>
         public JTokenWriter(JContainer container)
         {
-            ValidationUtils.ArgumentNotNull(container, "container");
+            ValidationUtils.ArgumentNotNull(container, nameof(container));
 
             _token = container;
             _parent = container;
@@ -101,7 +103,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Writes the beginning of a Json object.
+        /// Writes the beginning of a JSON object.
         /// </summary>
         public override void WriteStartObject()
         {
@@ -113,9 +115,13 @@ namespace Exceptionless.Json.Linq
         private void AddParent(JContainer container)
         {
             if (_parent == null)
+            {
                 _token = container;
+            }
             else
+            {
                 _parent.AddAndSkipParentCheck(container);
+            }
 
             _parent = container;
             _current = container;
@@ -127,11 +133,13 @@ namespace Exceptionless.Json.Linq
             _parent = _parent.Parent;
 
             if (_parent != null && _parent.Type == JTokenType.Property)
+            {
                 _parent = _parent.Parent;
+            }
         }
 
         /// <summary>
-        /// Writes the beginning of a Json array.
+        /// Writes the beginning of a JSON array.
         /// </summary>
         public override void WriteStartArray()
         {
@@ -161,14 +169,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Writes the property name of a name/value pair on a Json object.
+        /// Writes the property name of a name/value pair on a JSON object.
         /// </summary>
         /// <param name="name">The name of the property.</param>
         public override void WritePropertyName(string name)
         {
+            JObject o = _parent as JObject;
+            if (o != null)
+            {
+                // avoid duplicate property name exception
+                // last property name wins
+                o.Remove(name);
+            }
+
             AddParent(new JProperty(name));
 
-            // don't set state until after in case of an error such as duplicate property names
+            // don't set state until after in case of an error
             // incorrect state will cause issues if writer is disposed when closing open properties
             base.WritePropertyName(name);
         }
@@ -186,7 +202,9 @@ namespace Exceptionless.Json.Linq
                 _current = _parent.Last;
 
                 if (_parent.Type == JTokenType.Property)
+                {
                     _parent = _parent.Parent;
+                }
             }
             else
             {
@@ -365,7 +383,7 @@ namespace Exceptionless.Json.Linq
         {
             base.WriteValue(value);
             string s = null;
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
             s = value.ToString(CultureInfo.InvariantCulture);
 #else
             s = value.ToString();
