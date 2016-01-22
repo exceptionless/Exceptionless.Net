@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Exceptionless.Extensions;
-using Exceptionless.Json;
 using Exceptionless.Models;
 using Exceptionless.Serializer;
 using Xunit;
 using System.Reflection;
-using Exceptionless.Submission;
-using Moq;
 using System.Linq;
-using Exceptionless.Models.Data;
-using Exceptionless.Dependency;
+using Exceptionless.Extras;
 
 namespace Exceptionless.Tests.Serializer {
     public class SerializerTests {
@@ -21,15 +17,21 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void CanSerialize() {
-            var data = new SampleModel { Date = DateTime.Now, Message = "Testing" };
+            var data = new SampleModel {
+                Date = DateTime.Now,
+                Message = "Testing"
+            };
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { "Date" });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
-         
+
         [Fact]
         public void CanSerializeEvent() {
-            var ev = new Event { Date = DateTime.Now, Message = "Testing"};
+            var ev = new Event {
+                Date = DateTime.Now,
+                Message = "Testing"
+            };
             ev.Data["FirstName"] = "Blake";
 
             IJsonSerializer serializer = GetSerializer();
@@ -40,15 +42,25 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void CanExcludeProperties() {
-            var data = new SampleModel { Date = DateTime.Now, Message = "Testing" };
+            var data = new SampleModel {
+                Date = DateTime.Now,
+                Message = "Testing"
+            };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new []{ "Date" });
+            string json = serializer.Serialize(data, new[] { "Date" });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
         [Fact]
         public void CanExcludeNestedProperties() {
-            var data = new SampleModel { Date = DateTime.Now, Message = "Testing", Nested = new SampleModel { Date = DateTime.Now, Message = "Nested" } };
+            var data = new SampleModel {
+                Date = DateTime.Now,
+                Message = "Testing",
+                Nested = new SampleModel {
+                    Date = DateTime.Now,
+                    Message = "Nested"
+                }
+            };
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { "Date" });
             Assert.Equal(@"{""message"":""Testing"",""nested"":{""message"":""Nested""}}", json);
@@ -56,7 +68,10 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void WillIgnoreDefaultValues() {
-            var data = new SampleModel { Number = 0, Bool = false };
+            var data = new SampleModel {
+                Number = 0,
+                Bool = false
+            };
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data);
             Assert.Equal(@"{}", json);
@@ -67,7 +82,15 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void CanSetMaxDepth() {
-            var data = new SampleModel { Message = "Level 1", Nested = new SampleModel { Message = "Level 2", Nested = new SampleModel { Message = "Level 3"}} };
+            var data = new SampleModel {
+                Message = "Level 1",
+                Nested = new SampleModel {
+                    Message = "Level 2",
+                    Nested = new SampleModel {
+                        Message = "Level 3"
+                    }
+                }
+            };
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data, maxDepth: 2);
             Assert.Equal(@"{""message"":""Level 1"",""nested"":{""message"":""Level 2""}}", json);
@@ -75,7 +98,11 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void WillIgnoreEmptyCollections() {
-            var data = new SampleModel { Date = DateTime.Now, Message = "Testing", Collection = new Collection<string>() };
+            var data = new SampleModel {
+                Date = DateTime.Now,
+                Message = "Testing",
+                Collection = new Collection<string>()
+            };
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { "Date" });
             Assert.Equal(@"{""message"":""Testing""}", json);
@@ -106,56 +133,35 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
-        public void WillSerializeDeepExceptionWithStackInformation()
-        {
-            try
-            {
-                try
-                {
-                    try
-                    {
-                        throw new ArgumentException("This is the inner argument exception", "wrongArg");
+        public void WillSerializeDeepExceptionWithStackInformation() {
+            try {
+                try {
+                    try {
+                        throw new ArgumentException("This is the innermost argument exception", "wrongArg");
+                    } catch (Exception e1) {
+                        throw new TargetInvocationException("Target invocation exception.", e1);
                     }
-                    catch (Exception e1)
-                    {
-                        throw new TargetInvocationException("Target invocation exception. Blah blah blah blah.", e1);
-                    }
-                }
-                catch (Exception e2)
-                {
+                } catch (Exception e2) {
                     throw new TargetInvocationException("Outer Exception. This is some text of the outer exception.", e2);
                 }
+            } catch (Exception ex) {
+                var client = CreateClient();
+                var error = ex.ToErrorModel(client);
+                var ev = new Event { Data = { [Event.KnownDataKeys.Error] = error } };
+
+                IJsonSerializer serializer = GetSerializer();
+                string json = serializer.Serialize(ev, maxDepth: 10);
+                
+                Assert.Contains(String.Format("\"line_number\":{0}", error.Inner.Inner.StackTrace.Single().LineNumber), json);
             }
-            catch (Exception exception)
-            {
-                Event e = null;
-                IJsonSerializer serializer = null;
+        }
 
-                var submissionMock = new Mock<ISubmissionClient>();
-                submissionMock.Setup(c => c.PostEvents(It.IsAny<IEnumerable<Event>>(), It.IsAny<ExceptionlessConfiguration>(), It.IsAny<IJsonSerializer>()))
-                    .Returns((IEnumerable<Event> a, ExceptionlessConfiguration b, IJsonSerializer c) => {
-                        e = a.Single();
-                        serializer = c;
-                        return new SubmissionResponse(200);
-                    });
-
-                ExceptionlessClient.Default.Configuration.Resolver.Register(submissionMock.Object);
-                ExceptionlessClient.Default.Configuration.ApiKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-                ExceptionlessExtensions.Register(ExceptionlessClient.Default);
-                exception.ToExceptionless().Submit();
-                ExceptionlessClient.Default.ProcessQueue();
-
-                var innerLineNumber = e.Data.GetValue<Error>(Event.KnownDataKeys.Error)
-                    .Inner
-                    .Inner
-                    .StackTrace.Single()
-                    .LineNumber;
-
-                var serialized = serializer.Serialize(e);
-                var expected = string.Format("\"line_number\":{0}", innerLineNumber);
-
-                Assert.Contains(expected, serialized);
-            }
+        private ExceptionlessClient CreateClient() {
+            return new ExceptionlessClient(c => {
+                c.UseDebugLogger();
+                c.ReadFromAttributes();
+                c.UserAgent = "testclient/1.0.0.0";
+            });
         }
     }
 
