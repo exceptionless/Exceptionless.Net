@@ -147,7 +147,8 @@ namespace Exceptionless.Tests.Serializer {
             } catch (Exception ex) {
                 var client = CreateClient();
                 var error = ex.ToErrorModel(client);
-                var ev = new Event { Data = { [Event.KnownDataKeys.Error] = error } };
+                var ev = new Event();
+                ev.Data[Event.KnownDataKeys.Error] = error;
 
                 IJsonSerializer serializer = GetSerializer();
                 string json = serializer.Serialize(ev);
