@@ -206,30 +206,31 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
-        public void VerifyDeduplication()
-        {
+        public void VerifyDeduplication() {
             var client = new ExceptionlessClient();
-
             var errorPlugin = new ErrorPlugin();
-            var duplicatCheckedPlugin = new DuplicateCheckerPlugin();
-
-            var eventBuilder = new Exception("Test").ToExceptionless();
+            var duplicateCheckerPlugin = new DuplicateCheckerPlugin();
             
-            var context = new EventPluginContext(client, eventBuilder.Target, eventBuilder.PluginContextData);
+            for (int index = 0; index < 2; index++) {
+                var builder = GetException().ToExceptionless();
+                var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
 
-            errorPlugin.Run(context);
-            duplicatCheckedPlugin.Run(context);
+                errorPlugin.Run(context);
+                duplicateCheckerPlugin.Run(context);
 
-            Assert.False(context.Cancel);
+                if (index == 0)
+                    Assert.False(context.Cancel);
+                else
+                    Assert.True(context.Cancel);
+            }
+        }
 
-            eventBuilder = new Exception("Test").ToExceptionless();
-
-            context = new EventPluginContext(client, eventBuilder.Target, eventBuilder.PluginContextData);
-
-            errorPlugin.Run(context);
-            duplicatCheckedPlugin.Run(context);
-
-            Assert.True(context.Cancel);
+        private Exception GetException(string message = "Test") {
+            try {
+                throw new Exception(message);
+            } catch (Exception ex) {
+                return ex;
+            }
         }
 
         public class PluginWithNoPriority : IEventPlugin {
