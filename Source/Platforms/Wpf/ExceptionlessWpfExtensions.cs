@@ -17,10 +17,12 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="showDialog">Controls whether a dialog is shown when an unhandled exception occurs.</param>
         public static void Register(this ExceptionlessClient client, bool showDialog = true) {
-            client.Configuration.UseSessions();
             client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
             client.Startup();
-            client.SubmitSessionStart();
+
+            if (client.Configuration.SessionsEnabled)
+                client.SubmitSessionStart();
+
             client.RegisterApplicationThreadExceptionHandler();
             client.RegisterApplicationDispatcherUnhandledExceptionHandler();
 
@@ -70,7 +72,9 @@ namespace Exceptionless {
         private static void RegisterOnProcessExitHandler(this ExceptionlessClient client) {
             if (_onProcessExit == null) {
                 _onProcessExit = (sender, args) => {
-                    client.SubmitSessionEnd();
+                    if (client.Configuration.SessionsEnabled)
+                        client.SubmitSessionEnd();
+
                     client.ProcessQueue();
                 };
             }

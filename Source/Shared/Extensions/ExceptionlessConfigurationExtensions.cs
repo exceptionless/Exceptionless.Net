@@ -87,6 +87,8 @@ namespace Exceptionless {
         }
 
         public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true) {
+            config.SessionsEnabled = true;
+
             if (sendHeartbeats)
                 config.AddPlugin<HeartbeatPlugin>();
         }

@@ -138,6 +138,11 @@ namespace Exceptionless {
         public bool IncludePrivateInformation { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to automatically send session start, session heartbeats and session end events.
+        /// </summary>
+        public bool SessionsEnabled { get; set; }
+
+        /// <summary>
         /// Maximum number of events that should be sent to the server together in a batch. (Defaults to 50)
         /// </summary>
         public int SubmissionBatchSize {
