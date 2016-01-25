@@ -8,7 +8,6 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Plugins;
 using Exceptionless.Storage;
 
 namespace Exceptionless {
@@ -88,6 +87,8 @@ namespace Exceptionless {
         }
 
         public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true) {
+            config.SessionsEnabled = true;
+
             if (sendHeartbeats)
                 config.AddPlugin<HeartbeatPlugin>();
         }
