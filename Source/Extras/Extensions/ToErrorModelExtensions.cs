@@ -150,9 +150,6 @@ namespace Exceptionless.Extras {
                     }
 
                     var module = assembly.ToModuleInfo();
-                    if (module.ModuleId > 0)
-                        continue;
-
                     module.ModuleId = id;
                     modules.Add(module);
 

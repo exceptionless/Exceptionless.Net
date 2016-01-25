@@ -8,7 +8,6 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Plugins;
 using Exceptionless.Storage;
 
 namespace Exceptionless {
