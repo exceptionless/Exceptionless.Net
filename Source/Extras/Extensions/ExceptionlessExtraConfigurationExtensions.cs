@@ -27,7 +27,7 @@ namespace Exceptionless {
             config.RemovePlugin<SimpleErrorPlugin>();
             config.AddPlugin<Plugins.ErrorPlugin>();
         }
-
+        
         public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
             config.Resolver.Register<IObjectStorage>(new IsolatedStorageObjectStorage(config.Resolver));
         }
@@ -142,20 +142,20 @@ namespace Exceptionless {
 
                     Type resolverInterface = types.FirstOrDefault(t => t.Name.Equals(resolver.Service) || t.FullName.Equals(resolver.Service));
                     if (resolverInterface == null) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), $"An error occurred while retrieving service type \"{resolver.Service}\".");
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), String.Format("An error occurred while retrieving service type \"{0}\".", resolver.Service));
                         continue;
                     }
 
                     try {
                         Type implementationType = Type.GetType(resolver.Type);
                         if (!resolverInterface.IsAssignableFrom(implementationType)) {
-                            config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), $"Type \"{resolver.Type}\" does not implement \"{resolver.Service}\".");
+                            config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), String.Format("Type \"{0}\" does not implement \"{1}\".", resolver.Type, resolver.Service));
                             continue;
                         }
 
                         config.Resolver.Register(resolverInterface, implementationType);
                     } catch (Exception ex) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), ex, $"An error occurred while registering service \"{resolver.Service}\" implementation \"{resolver.Type}\".");
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessExtraConfigurationExtensions), ex, String.Format("An error occurred while registering service \"{0}\" implementation \"{1}\".", resolver.Service, resolver.Type));
                     }
                 }
             }

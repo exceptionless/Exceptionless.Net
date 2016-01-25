@@ -12,7 +12,7 @@ namespace Exceptionless.Utility {
         private static readonly ConcurrentDictionary<string, WaitHandle> _namedLocks = new ConcurrentDictionary<string, WaitHandle>();
 
         private void InitWaitHandle() {
-            string mutexId = $"Global\\{{{_key}}}";
+            string mutexId = String.Format("Global\\{{{0}}}", _key);
 
             try {
                 var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), MutexRights.FullControl, AccessControlType.Allow);

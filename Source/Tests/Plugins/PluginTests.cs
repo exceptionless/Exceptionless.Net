@@ -104,25 +104,10 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Theory(Skip = "TODO: This needs to be skipped until the client is sending session start and end.")]
-        [InlineData(Event.KnownTypes.Error)]
-        [InlineData(Event.KnownTypes.FeatureUsage)]
-        [InlineData(Event.KnownTypes.Log)]
-        [InlineData(Event.KnownTypes.NotFound)]
-        [InlineData(Event.KnownTypes.SessionEnd)]
-        public void EnvironmentInfo_IncorrectEventType(string eventType) {
-            var client = new ExceptionlessClient();
-            var context = new EventPluginContext(client, new Event { Type = eventType });
-
-            var plugin = new EnvironmentInfoPlugin();
-            plugin.Run(context);
-            Assert.Equal(0, context.Event.Data.Count);
-        }
-
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {
             var client = new ExceptionlessClient();
-            var ev = new Event { Type = Event.KnownTypes.SessionStart };
+            var ev = new Event { Type = Event.KnownTypes.Session };
             var plugin = new EnvironmentInfoPlugin();
 
             Parallel.For(0, 10000, i => {
@@ -136,7 +121,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void EnvironmentInfo_ShouldAddSessionStart() {
             var client = new ExceptionlessClient();
-            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.SessionStart });
+            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Session });
          
             var plugin = new EnvironmentInfoPlugin();
             plugin.Run(context);
@@ -173,6 +158,121 @@ namespace Exceptionless.Tests.Plugins {
             context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Error });
             EventPluginManager.Run(context);
             Assert.NotNull(context.Event.ReferenceId);
+        }
+
+        [Fact]
+        public void PrivateInformation_WillSetIdentity() {
+            var client = new ExceptionlessClient();
+            var plugin = new SetEnvironmentUserPlugin();
+
+            var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Log, Message = "test" });
+            plugin.Run(context);
+
+            var user = context.Event.GetUserIdentity();
+            Assert.Equal(Environment.UserName, user.Identity);
+        }
+        
+        [Fact]
+        public void PrivateInformation_WillNotUpdateIdentity() {
+            var client = new ExceptionlessClient();
+            var plugin = new SetEnvironmentUserPlugin();
+
+            var ev = new Event { Type = Event.KnownTypes.Log, Message = "test" };
+            ev.SetUserIdentity(null, "Blake");
+            var context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+
+            var user = context.Event.GetUserIdentity();
+            Assert.Null(user.Identity);
+            Assert.Equal("Blake", user.Name);
+        }
+
+        [Theory]
+        [InlineData(Event.KnownTypes.Error, null, false)]
+        [InlineData(Event.KnownTypes.FeatureUsage, null, false)]
+        [InlineData(Event.KnownTypes.Log, null, false)]
+        [InlineData(Event.KnownTypes.NotFound, null, false)]
+        [InlineData(Event.KnownTypes.Session, null, true)]
+        [InlineData(Event.KnownTypes.Session, "123456789", false)]
+        [InlineData(Event.KnownTypes.SessionEnd, null, true)]
+        [InlineData(Event.KnownTypes.SessionEnd, "123456789", false)]
+        [InlineData(Event.KnownTypes.SessionHeartbeat, null, true)]
+        [InlineData(Event.KnownTypes.SessionHeartbeat, "123456789", false)]
+        public void CancelSessionsWithNoUserTest(string eventType, string identity, bool cancelled) {
+            var ev = new Event { Type = eventType };
+            ev.SetUserIdentity(identity);
+
+            var context = new EventPluginContext(new ExceptionlessClient(), ev);
+            var plugin = new CancelSessionsWithNoUserPlugin();
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+        }
+        
+        [Fact]
+        public void LazyLoadAndRemovePlugin() {
+            var configuration = new ExceptionlessConfiguration(DependencyResolver.Default);
+            foreach (var plugin in configuration.Plugins)
+                configuration.RemovePlugin(plugin.Key);
+
+            configuration.AddPlugin<ThrowIfInitializedTestPlugin>();
+            configuration.RemovePlugin<ThrowIfInitializedTestPlugin>();
+        }
+
+        private class ThrowIfInitializedTestPlugin : IEventPlugin, IDisposable {
+            public ThrowIfInitializedTestPlugin() {
+                throw new ApplicationException("Plugin shouldn't be constructed");
+            }
+
+            public void Run(EventPluginContext context) {}
+            
+            public void Dispose() {
+                throw new ApplicationException("Plugin shouldn't be created or disposed");
+            }
+        }
+
+        [Fact]
+        public void CanDisposePlugin() {
+            var configuration = new ExceptionlessConfiguration(DependencyResolver.Default);
+            foreach (var plugin in configuration.Plugins)
+                configuration.RemovePlugin(plugin.Key);
+
+            Assert.Equal(0, CounterTestPlugin.ConstructorCount);
+            Assert.Equal(0, CounterTestPlugin.RunCount);
+            Assert.Equal(0, CounterTestPlugin.DisposeCount);
+
+            configuration.AddPlugin<CounterTestPlugin>();
+            configuration.AddPlugin<CounterTestPlugin>();
+
+            for (int i = 0; i < 2; i++) {
+                foreach (var pluginRegistration in configuration.Plugins)
+                    pluginRegistration.Plugin.Run(new EventPluginContext(new ExceptionlessClient(), new Event()));
+            }
+
+            configuration.RemovePlugin<CounterTestPlugin>();
+            configuration.RemovePlugin<CounterTestPlugin>();
+
+
+            Assert.Equal(1, CounterTestPlugin.ConstructorCount);
+            Assert.Equal(2, CounterTestPlugin.RunCount);
+            Assert.Equal(1, CounterTestPlugin.DisposeCount);
+        }
+
+        public class CounterTestPlugin : IEventPlugin, IDisposable {
+            public static byte ConstructorCount = 0;
+            public static byte RunCount = 0;
+            public static byte DisposeCount = 0;
+
+            public CounterTestPlugin() {
+                ConstructorCount++;
+            }
+
+            public void Run(EventPluginContext context) {
+                RunCount++;
+            }
+            
+            public void Dispose() {
+                DisposeCount++;
+            }
         }
 
         [Fact]

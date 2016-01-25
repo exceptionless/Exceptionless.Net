@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Exceptionless.Models;
 using Exceptionless.Storage;
@@ -31,11 +32,11 @@ namespace Exceptionless.Extensions {
         public static bool IncrementAttempts(this IObjectStorage storage, ObjectInfo info) {
             string[] parts = info.Path.Split('.');
             if (parts.Length < 3)
-                throw new ArgumentException($"Path \"{info.Path}\" must contain the number of attempts.");
+                throw new ArgumentException(String.Format("Path \"{0}\" must contain the number of attempts.", info.Path));
 
             int version;
             if (!Int32.TryParse(parts[1], out version))
-                throw new ArgumentException($"Path \"{info.Path}\" must contain the number of attempts.");
+                throw new ArgumentException(String.Format("Path \"{0}\" must contain the number of attempts.", info.Path));
 
             version++;
             string newpath = String.Join(".", parts[0], version, parts[2]);

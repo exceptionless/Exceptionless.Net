@@ -24,7 +24,7 @@ namespace Exceptionless {
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
             if (resolver == null)
-                throw new ArgumentNullException(nameof(resolver));
+                throw new ArgumentNullException("resolver");
 
             ServerUrl = DEFAULT_SERVER_URL;
             UserAgent = DEFAULT_USER_AGENT;
@@ -35,13 +35,16 @@ namespace Exceptionless {
             DefaultTags = new TagSet();
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
+            IncludePrivateInformation = true;
 
             _resolver = resolver;
 
             EventPluginManager.AddDefaultPlugins(this);
         }
 
-        internal bool IsLocked => _configLocked;
+        internal bool IsLocked {
+            get { return _configLocked; }
+        }
 
         internal void LockConfig() {
             if (_configLocked)
@@ -182,7 +185,7 @@ namespace Exceptionless {
         /// <summary>
         /// The dependency resolver to use for this configuration.
         /// </summary>
-        public IDependencyResolver Resolver => _resolver;
+        public IDependencyResolver Resolver { get { return _resolver; } }
 
         #region Plugins
 
@@ -271,8 +274,10 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key for the plugin to be removed.</param>
         public void RemovePlugin(string key) {
-            if (_plugins.ContainsKey(key))
+            if (_plugins.ContainsKey(key)) {
+                _plugins[key].Dispose();
                 _plugins.Remove(key);
+            }
         }
 
         private int GetPriority(Type type) {
@@ -281,7 +286,7 @@ namespace Exceptionless {
 
             try {
                 var priorityAttribute = type.GetCustomAttributes(typeof(PriorityAttribute), true).FirstOrDefault() as PriorityAttribute;
-                return priorityAttribute?.Priority ?? 0;
+                return priorityAttribute != null ? priorityAttribute.Priority : 0;
             } catch (Exception ex) {
                 Resolver.GetLog().Error(typeof(ExceptionlessConfiguration), ex, "An error occurred while getting the priority for type: " + type.FullName);
             }
@@ -306,12 +311,12 @@ namespace Exceptionless {
 
             var result = new ValidationResult();
 
-            string key = ApiKey?.Trim();
+            string key = ApiKey != null ? ApiKey.Trim() : null;
             if (String.IsNullOrEmpty(key) || String.Equals(key, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase))
                 result.Messages.Add("ApiKey is not set.");
 
             if (key != null && (key.Length < 10 || key.Contains(" ")))
-                result.Messages.Add($"ApiKey \"{key}\" is not valid.");
+                result.Messages.Add(String.Format("ApiKey \"{0}\" is not valid.", key));
 
             if (String.IsNullOrEmpty(ServerUrl))
                 result.Messages.Add("ServerUrl is not set.");
@@ -324,12 +329,12 @@ namespace Exceptionless {
                 Messages = new List<string>();
             }
 
-            public bool IsValid => Messages.Count == 0;
+            public bool IsValid { get { return Messages.Count == 0; } }
             public ICollection<string> Messages { get; private set; }
         }
 
         [DebuggerDisplay("Key: {Key}, Priority: {Priority}")]
-        public class PluginRegistration {
+        public class PluginRegistration : IDisposable {
             private readonly Lazy<IEventPlugin> _plugin;
             public PluginRegistration(string key, int priority, Lazy<IEventPlugin> plugin) {
                 Key = key;
@@ -341,10 +346,21 @@ namespace Exceptionless {
 
             public string Key { get; private set; }
 
-            public IEventPlugin Plugin => _plugin.Value;
+            public IEventPlugin Plugin {
+                get { return _plugin.Value; }
+            }
 
             public override string ToString() {
-                return $"Key: {Key}, Priority: {Priority}";
+                return String.Format("Key: {0}, Priority: {1}", Key, Priority);
+            }
+
+            public void Dispose() {
+                if (!_plugin.IsValueCreated)
+                    return;
+
+                var disposable = _plugin.Value as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
             }
         }
     }

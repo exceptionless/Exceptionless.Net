@@ -4,7 +4,6 @@ using System.Web;
 using System.Web.Mvc;
 using Exceptionless.Dependency;
 using Exceptionless.Web;
-using Exceptionless.Web.Extensions;
 
 namespace Exceptionless.Mvc {
     public class ExceptionlessModule : IHttpModule {
@@ -12,8 +11,6 @@ namespace Exceptionless.Mvc {
 
         public virtual void Init(HttpApplication app) {
             ExceptionlessClient.Default.Startup();
-            ExceptionlessClient.Default.RegisterHttpApplicationErrorHandler(app);
-            ExceptionlessClient.Default.Configuration.IncludePrivateInformation = true;
             ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
             ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
             
@@ -25,7 +22,6 @@ namespace Exceptionless.Mvc {
 
         public void Dispose() {
             ExceptionlessClient.Default.Shutdown();
-            ExceptionlessClient.Default.UnregisterHttpApplicationErrorExceptionHandler(_app);
         }
     }
 }

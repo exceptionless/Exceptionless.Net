@@ -26,7 +26,6 @@ namespace Exceptionless {
             client.Configuration.UseErrorPlugin();
             client.Configuration.UseTraceLogEntriesPlugin();
             client.Configuration.AddPlugin<VersionPlugin>();
-            client.Configuration.AddPlugin<PrivateInformationPlugin>();
             
             client.RegisterAppDomainUnhandledExceptionHandler(appDomain);
             client.RegisterTaskSchedulerUnobservedTaskExceptionHandler();

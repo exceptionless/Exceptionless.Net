@@ -95,10 +95,17 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Returns true if the event type is session heartbeat.
+        /// </summary>
+        public static bool IsSessionHeartbeat(this Event ev) {
+            return ev.Type == Event.KnownTypes.SessionHeartbeat;
+        }
+
+        /// <summary>
         /// Returns true if the event type is session start.
         /// </summary>
         public static bool IsSessionStart(this Event ev) {
-            return ev.Type == Event.KnownTypes.SessionStart;
+            return ev.Type == Event.KnownTypes.Session;
         }
 
         /// <summary>
