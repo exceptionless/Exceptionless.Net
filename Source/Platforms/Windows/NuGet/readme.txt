@@ -47,6 +47,19 @@ the following method.
 exception.ToExceptionless().Submit()
 
 -------------------------------------
+   Session Tracking
+-------------------------------------
+Exceptionless can also track user sessions which enables powerful application analytics.
+
+Session tracking can be enabled by simply adding this line to the startup of your application:
+
+ExceptionlessClient.Default.Configuration.UseSessions()
+
+You will also need to tell Exceptionless who the current user is in your application when the user logs in:
+
+ExceptionlessClient.Default.Configuration.SetUserIdentity("UNIQUE_ID_OR_EMAIL_ADDRESS", "Display Name")
+
+-------------------------------------
 	  Documentation and Support
 -------------------------------------
 Please visit http://exceptionless.io for documentation and support.

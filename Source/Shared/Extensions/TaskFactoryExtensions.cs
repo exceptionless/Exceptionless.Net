@@ -36,14 +36,14 @@ namespace Exceptionless.Threading.Tasks {
 
         public static Task FromCancellation(this TaskFactory factory, CancellationToken cancellationToken) {
             if (!cancellationToken.IsCancellationRequested)
-                throw new ArgumentOutOfRangeException(nameof(cancellationToken));
+                throw new ArgumentOutOfRangeException("cancellationToken");
 
             return new Task(() => { }, cancellationToken);
         }
 
         public static Task<TResult> FromCancellation<TResult>(this TaskFactory factory, CancellationToken cancellationToken) {
             if (!cancellationToken.IsCancellationRequested)
-                throw new ArgumentOutOfRangeException(nameof(cancellationToken));
+                throw new ArgumentOutOfRangeException("cancellationToken");
 
             return new Task<TResult>(DelegateCache<TResult>.DefaultResult, cancellationToken);
         }
@@ -66,7 +66,7 @@ namespace Exceptionless.Threading.Tasks {
 
         public static Task<TResult> FromCancellation<TResult>(this TaskFactory<TResult> factory, CancellationToken cancellationToken) {
             if (!cancellationToken.IsCancellationRequested)
-                throw new ArgumentOutOfRangeException(nameof(cancellationToken));
+                throw new ArgumentOutOfRangeException("cancellationToken");
 
             return new Task<TResult>(DelegateCache<TResult>.DefaultResult, cancellationToken);
         }

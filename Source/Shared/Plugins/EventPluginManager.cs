@@ -29,6 +29,7 @@ namespace Exceptionless.Plugins {
             config.AddPlugin<DuplicateCheckerPlugin>();
             config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<SubmissionMethodPlugin>();
+            config.AddPlugin<CancelSessionsWithNoUserPlugin>();
         }
     }
 }

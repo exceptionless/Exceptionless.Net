@@ -114,7 +114,7 @@ namespace Exceptionless.Extras {
         };
 
         private static string GetMessage(this Exception exception) {
-            string defaultMessage = $"Exception of type '{exception.GetType().FullName}' was thrown.";
+            string defaultMessage = String.Format("Exception of type '{0}' was thrown.", exception.GetType().FullName);
             string message = !String.IsNullOrEmpty(exception.Message) ? String.Join(" ", exception.Message.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)).Trim() : null;
 
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
@@ -150,9 +150,6 @@ namespace Exceptionless.Extras {
                     }
 
                     var module = assembly.ToModuleInfo();
-                    if (module.ModuleId > 0)
-                        continue;
-
                     module.ModuleId = id;
                     modules.Add(module);
 

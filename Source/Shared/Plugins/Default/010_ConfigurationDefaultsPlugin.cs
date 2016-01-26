@@ -7,8 +7,10 @@ namespace Exceptionless.Plugins.Default {
             foreach (string tag in context.Client.Configuration.DefaultTags)
                 context.Event.Tags.Add(tag);
 
-            foreach (var data in context.Client.Configuration.DefaultData)
-                context.Event.SetProperty(data.Key, data.Value, client: context.Client);
+            foreach (var data in context.Client.Configuration.DefaultData) {
+                if (!context.Event.Data.ContainsKey(data.Key))
+                    context.Event.SetProperty(data.Key, data.Value, client: context.Client);
+            }
         }
     }
 }

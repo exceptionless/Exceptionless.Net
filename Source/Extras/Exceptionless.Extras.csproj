@@ -36,6 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.Extras.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
@@ -51,10 +52,10 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Plugins\ErrorPlugin.cs" />
-    <Compile Include="Plugins\PrivateInformationPlugin.cs" />
-    <Compile Include="Plugins\TraceLogPlugin.cs" />
-    <Compile Include="Plugins\VersionPlugin.cs" />
+    <Compile Include="Plugins\20_ErrorPlugin.cs" />
+    <Compile Include="Plugins\15_PrivateInformationPlugin.cs" />
+    <Compile Include="Plugins\70_TraceLogPlugin.cs" />
+    <Compile Include="Plugins\80_VersionPlugin.cs" />
     <Compile Include="ExceptionlessSection.cs" />
     <Compile Include="Extensions\EventBuilderExtensions.cs" />
     <Compile Include="Extensions\ExceptionlessClientExtensions.cs" />

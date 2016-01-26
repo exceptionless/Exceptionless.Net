@@ -19,7 +19,6 @@ namespace Exceptionless {
         /// <param name="pipelines">The IPipelines instance.</param>
         public static void RegisterNancy(this ExceptionlessClient client, IPipelines pipelines) {
             client.Startup();
-            client.Configuration.IncludePrivateInformation = true;
             client.Configuration.AddPlugin<ExceptionlessNancyPlugin>();
 
             pipelines.OnError += OnError;

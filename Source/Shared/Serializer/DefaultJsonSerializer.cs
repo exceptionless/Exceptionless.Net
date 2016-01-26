@@ -26,7 +26,7 @@ namespace Exceptionless.Serializer {
             _serializerSettings.Converters.Add(new RequestInfoConverter());
         }
 
-        public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 5, bool continueOnSerializationError = true) {
+        public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 10, bool continueOnSerializationError = true) {
             if (model == null)
                 return null;
 

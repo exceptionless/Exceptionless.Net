@@ -10,7 +10,7 @@ namespace Exceptionless {
         public EventBuilder(Event ev, ExceptionlessClient client = null, ContextData pluginContextData = null) {
             Client = client ?? ExceptionlessClient.Default;
             Target = ev;
-            PluginContextData = pluginContextData;
+            PluginContextData = pluginContextData ?? new ContextData();
         }
 
         /// <summary>
@@ -40,28 +40,32 @@ namespace Exceptionless {
             Target.Source = source;
             return this;
         }
-
-        /// <summary>
-        /// Sets the event session id.
-        /// </summary>
-        /// <param name="sessionId">The event session id.</param>
-        public EventBuilder SetSessionId(string sessionId) {
-            if (!IsValidIdentifier(sessionId))
-                throw new ArgumentException("SessionId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(sessionId));
-
-            Target.SessionId = sessionId;
-            return this;
-        }
-
+        
         /// <summary>
         /// Sets the event reference id.
         /// </summary>
         /// <param name="referenceId">The event reference id.</param>
         public EventBuilder SetReferenceId(string referenceId) {
             if (!IsValidIdentifier(referenceId))
-                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(referenceId));
+                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", "referenceId");
 
             Target.ReferenceId = referenceId;
+            return this;
+        }
+
+        /// <summary>
+        /// Allows you to reference a parent event by its <seealso cref="Event.ReferenceId" /> property. This allows you to have parent and child relationships.
+        /// </summary>
+        /// <param name="name">Reference name</param>
+        /// <param name="id">The reference id that points to a specific event</param>
+        public EventBuilder SetEventReference(string name, string id) {
+            if (String.IsNullOrEmpty(name))
+                throw new ArgumentNullException("name");
+
+            if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
+                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", "id");
+
+           Target.SetProperty(String.Format("@ref:{0}", name), id);
             return this;
         }
 
@@ -97,7 +101,7 @@ namespace Exceptionless {
             if (coordinates.Contains(",") || coordinates.Contains(".") || coordinates.Contains(":"))
                 Target.Geo = coordinates;
             else
-                throw new ArgumentException("Must be either lat,lon or an IP address.", nameof(coordinates));
+                throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
 
             return this;
         }
@@ -109,9 +113,9 @@ namespace Exceptionless {
         /// <param name="longitude">The event longitude.</param>
         public EventBuilder SetGeo(double latitude, double longitude) {
             if (latitude < -90.0 || latitude > 90.0)
-                throw new ArgumentOutOfRangeException(nameof(latitude), "Must be a valid latitude value between -90.0 and 90.0.");
+                throw new ArgumentOutOfRangeException("latitude", "Must be a valid latitude value between -90.0 and 90.0.");
             if (longitude < -180.0 || longitude > 180.0)
-                throw new ArgumentOutOfRangeException(nameof(longitude), "Must be a valid longitude value between -180.0 and 180.0.");
+                throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
             
             Target.Geo = latitude + "," + longitude;
             return this;

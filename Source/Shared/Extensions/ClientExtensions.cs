@@ -160,36 +160,48 @@ namespace Exceptionless {
         /// Creates a session start event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="sessionId">The session id.</param>
-        public static EventBuilder CreateSessionStart(this ExceptionlessClient client, string sessionId) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionStart).SetSessionId(sessionId);
+        public static EventBuilder CreateSessionStart(this ExceptionlessClient client) {
+            return client.CreateEvent().SetType(Event.KnownTypes.Session);
         }
-        
+
         /// <summary>
         /// Submits a session start event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="sessionId">The session id.</param>
-        public static void SubmitSessionStart(this ExceptionlessClient client, string sessionId) {
-            client.CreateSessionStart(sessionId).Submit();
+        public static void SubmitSessionStart(this ExceptionlessClient client) {
+            client.CreateSessionStart().Submit();
         }
 
         /// <summary>
         /// Creates a session end event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="sessionId">The session id.</param>
-        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client, string sessionId) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd).SetSessionId(sessionId);
+        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client) {
+            return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd);
         }
-        
+
         /// <summary>
         /// Submits a session end event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        /// <param name="sessionId">The session id.</param>
-        public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionId) {
-            client.CreateSessionEnd(sessionId).Submit();
+        public static void SubmitSessionEnd(this ExceptionlessClient client) {
+            client.CreateSessionEnd().Submit();
+        }
+
+        /// <summary>
+        /// Creates a session heartbeat event.
+        /// </summary>
+        /// <param name="client">The client instance.</param>
+        public static EventBuilder CreateSessionHeartbeat(this ExceptionlessClient client) {
+            return client.CreateEvent().SetType(Event.KnownTypes.SessionHeartbeat);
+        }
+
+        /// <summary>
+        /// Submits a session heartbeat event.
+        /// </summary>
+        /// <param name="client">The client instance.</param>
+        public static void SubmitSessionHeartbeat(this ExceptionlessClient client) {
+            client.CreateSessionHeartbeat().Submit();
         }
     }
 }

@@ -127,7 +127,7 @@ namespace SampleConsole {
 
             ExceptionlessClient.Default.SubmitFeatureUsage("MyFeature");
             ExceptionlessClient.Default.SubmitNotFound("/somepage");
-            ExceptionlessClient.Default.SubmitSessionStart(Guid.NewGuid().ToString("N"));
+            ExceptionlessClient.Default.SubmitSessionStart();
 
             try {
                 throw new ApplicationException("Test");
@@ -143,7 +143,7 @@ namespace SampleConsole {
                 ClearConsoleLines(0, OPTIONS_MENU_LINE_COUNT - 1);
                 Console.WriteLine("1: Send 1");
                 Console.WriteLine("2: Send 100");
-                Console.WriteLine("3: Send continous");
+                Console.WriteLine("3: Send continuous");
                 Console.WriteLine("4: Process queue");
                 Console.WriteLine("5: Process directory");
                 Console.WriteLine("D: Change date range (" + _dateSpans[_dateSpanIndex].ToWords() + ")");

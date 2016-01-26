@@ -60,7 +60,7 @@ namespace Exceptionless.Extensions {
 
         private static string EscapeUriDataStringRfc3986(string value) {
             if (value == null)
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException("value");
 
             return value; //.HexEscape(_uriRfc3986CharsToEscape);
         }
