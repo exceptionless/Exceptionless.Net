@@ -41,5 +41,32 @@ namespace Exceptionless.Models.Data {
         /// The target method.
         /// </summary>
         public Method TargetMethod { get; set; }
+
+        protected bool Equals(InnerError other) {
+            return string.Equals(Message, other.Message) && string.Equals(Type, other.Type) && string.Equals(Code, other.Code) && Equals(Data, other.Data) && Equals(Inner, other.Inner) && StackTrace.CollectionEquals(other.StackTrace) && Equals(TargetMethod, other.TargetMethod);
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((InnerError)obj);
+        }
+
+        public override int GetHashCode() {
+            unchecked {
+                var hashCode = Message?.GetHashCode() ?? 0;
+                hashCode = (hashCode * 397) ^ (Type?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (Code?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (Inner?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (StackTrace?.GetCollectionHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (TargetMethod?.GetHashCode() ?? 0);
+                return hashCode;
+            }
+        }
     }
 }

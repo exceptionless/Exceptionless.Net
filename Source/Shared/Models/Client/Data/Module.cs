@@ -25,5 +25,32 @@ namespace Exceptionless.Models.Data {
 
             return sb.ToString();
         }
+
+        protected bool Equals(Module other) {
+            return ModuleId == other.ModuleId && string.Equals(Name, other.Name) && string.Equals(Version, other.Version) && IsEntry == other.IsEntry && CreatedDate.Equals(other.CreatedDate) && ModifiedDate.Equals(other.ModifiedDate) && Equals(Data, other.Data);
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((Module)obj);
+        }
+
+        public override int GetHashCode() {
+            unchecked {
+                var hashCode = ModuleId;
+                hashCode = (hashCode * 397) ^ (Name?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (Version?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ IsEntry.GetHashCode();
+                hashCode = (hashCode * 397) ^ CreatedDate.GetHashCode();
+                hashCode = (hashCode * 397) ^ ModifiedDate.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
+                return hashCode;
+            }
+        }
     }
 }

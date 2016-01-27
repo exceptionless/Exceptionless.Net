@@ -18,5 +18,33 @@ namespace Exceptionless.Models.Data {
         public DataDictionary Data { get; set; }
         public GenericArguments GenericArguments { get; set; }
         public ParameterCollection Parameters { get; set; }
+
+        protected bool Equals(Method other) {
+            return IsSignatureTarget == other.IsSignatureTarget && string.Equals(DeclaringNamespace, other.DeclaringNamespace) && string.Equals(DeclaringType, other.DeclaringType) && string.Equals(Name, other.Name) && ModuleId == other.ModuleId && Equals(Data, other.Data) && GenericArguments.CollectionEquals(other.GenericArguments) && Parameters.CollectionEquals(other.Parameters);
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((Method)obj);
+        }
+
+        public override int GetHashCode() {
+            unchecked {
+                var hashCode = IsSignatureTarget.GetHashCode();
+                hashCode = (hashCode * 397) ^ (DeclaringNamespace?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (DeclaringType?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (Name?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ ModuleId;
+                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (GenericArguments?.GetCollectionHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (Parameters?.GetCollectionHashCode() ?? 0);
+                return hashCode;
+            }
+        }
     }
 }
