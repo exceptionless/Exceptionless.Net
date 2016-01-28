@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Exceptionless
 {
@@ -28,7 +29,7 @@ namespace Exceptionless
             return true;
         }
 
-        public static bool CollectionEquals<TKey, TValue>(this IDictionary<TKey, TValue> source, IDictionary<TKey, TValue> other)
+        public static bool CollectionEquals<TValue>(this IDictionary<string, TValue> source, IDictionary<string, TValue> other)
         {
             if (source.Count != other.Count) {
                 return false;
@@ -62,16 +63,13 @@ namespace Exceptionless
             return hashCode;
         }
 
-        public static int GetCollectionHashCode<TKey, TValue>(this IDictionary<TKey, TValue> source)
+        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source)
         {
-            int hashCode = typeof(TKey).GetHashCode();
-            unchecked {
-                hashCode = (hashCode * 397) ^ typeof(TValue).GetHashCode();
-            }
+            int hashCode = typeof(TValue).GetHashCode();
 
             var keyValuePairHashes = new List<int>(source.Keys.Count);
 
-            foreach (var key in source.Keys) {
+            foreach (var key in source.Keys.OrderBy(x => x)) {
                 var item = source[key];
                 unchecked {
                     var kvpHash = key.GetHashCode();
