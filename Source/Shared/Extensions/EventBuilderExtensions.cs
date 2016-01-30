@@ -54,5 +54,16 @@ namespace Exceptionless {
             builder.Target.SetVersion(version);
             return builder;
         }
+
+        /// <summary>
+        /// Changes default stacking behavior by setting the stacking key.
+        /// </summary>
+        /// <param name="builder">The event builder object.</param>
+        /// <param name="stackingKey">The manual stacking key.</param>
+        public static EventBuilder SetManualStackingKey(this EventBuilder builder, string manualStackingKey)
+        {
+            builder.Target.SetManualStackingKey(manualStackingKey);
+            return builder;
+        }
     }
 }
