@@ -13,7 +13,7 @@ namespace Exceptionless.Plugins.Default {
         private Timer _timer;
 
         public DuplicateCheckerPlugin() {
-            _timer = new Timer(OnTimer, null, -1, 10000);
+            _timer = new Timer(OnTimer, null, -1, 30 * 1000);
         }
 
         public void Dispose() {
@@ -24,18 +24,10 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private void OnTimer(object state) {
-            DateTimeOffset repeatWindowCap = DateTimeOffset.Now.AddSeconds(-30);
-
+            // There's a chance the timer runs just after the duplicate occurred, that's not a problem because it will catch a lot of other duplicates if the event keeps ocurring
             RecentErrorDetail recentError;
-            while (_recentDuplicates.TryPeek(out recentError)) {
-                if (recentError.FirstOccurrence > repeatWindowCap) {
-                    // Not old enough yet
-                    return;
-                }
-
-                if (_recentDuplicates.TryDequeue(out recentError)) {
-                    recentError.Send();
-                }
+            while (_recentDuplicates.TryDequeue(out recentError)) {
+                recentError.Send();
             }
         }
 
@@ -75,17 +67,14 @@ namespace Exceptionless.Plugins.Default {
         }
 
         class RecentErrorDetail {
-
             public RecentErrorDetail(int hashCode, EventPluginContext context) {
                 HashCode = hashCode;
                 _context = context;
-                FirstOccurrence = DateTimeOffset.Now;
                 _count = 1;
             }
 
             private readonly EventPluginContext _context;
             public int HashCode { get; }
-            public DateTimeOffset FirstOccurrence { get; }
             private int _count;
 
             public void IncrementCount() {
