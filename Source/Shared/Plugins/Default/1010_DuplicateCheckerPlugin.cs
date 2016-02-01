@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using Exceptionless.Logging;
-using Exceptionless.Models;
 using Exceptionless.Dependency;
 
 namespace Exceptionless.Plugins.Default {
@@ -18,18 +17,25 @@ namespace Exceptionless.Plugins.Default {
         }
 
         public void Dispose() {
-            _timer.Dispose();
-            _timer = null;
-
-            GC.SuppressFinalize(this);
+            if (_timer != null) {
+                _timer.Dispose();
+                _timer = null;
+            }
         }
 
         private void OnTimer(object state) {
             DateTimeOffset repeatWindowCap = DateTimeOffset.Now.AddSeconds(-30);
 
-            var expired = _recentDuplicates.Where(x => x.FirstOccurrence < repeatWindowCap).ToList();
+            RecentErrorDetail recentError;
+            if (!_recentDuplicates.TryPeek(out recentError))
+                return;
 
-            foreach (var recentError in expired) {
+            if (recentError.FirstOccurrence > repeatWindowCap) {
+                // Not old enough yet
+                return;
+            }
+
+            if (_recentDuplicates.TryDequeue(out recentError)) {
                 recentError.Send();
             }
         }
@@ -73,34 +79,23 @@ namespace Exceptionless.Plugins.Default {
 
             public RecentErrorDetail(int hashCode, EventPluginContext context) {
                 HashCode = hashCode;
-                Context = context;
-                FirstOccurrence = LastOccurrence = DateTimeOffset.Now;
+                _context = context;
+                FirstOccurrence = DateTimeOffset.Now;
                 _count = 1;
             }
 
-            public EventPluginContext Context { get; private set; }
-            public int HashCode { get; private set; }
-            public DateTimeOffset FirstOccurrence { get; private set; }
-            public DateTimeOffset LastOccurrence { get; private set; }
-            public int _count;
+            private readonly EventPluginContext _context;
+            public int HashCode { get; }
+            public DateTimeOffset FirstOccurrence { get; }
+            private int _count;
 
             public void IncrementCount() {
-                if (_count == 0) {
-                    // Handle the case after the reset.
-                    FirstOccurrence = DateTimeOffset.Now;
-                }
-
                 Interlocked.Increment(ref _count);
-                LastOccurrence = DateTimeOffset.Now;
             }
 
             public void Send() {
-                Context.Event.Value = _count;
-
-                // reset counter to be ready for the next wave
-                _count = 0;
-
-                Context.Resolver.GetEventQueue().Enqueue(Context.Event);
+                _context.Event.Value = _count;
+                _context.Resolver.GetEventQueue().Enqueue(_context.Event);
             }
         }
     }
