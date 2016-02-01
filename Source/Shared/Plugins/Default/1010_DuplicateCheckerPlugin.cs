@@ -25,7 +25,7 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private void OnTimer(object state) {
-            DateTime repeatWindowCap = DateTime.Now.AddSeconds(-30);
+            DateTimeOffset repeatWindowCap = DateTimeOffset.Now.AddSeconds(-30);
 
             var expired = _recentDuplicates.Where(x => x.FirstOccurrence < repeatWindowCap).ToList();
 
@@ -74,24 +74,24 @@ namespace Exceptionless.Plugins.Default {
             public RecentErrorDetail(int hashCode, EventPluginContext context) {
                 HashCode = hashCode;
                 Context = context;
-                FirstOccurrence = LastOccurrence = DateTime.Now;
+                FirstOccurrence = LastOccurrence = DateTimeOffset.Now;
                 _count = 1;
             }
 
             public EventPluginContext Context { get; private set; }
             public int HashCode { get; private set; }
-            public DateTime FirstOccurrence { get; private set; }
-            public DateTime LastOccurrence { get; private set; }
+            public DateTimeOffset FirstOccurrence { get; private set; }
+            public DateTimeOffset LastOccurrence { get; private set; }
             public int _count;
 
             public void IncrementCount() {
                 if (_count == 0) {
                     // Handle the case after the reset.
-                    FirstOccurrence = DateTime.Now;
+                    FirstOccurrence = DateTimeOffset.Now;
                 }
 
                 Interlocked.Increment(ref _count);
-                LastOccurrence = DateTime.Now;
+                LastOccurrence = DateTimeOffset.Now;
             }
 
             public void Send() {
