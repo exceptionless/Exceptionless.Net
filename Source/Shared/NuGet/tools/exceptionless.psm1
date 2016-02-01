@@ -36,6 +36,15 @@ function update_config($configPath, $platform) {
 	$shouldSave = $false
 
 	if ($configXml -ne $null) {
+		
+		$configSections = $configXml.SelectSingleNode("configuration/configSections")
+		if ($configSections -eq $null)
+		{
+			$configuration = $configXml.SelectSingleNode("configuration")
+			$configSections = $configXml.CreateElement('configSections')	
+			$configuration.AppendChild($configSections)
+		}
+		
 		$configSection = $configXml.SelectSingleNode("configuration/configSections/section[@name='exceptionless']")
 		if ($configSection -eq $null) {
 			$parentNode = $configXml.SelectSingleNode("configuration/configSections")
