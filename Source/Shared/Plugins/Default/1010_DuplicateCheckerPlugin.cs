@@ -27,16 +27,15 @@ namespace Exceptionless.Plugins.Default {
             DateTimeOffset repeatWindowCap = DateTimeOffset.Now.AddSeconds(-30);
 
             RecentErrorDetail recentError;
-            if (!_recentDuplicates.TryPeek(out recentError))
-                return;
+            while (_recentDuplicates.TryPeek(out recentError)) {
+                if (recentError.FirstOccurrence > repeatWindowCap) {
+                    // Not old enough yet
+                    return;
+                }
 
-            if (recentError.FirstOccurrence > repeatWindowCap) {
-                // Not old enough yet
-                return;
-            }
-
-            if (_recentDuplicates.TryDequeue(out recentError)) {
-                recentError.Send();
+                if (_recentDuplicates.TryDequeue(out recentError)) {
+                    recentError.Send();
+                }
             }
         }
 
