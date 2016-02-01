@@ -52,13 +52,8 @@ namespace Exceptionless.Models {
         /// </summary>
         public string ReferenceId { get; set; }
 
-        /// <summary>
-        /// A unique id that identifies a usage session that this event belongs to.
-        /// </summary>
-        public string SessionId { get; set; }
-
         protected bool Equals(Event other) {
-            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Equals(Data, other.Data) && string.Equals(SessionId, other.SessionId);
+            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Equals(Data, other.Data);
         }
 
         public override bool Equals(object obj) {
@@ -80,7 +75,6 @@ namespace Exceptionless.Models {
                 hashCode = (hashCode * 397) ^ (Geo?.GetHashCode() ?? 0);
                 hashCode = (hashCode * 397) ^ Value.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (SessionId?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }
