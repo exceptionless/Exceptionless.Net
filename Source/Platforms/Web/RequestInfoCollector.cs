@@ -48,7 +48,7 @@ namespace Exceptionless.ExtendedData {
 
             if (context.Request.Form.Count > 0)
                 info.PostData = context.Request.Form.ToDictionary(config.DataExclusions);
-            else if (context.Request.ContentLength > 0 && context.Request.ContentLength < 1024 * 4) {
+            else if (context.Request.ContentLength > 0 && context.Request.ContentLength < 1024 * 50) {
                 try {
                     context.Request.InputStream.Position = 0;
                     using (var inputStream = new StreamReader(context.Request.InputStream))
