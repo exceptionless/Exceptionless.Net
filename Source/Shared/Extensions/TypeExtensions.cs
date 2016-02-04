@@ -39,7 +39,9 @@ namespace Exceptionless.Extensions {
         public static object GetDefaultValue(this Type type) {
             if (type == null || type.IsNullable())
                 return null;
-            
+
+            if (type == typeof(string))
+                return default(string);
             if (type == typeof(bool))
                 return default(bool);
             if (type == typeof(byte))
@@ -64,6 +66,9 @@ namespace Exceptionless.Extensions {
                 return default(ulong);
             if (type == typeof(ushort))
                 return default(ushort);
+
+            if (type.IsClass || type.IsInterface)
+                return null;
 
             return Activator.CreateInstance(type);
         }

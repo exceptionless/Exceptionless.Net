@@ -63,9 +63,10 @@ namespace Exceptionless.Extensions {
             try {
                 if (exception.Data != null) {
                     var genericTypes = exception.Data.GetType().GetGenericArguments();
-                    exception.Data[_marker] = genericTypes.Length > 0 ? genericTypes[0].GetDefaultValue() : null;
+                    if (genericTypes.Length == 0 || genericTypes[0].IsAssignableFrom(typeof(string)))
+                        exception.Data[_marker] = genericTypes.Length > 0 ? genericTypes[1].GetDefaultValue() : null;
                 }
-            } catch (Exception) { }
+            } catch (Exception) {}
 
             MarkProcessed(exception.InnerException);
         }
