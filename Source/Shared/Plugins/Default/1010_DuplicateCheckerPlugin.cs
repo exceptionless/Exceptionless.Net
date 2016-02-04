@@ -12,8 +12,8 @@ namespace Exceptionless.Plugins.Default {
         private readonly ConcurrentQueue<RecentErrorDetail> _recentDuplicates = new ConcurrentQueue<RecentErrorDetail>();
         private Timer _timer;
 
-        public DuplicateCheckerPlugin() {
-            _timer = new Timer(OnTimer, null, -1, 30 * 1000);
+        public DuplicateCheckerPlugin(int interval = 30*1000) {
+            _timer = new Timer(OnTimer, null, interval, interval);
         }
 
         public void Dispose() {
