@@ -22,13 +22,6 @@ namespace Exceptionless.Plugins.Default {
             _timer = new Timer(OnTimer, null, _interval, _interval);
         }
         
-        private void OnTimer(object state) {
-            // NOTE: There's a chance the timer runs just after the duplicate occurred, that's not a problem because it will catch a lot of other duplicates from occurring.
-            MergedEvent mergedEvent;
-            while (_mergedEvents.TryDequeue(out mergedEvent))
-                mergedEvent.Send();
-        }
-
         public void Run(EventPluginContext context) {
             // If Event.Value is set before we hit this plugin, it's being used for something else for a good reason. Don't deduplicate. This also prevents problems with reentrancy
             if (context.Event.Value.HasValue)
@@ -58,8 +51,20 @@ namespace Exceptionless.Plugins.Default {
             while (_processed.Count > 50)
                 _processed.TryDequeue(out temp);
         }
+        
+        private void OnTimer(object state) {
+            EnqueueMergedEvents();
+        }
+
+        private void EnqueueMergedEvents() {
+            MergedEvent mergedEvent;
+            while (_mergedEvents.TryDequeue(out mergedEvent))
+                mergedEvent.Enqueue();
+        }
 
         public void Dispose() {
+            EnqueueMergedEvents();
+
             if (_timer != null) {
                 _timer.Dispose();
                 _timer = null;
@@ -81,7 +86,7 @@ namespace Exceptionless.Plugins.Default {
                 Interlocked.Increment(ref _count);
             }
 
-            public void Send() {
+            public void Enqueue() {
                 _context.Event.Value = _count;
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
             }
