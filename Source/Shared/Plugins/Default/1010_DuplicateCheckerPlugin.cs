@@ -10,13 +10,16 @@ namespace Exceptionless.Plugins.Default {
     public class DuplicateCheckerPlugin : IEventPlugin, IDisposable {
         private readonly ConcurrentQueue<Tuple<int, DateTimeOffset>> _processed = new ConcurrentQueue<Tuple<int, DateTimeOffset>>();
         private readonly ConcurrentQueue<MergedEvent> _mergedEvents = new ConcurrentQueue<MergedEvent>();
+        private readonly TimeSpan _interval;
         private Timer _timer;
-
+        
+        /// <summary>
+        /// Duplicates events based on hashcode and interval.
+        /// </summary>
+        /// <param name="interval">The amount of time events will be deduplicated.</param>
         public DuplicateCheckerPlugin(TimeSpan? interval = null) {
-            if (!interval.HasValue)
-                interval = TimeSpan.FromSeconds(5);
-
-            _timer = new Timer(OnTimer, null, interval.Value, interval.Value);
+            _interval = interval ?? TimeSpan.FromSeconds(60);
+            _timer = new Timer(OnTimer, null, _interval, _interval);
         }
         
         private void OnTimer(object state) {
@@ -42,7 +45,7 @@ namespace Exceptionless.Plugins.Default {
                 return;
             }
 
-            DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.AddSeconds(-2);
+            DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
             if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
                 // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
                 _mergedEvents.Enqueue(new MergedEvent(hashCode, context));
