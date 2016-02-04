@@ -217,8 +217,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="ev">The event</param>
         /// <param name="manualStackingKey">The manual stacking key.</param>
-        public static void SetManualStackingKey(this Event ev, string manualStackingKey)
-        {
+        public static void SetManualStackingKey(this Event ev, string manualStackingKey) {
             if (String.IsNullOrWhiteSpace(manualStackingKey))
                 return;
 
@@ -258,10 +257,5 @@ namespace Exceptionless {
         /// Specifies if properties that throw serialization errors should be ignored.
         /// </summary>
         public bool IgnoreSerializationErrors { get; set; }
-
-        /// <summary>
-        /// Overrided defalut stacking behavior.
-        /// </summary>
-        public string StackingKey { get; set; }
     }
 }
