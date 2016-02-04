@@ -40,5 +40,63 @@ namespace Exceptionless.Models {
                 
             return String.Empty;
         }
+
+        protected bool ShouldBeExcludedFromHash(string key) {
+            switch (key) {
+                case Event.KnownDataKeys.TraceLog:
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected bool Equals(DataDictionary other) {
+            foreach (var key in Keys) {
+                if (ShouldBeExcludedFromHash(key))
+                    continue;
+
+                object value = this[key];
+
+                object otherValue;
+                if (!other.TryGetValue(key, out otherValue))
+                    return false;
+
+                if (ReferenceEquals(null, value))
+                    return false;
+
+                if (!value.Equals(otherValue))
+                    return false;
+            }
+            return true;
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((DataDictionary)obj);
+        }
+
+        public override int GetHashCode() {
+            int hashCode = 0;
+            foreach (var key in Keys)
+            {
+                if (ShouldBeExcludedFromHash(key))
+                    continue;
+
+                object value = this[key];
+
+                unchecked {
+                    if (value != null) {
+                        hashCode = (hashCode * 397) ^ value.GetHashCode();
+                    }
+                }
+            }
+
+            return hashCode;
+        }
     }
 }

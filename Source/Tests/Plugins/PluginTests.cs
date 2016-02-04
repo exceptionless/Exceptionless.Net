@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
@@ -425,19 +426,24 @@ namespace Exceptionless.Tests.Plugins {
         public void VerifyDeduplication() {
             var client = new ExceptionlessClient();
             var errorPlugin = new ErrorPlugin();
-            var duplicateCheckerPlugin = new DuplicateCheckerPlugin();
-            
-            for (int index = 0; index < 2; index++) {
-                var builder = GetException().ToExceptionless();
-                var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(20)) {
 
-                errorPlugin.Run(context);
-                duplicateCheckerPlugin.Run(context);
+                for (int index = 0; index < 2; index++) {
+                    var builder = GetException().ToExceptionless();
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
 
-                if (index == 0)
-                    Assert.False(context.Cancel);
-                else
-                    Assert.True(context.Cancel);
+                    errorPlugin.Run(context);
+                    duplicateCheckerPlugin.Run(context);
+
+                    if (index == 0) {
+                        Assert.False(context.Cancel);
+                        Assert.Null(context.Event.Value);
+                    } else {
+                        Assert.True(context.Cancel);
+                        Thread.Sleep(50);
+                        Assert.Equal(1, context.Event.Value);
+                    }
+                }
             }
         }
 
