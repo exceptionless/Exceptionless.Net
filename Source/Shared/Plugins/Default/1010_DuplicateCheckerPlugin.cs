@@ -12,23 +12,18 @@ namespace Exceptionless.Plugins.Default {
         private readonly ConcurrentQueue<RecentErrorDetail> _recentDuplicates = new ConcurrentQueue<RecentErrorDetail>();
         private Timer _timer;
 
-        public DuplicateCheckerPlugin(int interval = 30*1000) {
-            _timer = new Timer(OnTimer, null, interval, interval);
-        }
+        public DuplicateCheckerPlugin(TimeSpan? interval = null) {
+            if (!interval.HasValue)
+                interval = TimeSpan.FromSeconds(30);
 
-        public void Dispose() {
-            if (_timer != null) {
-                _timer.Dispose();
-                _timer = null;
-            }
+            _timer = new Timer(OnTimer, null, interval.Value, interval.Value);
         }
-
+        
         private void OnTimer(object state) {
-            // There's a chance the timer runs just after the duplicate occurred, that's not a problem because it will catch a lot of other duplicates if the event keeps ocurring
+            // There's a chance the timer runs just after the duplicate occurred, that's not a problem because it will catch a lot of other duplicates if the event keeps occurring
             RecentErrorDetail recentError;
-            while (_recentDuplicates.TryDequeue(out recentError)) {
+            while (_recentDuplicates.TryDequeue(out recentError))
                 recentError.Send();
-            }
         }
 
         public void Run(EventPluginContext context) {
@@ -37,16 +32,13 @@ namespace Exceptionless.Plugins.Default {
                 return;
 
             int hashCode = context.Event.GetHashCode();
-
-            DateTimeOffset repeatWindow = DateTimeOffset.Now.AddSeconds(-2);
-            if (_recentlyProcessedErrors.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow))
-            {
+            DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.AddSeconds(-2);
+            if (_recentlyProcessedErrors.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
                 context.Cancel = true;
 
                 // Keep count of number of times the duplication occurs
                 var recentError = _recentDuplicates.FirstOrDefault(s => s.HashCode == hashCode);
-                if (recentError != null)
-                {
+                if (recentError != null) {
                     recentError.IncrementCount();
                     context.Log.FormattedInfo(typeof(ExceptionlessClient), "Ignoring duplicate error event: hash={0}", hashCode);
 
@@ -58,7 +50,7 @@ namespace Exceptionless.Plugins.Default {
             }
 
             // add this exception to our list of recent errors that we have processed.
-            _recentlyProcessedErrors.Enqueue(Tuple.Create(hashCode, DateTimeOffset.Now));
+            _recentlyProcessedErrors.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
 
             // only keep the last 10 recent errors
             Tuple<int, DateTimeOffset> temp;
@@ -66,16 +58,23 @@ namespace Exceptionless.Plugins.Default {
                 _recentlyProcessedErrors.TryDequeue(out temp);
         }
 
-        class RecentErrorDetail {
+        public void Dispose() {
+            if (_timer != null) {
+                _timer.Dispose();
+                _timer = null;
+            }
+        }
+
+        private class RecentErrorDetail {
+            private int _count = 1;
+            private readonly EventPluginContext _context;
+
             public RecentErrorDetail(int hashCode, EventPluginContext context) {
                 HashCode = hashCode;
                 _context = context;
-                _count = 1;
             }
 
-            private readonly EventPluginContext _context;
             public int HashCode { get; }
-            private int _count;
 
             public void IncrementCount() {
                 Interlocked.Increment(ref _count);

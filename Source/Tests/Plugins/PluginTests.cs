@@ -426,7 +426,7 @@ namespace Exceptionless.Tests.Plugins {
         public void VerifyDeduplication() {
             var client = new ExceptionlessClient();
             var errorPlugin = new ErrorPlugin();
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(20)) {
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
 
                 for (int index = 0; index < 2; index++) {
                     var builder = GetException().ToExceptionless();
