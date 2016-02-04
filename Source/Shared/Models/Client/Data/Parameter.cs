@@ -30,11 +30,11 @@ namespace Exceptionless.Models.Data {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = Name?.GetHashCode() ?? 0;
-                hashCode = (hashCode * 397) ^ (Type?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (TypeNamespace?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (GenericArguments?.GetCollectionHashCode() ?? 0);
+                var hashCode = Name == null ? 0 : Name.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Type == null ? 0 : Type.GetHashCode());
+                hashCode = (hashCode * 397) ^ (TypeNamespace == null ? 0 : TypeNamespace.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (GenericArguments == null ? 0 : GenericArguments.GetCollectionHashCode());
                 return hashCode;
             }
         }

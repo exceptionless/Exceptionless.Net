@@ -38,9 +38,9 @@ namespace Exceptionless.Models.Data {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = EmailAddress?.GetHashCode() ?? 0;
-                hashCode = (hashCode * 397) ^ (Description?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
+                var hashCode = EmailAddress == null ? 0 : EmailAddress.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Description == null ? 0 : Description.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
                 return hashCode;
             }
         }

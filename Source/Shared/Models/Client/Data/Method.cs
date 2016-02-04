@@ -36,12 +36,12 @@ namespace Exceptionless.Models.Data {
         public override int GetHashCode() {
             unchecked {
                 var hashCode = IsSignatureTarget.GetHashCode();
-                hashCode = (hashCode * 397) ^ (DeclaringNamespace?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (DeclaringType?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Name?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (GenericArguments?.GetCollectionHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Parameters?.GetCollectionHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (DeclaringNamespace == null ? 0 : DeclaringNamespace.GetHashCode());
+                hashCode = (hashCode * 397) ^ (DeclaringType == null ? 0 : DeclaringType.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Name == null ? 0 : Name.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (GenericArguments == null ? 0 : GenericArguments.GetCollectionHashCode());
+                hashCode = (hashCode * 397) ^ (Parameters == null ? 0 : Parameters.GetCollectionHashCode());
                 return hashCode;
             }
         }

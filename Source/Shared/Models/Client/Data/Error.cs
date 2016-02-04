@@ -32,7 +32,7 @@ namespace Exceptionless.Models.Data {
 
         public override int GetHashCode() {
             unchecked {
-                return (base.GetHashCode() * 397) ^ (Modules?.GetCollectionHashCode() ?? 0);
+                return (base.GetHashCode() * 397) ^ (Modules != null ? Modules.GetCollectionHashCode() : 0);
             }
         }
     }

@@ -58,13 +58,13 @@ namespace Exceptionless.Models.Data {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = Message?.GetHashCode() ?? 0;
-                hashCode = (hashCode * 397) ^ (Type?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Code?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Data?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (Inner?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (StackTrace?.GetCollectionHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (TargetMethod?.GetHashCode() ?? 0);
+                var hashCode = Message == null ? 0 : Message.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Type == null ? 0 : Type.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Code == null ? 0 : Code.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Inner == null ? 0 : Inner.GetHashCode());
+                hashCode = (hashCode * 397) ^ (StackTrace == null ? 0 : StackTrace.GetCollectionHashCode());
+                hashCode = (hashCode * 397) ^ (TargetMethod == null ? 0 : TargetMethod.GetHashCode());
                 return hashCode;
             }
         }

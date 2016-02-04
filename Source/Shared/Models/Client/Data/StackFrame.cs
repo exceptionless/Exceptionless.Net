@@ -23,7 +23,7 @@ namespace Exceptionless.Models.Data {
         public override int GetHashCode() {
             unchecked {
                 int hashCode = base.GetHashCode();
-                hashCode = (hashCode * 397) ^ (FileName?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (FileName == null ? 0 : FileName.GetHashCode());
                 hashCode = (hashCode * 397) ^ LineNumber;
                 hashCode = (hashCode * 397) ^ Column;
                 return hashCode;
