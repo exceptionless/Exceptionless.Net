@@ -8,22 +8,22 @@ using Exceptionless.Dependency;
 namespace Exceptionless.Plugins.Default {
     [Priority(1010)]
     public class DuplicateCheckerPlugin : IEventPlugin, IDisposable {
-        private readonly ConcurrentQueue<Tuple<int, DateTimeOffset>> _recentlyProcessedErrors = new ConcurrentQueue<Tuple<int, DateTimeOffset>>();
-        private readonly ConcurrentQueue<RecentErrorDetail> _recentDuplicates = new ConcurrentQueue<RecentErrorDetail>();
+        private readonly ConcurrentQueue<Tuple<int, DateTimeOffset>> _processed = new ConcurrentQueue<Tuple<int, DateTimeOffset>>();
+        private readonly ConcurrentQueue<MergedEvent> _mergedEvents = new ConcurrentQueue<MergedEvent>();
         private Timer _timer;
 
         public DuplicateCheckerPlugin(TimeSpan? interval = null) {
             if (!interval.HasValue)
-                interval = TimeSpan.FromSeconds(30);
+                interval = TimeSpan.FromSeconds(5);
 
             _timer = new Timer(OnTimer, null, interval.Value, interval.Value);
         }
         
         private void OnTimer(object state) {
-            // There's a chance the timer runs just after the duplicate occurred, that's not a problem because it will catch a lot of other duplicates if the event keeps occurring
-            RecentErrorDetail recentError;
-            while (_recentDuplicates.TryDequeue(out recentError))
-                recentError.Send();
+            // NOTE: There's a chance the timer runs just after the duplicate occurred, that's not a problem because it will catch a lot of other duplicates from occurring.
+            MergedEvent mergedEvent;
+            while (_mergedEvents.TryDequeue(out mergedEvent))
+                mergedEvent.Send();
         }
 
         public void Run(EventPluginContext context) {
@@ -32,30 +32,28 @@ namespace Exceptionless.Plugins.Default {
                 return;
 
             int hashCode = context.Event.GetHashCode();
-            DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.AddSeconds(-2);
-            if (_recentlyProcessedErrors.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
+            
+            // Increment the occurrence count if the event is already queued for submission.
+            var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
+            if (merged != null) {
+                merged.IncrementCount();
+                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate error event with hash:", hashCode));
                 context.Cancel = true;
-
-                // Keep count of number of times the duplication occurs
-                var recentError = _recentDuplicates.FirstOrDefault(s => s.HashCode == hashCode);
-                if (recentError != null) {
-                    recentError.IncrementCount();
-                    context.Log.FormattedInfo(typeof(ExceptionlessClient), "Ignoring duplicate error event: hash={0}", hashCode);
-
-                    return;
-                }
-
-                // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
-                _recentDuplicates.Enqueue(new RecentErrorDetail(hashCode, context));
+                return;
             }
 
-            // add this exception to our list of recent errors that we have processed.
-            _recentlyProcessedErrors.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
-
-            // only keep the last 10 recent errors
+            DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.AddSeconds(-2);
+            if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
+                // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
+                _mergedEvents.Enqueue(new MergedEvent(hashCode, context));
+                context.Cancel = true;
+            } else {
+                _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
+            }
+            
             Tuple<int, DateTimeOffset> temp;
-            while (_recentlyProcessedErrors.Count > 10)
-                _recentlyProcessedErrors.TryDequeue(out temp);
+            while (_processed.Count > 50)
+                _processed.TryDequeue(out temp);
         }
 
         public void Dispose() {
@@ -65,11 +63,11 @@ namespace Exceptionless.Plugins.Default {
             }
         }
 
-        private class RecentErrorDetail {
+        private class MergedEvent {
             private int _count = 1;
             private readonly EventPluginContext _context;
 
-            public RecentErrorDetail(int hashCode, EventPluginContext context) {
+            public MergedEvent(int hashCode, EventPluginContext context) {
                 HashCode = hashCode;
                 _context = context;
             }
