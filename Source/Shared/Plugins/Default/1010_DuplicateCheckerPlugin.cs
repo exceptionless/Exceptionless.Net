@@ -80,7 +80,7 @@ namespace Exceptionless.Plugins.Default {
                 _context = context;
             }
 
-            public int HashCode { get; }
+            public int HashCode { get; private set; }
 
             public void IncrementCount() {
                 Interlocked.Increment(ref _count);
