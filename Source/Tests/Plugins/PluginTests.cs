@@ -59,6 +59,38 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
+        public void ErrorPlugin_DiscardDuplicates() {
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                var exception = new Exception("Nested", new MyApplicationException("Test") {
+                    IgnoredProperty = "Test",
+                    RandomValue = "Test"
+                });
+
+                var client = new ExceptionlessClient();
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+
+                context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.True(context.Cancel);
+                
+                error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.Null(error);
+            }
+        }
+        
+        [Fact]
         public void ErrorPlugin_IgnoredProperties() {
             var exception = new MyApplicationException("Test") {
                 IgnoredProperty = "Test",

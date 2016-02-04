@@ -35,6 +35,38 @@ namespace Exceptionless.Extensions {
 
             return type.GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance);
         }
+        
+        public static object GetDefaultValue(this Type type) {
+            if (type == null || type.IsNullable())
+                return null;
+            
+            if (type == typeof(bool))
+                return default(bool);
+            if (type == typeof(byte))
+                return default(byte);
+            if (type == typeof(char))
+                return default(char);
+            if (type == typeof(decimal))
+                return default(decimal);
+            if (type == typeof(double))
+                return default(double);
+            if (type == typeof(float))
+                return default(float);
+            if (type == typeof(int))
+                return default(int);
+            if (type == typeof(long))
+                return default(long);
+            if (type == typeof(sbyte))
+                return default(sbyte);
+            if (type == typeof(uint))
+                return default(uint);
+            if (type == typeof(ulong))
+                return default(ulong);
+            if (type == typeof(ushort))
+                return default(ushort);
+
+            return Activator.CreateInstance(type);
+        }
 
         public static bool IsNullable(this Type type) {
             if (type.IsValueType)

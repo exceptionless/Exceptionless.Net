@@ -10,8 +10,14 @@ namespace Exceptionless.Plugins.Default {
             if (exception == null)
                 return;
 
+            if (exception.IsProcessed()) {
+                context.Cancel = true;
+                return;
+            }
+
             context.Event.Type = Event.KnownTypes.Error;
             context.Event.Data[Event.KnownDataKeys.SimpleError] = exception.ToSimpleErrorModel(context.Client);
+            exception.MarkProcessed();
         }
     }
 }
