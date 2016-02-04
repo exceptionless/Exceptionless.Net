@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
+using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Extensions {
     internal static class ToSimpleErrorModelExtensions {
         private static readonly string[] _exceptionExclusions = {
-            "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
+            "@exceptionless", "Data", "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
             "Message", "Source", "StackTrace", "TargetSite", "HResult", 
             "Entries", "StateEntries",  "PersistedState", "Results"
         };
@@ -25,6 +25,7 @@ namespace Exceptionless.Extensions {
             if (client == null)
                 client = ExceptionlessClient.Default;
 
+            var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
 
             var error = new SimpleError {
@@ -33,8 +34,22 @@ namespace Exceptionless.Extensions {
                 StackTrace = exception.StackTrace
             };
 
+            var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions).ToList();
             try {
-                var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions);
+                if (exception.Data != null) {
+                    foreach (object k in exception.Data.Keys) {
+                        string key = k != null ? k.ToString() : null;
+                        if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(exclusions, true))
+                            continue;
+
+                        error.Data[key] = exception.Data[k];
+                    }
+                }
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error populating Data: " + ex.Message);
+            }
+
+            try {
                 var extraProperties = type.GetPublicProperties().Where(p => !p.Name.AnyWildcardMatches(exclusions, true)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);

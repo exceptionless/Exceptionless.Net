@@ -1,4 +1,5 @@
 ﻿using System;
+using Exceptionless.Extensions;
 using Exceptionless.Extras;
 using Exceptionless.Models;
 
@@ -10,8 +11,14 @@ namespace Exceptionless.Plugins {
             if (exception == null)
                 return;
 
+            if (exception.IsProcessed()) {
+                context.Cancel = true;
+                return;
+            }
+            
             context.Event.Type = Event.KnownTypes.Error;
             context.Event.Data[Event.KnownDataKeys.Error] = exception.ToErrorModel(context.Client);
+            exception.MarkProcessed();
         }
     }
 }

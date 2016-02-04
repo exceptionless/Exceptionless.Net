@@ -54,5 +54,33 @@ namespace Exceptionless.Extensions {
 
             return exception.GetInnermostException().Message;
         }
+        
+        private static readonly string _marker = "@exceptionless";
+        public static void MarkProcessed(this Exception exception) {
+            if (exception == null)
+                return;
+
+            try {
+                if (exception.Data != null) {
+                    var genericTypes = exception.Data.GetType().GetGenericArguments();
+                    if (genericTypes.Length == 0 || genericTypes[0].IsAssignableFrom(typeof(string)))
+                        exception.Data[_marker] = genericTypes.Length > 0 ? genericTypes[1].GetDefaultValue() : null;
+                }
+            } catch (Exception) {}
+
+            MarkProcessed(exception.InnerException);
+        }
+
+        public static bool IsProcessed(this Exception exception) {
+            if (exception == null)
+                return false;
+
+            try {
+                if (exception.Data != null && exception.Data.Contains(_marker))
+                    return true;
+            } catch (Exception) {}
+
+            return IsProcessed(exception.InnerException);
+        }
     }
 }

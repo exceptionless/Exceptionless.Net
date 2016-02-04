@@ -211,6 +211,18 @@ namespace Exceptionless {
 
             ev.Data[Event.KnownDataKeys.UserDescription] = description;
         }
+
+        /// <summary>
+        /// Sets the manual stacking key
+        /// </summary>
+        /// <param name="ev">The event</param>
+        /// <param name="manualStackingKey">The manual stacking key.</param>
+        public static void SetManualStackingKey(this Event ev, string manualStackingKey) {
+            if (String.IsNullOrWhiteSpace(manualStackingKey))
+                return;
+
+            ev.Data[Event.KnownDataKeys.ManualStackingKey] = manualStackingKey.Trim();
+        }
     }
 
     /// <summary>
