@@ -2,7 +2,7 @@
 using Exceptionless.Extensions;
 
 namespace Exceptionless.Plugins {
-    [Priority(100)]
+    [Priority(110)]
     public class IgnoreUserAgentPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             var request = context.Event.GetRequestInfo();
