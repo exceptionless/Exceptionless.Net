@@ -8,6 +8,7 @@ using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Submission;
 using Exceptionless.Tests.Utility;
 using Xunit;
 using Xunit.Abstractions;
@@ -41,7 +42,7 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-         [Fact]
+        [Fact]
         public void ConfigurationDefaults_IgnoredProperties() {
             var client = new ExceptionlessClient();
             client.Configuration.DefaultData.Add("Message", "Test");
@@ -57,6 +58,73 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.Equal(1, context.Event.Data.Count);
             Assert.Equal("Test", context.Event.Data["Message"]);
+        }
+        
+        [Fact]
+        public void IgnoreUserAgentPlugin_DiscardBot() {
+            var client = new ExceptionlessClient();
+            client.Configuration.AddUserAgentBotPatterns("*Bot*");
+            var plugin = new IgnoreUserAgentPlugin();
+
+            var ev = new Event();
+            var context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+
+            ev.AddRequestInfo(new RequestInfo { UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4" });
+            context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+
+            ev.AddRequestInfo(new RequestInfo { UserAgent = "Mozilla/5.0 (compatible; bingbot/2.0 +http://www.bing.com/bingbot.htm)" });
+            context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.True(context.Cancel);
+        }
+
+        [Fact]
+        public void HandleAggregateExceptionsPlugin_SingleInnerException() {
+            var client = new ExceptionlessClient();
+            var plugin = new HandleAggregateExceptionsPlugin();
+            
+            var exceptionOne = new Exception("one");
+            var exceptionTwo = new Exception("two");
+
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(exceptionOne);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            
+            context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne));
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            Assert.Equal(exceptionOne, context.ContextData.GetException());
+
+            context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            Assert.Equal(exceptionOne, context.ContextData.GetException());
+        }
+
+        [Fact]
+        public void HandleAggregateExceptionsPlugin_MultipleInnerException() {
+            var submissionClient = new InMemorySubmissionClient();
+            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
+            client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
+            
+            var plugin = new HandleAggregateExceptionsPlugin();
+            var exceptionOne = new Exception("one");
+            var exceptionTwo = new Exception("two");
+            
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
+            plugin.Run(context);
+            Assert.True(context.Cancel);
+
+            client.ProcessQueue();
+            Assert.Equal(2, submissionClient.Events.Count);
         }
 
         [Fact]
@@ -143,7 +211,7 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal(processedDataItemCount, error.Data.Count);
             }
         }
-
+        
         [Fact]
         public void ErrorPlugin_CopyExceptionDataToRootErrorData() {
             var errorPlugins = new List<IEventPlugin> {
