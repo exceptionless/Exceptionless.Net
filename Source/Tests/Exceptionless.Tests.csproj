@@ -146,6 +146,7 @@
     <Compile Include="Storage\IsolatedStorageFileStorageTests.cs" />
     <Compile Include="Storage\PersistedDictionaryTests.cs" />
     <Compile Include="Submission\DefaultSubmissionClientTests.cs" />
+    <Compile Include="ToErrorModel\ToErrorModelTests.cs" />
     <Compile Include="Utility\CountDownLatch.cs" />
     <Compile Include="Utility\InMemorySubmissionClient.cs" />
     <Compile Include="Utility\PasswordGenerator.cs" />
