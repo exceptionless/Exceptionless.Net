@@ -64,6 +64,7 @@
     <Compile Include="Plugins\ContextData.cs" />
     <Compile Include="Plugins\Default\1000_CancelSessionsWithNoUserPlugin.cs" />
     <Compile Include="Plugins\Default\100_HeartbeatPlugin.cs" />
+    <Compile Include="Plugins\Default\110_IgnoreUserAgentPlugin.cs" />
     <Compile Include="Plugins\Default\ActionPlugin.cs" />
     <Compile Include="Plugins\Default\010_ConfigurationDefaultsPlugin.cs" />
     <Compile Include="Plugins\Default\090_SubmissionMethodPlugin.cs" />

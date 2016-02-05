@@ -7,6 +7,7 @@ using System.Web.Http.Filters;
 using Exceptionless.ExtendedData;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Plugins;
 using Exceptionless.WebApi;
 
 namespace Exceptionless {
@@ -19,6 +20,7 @@ namespace Exceptionless {
         public static void RegisterWebApi(this ExceptionlessClient client, HttpConfiguration config) {
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessWebApiPlugin>();
+            client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
 
 #if WEBAPI21
             config.Services.Add(typeof(IExceptionLogger), new ExceptionlessExceptionLogger());
