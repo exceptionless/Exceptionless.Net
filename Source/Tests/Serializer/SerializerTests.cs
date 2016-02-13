@@ -159,7 +159,7 @@ namespace Exceptionless.Tests.Serializer {
 
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
-                c.UseDebugLogger();
+                c.UseTraceLogger();
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
             });

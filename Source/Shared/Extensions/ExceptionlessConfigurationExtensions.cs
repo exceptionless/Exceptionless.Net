@@ -93,8 +93,11 @@ namespace Exceptionless {
                 config.AddPlugin<HeartbeatPlugin>();
         }
 
-        public static void UseDebugLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
-            config.Resolver.Register<IExceptionlessLog>(new DebugExceptionlessLog { MinimumLogLevel = minLogLevel });
+        public static InMemoryExceptionlessLog UseInMemoryLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
+            var logger = new InMemoryExceptionlessLog { MinimumLogLevel = minLogLevel };
+            config.Resolver.Register<IExceptionlessLog>(logger);
+
+            return logger;
         }
 
         public static void UseLogger(this ExceptionlessConfiguration config, IExceptionlessLog logger) {
