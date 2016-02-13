@@ -20,7 +20,8 @@ namespace Exceptionless {
         private string _serverUrl;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
-        private readonly List<string> _exclusions = new List<string>(); 
+        private readonly List<string> _exclusions = new List<string>();
+        private readonly List<string> _userAgentBotPatterns = new List<string>();
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
             if (resolver == null)
@@ -159,12 +160,7 @@ namespace Exceptionless {
         /// parameters from the report.
         /// </summary>
         public IEnumerable<string> DataExclusions {
-            get {
-                if (Settings.ContainsKey(SettingsDictionary.KnownKeys.DataExclusions))
-                    return _exclusions.Union(Settings.GetStringCollection(SettingsDictionary.KnownKeys.DataExclusions));
-                
-                return _exclusions.ToArray();
-            }
+            get { return _exclusions.Union(Settings.GetStringCollection(SettingsDictionary.KnownKeys.DataExclusions)); }
         }
 
         /// <summary>
@@ -187,6 +183,32 @@ namespace Exceptionless {
             _exclusions.AddRange(exclusions);
         }
 
+        /// <summary>
+        /// A list of user agent patterns that will cause any event with a matching user agent to not be submitted.
+        /// For example, entering *Bot* will cause any events that contains a user agent of Bot will not be submitted.
+        /// </summary>
+        public IEnumerable<string> UserAgentBotPatterns {
+            get { return _userAgentBotPatterns.Union(Settings.GetStringCollection(SettingsDictionary.KnownKeys.UserAgentBotPatterns)); }
+        }
+
+        /// <summary>
+        /// Add items to the list of user agent patterns that will cause any event with a matching user agent to not be submitted.
+        /// For example, entering *Bot* will cause any events that contains a user agent of Bot will not be submitted.
+        /// </summary>
+        /// <param name="userAgentBotPatterns">The list of user agent bot patterns to add.</param>
+        public void AddUserAgentBotPatterns(params string[] userAgentBotPatterns) {
+            _userAgentBotPatterns.AddRange(userAgentBotPatterns);
+        }
+
+        /// <summary>
+        /// Add items to the list of user agent patterns that will cause any event with a matching user agent to not be submitted.
+        /// For example, entering *Bot* will cause any events that contains a user agent of Bot will not be submitted.
+        /// </summary>
+        /// <param name="userAgentBotPatterns">The list of user agent bot patterns to add.</param>
+        public void AddUserAgentBotPatterns(IEnumerable<string> userAgentBotPatterns) {
+            _userAgentBotPatterns.AddRange(userAgentBotPatterns);
+        }
+        
         /// <summary>
         /// The dependency resolver to use for this configuration.
         /// </summary>

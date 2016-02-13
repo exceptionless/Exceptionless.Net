@@ -19,7 +19,7 @@ namespace Exceptionless.Extras {
     internal static class ToErrorModelExtensions {
         private static readonly ConcurrentDictionary<string, Module> _moduleCache = new ConcurrentDictionary<string, Module>();
         private static readonly string[] _exceptionExclusions = {
-            "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
+            "@exceptionless", "Data", "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
             "Message", "Source", "StackTrace", "TargetSite", "HResult", 
             "Entries", "StateEntries",  "PersistedState", "Results"
         };
@@ -68,8 +68,22 @@ namespace Exceptionless.Extras {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating TargetMethod: " + ex.Message);
             }
 
+            var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions).ToList();
             try {
-                var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions);
+                if (exception.Data != null) {
+                    foreach (object k in exception.Data.Keys) {
+                        string key = k != null ? k.ToString() : null;
+                        if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(exclusions, true))
+                            continue;
+
+                        error.Data[key] = exception.Data[k];
+                    }
+                }
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error populating Data: " + ex.Message);
+            }
+
+            try {
                 var extraProperties = type.GetPublicProperties().Where(p => !p.Name.AnyWildcardMatches(exclusions, true)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);

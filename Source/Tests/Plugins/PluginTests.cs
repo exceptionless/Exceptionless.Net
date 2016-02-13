@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Submission;
 using Exceptionless.Tests.Utility;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,7 +42,7 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-         [Fact]
+        [Fact]
         public void ConfigurationDefaults_IgnoredProperties() {
             var client = new ExceptionlessClient();
             client.Configuration.DefaultData.Add("Message", "Test");
@@ -56,6 +58,188 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.Equal(1, context.Event.Data.Count);
             Assert.Equal("Test", context.Event.Data["Message"]);
+        }
+        
+        [Fact]
+        public void IgnoreUserAgentPlugin_DiscardBot() {
+            var client = new ExceptionlessClient();
+            client.Configuration.AddUserAgentBotPatterns("*Bot*");
+            var plugin = new IgnoreUserAgentPlugin();
+
+            var ev = new Event();
+            var context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+
+            ev.AddRequestInfo(new RequestInfo { UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4" });
+            context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+
+            ev.AddRequestInfo(new RequestInfo { UserAgent = "Mozilla/5.0 (compatible; bingbot/2.0 +http://www.bing.com/bingbot.htm)" });
+            context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.True(context.Cancel);
+        }
+
+        [Fact]
+        public void HandleAggregateExceptionsPlugin_SingleInnerException() {
+            var client = new ExceptionlessClient();
+            var plugin = new HandleAggregateExceptionsPlugin();
+            
+            var exceptionOne = new Exception("one");
+            var exceptionTwo = new Exception("two");
+
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(exceptionOne);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            
+            context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne));
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            Assert.Equal(exceptionOne, context.ContextData.GetException());
+
+            context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            Assert.Equal(exceptionOne, context.ContextData.GetException());
+        }
+
+        [Fact]
+        public void HandleAggregateExceptionsPlugin_MultipleInnerException() {
+            var submissionClient = new InMemorySubmissionClient();
+            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
+            client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
+            
+            var plugin = new HandleAggregateExceptionsPlugin();
+            var exceptionOne = new Exception("one");
+            var exceptionTwo = new Exception("two");
+            
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
+            plugin.Run(context);
+            Assert.True(context.Cancel);
+
+            client.ProcessQueue();
+            Assert.Equal(2, submissionClient.Events.Count);
+        }
+
+        [Fact]
+        public void ErrorPlugin_DiscardDuplicates() {
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                var exception = new Exception("Nested", new MyApplicationException("Test") {
+                    IgnoredProperty = "Test",
+                    RandomValue = "Test"
+                });
+
+                var client = new ExceptionlessClient();
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+
+                context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.True(context.Cancel);
+                
+                error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.Null(error);
+            }
+        }
+
+        public static IEnumerable<object[]> DifferentExceptionDataDictionaryTypes {
+            get {
+                return new[] {
+                    new object[] { null, false, 0 },
+                    new object[] { new Dictionary<object, object> { { (object)1, (object)1 } }, true, 1 },
+                    new object[] { new Dictionary<PriorityAttribute, PriorityAttribute>() { { new PriorityAttribute(1), new PriorityAttribute(1) } }, false, 1 },
+                    new object[] { new Dictionary<int, int> { { 1, 1 } }, false, 1 },
+                    new object[] { new Dictionary<bool, bool> { { false, false } }, false, 1 },
+                    new object[] { new Dictionary<Guid, Guid> { { Guid.Empty, Guid.Empty } }, false, 1 },
+                    new object[] { new Dictionary<IData, IData> { { new SimpleError(), new SimpleError() } }, false, 1 },
+                    new object[] { new Dictionary<TestEnum, TestEnum> { { TestEnum.None, TestEnum.None } }, false, 1 },
+                    new object[] { new Dictionary<TestStruct, TestStruct> { { new TestStruct(), new TestStruct() } }, false, 1 },
+                    new object[] { new Dictionary<string, string> { { "test", "string" } }, true, 1 },
+                    new object[] { new Dictionary<string, object> { { "test", "object" } }, true, 1 },
+                    new object[] { new Dictionary<string, PriorityAttribute> { { "test", new PriorityAttribute(1) } }, true, 1 },
+                    new object[] { new Dictionary<string, Guid> { { "test", Guid.Empty } }, true, 1 },
+                    new object[] { new Dictionary<string, IData> { { "test", new SimpleError() } }, true, 1 },
+                    new object[] { new Dictionary<string, TestEnum> { { "test", TestEnum.None } }, true, 1 },
+                    new object[] { new Dictionary<string, TestStruct> { { "test", new TestStruct() } }, true, 1 },
+                    new object[] { new Dictionary<string, int> { { "test", 1 } }, true, 1 },
+                    new object[] { new Dictionary<string, bool> { { "test", false } }, true, 1 }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData("DifferentExceptionDataDictionaryTypes")]
+        public void ErrorPlugin_CanProcessDifferentExceptionDataDictionaryTypes(IDictionary data, bool canMarkAsProcessed, int processedDataItemCount) {
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                if (data != null && data.Contains("@exceptionless"))
+                    data.Remove("@exceptionless");
+
+                var exception = new MyApplicationException("Test") { SetsDataProperty = data };
+                var client = new ExceptionlessClient();
+                client.Configuration.AddDataExclusions("SetsDataProperty");
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                Assert.Equal(canMarkAsProcessed, exception.Data != null && exception.Data.Contains("@exceptionless"));
+
+                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+                Assert.Equal(processedDataItemCount, error.Data.Count);
+            }
+        }
+        
+        [Fact]
+        public void ErrorPlugin_CopyExceptionDataToRootErrorData() {
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                var exception = new MyApplicationException("Test") {
+                    RandomValue = "Test",
+                    SetsDataProperty = new Dictionary<object, string> {
+                        { 1, 1.GetType().Name },
+                        { "test", "test".GetType().Name },
+                        { Guid.NewGuid(), typeof(Guid).Name },
+                        { false, typeof(bool).Name }
+                    } 
+                };
+
+                var client = new ExceptionlessClient();
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+                Assert.Equal(5, error.Data.Count);
+            }
         }
 
         [Fact]
@@ -304,13 +488,27 @@ namespace Exceptionless.Tests.Plugins {
         public class PluginWithPriority11 : IEventPlugin {
             public void Run(EventPluginContext context) {}
         }
+
+        private enum TestEnum {
+            None = 1
+        }
+
+        private struct TestStruct {
+            public int Id { get; set; }
+        }
         
         public class MyApplicationException : ApplicationException {
-            public MyApplicationException(string message) : base(message) {}
+            public MyApplicationException(string message) : base(message) {
+                SetsDataProperty = Data;
+            }
 
             public string IgnoredProperty { get; set; }
 
             public string RandomValue { get; set; }
+            
+            public IDictionary SetsDataProperty { get; set; }
+
+            public override IDictionary Data { get { return SetsDataProperty; }  }
         }
     }
 }

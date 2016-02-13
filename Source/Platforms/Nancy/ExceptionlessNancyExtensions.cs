@@ -20,6 +20,7 @@ namespace Exceptionless {
         public static void RegisterNancy(this ExceptionlessClient client, IPipelines pipelines) {
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessNancyPlugin>();
+            client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
 
             pipelines.OnError += OnError;
             pipelines.AfterRequest += AfterRequest;

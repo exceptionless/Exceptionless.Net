@@ -78,6 +78,7 @@ namespace Exceptionless.Models {
             public const string Version = "@version";
             public const string Level = "@level";
             public const string SubmissionMethod = "@submission_method";
+            public const string ManualStackingKey = "@stack";
         }
     }
 }

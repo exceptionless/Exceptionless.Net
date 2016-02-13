@@ -69,7 +69,7 @@ namespace Exceptionless {
         }
 
         public static string GetQueueName(this ExceptionlessConfiguration config) {
-            return !String.IsNullOrEmpty(config.ApiKey) ? config.ApiKey.Substring(0, 8) : null;
+            return !String.IsNullOrEmpty(config.ApiKey) && config.ApiKey.Length > 7 ? config.ApiKey.Substring(0, 8) : null;
         }
 
         public static string GetInstallId(this ExceptionlessConfiguration config) {

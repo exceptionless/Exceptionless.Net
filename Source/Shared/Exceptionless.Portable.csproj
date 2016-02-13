@@ -64,12 +64,14 @@
     <Compile Include="Plugins\ContextData.cs" />
     <Compile Include="Plugins\Default\1000_CancelSessionsWithNoUserPlugin.cs" />
     <Compile Include="Plugins\Default\100_HeartbeatPlugin.cs" />
+    <Compile Include="Plugins\Default\110_IgnoreUserAgentPlugin.cs" />
     <Compile Include="Plugins\Default\ActionPlugin.cs" />
     <Compile Include="Plugins\Default\010_ConfigurationDefaultsPlugin.cs" />
     <Compile Include="Plugins\Default\090_SubmissionMethodPlugin.cs" />
     <Compile Include="Plugins\Default\040_ReferenceIdPlugin.cs" />
     <Compile Include="Plugins\Default\020_SimpleErrorPlugin.cs" />
     <Compile Include="Plugins\Default\050_EnvironmentInfoPlugin.cs" />
+    <Compile Include="Plugins\Default\015_HandleAggregateExceptionsPlugin.cs" />
     <Compile Include="Plugins\PriortyAttribute.cs" />
     <Compile Include="EventBuilder.cs" />
     <Compile Include="Events\ConfigurationUpdatedEventArgs.cs" />

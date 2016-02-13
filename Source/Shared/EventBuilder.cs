@@ -117,7 +117,7 @@ namespace Exceptionless {
             if (longitude < -180.0 || longitude > 180.0)
                 throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
             
-            Target.Geo = latitude + "," + longitude;
+            Target.Geo = latitude.ToString("#0.0#######") + "," + longitude.ToString("#0.0#######");
             return this;
         }
 
