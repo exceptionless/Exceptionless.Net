@@ -6,47 +6,19 @@ using Exceptionless.Models.Data;
 namespace Exceptionless {
     public static class EventExtensions {
         public static Error GetError(this Event ev, IJsonSerializer serializer = null) {
-            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.Error))
-                return null;
-
-            try {
-                return ev.Data.GetValue<Error>(Event.KnownDataKeys.Error, serializer);
-            } catch (Exception) {}
-
-            return null;
+            return ev.GetDataValue<Error>(Event.KnownDataKeys.Error, serializer);
         }
 
         public static SimpleError GetSimpleError(this Event ev, IJsonSerializer serializer = null) {
-            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.SimpleError))
-                return null;
-
-            try {
-                return ev.Data.GetValue<SimpleError>(Event.KnownDataKeys.SimpleError, serializer);
-            } catch (Exception) {}
-
-            return null;
+            return ev.GetDataValue<SimpleError>(Event.KnownDataKeys.SimpleError, serializer);
         }
 
         public static RequestInfo GetRequestInfo(this Event ev, IJsonSerializer serializer = null) {
-            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.RequestInfo))
-                return null;
-
-            try {
-                return ev.Data.GetValue<RequestInfo>(Event.KnownDataKeys.RequestInfo, serializer);
-            } catch (Exception) {}
-
-            return null;
+            return ev.GetDataValue<RequestInfo>(Event.KnownDataKeys.RequestInfo, serializer);
         }
 
         public static EnvironmentInfo GetEnvironmentInfo(this Event ev, IJsonSerializer serializer = null) {
-            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.EnvironmentInfo))
-                return null;
-
-            try {
-                return ev.Data.GetValue<EnvironmentInfo>(Event.KnownDataKeys.EnvironmentInfo, serializer);
-            } catch (Exception) {}
-
-            return null;
+            return ev.GetDataValue<EnvironmentInfo>(Event.KnownDataKeys.EnvironmentInfo, serializer);
         }
 
         /// <summary>
@@ -141,14 +113,7 @@ namespace Exceptionless {
         /// Gets the user info object from extended data.
         /// </summary>
         public static UserInfo GetUserIdentity(this Event ev, IJsonSerializer serializer = null) {
-            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.UserInfo))
-                return null;
-
-            try {
-                return ev.Data.GetValue<UserInfo>(Event.KnownDataKeys.UserInfo, serializer);
-            } catch (Exception) { }
-
-            return null;
+            return ev.GetDataValue<UserInfo>(Event.KnownDataKeys.UserInfo, serializer);
         }
         
         /// <summary>
@@ -189,14 +154,7 @@ namespace Exceptionless {
         /// Gets the user description from extended data.
         /// </summary>
         public static UserDescription GetUserDescription(this Event ev, IJsonSerializer serializer = null) {
-            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.UserDescription))
-                return null;
-
-            try {
-                return ev.Data.GetValue<UserDescription>(Event.KnownDataKeys.UserDescription, serializer);
-            } catch (Exception) { }
-
-            return null;
+            return ev.GetDataValue<UserDescription>(Event.KnownDataKeys.UserDescription, serializer);
         }
 
         /// <summary>
@@ -234,6 +192,17 @@ namespace Exceptionless {
                 return;
 
             ev.Data[Event.KnownDataKeys.ManualStackingKey] = manualStackingKey.Trim();
+        }
+
+        public static T GetDataValue<T>(this Event ev, string key, IJsonSerializer serializer = null) {
+            if(ev == null || String.IsNullOrEmpty(key) || !ev.Data.ContainsKey(key))
+                return default(T);
+
+            try {
+                return ev.Data.GetValue<T>(key, serializer);
+            } catch (Exception) { }
+
+            return default(T);
         }
     }
 
