@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Web.Http.Controllers;
+using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
@@ -37,7 +38,7 @@ namespace Exceptionless.WebApi {
             if (requestInfo == null)
                 return;
 
-            var error = context.Event.GetError();
+            var error = context.Event.GetError(context.Client.Configuration.Resolver.GetJsonSerializer());
             if (error != null && error.Code == "404") {
                 context.Event.Type = Event.KnownTypes.NotFound;
                 context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);

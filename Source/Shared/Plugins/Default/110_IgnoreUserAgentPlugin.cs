@@ -1,11 +1,12 @@
 ﻿using System;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 
 namespace Exceptionless.Plugins {
     [Priority(110)]
     public class IgnoreUserAgentPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            var request = context.Event.GetRequestInfo();
+            var request = context.Event.GetRequestInfo(context.Client.Configuration.Resolver.GetJsonSerializer());
             if (request == null)
                 return;
 

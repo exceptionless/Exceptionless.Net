@@ -1,4 +1,5 @@
 ﻿using System;
+using Exceptionless.Dependency;
 
 namespace Exceptionless.Plugins {
     [Priority(15)]
@@ -7,7 +8,7 @@ namespace Exceptionless.Plugins {
             if (!context.Client.Configuration.IncludePrivateInformation)
                 return;
 
-            var user = context.Event.GetUserIdentity();
+            var user = context.Event.GetUserIdentity(context.Client.Configuration.Resolver.GetJsonSerializer());
             if (user == null)
                 context.Event.SetUserIdentity(Environment.UserName);
         }

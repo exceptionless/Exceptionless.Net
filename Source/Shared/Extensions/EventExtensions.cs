@@ -124,15 +124,7 @@ namespace Exceptionless {
 
             ev.Data[Event.KnownDataKeys.RequestInfo] = request;
         }
-
-        /// <summary>
-        /// Gets the user info object from extended data.
-        /// </summary>
-        public static UserInfo GetUserIdentity(this Event ev) {
-            object value;
-            return ev.Data.TryGetValue(Event.KnownDataKeys.UserInfo, out value) ? value as UserInfo : null;
-        }
-
+        
         /// <summary>
         /// Sets the version that the event happened on.
         /// </summary>
@@ -144,7 +136,21 @@ namespace Exceptionless {
 
             ev.Data[Event.KnownDataKeys.Version] = version.Trim();
         }
+        
+        /// <summary>
+        /// Gets the user info object from extended data.
+        /// </summary>
+        public static UserInfo GetUserIdentity(this Event ev, IJsonSerializer serializer = null) {
+            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.UserInfo))
+                return null;
 
+            try {
+                return ev.Data.GetValue<UserInfo>(Event.KnownDataKeys.UserInfo, serializer);
+            } catch (Exception) { }
+
+            return null;
+        }
+        
         /// <summary>
         /// Sets the user's identity (ie. email address, username, user id) that the event happened to.
         /// </summary>
@@ -182,9 +188,15 @@ namespace Exceptionless {
         /// <summary>
         /// Gets the user description from extended data.
         /// </summary>
-        public static UserDescription GetUserDescription(this Event ev) {
-            object value;
-            return ev.Data.TryGetValue(Event.KnownDataKeys.UserDescription, out value) ? value as UserDescription : null;
+        public static UserDescription GetUserDescription(this Event ev, IJsonSerializer serializer = null) {
+            if (ev == null || !ev.Data.ContainsKey(Event.KnownDataKeys.UserDescription))
+                return null;
+
+            try {
+                return ev.Data.GetValue<UserDescription>(Event.KnownDataKeys.UserDescription, serializer);
+            } catch (Exception) { }
+
+            return null;
         }
 
         /// <summary>

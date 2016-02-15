@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models.Data;
 
@@ -13,7 +14,7 @@ namespace Exceptionless.Plugins.Default {
             if (!context.Event.IsError())
                 return;
 
-            InnerError current = context.Event.GetError();
+            InnerError current = context.Event.GetError(context.Client.Configuration.Resolver.GetJsonSerializer());
             DateTime repeatWindow = DateTime.Now.AddSeconds(-2);
 
             while (current != null) {

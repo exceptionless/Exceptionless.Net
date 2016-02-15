@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Exceptionless.Dependency;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Plugins.Default {
@@ -20,7 +21,7 @@ namespace Exceptionless.Plugins.Default {
                 return;
             }
 
-            var user = context.Event.GetUserIdentity();
+            var user = context.Event.GetUserIdentity(context.Client.Configuration.Resolver.GetJsonSerializer());
             if (user == null || String.IsNullOrEmpty(user.Identity))
                 return;
             

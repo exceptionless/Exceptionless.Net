@@ -59,7 +59,52 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal(1, context.Event.Data.Count);
             Assert.Equal("Test", context.Event.Data["Message"]);
         }
-        
+
+        [Fact]
+        public void ConfigurationDefaults_SerializedProperties() {
+            var client = new ExceptionlessClient();
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.EnvironmentInfo, new EnvironmentInfo { MachineName = "blake" });
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.Error, new Error { Message = "blake" });
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.Level, "Debug");
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.ManualStackingKey, "blake");
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.RequestInfo, new RequestInfo { Host = "blake" });
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.SimpleError, new SimpleError { Message = "blake" });
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.SubmissionMethod, "test");
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.TraceLog, new List<string>());
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.UserDescription, new UserDescription("blake@test.com", "blake"));
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.UserInfo, new UserInfo("blake"));
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.Version, "1.0");
+
+            var serializer = client.Configuration.Resolver.GetJsonSerializer();
+            var context = new EventPluginContext(client, new Event());
+            var plugin = new ConfigurationDefaultsPlugin();
+            plugin.Run(context);
+            Assert.Equal(11, context.Event.Data.Count);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.EnvironmentInfo] is string);
+            Assert.Equal("blake", context.Event.GetEnvironmentInfo().MachineName);
+            Assert.Equal("blake", context.Event.GetEnvironmentInfo(serializer).MachineName);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.Error] is string);
+            Assert.Equal("blake", context.Event.GetError().Message);
+            Assert.Equal("blake", context.Event.GetError(serializer).Message);
+            Assert.Equal("Debug", context.Event.Data[Event.KnownDataKeys.Level]);
+            Assert.Equal("blake", context.Event.Data[Event.KnownDataKeys.ManualStackingKey]);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.RequestInfo] is string);
+            Assert.Equal("blake", context.Event.GetRequestInfo().Host);
+            Assert.Equal("blake", context.Event.GetRequestInfo(serializer).Host);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.SimpleError] is string);
+            Assert.Equal("blake", context.Event.GetSimpleError().Message);
+            Assert.Equal("blake", context.Event.GetSimpleError(serializer).Message);
+            Assert.Equal("test", context.Event.Data[Event.KnownDataKeys.SubmissionMethod]);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.TraceLog] is string);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.UserDescription] is string);
+            Assert.Equal("blake", context.Event.GetUserDescription().Description);
+            Assert.Equal("blake", context.Event.GetUserDescription(serializer).Description);
+            Assert.True(context.Event.Data[Event.KnownDataKeys.UserInfo] is string);
+            Assert.Equal("blake", context.Event.GetUserIdentity().Identity);
+            Assert.Equal("blake", context.Event.GetUserIdentity(serializer).Identity);
+            Assert.Equal("1.0", context.Event.Data[Event.KnownDataKeys.Version]);
+        }
+
         [Fact]
         public void IgnoreUserAgentPlugin_DiscardBot() {
             var client = new ExceptionlessClient();
