@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Exceptionless.Plugins;
 using Exceptionless.Extensions;
@@ -117,7 +118,7 @@ namespace Exceptionless {
             if (longitude < -180.0 || longitude > 180.0)
                 throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
             
-            Target.Geo = latitude.ToString("#0.0#######") + "," + longitude.ToString("#0.0#######");
+            Target.Geo = latitude.ToString("#0.0#######", CultureInfo.InvariantCulture) + "," + longitude.ToString("#0.0#######", CultureInfo.InvariantCulture);
             return this;
         }
 
