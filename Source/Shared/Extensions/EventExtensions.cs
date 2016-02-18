@@ -183,6 +183,37 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Sets the event geo coordinates. Can be either "lat,lon" or an IP address that will be used to auto detect the geo coordinates.
+        /// </summary>
+        /// <param name="coordinates">The event coordinates.</param>
+        public static void SetGeo(this Event ev, string coordinates) {
+            if (String.IsNullOrWhiteSpace(coordinates)) {
+                ev.Geo = null;
+                return;
+            }
+
+            if (coordinates.Contains(",") || coordinates.Contains(".") || coordinates.Contains(":"))
+                ev.Geo = coordinates;
+            else
+                throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
+        }
+
+
+        /// <summary>
+        /// Sets the event geo coordinates.
+        /// </summary>
+        /// <param name="latitude">The event latitude.</param>
+        /// <param name="longitude">The event longitude.</param>
+        public static void SetGeo(this Event ev, double latitude, double longitude) {
+            if (latitude < -90.0 || latitude > 90.0)
+                throw new ArgumentOutOfRangeException("latitude", "Must be a valid latitude value between -90.0 and 90.0.");
+            if (longitude < -180.0 || longitude > 180.0)
+                throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
+
+            ev.Geo = latitude.ToString("#0.0#######") + "," + longitude.ToString("#0.0#######");
+        }
+
+        /// <summary>
         /// Sets the manual stacking key
         /// </summary>
         /// <param name="ev">The event</param>

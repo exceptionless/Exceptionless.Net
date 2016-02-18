@@ -103,6 +103,10 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("blake", context.Event.GetUserIdentity().Identity);
             Assert.Equal("blake", context.Event.GetUserIdentity(serializer).Identity);
             Assert.Equal("1.0", context.Event.Data[Event.KnownDataKeys.Version]);
+            
+            context.Event.SetUserIdentity(new UserInfo("blake"));
+            Assert.Equal("blake", context.Event.GetUserIdentity().Identity);
+            Assert.Equal("blake", context.Event.GetUserIdentity(serializer).Identity);
         }
 
         [Fact]

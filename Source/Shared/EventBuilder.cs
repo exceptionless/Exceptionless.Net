@@ -94,16 +94,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="coordinates">The event coordinates.</param>
         public EventBuilder SetGeo(string coordinates) {
-            if (String.IsNullOrWhiteSpace(coordinates)) {
-                Target.Geo = null;
-                return this;
-            }
-
-            if (coordinates.Contains(",") || coordinates.Contains(".") || coordinates.Contains(":"))
-                Target.Geo = coordinates;
-            else
-                throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
-
+            Target.SetGeo(coordinates);
             return this;
         }
 
