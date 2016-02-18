@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Exceptionless.Extensions;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
@@ -185,6 +188,7 @@ namespace Exceptionless {
         /// <summary>
         /// Sets the event geo coordinates. Can be either "lat,lon" or an IP address that will be used to auto detect the geo coordinates.
         /// </summary>
+        /// <param name="ev">The event.</param>
         /// <param name="coordinates">The event coordinates.</param>
         public static void SetGeo(this Event ev, string coordinates) {
             if (String.IsNullOrWhiteSpace(coordinates)) {
@@ -197,11 +201,11 @@ namespace Exceptionless {
             else
                 throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
         }
-
-
+        
         /// <summary>
         /// Sets the event geo coordinates.
         /// </summary>
+        /// <param name="ev">The event.</param>
         /// <param name="latitude">The event latitude.</param>
         /// <param name="longitude">The event longitude.</param>
         public static void SetGeo(this Event ev, double latitude, double longitude) {
@@ -210,7 +214,70 @@ namespace Exceptionless {
             if (longitude < -180.0 || longitude > 180.0)
                 throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
 
-            ev.Geo = latitude.ToString("#0.0#######") + "," + longitude.ToString("#0.0#######");
+            ev.Geo = latitude.ToString("#0.0#######", CultureInfo.InvariantCulture) + "," + longitude.ToString("#0.0#######", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// Adds one or more tags to the event.
+        /// </summary>
+        /// <param name="ev">The event.</param>
+        /// <param name="tags">The tags to be added to the event.</param>
+        public static void AddTags(this Event ev, params string[] tags) {
+            if (tags == null || tags.Length == 0)
+                return;
+
+            ev.Tags.AddRange(tags.Where(t => !String.IsNullOrWhiteSpace(t)).Select(t => t.Trim()));
+        }
+
+        /// <summary>
+        /// Sets the event reference id.
+        /// </summary>
+        /// <param name="ev">The event.</param>
+        /// <param name="referenceId">The event reference id.</param>
+        public static void SetReferenceId(this Event ev, string referenceId) {
+            if (!IsValidIdentifier(referenceId))
+                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", "referenceId");
+
+            ev.ReferenceId = referenceId;
+        }
+
+        /// <summary>
+        /// Returns the event reference id.
+        /// </summary>
+        /// <param name="ev">The event.</param>
+        /// <param name="name">Reference name</param>
+        /// <returns></returns>
+        public static string GetEventReference(this Event ev, string name) {
+            if (ev == null || String.IsNullOrEmpty(name))
+                return null;
+
+            return ev.Data.GetString($"@ref:{name}");
+        }
+
+        /// <summary>
+        /// Allows you to reference a parent event by its <seealso cref="Event.ReferenceId" /> property. This allows you to have parent and child relationships.
+        /// </summary>
+        /// <param name="ev">The event.</param>
+        /// <param name="name">Reference name</param>
+        /// <param name="id">The reference id that points to a specific event</param>
+        public static void SetEventReference(this Event ev, string name, string id) {
+            if (String.IsNullOrEmpty(name))
+                throw new ArgumentNullException("name");
+
+            if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
+                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", "id");
+
+            ev.SetProperty(String.Format("@ref:{0}", name), id);
+        }
+
+        private static bool IsValidIdentifier(string value) {
+            if (value == null)
+                return true;
+
+            if (value.Length < 8 || value.Length > 100)
+                return false;
+
+            return value.IsValidIdentifier();
         }
 
         /// <summary>

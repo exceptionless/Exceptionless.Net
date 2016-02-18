@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using Exceptionless.Plugins;
-using Exceptionless.Extensions;
 using Exceptionless.Models;
 
 namespace Exceptionless {
@@ -47,10 +44,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="referenceId">The event reference id.</param>
         public EventBuilder SetReferenceId(string referenceId) {
-            if (!IsValidIdentifier(referenceId))
-                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", "referenceId");
-
-            Target.ReferenceId = referenceId;
+            Target.SetReferenceId(referenceId);
             return this;
         }
 
@@ -60,26 +54,10 @@ namespace Exceptionless {
         /// <param name="name">Reference name</param>
         /// <param name="id">The reference id that points to a specific event</param>
         public EventBuilder SetEventReference(string name, string id) {
-            if (String.IsNullOrEmpty(name))
-                throw new ArgumentNullException("name");
-
-            if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
-                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", "id");
-
-           Target.SetProperty(String.Format("@ref:{0}", name), id);
+            Target.SetEventReference(name, id);
             return this;
         }
-
-        private bool IsValidIdentifier(string value) {
-            if (value == null)
-                return true;
-
-            if (value.Length < 8 || value.Length > 100)
-                return false;
-
-            return value.IsValidIdentifier();
-        }
-
+        
         /// <summary>
         /// Sets the event message.
         /// </summary>
@@ -104,12 +82,7 @@ namespace Exceptionless {
         /// <param name="latitude">The event latitude.</param>
         /// <param name="longitude">The event longitude.</param>
         public EventBuilder SetGeo(double latitude, double longitude) {
-            if (latitude < -90.0 || latitude > 90.0)
-                throw new ArgumentOutOfRangeException("latitude", "Must be a valid latitude value between -90.0 and 90.0.");
-            if (longitude < -180.0 || longitude > 180.0)
-                throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
-            
-            Target.Geo = latitude.ToString("#0.0#######", CultureInfo.InvariantCulture) + "," + longitude.ToString("#0.0#######", CultureInfo.InvariantCulture);
+            Target.SetGeo(latitude, longitude);
             return this;
         }
 
@@ -127,10 +100,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="tags">The tags to be added to the event.</param>
         public EventBuilder AddTags(params string[] tags) {
-            if (tags == null || tags.Length == 0)
-                return this;
-
-            Target.Tags.AddRange(tags.Where(t => !String.IsNullOrWhiteSpace(t)).Select(t => t.Trim()));
+            Target.AddTags(tags);
             return this;
         }
 
