@@ -251,7 +251,7 @@ namespace Exceptionless {
             if (ev == null || String.IsNullOrEmpty(name))
                 return null;
 
-            return ev.Data.GetString($"@ref:{name}");
+            return ev.Data.GetString(String.Format("@ref:{0}", name));
         }
 
         /// <summary>
