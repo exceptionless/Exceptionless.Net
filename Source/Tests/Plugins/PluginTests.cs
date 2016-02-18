@@ -508,7 +508,7 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal(0, config.Plugins.Count());
             config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<PluginWithPriority11>();
-            config.AddPlugin<PluginWithNoPriority>();
+            config.AddPlugin(new PluginWithNoPriority());
             config.AddPlugin("version", 1, ctx => ctx.Event.SetVersion("1.0.0.0"));
             config.AddPlugin("version2", 2, ctx => ctx.Event.SetVersion("1.0.0.0"));
             config.AddPlugin("version3", 3, ctx => ctx.Event.SetVersion("1.0.0.0"));

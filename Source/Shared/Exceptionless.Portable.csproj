@@ -60,6 +60,7 @@
     <Compile Include="Dependency\TinyIoC.cs" />
     <Compile Include="Events\EventSubmissionEventArgsBase.cs" />
     <Compile Include="Events\EventSubmittedEventArgs.cs" />
+    <Compile Include="Plugins\Default\025_SessionIdManagementPlugin.cs" />
     <Compile Include="Plugins\Default\030_DuplicateCheckerPlugin.cs" />
     <Compile Include="Plugins\ContextData.cs" />
     <Compile Include="Plugins\Default\1000_CancelSessionsWithNoUserPlugin.cs" />

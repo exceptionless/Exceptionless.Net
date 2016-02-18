@@ -7,6 +7,15 @@ namespace Exceptionless.Plugins.Default {
     [Priority(100)]
     public class HeartbeatPlugin : IEventPlugin, IDisposable {
         private SessionHeartbeat _heartbeat;
+        private readonly TimeSpan _interval;
+
+        /// <summary>
+        /// Controls whether session heartbeats are sent.
+        /// </summary>
+        /// <param name="interval">The interval at which heartbeats are sent after the last sent event. The default is 30 seconds.</param>
+        public HeartbeatPlugin(TimeSpan? interval = null) {
+            _interval = interval.HasValue && interval.Value.Ticks > 0 ? interval.Value : TimeSpan.FromSeconds(30);
+        }
 
         public void Run(EventPluginContext context) {
             if (context.Event.IsSessionHeartbeat())
@@ -26,12 +35,12 @@ namespace Exceptionless.Plugins.Default {
                 return;
             
             if (_heartbeat == null) {
-                _heartbeat = new SessionHeartbeat(user, context.Client);
+                _heartbeat = new SessionHeartbeat(user, _interval, context.Client);
             } else if (_heartbeat.User.Identity != user.Identity) {
                 if (_heartbeat != null)
                     _heartbeat.Dispose();
 
-                _heartbeat = new SessionHeartbeat(user, context.Client);
+                _heartbeat = new SessionHeartbeat(user, _interval, context.Client);
             } else {
                 if (_heartbeat != null)
                     _heartbeat.DelayNext();
@@ -48,11 +57,12 @@ namespace Exceptionless.Plugins.Default {
 
     public class SessionHeartbeat : IDisposable {
         private readonly Timer _timer;
-        private readonly int _interval = 30 * 1000;
+        private readonly TimeSpan _interval;
         private readonly ExceptionlessClient _client;
 
-        public SessionHeartbeat(UserInfo user, ExceptionlessClient client) {
+        public SessionHeartbeat(UserInfo user, TimeSpan interval, ExceptionlessClient client) {
             User = user;
+            _interval = interval;
             _client = client;
             _timer = new Timer(SendHeartbeat, null, _interval, _interval);
         }
