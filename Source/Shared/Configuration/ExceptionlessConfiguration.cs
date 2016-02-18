@@ -229,6 +229,16 @@ namespace Exceptionless {
         /// Register an plugin to be used in this configuration.
         /// </summary>
         /// <typeparam name="T">The plugin type to be added.</typeparam>
+        /// <param name="plugin">The plugin instance to be added.</param>
+        public void AddPlugin<T>(T plugin) where T : IEventPlugin {
+            string key = typeof(T).FullName;
+            _plugins[key] = new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin));
+        }
+
+        /// <summary>
+        /// Register an plugin to be used in this configuration.
+        /// </summary>
+        /// <typeparam name="T">The plugin type to be added.</typeparam>
         public void AddPlugin<T>() where T : IEventPlugin {
             AddPlugin(typeof(T).FullName, typeof(T));
         }
