@@ -66,7 +66,7 @@ namespace Exceptionless.Tests.Plugins {
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.EnvironmentInfo, new EnvironmentInfo { MachineName = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.Error, new Error { Message = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.Level, "Debug");
-            client.Configuration.DefaultData.Add(Event.KnownDataKeys.ManualStackingKey, "blake");
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.StackingInfo, "blake");
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.RequestInfo, new RequestInfo { Host = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.SimpleError, new SimpleError { Message = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.SubmissionMethod, "test");
@@ -87,7 +87,7 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("blake", context.Event.GetError().Message);
             Assert.Equal("blake", context.Event.GetError(serializer).Message);
             Assert.Equal("Debug", context.Event.Data[Event.KnownDataKeys.Level]);
-            Assert.Equal("blake", context.Event.Data[Event.KnownDataKeys.ManualStackingKey]);
+            Assert.Equal("blake", context.Event.Data[Event.KnownDataKeys.StackingInfo]);
             Assert.True(context.Event.Data[Event.KnownDataKeys.RequestInfo] is string);
             Assert.Equal("blake", context.Event.GetRequestInfo().Host);
             Assert.Equal("blake", context.Event.GetRequestInfo(serializer).Host);

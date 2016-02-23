@@ -289,7 +289,7 @@ namespace Exceptionless {
             if (signatureData == null || signatureData.Count == 0)
                 return;
 
-            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(signatureData);
+            ev.Data[Event.KnownDataKeys.StackingInfo] = new StackingInfo(signatureData);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace Exceptionless {
             if (String.IsNullOrWhiteSpace(title) || signatureData == null || signatureData.Count == 0)
                 return;
 
-            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(title, signatureData);
+            ev.Data[Event.KnownDataKeys.StackingInfo] = new StackingInfo(title, signatureData);
         }
 
         /// <summary>
@@ -314,7 +314,7 @@ namespace Exceptionless {
             if (String.IsNullOrWhiteSpace(manualStackingKey))
                 return;
 
-            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(null, new Dictionary<string, string> { { "ManualStackingKey", manualStackingKey } });
+            ev.Data[Event.KnownDataKeys.StackingInfo] = new StackingInfo(null, new Dictionary<string, string> { { "ManualStackingKey", manualStackingKey } });
         }
 
         /// <summary>
@@ -327,7 +327,7 @@ namespace Exceptionless {
             if (String.IsNullOrWhiteSpace(title) || String.IsNullOrWhiteSpace(manualStackingKey))
                 return;
             
-            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(title, new Dictionary<string, string> { { "ManualStackingKey", manualStackingKey } });
+            ev.Data[Event.KnownDataKeys.StackingInfo] = new StackingInfo(title, new Dictionary<string, string> { { "ManualStackingKey", manualStackingKey } });
         }
 
         public static T GetDataValue<T>(this Event ev, string key, IJsonSerializer serializer = null) {
