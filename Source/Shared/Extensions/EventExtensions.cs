@@ -281,7 +281,32 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Sets the manual stacking key
+        /// Changes default stacking behavior
+        /// </summary>
+        /// <param name="ev">The event</param>
+        /// <param name="signatureData">Key value pair that determines how the event is stacked.</param>
+        public static void SetManualStackingInfo(this Event ev, IDictionary<string, string> signatureData) {
+            if (signatureData == null || signatureData.Count == 0)
+                return;
+
+            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(signatureData);
+        }
+
+        /// <summary>
+        /// Changes default stacking behavior
+        /// </summary>
+        /// <param name="ev">The event</param>
+        /// <param name="title">The stack title.</param>
+        /// <param name="signatureData">Key value pair that determines how the event is stacked.</param>
+        public static void SetManualStackingInfo(this Event ev, string title, IDictionary<string, string> signatureData) {
+            if (String.IsNullOrWhiteSpace(title) || signatureData == null || signatureData.Count == 0)
+                return;
+
+            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(title, signatureData);
+        }
+
+        /// <summary>
+        /// Changes default stacking behavior by setting the stacking info.
         /// </summary>
         /// <param name="ev">The event</param>
         /// <param name="manualStackingKey">The manual stacking key.</param>
@@ -289,7 +314,20 @@ namespace Exceptionless {
             if (String.IsNullOrWhiteSpace(manualStackingKey))
                 return;
 
-            ev.Data[Event.KnownDataKeys.ManualStackingKey] = manualStackingKey.Trim();
+            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(null, new Dictionary<string, string> { { String.Empty, manualStackingKey } });
+        }
+
+        /// <summary>
+        /// Changes default stacking behavior by setting the stacking info.
+        /// </summary>
+        /// <param name="ev">The event</param>
+        /// <param name="title">The stack title.</param>
+        /// <param name="manualStackingKey">The manual stacking key.</param>
+        public static void SetManualStackingKey(this Event ev, string title, string manualStackingKey) {
+            if (String.IsNullOrWhiteSpace(title) || String.IsNullOrWhiteSpace(manualStackingKey))
+                return;
+            
+            ev.Data[Event.KnownDataKeys.ManualStackingKey] = new StackingInfo(title, new Dictionary<string, string> { { String.Empty, manualStackingKey } });
         }
 
         public static T GetDataValue<T>(this Event ev, string key, IJsonSerializer serializer = null) {
