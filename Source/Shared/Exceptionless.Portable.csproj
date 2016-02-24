@@ -60,7 +60,7 @@
     <Compile Include="Dependency\TinyIoC.cs" />
     <Compile Include="Events\EventSubmissionEventArgsBase.cs" />
     <Compile Include="Events\EventSubmittedEventArgs.cs" />
-    <Compile Include="Models\Client\Data\StackingInfo.cs" />
+    <Compile Include="Models\Client\Data\ManualStackingInfo.cs" />
     <Compile Include="Plugins\Default\025_SessionIdManagementPlugin.cs" />
     <Compile Include="Plugins\Default\030_DuplicateCheckerPlugin.cs" />
     <Compile Include="Plugins\ContextData.cs" />
