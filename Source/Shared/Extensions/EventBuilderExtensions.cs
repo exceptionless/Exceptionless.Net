@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless {
@@ -59,9 +60,41 @@ namespace Exceptionless {
         /// Changes default stacking behavior by setting the stacking key.
         /// </summary>
         /// <param name="builder">The event builder object.</param>
+        /// <param name="signatureData">Key value pair that determines how the event is stacked.</param>
+        public static EventBuilder SetManualStackingInfo(this EventBuilder builder, IDictionary<string, string> signatureData) {
+            builder.Target.SetManualStackingInfo(signatureData);
+            return builder;
+        }
+
+        /// <summary>
+        /// Changes default stacking behavior by setting the stacking key.
+        /// </summary>
+        /// <param name="builder">The event builder object.</param>
+        /// <param name="title">The stack title.</param>
+        /// <param name="signatureData">Key value pair that determines how the event is stacked.</param>
+        public static EventBuilder SetManualStackingInfo(this EventBuilder builder, string title, IDictionary<string, string> signatureData) {
+            builder.Target.SetManualStackingInfo(title, signatureData);
+            return builder;
+        }
+
+        /// <summary>
+        /// Changes default stacking behavior by setting the stacking key.
+        /// </summary>
+        /// <param name="builder">The event builder object.</param>
         /// <param name="manualStackingKey">The manual stacking key.</param>
         public static EventBuilder SetManualStackingKey(this EventBuilder builder, string manualStackingKey) {
             builder.Target.SetManualStackingKey(manualStackingKey);
+            return builder;
+        }
+
+        /// <summary>
+        /// Changes default stacking behavior by setting the stacking key.
+        /// </summary>
+        /// <param name="builder">The event builder object.</param>
+        /// <param name="title">The stack title.</param>
+        /// <param name="manualStackingKey">The manual stacking key.</param>
+        public static EventBuilder SetManualStackingKey(this EventBuilder builder, string title, string manualStackingKey) {
+            builder.Target.SetManualStackingKey(title, manualStackingKey);
             return builder;
         }
     }

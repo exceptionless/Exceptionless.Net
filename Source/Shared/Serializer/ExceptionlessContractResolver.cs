@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using Exceptionless.Models;
 using Exceptionless.Json;
 using Exceptionless.Json.Serialization;
 using Exceptionless.Extensions;
@@ -24,9 +23,6 @@ namespace Exceptionless.Serializer {
         }
 
         protected override JsonDictionaryContract CreateDictionaryContract(Type objectType) {
-            if (objectType != typeof(DataDictionary) && objectType != typeof(SettingsDictionary))
-                return base.CreateDictionaryContract(objectType);
-
             JsonDictionaryContract contract = base.CreateDictionaryContract(objectType);
             contract.PropertyNameResolver = propertyName => propertyName;
             return contract;

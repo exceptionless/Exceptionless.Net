@@ -6,7 +6,12 @@ namespace Exceptionless.SampleMvc.Controllers {
     public class ValuesController : ApiController {
         // GET api/values
         public IEnumerable<string> Get() {
-            throw new ApplicationException("WebApi GET error");
+            try {
+                throw new ApplicationException("WebApi GET error");
+            } catch (Exception ex) {
+                ex.ToExceptionless().Submit();
+                throw;
+            }
         }
 
         // GET api/values/5
