@@ -35,7 +35,7 @@ namespace Exceptionless.SampleMvc.Controllers {
         }
         
         [HttpGet]
-        public ViewResult ManualStacking() {
+        public ViewResult ManualStacking(string myId) {
             ExceptionlessClient.Default.CreateLog(nameof(HomeController), "Random Log message")
                 .SetManualStackingInfo("Manual Stacked Log Messages", new Dictionary<string, string> {
                     { "Controller", nameof(HomeController) },

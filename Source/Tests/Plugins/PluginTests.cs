@@ -153,8 +153,7 @@ namespace Exceptionless.Tests.Plugins {
             context = new EventPluginContext(client, new Event());
             context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
             plugin.Run(context);
-            Assert.False(context.Cancel);
-            Assert.Equal(exceptionOne, context.ContextData.GetException());
+            Assert.True(context.Cancel);
         }
 
         [Fact]
