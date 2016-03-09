@@ -14,19 +14,15 @@ namespace Exceptionless.NLog {
                 contextData.SetException(ev.Exception);
 
             var builder = client.CreateEvent(contextData);
-            if (ev.Exception == null) {
-                builder.SetSource(ev.LoggerName);
-                builder.SetProperty(Event.KnownDataKeys.Level, ev.Level.Name);
-            }
-
             builder.Target.Date = ev.TimeStamp;
+            builder.SetSource(ev.LoggerName);
 
+            if (ev.Exception == null)
+                builder.SetProperty(Event.KnownDataKeys.Level, ev.Level.Name);
+            
             if (!String.IsNullOrWhiteSpace(ev.FormattedMessage))
                 builder.SetMessage(ev.FormattedMessage);
-
-            if (ev.Exception != null)
-                builder.SetSource(ev.LoggerName);
-
+            
             var tagList = ev.GetTags();
             if (tagList.Count > 0)
                 builder.AddTags(tagList.ToArray());
