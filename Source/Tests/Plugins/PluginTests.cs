@@ -535,19 +535,13 @@ namespace Exceptionless.Tests.Plugins {
         public void RunBenchmark() {
             var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
 
-            Action<string> writeBoth = line => {
-                                           _writer.WriteLine(line);
-                                           Console.WriteLine(line);
-                                       };
-
             foreach (var benchmark in summary.Benchmarks) {
                 var report = summary.Reports[benchmark];
 
-                writeBoth(report.ToString());
-            }
+                _writer.WriteLine(report.ToString());
 
-            foreach (var line in summary.Table.FullContentWithHeader) {
-                writeBoth(string.Join("\t", line));
+                var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
+                _writer.WriteLine($"{benchmark.ShortInfo} - {benchmarkMedianMilliseconds:0.00}ms");
             }
         }
 
