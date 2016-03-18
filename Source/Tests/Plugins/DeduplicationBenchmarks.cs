@@ -1,29 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
-using Exceptionless.Extensions;
 using Exceptionless.Models;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Utility;
 
 namespace Exceptionless.Tests.Plugins {
     public class DeduplicationBenchmarks {
-        private readonly List<Event> _events = new List<Event>();
+        private readonly List<Event> _events;
         public DeduplicationBenchmarks() {
-            foreach (var file in Directory.GetFiles(@"..\..\ErrorData", "*.json")) {
-                _events.Add(GetEvent(file));
-            }
-        }
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
-
-        Event GetEvent(string fileName) {
-            var json = File.ReadAllText(fileName);
-            var serializer = GetSerializer();
-            return serializer.Deserialize<Event>(json);
+            _events = ErrorDataReader.GetEvents().ToList();
         }
 
         [Benchmark]
