@@ -1,0 +1,546 @@
+{
+  "id": "56b7fce0f40b1d35605a0401",
+  "organization_id": "50b401fa9064371a7ceae311",
+  "project_id": "50b404049064371a7c819311",
+  "stack_id": "56b7fce0f40b1d35605a0311",
+  "is_first_occurrence": true,
+  "is_fixed": false,
+  "is_hidden": false,
+  "created_utc": "2016-02-08T02:26:40.4831477",
+  "idx": {
+    "session-r": "56b7fcdff40b1d35605a040b"
+  },
+  "type": "error",
+  "date": "2016-02-08T02:26:39.5188934+00:00",
+  "message": "Row not found or changed.",
+  "geo": "59.8944,30.2642",
+  "data": {
+    "@version": "2.0.2432 856a43a4c8",
+    "@error": {
+      "message": "Row not found or changed.",
+      "type": "System.Data.Linq.ChangeConflictException",
+      "data": {
+        "@target": {
+          "ExceptionType": "System.Data.Linq.ChangeConflictException",
+          "Method": "example.Web.Controllers.DownloadsController.CreateOrGetUser(exampleDataContext context, RequestTrialData rtd, String& example)",
+          "Message": "Row not found or changed."
+        }
+      },
+      "stack_trace": [
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Data.Linq",
+          "declaring_type": "ChangeProcessor",
+          "name": "SubmitChanges",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 408,
+            "NativeOffset": 934622
+          },
+          "parameters": [
+            {
+              "name": "failureMode",
+              "type": "ConflictMode",
+              "type_namespace": "System.Data.Linq"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Data.Linq",
+          "declaring_type": "DataContext",
+          "name": "SubmitChanges",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 225,
+            "NativeOffset": 391
+          },
+          "parameters": [
+            {
+              "name": "failureMode",
+              "type": "ConflictMode",
+              "type_namespace": "System.Data.Linq"
+            }
+          ]
+        },
+        {
+          "file_name": "c:\\projects\\website\\Source\\WebCore\\Data\\exampleDataContext.Generated.cs",
+          "line_number": 1505,
+          "column": 13,
+          "is_signature_target": false,
+          "declaring_namespace": "example.WebCore.Data",
+          "declaring_type": "exampleDataContext",
+          "name": "SubmitChanges",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 39,
+            "NativeOffset": 44
+          },
+          "parameters": [
+            {
+              "name": "failureMode",
+              "type": "ConflictMode",
+              "type_namespace": "System.Data.Linq"
+            }
+          ]
+        },
+        {
+          "file_name": "c:\\projects\\website\\Source\\Consumer\\Controllers\\DownloadsController.cs",
+          "line_number": 264,
+          "column": 21,
+          "is_signature_target": true,
+          "declaring_namespace": "example.Web.Controllers",
+          "declaring_type": "DownloadsController",
+          "name": "CreateOrGetUser",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 523,
+            "NativeOffset": 1262
+          },
+          "parameters": [
+            {
+              "name": "context",
+              "type": "exampleDataContext",
+              "type_namespace": "example.WebCore.Data"
+            },
+            {
+              "name": "rtd",
+              "type": "RequestTrialData",
+              "type_namespace": "example.WebCore.Models"
+            },
+            {
+              "name": "example",
+              "type": "String&",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "file_name": "c:\\projects\\website\\Source\\Consumer\\Controllers\\DownloadsController.cs",
+          "line_number": 201,
+          "column": 13,
+          "is_signature_target": false,
+          "declaring_namespace": "example.Web.Controllers",
+          "declaring_type": "DownloadsController",
+          "name": "ExecuteDownloadSteps",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 6,
+            "NativeOffset": 51
+          },
+          "parameters": [
+            {
+              "name": "rtd",
+              "type": "RequestTrialData",
+              "type_namespace": "example.WebCore.Models"
+            }
+          ]
+        },
+        {
+          "file_name": "c:\\projects\\website\\Source\\Consumer\\Controllers\\DownloadsController.cs",
+          "line_number": 147,
+          "column": 13,
+          "is_signature_target": false,
+          "declaring_namespace": "example.Web.Controllers",
+          "declaring_type": "DownloadsController",
+          "name": "RequestTrialSubmit",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 204,
+            "NativeOffset": 444
+          }
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "name": "lambda_method",
+          "module_id": -1,
+          "data": {
+            "ILOffset": -1,
+            "NativeOffset": 62
+          },
+          "parameters": [
+            {
+              "type": "Closure",
+              "type_namespace": "System.Runtime.CompilerServices"
+            },
+            {
+              "type": "ControllerBase",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "type": "Object[]",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "ActionMethodDispatcher",
+          "name": "Execute",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 14
+          },
+          "parameters": [
+            {
+              "name": "controller",
+              "type": "ControllerBase",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "parameters",
+              "type": "Object[]",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "ReflectedActionDescriptor",
+          "name": "Execute",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 81,
+            "NativeOffset": 157
+          },
+          "parameters": [
+            {
+              "name": "controllerContext",
+              "type": "ControllerContext",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "parameters",
+              "type": "IDictionary`2",
+              "type_namespace": "System.Collections.Generic"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "ControllerActionInvoker",
+          "name": "InvokeActionMethod",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 27
+          },
+          "parameters": [
+            {
+              "name": "controllerContext",
+              "type": "ControllerContext",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "actionDescriptor",
+              "type": "ActionDescriptor",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "parameters",
+              "type": "IDictionary`2",
+              "type_namespace": "System.Collections.Generic"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker",
+          "name": "<BeginInvokeSynchronousActionMethod>b__39",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 22
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            },
+            {
+              "name": "innerInvokeState",
+              "type": "ActionInvocation",
+              "type_namespace": "System.Web.Mvc.Async"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncResultWrapper+WrappedAsyncResult`2",
+          "name": "CallEndDelegate",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 29
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncResultWrapper+WrappedAsyncResultBase`1",
+          "name": "End",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 41,
+            "NativeOffset": 49
+          }
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker",
+          "name": "EndInvokeActionMethod",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 49
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker+AsyncInvocationWithFilters",
+          "name": "<InvokeActionMethodFilterAsynchronouslyRecursive>b__3d",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 20,
+            "NativeOffset": 50
+          }
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncInvocationWithFilters+<>c__DisplayClass46",
+          "name": "<InvokeActionMethodFilterAsynchronouslyRecursive>b__3f",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 134,
+            "NativeOffset": 225
+          }
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker+<>c__DisplayClass33",
+          "name": "<BeginInvokeActionMethodWithFilters>b__32",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 10
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncResultWrapper+WrappedAsyncResult`1",
+          "name": "CallEndDelegate",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 10
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncResultWrapper+WrappedAsyncResultBase`1",
+          "name": "End",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 41,
+            "NativeOffset": 49
+          }
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker",
+          "name": "EndInvokeActionMethodWithFilters",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 49
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "<>c__DisplayClass21+<>c__DisplayClass2b",
+          "name": "<BeginInvokeAction>b__1c",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 26
+          }
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker+<>c__DisplayClass21",
+          "name": "<BeginInvokeAction>b__1e",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 36
+          },
+          "parameters": [
+            {
+              "name": "asyncResult",
+              "type": "IAsyncResult",
+              "type_namespace": "System"
+            }
+          ]
+        }
+      ],
+      "target_method": {
+        "is_signature_target": false,
+        "declaring_namespace": "System.Data.Linq",
+        "declaring_type": "ChangeProcessor",
+        "name": "SubmitChanges",
+        "module_id": -1,
+        "parameters": [
+          {
+            "name": "failureMode",
+            "type": "ConflictMode",
+            "type_namespace": "System.Data.Linq"
+          }
+        ]
+      }
+    },
+    "@environment": {
+      "processor_count": 2,
+      "total_physical_memory": 3757625344,
+      "available_physical_memory": 2259492864,
+      "command_line": "D:\\Windows\\SysWOW64\\inetsrv\\w3wp.exe -ap \"cst-web\" -v \"v4.0\" -a \"\\\\.\\pipe\\iisipmfcca87a6-8cd6-4675-83ad-b9e660761c45\" -h \"C:\\DWASFiles\\Sites\\cst-web\\Config\\applicationhost.config\" -w \"C:\\DWASFiles\\Sites\\cst-web\\Config\\rootweb.config\" -m 0",
+      "process_name": "D:\\Windows\\SysWOW64\\inetsrv\\w3wp.exe",
+      "process_id": "3760",
+      "process_memory_size": 131276800,
+      "thread_id": "6620",
+      "architecture": "x64",
+      "ip_address": "127.0.0.1",
+      "machine_name": "RD000D3A10CC51",
+      "install_id": "8a706cdf2d7a4a4bbcd0dee60b06fc69",
+      "runtime_version": "4.0.30319.42000",
+      "data": {
+        "AppDomainName": "/LM/W3SVC/2010694787/ROOT-5-130991837016574603"
+      }
+    },
+    "@user": {
+      "identity": "cst-web"
+    },
+    "@request": {
+      "user_agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)",
+      "http_method": "POST",
+      "is_secure": false,
+      "host": "www.example.com",
+      "port": 80,
+      "path": "/downloads/requesttrialsubmit",
+      "referrer": "http://test.test/item/test.html?num=1",
+      "client_ip_address": "168.143.232.14,168.66.179.64",
+      "cookies": {
+        "a_r_r_affinity": "fe54b7e899e9e55b95e44ccc7abce15c16dc8173759abf0a0ce2d27c9fca12b5"
+      },
+      "post_data": {
+        "new_email": "test@hotmail.com",
+        "full_name": "Test",
+        "organization": "test",
+        "heard_from_id": "",
+        "news_letter": "false",
+        "download_now": "Download Now",
+        "id": "18"
+      },
+      "data": {
+        "@browser": "IE",
+        "@browser_version": "6.0",
+        "@browser_major_version": "6",
+        "@os": "Windows XP",
+        "@is_bot": false
+      }
+    },
+    "@submission_method": "SendErrorsAttribute",
+    "@location": {
+      "country": "RU",
+      "level1": "SPE",
+      "locality": "Saint Petersburg"
+    },
+    "@ref:session": "56b7fcdff40b1d35605a040b"
+  }
+}

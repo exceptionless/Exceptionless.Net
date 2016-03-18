@@ -2,7 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Running;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
@@ -526,6 +529,26 @@ namespace Exceptionless.Tests.Plugins {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             foreach (var plugin in config.Plugins)
                 _writer.WriteLine(plugin);
+        }
+
+        [Fact]
+        public void RunBenchmark() {
+            var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
+
+            Action<string> writeBoth = line => {
+                                           _writer.WriteLine(line);
+                                           Console.WriteLine(line);
+                                       };
+
+            foreach (var benchmark in summary.Benchmarks) {
+                var report = summary.Reports[benchmark];
+
+                writeBoth(report.ToString());
+            }
+
+            foreach (var line in summary.Table.FullContentWithHeader) {
+                writeBoth(string.Join("\t", line));
+            }
         }
 
         public class PluginWithNoPriority : IEventPlugin {
