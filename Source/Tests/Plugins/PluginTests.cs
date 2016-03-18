@@ -565,6 +565,35 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
+        [Fact]
+        public void VerifyDeduplicationFromFiles()
+        {
+            var client = new ExceptionlessClient();
+            var errorPlugin = new ErrorPlugin();
+
+            foreach (var ev in ErrorDataReader.GetEvents()) {
+                using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
+
+                    for (int index = 0; index < 2; index++) {
+                        var contextData = new ContextData();
+                        var context = new EventPluginContext(client, ev, contextData);
+
+                        errorPlugin.Run(context);
+                        duplicateCheckerPlugin.Run(context);
+
+                        if (index == 0) {
+                            Assert.False(context.Cancel);
+                            Assert.Null(context.Event.Value);
+                        } else {
+                            Assert.True(context.Cancel);
+                            Thread.Sleep(50);
+                            Assert.Equal(1, context.Event.Value);
+                        }
+                    }
+                }
+            }
+        }
+
         private Exception GetException(string message = "Test") {
             try {
                 throw new Exception(message);
