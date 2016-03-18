@@ -51,7 +51,7 @@ namespace Exceptionless
         }
 
         public static int GetCollectionHashCode<T>(this IEnumerable<T> source) {
-            int hashCode = typeof(T).GetHashCode();
+            int hashCode = typeof(T).AssemblyQualifiedName?.GetHashCode() ?? 0;
 
             foreach (var item in source) {
                 if(item == null) continue;
@@ -65,7 +65,8 @@ namespace Exceptionless
 
         public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source)
         {
-            int hashCode = typeof(TValue).GetHashCode();
+
+            int hashCode = typeof(TValue).AssemblyQualifiedName?.GetHashCode() ?? 0;
 
             var keyValuePairHashes = new List<int>(source.Keys.Count);
 
