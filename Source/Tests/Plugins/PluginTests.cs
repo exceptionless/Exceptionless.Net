@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Running;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
@@ -19,7 +21,7 @@ namespace Exceptionless.Tests.Plugins {
         private ExceptionlessClient CreateClient()
         {
             return new ExceptionlessClient(c => {
-                c.UseDebugLogger();
+                //c.UseDebugLogger();
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
             });
@@ -568,6 +570,20 @@ namespace Exceptionless.Tests.Plugins {
                 throw new Exception(message);
             } catch (Exception ex) {
                 return ex;
+            }
+        }
+
+        [Fact]
+        public void RunBenchmark() {
+            var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
+
+            foreach (var benchmark in summary.Benchmarks) {
+                var report = summary.Reports[benchmark];
+
+                _writer.WriteLine(report.ToString());
+
+                var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
+                _writer.WriteLine($"{benchmark.ShortInfo} - {benchmarkMedianMilliseconds:0.00}ms");
             }
         }
 

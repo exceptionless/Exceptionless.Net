@@ -64,7 +64,6 @@
     <Compile Include="Plugins\Default\1010_DuplicateCheckerPlugin.cs" />
     <Compile Include="Models\Client\Data\ManualStackingInfo.cs" />
     <Compile Include="Plugins\Default\025_SessionIdManagementPlugin.cs" />
-    <Compile Include="Plugins\Default\030_DuplicateCheckerPlugin.cs" />
     <Compile Include="Plugins\ContextData.cs" />
     <Compile Include="Plugins\Default\1000_CancelSessionsWithNoUserPlugin.cs" />
     <Compile Include="Plugins\Default\100_HeartbeatPlugin.cs" />
