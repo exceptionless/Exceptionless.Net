@@ -59,7 +59,6 @@ namespace Exceptionless.Helpers {
             if (RandomData.GetBool(20))
                 ev.Value = RandomData.GetDecimal();
 
-            ev.SetUserIdentity(Identities.Random());
             ev.SetVersion(RandomData.GetVersion("2.0", "4.0"));
 
             ev.AddRequestInfo(new RequestInfo {
@@ -233,10 +232,7 @@ namespace Exceptionless.Helpers {
             Event.KnownTypes.Error,
             Event.KnownTypes.FeatureUsage,
             Event.KnownTypes.Log,
-            Event.KnownTypes.NotFound,
-            Event.KnownTypes.Session,
-            Event.KnownTypes.SessionEnd,
-            Event.KnownTypes.SessionHeartbeat
+            Event.KnownTypes.NotFound
         };
 
         public readonly List<string> ExceptionTypes = new List<string> {

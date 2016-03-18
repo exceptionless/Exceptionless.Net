@@ -22,7 +22,7 @@ namespace Exceptionless.Dialogs {
             Title = String.Concat(AssemblyHelper.GetAssemblyTitle(), " Error");
             InformationHeaderLabel.Text = String.Concat(AssemblyHelper.GetAssemblyTitle(), " has encountered a problem and needs to close.  We are sorry for the inconvenience.");
 
-            var userInfo = ev.GetUserIdentity();
+            var userInfo = ev.GetUserIdentity(client.Configuration.Resolver.GetJsonSerializer());
             if (userInfo != null && !String.IsNullOrEmpty(userInfo.Identity)) {
                 EmailAddressTextBox.Text = userInfo.Identity;
             } else {
@@ -32,7 +32,7 @@ namespace Exceptionless.Dialogs {
                     EmailAddressTextBox.Text = emailAddress;
             }
 
-            var userDescription = Event.GetUserDescription();
+            var userDescription = Event.GetUserDescription(client.Configuration.Resolver.GetJsonSerializer());
             if (userDescription != null)
                 DescriptionTextBox.Text = userDescription.Description;
         }

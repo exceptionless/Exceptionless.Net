@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
@@ -31,6 +32,23 @@ namespace Exceptionless.SampleMvc.Controllers {
         [HttpGet]
         public ViewResult CustomError() {
             return View("CustomError");
+        }
+        
+        [HttpGet]
+        public ViewResult ManualStacking(string myId) {
+            ExceptionlessClient.Default.CreateLog(nameof(HomeController), "Random Log message")
+                .SetManualStackingInfo("Manual Stacked Log Messages", new Dictionary<string, string> {
+                    { "Controller", nameof(HomeController) },
+                    { "Action", nameof(ManualStacking) }
+                })
+                .Submit();
+
+            try {
+                throw new Exception(Guid.NewGuid().ToString());
+            } catch (Exception ex) {
+                ex.ToExceptionless().SetManualStackingKey(nameof(HomeController)).Submit();
+                throw;
+            }
         }
 
         [HttpGet]

@@ -98,7 +98,7 @@ ForEach ($p in $client_projects) {
     Create-Directory $packageDir
 
 	$nuget_version = $env:APPVEYOR_BUILD_VERSION + $env:VERSION_SUFFIX
-    nuget pack $nuspecFile -OutputDirectory $packageDir -Version $nuget_version
+    nuget pack $nuspecFile -OutputDirectory $packageDir -Version $nuget_version -Symbols
 }
 
 Pop-Location

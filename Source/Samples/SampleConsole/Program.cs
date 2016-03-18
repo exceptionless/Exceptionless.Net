@@ -51,15 +51,15 @@ namespace SampleConsole {
 
             // test NLog
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
-            Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
+            //Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
-            ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
+            //ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
 
             // test log4net
             XmlConfigurator.Configure();
             GlobalContext.Properties["GlobalProp"] = "GlobalValue";
             ThreadContext.Properties["LocalProp"] = "LocalValue";
-            _log4net.Info("Hi");
+            //_log4net.Info("Hi");
 
             var tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
@@ -86,13 +86,24 @@ namespace SampleConsole {
                 else if (keyInfo.Key == ConsoleKey.D3)
                     SendContinuousEvents(_delays[_delayIndex], token);
                 else if (keyInfo.Key == ConsoleKey.D4) {
+                    ExceptionlessClient.Default.SubmitSessionStart();
+                } else if (keyInfo.Key == ConsoleKey.D5) {
+                    ExceptionlessClient.Default.Configuration.UseSessions(false, null, true);
+                    ExceptionlessClient.Default.SubmitSessionStart();
+                } else if (keyInfo.Key == ConsoleKey.D6)
+                    ExceptionlessClient.Default.SubmitSessionHeartbeat();
+                else if (keyInfo.Key == ConsoleKey.D7)
+                    ExceptionlessClient.Default.SubmitSessionEnd();
+                else if (keyInfo.Key == ConsoleKey.D8)
+                    ExceptionlessClient.Default.Configuration.SetUserIdentity(Guid.NewGuid().ToString("N"));
+                else if (keyInfo.Key == ConsoleKey.P) {
                     Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                     Console.WriteLine("Telling client to process the queue...");
 
                     ExceptionlessClient.Default.ProcessQueue();
 
                     ClearOutputLines();
-                } else if (keyInfo.Key == ConsoleKey.D5) {
+                } else if (keyInfo.Key == ConsoleKey.F) {
                     SendAllCapturedEventsFromDisk();
                     ClearOutputLines();
                 } else if (keyInfo.Key == ConsoleKey.D) {
@@ -136,7 +147,7 @@ namespace SampleConsole {
             }
         }
 
-        private const int OPTIONS_MENU_LINE_COUNT = 9;
+        private const int OPTIONS_MENU_LINE_COUNT = 15;
         private static void WriteOptionsMenu() {
             lock (_writeLock) {
                 Console.SetCursorPosition(0, 0);
@@ -144,8 +155,13 @@ namespace SampleConsole {
                 Console.WriteLine("1: Send 1");
                 Console.WriteLine("2: Send 100");
                 Console.WriteLine("3: Send continuous");
-                Console.WriteLine("4: Process queue");
-                Console.WriteLine("5: Process directory");
+                Console.WriteLine("4: Send session start");
+                Console.WriteLine("5: Send session start (manual)");
+                Console.WriteLine("6: Send heart beat");
+                Console.WriteLine("7: Send session end");
+                Console.WriteLine("8: Change user identity");
+                Console.WriteLine("P: Process queue");
+                Console.WriteLine("F: Process event files directory");
                 Console.WriteLine("D: Change date range (" + _dateSpans[_dateSpanIndex].ToWords() + ")");
                 Console.WriteLine("T: Change continuous delay (" + _delays[_delayIndex].ToString("N0") + ")");
                 Console.WriteLine();
@@ -160,7 +176,7 @@ namespace SampleConsole {
             });
         }
 
-        private const int LOG_LINE_COUNT = 20;
+        private const int LOG_LINE_COUNT = 10;
         private static void StartDisplayingLogMessages() {
             Task.Factory.StartNew(() => {
                 while (true) {

@@ -8,6 +8,7 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Plugins;
 using Exceptionless.Storage;
 
 namespace Exceptionless {
@@ -69,7 +70,7 @@ namespace Exceptionless {
         }
 
         public static string GetQueueName(this ExceptionlessConfiguration config) {
-            return !String.IsNullOrEmpty(config.ApiKey) ? config.ApiKey.Substring(0, 8) : null;
+            return !String.IsNullOrEmpty(config.ApiKey) && config.ApiKey.Length > 7 ? config.ApiKey.Substring(0, 8) : null;
         }
 
         public static string GetInstallId(this ExceptionlessConfiguration config) {
@@ -86,15 +87,28 @@ namespace Exceptionless {
             return persistedClientData[INSTALL_ID_KEY];
         }
 
-        public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true) {
+        /// <summary>
+        /// Automatically send session start, session heartbeats and session end events.
+        /// </summary>
+        /// <param name="config">Exceptionless configuration</param>
+        /// <param name="sendHeartbeats">Controls whether heartbeat events are sent on an interval.</param>
+        /// <param name="heartbeatInterval">The interval at which heartbeats are sent after the last sent event. The default is 30 seconds.</param>
+        /// <param name="useSessionIdManagement">Allows you to manually control the session id. This is only recommended for single user desktop environments.</param>
+        public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true, TimeSpan? heartbeatInterval = null, bool useSessionIdManagement = false) {
             config.SessionsEnabled = true;
 
+            if (useSessionIdManagement) 
+                config.AddPlugin<SessionIdManagementPlugin>();
+
             if (sendHeartbeats)
-                config.AddPlugin<HeartbeatPlugin>();
+                config.AddPlugin(new HeartbeatPlugin(heartbeatInterval));
         }
 
-        public static void UseDebugLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
-            config.Resolver.Register<IExceptionlessLog>(new DebugExceptionlessLog { MinimumLogLevel = minLogLevel });
+        public static InMemoryExceptionlessLog UseInMemoryLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
+            var logger = new InMemoryExceptionlessLog { MinimumLogLevel = minLogLevel };
+            config.Resolver.Register<IExceptionlessLog>(logger);
+
+            return logger;
         }
 
         public static void UseLogger(this ExceptionlessConfiguration config, IExceptionlessLog logger) {

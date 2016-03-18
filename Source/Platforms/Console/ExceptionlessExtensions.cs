@@ -12,7 +12,8 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         public static void Register(this ExceptionlessClient client) {
             client.Startup();
-            client.SubmitSessionStart();
+            if (client.Configuration.SessionsEnabled)
+                client.SubmitSessionStart();
 
             // make sure that queued events are sent when the app exits
             client.RegisterOnProcessExitHandler();
@@ -25,7 +26,8 @@ namespace Exceptionless {
         public static void Unregister(this ExceptionlessClient client) {
             client.Shutdown();
             client.UnregisterOnProcessExitHandler();
-            client.SubmitSessionEnd();
+            if (client.Configuration.SessionsEnabled)
+                client.SubmitSessionEnd();
             client.ProcessQueue();
         }
 

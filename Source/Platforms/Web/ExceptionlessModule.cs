@@ -1,6 +1,7 @@
 using System;
 using System.Web;
 using Exceptionless.Dependency;
+using Exceptionless.Plugins;
 using Exceptionless.Web.Extensions;
 
 namespace Exceptionless.Web {
@@ -11,6 +12,7 @@ namespace Exceptionless.Web {
             ExceptionlessClient.Default.Startup();
             ExceptionlessClient.Default.RegisterHttpApplicationErrorHandler(app);
             ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
+            ExceptionlessClient.Default.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
             
             _app = app;

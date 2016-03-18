@@ -88,7 +88,7 @@ namespace Exceptionless.ExtendedData {
             foreach (string key in cookies.AllKeys.Distinct().Where(k => !String.IsNullOrEmpty(k) && !k.AnyWildcardMatches(_ignoredCookies, true) && !k.AnyWildcardMatches(exclusions, true))) {
                 try {
                     HttpCookie cookie = cookies.Get(key);
-                    if ( cookie != null && cookie.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
+                    if (cookie != null && cookie.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
                         d.Add(key, cookie.Value);
                 } catch (Exception ex) {
                     if (!d.ContainsKey(key))
@@ -104,7 +104,7 @@ namespace Exceptionless.ExtendedData {
 
             var exclusionsArray = exclusions as string[] ?? exclusions.ToArray();
             foreach (string key in values.AllKeys) {
-                if (key.AnyWildcardMatches(_ignoredFormFields, true) || key.AnyWildcardMatches(exclusionsArray, true))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields, true) || key.AnyWildcardMatches(exclusionsArray, true))
                     continue;
 
                 try {

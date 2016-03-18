@@ -70,7 +70,7 @@ namespace Exceptionless.ExtendedData {
 
             var patternsToMatch = exclusions as string[] ?? exclusions.ToArray();
             foreach (string key in values.AllKeys) {
-                if (key.AnyWildcardMatches(_ignoredFormFields, true) || key.AnyWildcardMatches(patternsToMatch, true))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields, true) || key.AnyWildcardMatches(patternsToMatch, true))
                     continue;
 
                 try {
