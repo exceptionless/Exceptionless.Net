@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Exceptionless.Extensions;
@@ -9,6 +10,12 @@ using Exceptionless.Serializer;
 
 namespace Exceptionless.Tests.Plugins {
     public class DeduplicationBenchmarks {
+        private readonly List<Event> _events = new List<Event>();
+        public DeduplicationBenchmarks() {
+            foreach (var file in Directory.GetFiles(@"..\..\ErrorData", "*.json")) {
+                _events.Add(GetEvent(file));
+            }
+        }
         protected virtual IJsonSerializer GetSerializer() {
             return new DefaultJsonSerializer();
         }
@@ -25,48 +32,15 @@ namespace Exceptionless.Tests.Plugins {
             var errorPlugin = new ErrorPlugin();
             var duplicateCheckerPlugin = new DuplicateCheckerPlugin();
 
-            var ev = GetEvent(@"..\..\ErrorData\1.json");
-            var pluginContextData = new ContextData();
+            foreach (var ev in _events) {
+                var pluginContextData = new ContextData();
 
-            for (int index = 0; index < 2; index++) {
-                var context = new EventPluginContext(client, ev, pluginContextData);
+                for (int index = 0; index < 2; index++) {
+                    var context = new EventPluginContext(client, ev, pluginContextData);
 
-                errorPlugin.Run(context);
-                duplicateCheckerPlugin.Run(context);
-            }
-        }
-
-        [Benchmark]
-        public void TestBenchmark2() {
-            var client = new ExceptionlessClient();
-            var errorPlugin = new ErrorPlugin();
-            var duplicateCheckerPlugin = new DuplicateCheckerPlugin();
-
-            var ev = GetEvent(@"..\..\ErrorData\2.json");
-            var pluginContextData = new ContextData();
-
-            for (int index = 0; index < 2; index++) {
-                var context = new EventPluginContext(client, ev, pluginContextData);
-
-                errorPlugin.Run(context);
-                duplicateCheckerPlugin.Run(context);
-            }
-        }
-
-        [Benchmark]
-        public void TestBenchmark3() {
-            var client = new ExceptionlessClient();
-            var errorPlugin = new ErrorPlugin();
-            var duplicateCheckerPlugin = new DuplicateCheckerPlugin();
-
-            var ev = GetEvent(@"..\..\ErrorData\3.json");
-            var pluginContextData = new ContextData();
-
-            for (int index = 0; index < 2; index++) {
-                var context = new EventPluginContext(client, ev, pluginContextData);
-
-                errorPlugin.Run(context);
-                duplicateCheckerPlugin.Run(context);
+                    errorPlugin.Run(context);
+                    duplicateCheckerPlugin.Run(context);
+                }
             }
         }
     }
