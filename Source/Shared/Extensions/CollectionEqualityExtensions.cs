@@ -81,7 +81,9 @@ namespace Exceptionless
 
             keyValuePairHashes.Sort();
             foreach (var kvpHash in keyValuePairHashes) {
-                hashCode = (hashCode * 397) ^ kvpHash;
+                unchecked {
+                    hashCode = (hashCode * 397) ^ kvpHash;
+                }
             }
             return hashCode;
         }
