@@ -26,7 +26,7 @@ build_script:
 
 test:
   assemblies:
-    - '**\Exceptionless*.Tests.dll'
+    - '**\*.Tests.dll'
 
 after_test:
   - ps: .\Libraries\Package.ps1
