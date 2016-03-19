@@ -62,7 +62,8 @@ msbuild "$source_dir\Tests\Exceptionless.Tests.csproj" `
 		 /t:Rebuild `
 		 /p:NoWarn="1591 1711 1712 1572 1573 1574" `
 		 /verbosity:minimal `
-		 /p:TargetFrameworkVersionProperty="NET45" `
+		 /p:DefineConstants="`"TRACE;NET40`"" `
+		 /p:TargetFrameworkVersionProperty="NET40" `
 		 /p:TargetFrameworkProfile="" `
 		 /p:TargetPortable="false"
 
