@@ -24,6 +24,10 @@ before_build:
 build_script:
   - ps: .\Libraries\Build.ps1
 
+test:
+  assemblies:
+    - '**\Exceptionless*.Tests.dll'
+
 after_test:
   - ps: .\Libraries\Package.ps1
 
