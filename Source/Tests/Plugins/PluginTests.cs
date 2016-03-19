@@ -541,7 +541,7 @@ namespace Exceptionless.Tests.Plugins {
                 _writer.WriteLine(report.ToString());
 
                 var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
-                _writer.WriteLine($"{benchmark.ShortInfo} - {benchmarkMedianMilliseconds:0.00}ms");
+                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", benchmark.ShortInfo, benchmarkMedianMilliseconds));
             }
         }
 
