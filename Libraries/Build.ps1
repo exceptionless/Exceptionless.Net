@@ -63,6 +63,7 @@ msbuild "$source_dir\Tests\Exceptionless.Tests.csproj" `
 		 /p:NoWarn="1591 1711 1712 1572 1573 1574" `
 		 /verbosity:minimal `
 		 /p:TargetFrameworkVersionProperty="NET45" `
+		 /p:TargetFrameworkProfile="" `
 		 /p:TargetPortable="false"
 
 Write-Host "Finished building Client Tests" -ForegroundColor Yellow
