@@ -1,6 +1,6 @@
 # Exceptionless .NET Clients
 [![Build status](https://ci.appveyor.com/api/projects/status/xk17pk0u7a5r7yrw/branch/master?svg=true)](https://ci.appveyor.com/project/Exceptionless/exceptionless-net) 
-[![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.Portable.svg?style=flat)](https://www.nuget.org/packages/Exceptionless.Portable/) [![NuGet Downloads](http://img.shields.io/nuget/dt/Exceptionless.Portable.svg?style=flat)](https://www.nuget.org/packages/Exceptionless.Portable/) 
+[![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.Portable.svg?style=flat)](https://www.nuget.org/packages/Exceptionless.Portable/)
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/exceptionless/Discuss)
 [![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless) 
 
