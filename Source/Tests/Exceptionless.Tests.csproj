@@ -38,6 +38,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BenchmarkDotNet, Version=0.9.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\BenchmarkDotNet.0.9.3\lib\net45\BenchmarkDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Exceptionless.RandomData, Version=1.0.21.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Exceptionless.RandomData.1.0.21.0\lib\net40\Exceptionless.RandomData.dll</HintPath>
       <Private>True</Private>
@@ -46,6 +50,10 @@
       <HintPath>..\..\packages\Foundatio.4.0.794\lib\net451\Foundatio.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Owin.3.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
       <Private>True</Private>
@@ -96,6 +104,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
@@ -126,12 +135,16 @@
       <HintPath>..\..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
+	<Reference Include="System.Threading.Tasks, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" Condition="'$(TargetFrameworkVersionProperty)' == 'NET40'">
+		<Visible>false</Visible>
+	</Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Configuration\ConfigurationTests.cs" />
+    <Compile Include="Plugins\DeduplicationBenchmarks.cs" />
     <Compile Include="Plugins\PluginTests.cs" />
     <Compile Include="Dependency\DependencyTests.cs" />
     <Compile Include="ExceptionlessClientTests.cs" />
@@ -147,6 +160,7 @@
     <Compile Include="Storage\PersistedDictionaryTests.cs" />
     <Compile Include="Submission\DefaultSubmissionClientTests.cs" />
     <Compile Include="Utility\CountDownLatch.cs" />
+    <Compile Include="Utility\ErrorDataReader.cs" />
     <Compile Include="Utility\InMemorySubmissionClient.cs" />
     <Compile Include="Utility\PasswordGenerator.cs" />
     <Compile Include="Utility\RandomEventGenerator.cs" />
@@ -154,6 +168,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="ErrorData\1.json" />
+    <None Include="ErrorData\2.json" />
+    <None Include="ErrorData\3.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
