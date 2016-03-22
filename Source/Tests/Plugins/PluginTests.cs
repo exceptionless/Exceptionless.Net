@@ -315,7 +315,7 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.NotNull(error);
                 Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
                 var json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
-                Assert.Equal("{\"ignored_property\":\"Test\",\"random_value\":\"Test\"}", json);
+                Assert.Equal("{\"IgnoredProperty\":\"Test\",\"RandomValue\":\"Test\"}", json);
 
                 client.Configuration.AddDataExclusions("Ignore*");
                 context = new EventPluginContext(client, new Event());
@@ -326,7 +326,7 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.NotNull(error);
                 Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
                 json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
-                Assert.Equal("{\"random_value\":\"Test\"}", json);
+                Assert.Equal("{\"RandomValue\":\"Test\"}", json);
             }
         }
 

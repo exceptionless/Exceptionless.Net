@@ -10,14 +10,11 @@ using Exceptionless.Extensions;
 using Exceptionless.Helpers;
 using Exceptionless.Logging;
 using Exceptionless.Models;
-using Exceptionless.NLog;
 using Exceptionless.SampleConsole.Plugins;
 using log4net;
 using log4net.Config;
 using NLog;
-using NLog.Fluent;
 using LogLevel = Exceptionless.Logging.LogLevel;
-using LogManager = log4net.LogManager;
 
 namespace SampleConsole {
     internal class Program {
@@ -25,7 +22,6 @@ namespace SampleConsole {
         private static int _delayIndex = 2;
         private static readonly InMemoryExceptionlessLog _log = new InMemoryExceptionlessLog { MinimumLogLevel = LogLevel.Info };
         private static readonly object _writeLock = new object();
-        private static readonly ILog _log4net = LogManager.GetLogger(typeof(Program));
 
         private static readonly TimeSpan[] _dateSpans = {
             TimeSpan.Zero,
