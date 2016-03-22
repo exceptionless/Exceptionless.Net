@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
+using Exceptionless.Models.Data;
 using Exceptionless.Serializer;
 
 namespace Exceptionless.Tests.Utility
@@ -21,7 +22,9 @@ namespace Exceptionless.Tests.Utility
         {
             var json = File.ReadAllText(fileName);
             var serializer = GetSerializer();
-            return serializer.Deserialize<Event>(json);
+            var ev = serializer.Deserialize<Event>(json);
+            ev.Data[Event.KnownDataKeys.Error] = ev.Data.GetValue<Error>(Event.KnownDataKeys.Error);
+            return ev;
         }
         public static IEnumerable<Event> GetEvents() {
             return Directory.EnumerateFiles(@"..\..\ErrorData", "*.json").Select(GetEvent);
