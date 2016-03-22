@@ -23,7 +23,6 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Benchmark]
-        [Fact]
         public void LargeEventsFromFiles() {
             foreach (var ev in _events) {
                 var pluginContextData = new ContextData();
@@ -37,22 +36,29 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
+        private EventBuilder _randomEventBuilder;
+        private EventBuilder _fixedEventBuilder;
+
+        [Setup]
+        public void Setup() {
+            _randomEventBuilder = GetException(Guid.NewGuid().ToString()).ToExceptionless();
+            _fixedEventBuilder = GetException().ToExceptionless();
+        }
+
         [Benchmark]
-        [Fact]
         public void RandomExceptions() {
-            var builder = GetException(Guid.NewGuid().ToString()).ToExceptionless();
-            var context = new EventPluginContext(_client, builder.Target, builder.PluginContextData);
+            var context = new EventPluginContext(_client, _randomEventBuilder.Target, _randomEventBuilder.PluginContextData);
 
             _errorPlugin.Run(context);
             _duplicateCheckerPlugin.Run(context);
         }
 
+
+
         [Benchmark]
-        [Fact]
         public void IdenticalExceptions()
         {
-            var builder = GetException().ToExceptionless();
-            var context = new EventPluginContext(_client, builder.Target, builder.PluginContextData);
+            var context = new EventPluginContext(_client, _fixedEventBuilder.Target, _fixedEventBuilder.PluginContextData);
 
             _errorPlugin.Run(context);
             _duplicateCheckerPlugin.Run(context);
