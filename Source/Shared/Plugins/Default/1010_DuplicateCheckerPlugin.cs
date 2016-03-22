@@ -12,12 +12,17 @@ namespace Exceptionless.Plugins.Default {
         private readonly ConcurrentQueue<MergedEvent> _mergedEvents = new ConcurrentQueue<MergedEvent>();
         private readonly TimeSpan _interval;
         private Timer _timer;
-        
+
+        /// <summary>
+        /// Duplicates events based on hashcode and interval.
+        /// </summary>
+        public DuplicateCheckerPlugin() : this(null) {}
+
         /// <summary>
         /// Duplicates events based on hashcode and interval.
         /// </summary>
         /// <param name="interval">The amount of time events will be deduplicated.</param>
-        public DuplicateCheckerPlugin(TimeSpan? interval = null) {
+        public DuplicateCheckerPlugin(TimeSpan? interval) {
             _interval = interval ?? TimeSpan.FromSeconds(60);
             _timer = new Timer(OnTimer, null, _interval, _interval);
         }
