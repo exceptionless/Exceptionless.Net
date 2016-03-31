@@ -28,10 +28,6 @@ namespace Exceptionless.Plugins.Default {
         }
         
         public void Run(EventPluginContext context) {
-            // If Event.Value is set before we hit this plugin, it's being used for something else for a good reason. Don't deduplicate. This also prevents problems with reentrancy
-            if (context.Event.Value.HasValue)
-                return;
-
             int hashCode = context.Event.GetHashCode();
             
             // Increment the occurrence count if the event is already queued for submission.
@@ -92,7 +88,7 @@ namespace Exceptionless.Plugins.Default {
             }
 
             public void Enqueue() {
-                _context.Event.Value = _count;
+                _context.Event.Count = _count;
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
             }
         }
