@@ -555,11 +555,11 @@ namespace Exceptionless.Tests.Plugins {
 
                     if (index == 0) {
                         Assert.False(context.Cancel);
-                        Assert.Null(context.Event.Value);
+                        Assert.Null(context.Event.Count);
                     } else {
                         Assert.True(context.Cancel);
                         Thread.Sleep(50);
-                        Assert.Equal(1, context.Event.Value);
+                        Assert.Equal(1, context.Event.Count);
                     }
                 }
             }
@@ -583,11 +583,11 @@ namespace Exceptionless.Tests.Plugins {
 
                         if (index == 0) {
                             Assert.False(context.Cancel);
-                            Assert.Null(context.Event.Value);
+                            Assert.Null(context.Event.Count);
                         } else {
                             Assert.True(context.Cancel);
                             Thread.Sleep(50);
-                            Assert.Equal(1, context.Event.Value);
+                            Assert.Equal(1, context.Event.Count);
                         }
                     }
                 }
