@@ -18,6 +18,15 @@ using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class PluginTests {
+        private ExceptionlessClient CreateClient()
+        {
+            return new ExceptionlessClient(c => {
+                //c.UseDebugLogger();
+                c.ReadFromAttributes();
+                c.UserAgent = "testclient/1.0.0.0";
+            });
+        }
+
         private readonly TestOutputWriter _writer;
         public PluginTests(ITestOutputHelper output) {
             _writer = new TestOutputWriter(output);
@@ -529,6 +538,68 @@ namespace Exceptionless.Tests.Plugins {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             foreach (var plugin in config.Plugins)
                 _writer.WriteLine(plugin);
+        }
+
+        [Fact]
+        public void VerifyDeduplication() {
+            var client = new ExceptionlessClient();
+            var errorPlugin = new ErrorPlugin();
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
+
+                for (int index = 0; index < 2; index++) {
+                    var builder = GetException().ToExceptionless();
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+
+                    errorPlugin.Run(context);
+                    duplicateCheckerPlugin.Run(context);
+
+                    if (index == 0) {
+                        Assert.False(context.Cancel);
+                        Assert.Null(context.Event.Count);
+                    } else {
+                        Assert.True(context.Cancel);
+                        Thread.Sleep(50);
+                        Assert.Equal(1, context.Event.Count);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void VerifyDeduplicationFromFiles()
+        {
+            var client = new ExceptionlessClient();
+            var errorPlugin = new ErrorPlugin();
+
+            foreach (var ev in ErrorDataReader.GetEvents()) {
+                using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
+
+                    for (int index = 0; index < 2; index++) {
+                        var contextData = new ContextData();
+                        var context = new EventPluginContext(client, ev, contextData);
+
+                        errorPlugin.Run(context);
+                        duplicateCheckerPlugin.Run(context);
+
+                        if (index == 0) {
+                            Assert.False(context.Cancel);
+                            Assert.Null(context.Event.Count);
+                        } else {
+                            Assert.True(context.Cancel);
+                            Thread.Sleep(50);
+                            Assert.Equal(1, context.Event.Count);
+                        }
+                    }
+                }
+            }
+        }
+
+        private Exception GetException(string message = "Test") {
+            try {
+                throw new Exception(message);
+            } catch (Exception ex) {
+                return ex;
+            }
         }
 
         [Fact]
