@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Exceptionless
-{
-    internal static class CollectionEqualityExtensions
-    {
+namespace Exceptionless {
+    internal static class CollectionEqualityExtensions {
         public static bool CollectionEquals<T>(this IEnumerable<T> source, IEnumerable<T> other) {
             var sourceEnumerator = source.GetEnumerator();
             var otherEnumerator = other.GetEnumerator();
@@ -29,8 +27,7 @@ namespace Exceptionless
             return true;
         }
 
-        public static bool CollectionEquals<TValue>(this IDictionary<string, TValue> source, IDictionary<string, TValue> other)
-        {
+        public static bool CollectionEquals<TValue>(this IDictionary<string, TValue> source, IDictionary<string, TValue> other) {
             if (source.Count != other.Count) {
                 return false;
             }
@@ -55,7 +52,8 @@ namespace Exceptionless
             int hashCode = assemblyQualifiedName == null ? 0 : assemblyQualifiedName.GetHashCode();
 
             foreach (var item in source) {
-                if(item == null) continue;
+                if (item == null)
+                    continue;
 
                 unchecked {
                     hashCode = (hashCode * 397) ^ item.GetHashCode();
@@ -64,8 +62,7 @@ namespace Exceptionless
             return hashCode;
         }
 
-        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source)
-        {
+        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source) {
             var assemblyQualifiedName = typeof(TValue).AssemblyQualifiedName;
             int hashCode = assemblyQualifiedName == null ? 0 : assemblyQualifiedName.GetHashCode();
 
