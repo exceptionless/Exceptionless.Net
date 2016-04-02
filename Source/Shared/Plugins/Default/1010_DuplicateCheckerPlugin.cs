@@ -29,11 +29,12 @@ namespace Exceptionless.Plugins.Default {
         
         public void Run(EventPluginContext context) {
             int hashCode = context.Event.GetHashCode();
-            
+            int count = context.Event.Count ?? 1;
+
             // Increment the occurrence count if the event is already queued for submission.
             var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
             if (merged != null) {
-                merged.IncrementCount();
+                merged.IncrementCount(count);
                 context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate error event with hash:", hashCode));
                 context.Cancel = true;
                 return;
@@ -42,7 +43,7 @@ namespace Exceptionless.Plugins.Default {
             DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
             if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
                 // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
-                _mergedEvents.Enqueue(new MergedEvent(hashCode, context));
+                _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
                 context.Cancel = true;
             } else {
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
@@ -73,18 +74,19 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private class MergedEvent {
-            private int _count = 1;
+            private int _count;
             private readonly EventPluginContext _context;
 
-            public MergedEvent(int hashCode, EventPluginContext context) {
+            public MergedEvent(int hashCode, EventPluginContext context, int count) {
                 HashCode = hashCode;
                 _context = context;
+                _count = count;
             }
 
             public int HashCode { get; private set; }
 
-            public void IncrementCount() {
-                Interlocked.Increment(ref _count);
+            public void IncrementCount(int value) {
+                Interlocked.Add(ref _count, value);
             }
 
             public void Enqueue() {
