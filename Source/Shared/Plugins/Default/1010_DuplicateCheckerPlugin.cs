@@ -35,6 +35,7 @@ namespace Exceptionless.Plugins.Default {
             var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
             if (merged != null) {
                 merged.IncrementCount(count);
+                merged.UpdateDate(context.Event.Date);
                 context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate error event with hash:", hashCode));
                 context.Cancel = true;
                 return;
@@ -76,6 +77,7 @@ namespace Exceptionless.Plugins.Default {
         private class MergedEvent {
             private int _count;
             private readonly EventPluginContext _context;
+            private readonly object _lock = new object();
 
             public MergedEvent(int hashCode, EventPluginContext context, int count) {
                 HashCode = hashCode;
@@ -92,6 +94,13 @@ namespace Exceptionless.Plugins.Default {
             public void Enqueue() {
                 _context.Event.Count = _count;
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
+            }
+
+            public void UpdateDate(DateTimeOffset date) {
+                lock (_lock) {
+                    if (date > _context.Event.Date)
+                        _context.Event.Date = date;
+                }
             }
         }
     }
