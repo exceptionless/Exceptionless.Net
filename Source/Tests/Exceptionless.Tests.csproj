@@ -145,6 +145,7 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Configuration\ConfigurationTests.cs" />
+    <Compile Include="Log\XunitExceptionlessLog.cs" />
     <Compile Include="Plugins\DeduplicationBenchmarks.cs" />
     <Compile Include="Plugins\PluginTests.cs" />
     <Compile Include="Dependency\DependencyTests.cs" />

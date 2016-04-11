@@ -30,22 +30,25 @@ namespace Exceptionless.Plugins.Default {
         public void Run(EventPluginContext context) {
             int hashCode = context.Event.GetHashCode();
             int count = context.Event.Count ?? 1;
+            context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), String.Concat("Checking event: ", context.Event.Message, " with hash: ", hashCode));
 
             // Increment the occurrence count if the event is already queued for submission.
             var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
             if (merged != null) {
                 merged.IncrementCount(count);
-                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate error event with hash:", hashCode));
+                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate event with hash:", hashCode));
                 context.Cancel = true;
                 return;
             }
 
             DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
             if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
+                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Adding event with hash:", hashCode, " to cache."));
                 // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
                 _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
                 context.Cancel = true;
             } else {
+                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Enqueueing event with hash:", hashCode, " to cache."));
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
             }
             

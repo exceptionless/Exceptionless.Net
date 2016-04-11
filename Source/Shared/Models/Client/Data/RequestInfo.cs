@@ -83,6 +83,8 @@ namespace Exceptionless.Models.Data {
             return Equals((RequestInfo)obj);
         }
 
+        private static readonly List<string> _cookieHashCodeExclusions = new List<string> { "__LastReferenceId" };
+
         public override int GetHashCode() {
             unchecked {
                 var hashCode = UserAgent == null ? 0 : UserAgent.GetHashCode();
@@ -93,7 +95,7 @@ namespace Exceptionless.Models.Data {
                 hashCode = (hashCode * 397) ^ (Path == null ? 0 : Path.GetHashCode());
                 hashCode = (hashCode * 397) ^ (Referrer == null ? 0 : Referrer.GetHashCode());
                 hashCode = (hashCode * 397) ^ (ClientIpAddress == null ? 0 : ClientIpAddress.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Cookies == null ? 0 : Cookies.GetCollectionHashCode());
+                hashCode = (hashCode * 397) ^ (Cookies == null ? 0 : Cookies.GetCollectionHashCode(_cookieHashCodeExclusions));
                 hashCode = (hashCode * 397) ^ (QueryString == null ? 0 : QueryString.GetCollectionHashCode());
                 hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
                 return hashCode;
