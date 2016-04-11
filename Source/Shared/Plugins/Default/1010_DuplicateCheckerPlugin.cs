@@ -34,8 +34,6 @@ namespace Exceptionless.Plugins.Default {
             context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), String.Concat("Checking event: ", context.Event.Message, " with hash: ", hashCode));
             
             lock (_lock) {
-                context.Log.Debug("Got Lock on thread" + Thread.CurrentThread.ManagedThreadId);
-
                 // Increment the occurrence count if the event is already queued for submission.
                 var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
                 if (merged != null) {
