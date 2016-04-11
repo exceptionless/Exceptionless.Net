@@ -575,8 +575,8 @@ namespace Exceptionless.Tests.Plugins {
             var errorPlugin = new ErrorPlugin();
 
             List<EventPluginContext> contexts = new List<EventPluginContext>();
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
-                Parallel.For(0, 10, index => {
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(100))) {
+                var result = Parallel.For(0, 10, index => {
                     var builder = GetException().ToExceptionless();
                     var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
                     contexts.Add(context);
@@ -584,9 +584,12 @@ namespace Exceptionless.Tests.Plugins {
                     errorPlugin.Run(context);
                     duplicateCheckerPlugin.Run(context);
                 });
+
+                while (!result.IsCompleted)
+                    Thread.Sleep(1);
             }
 
-            Thread.Sleep(50);
+            Thread.Sleep(150);
             Assert.Equal(1, contexts.Count(c => !c.Cancel));
             Assert.Equal(9, contexts.Count(c => c.Cancel));
             Assert.Equal(9, contexts.Sum(c => c.Event.Count.GetValueOrDefault()));
