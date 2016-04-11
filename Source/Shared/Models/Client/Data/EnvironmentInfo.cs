@@ -128,7 +128,7 @@ namespace Exceptionless.Models.Data {
                 hashCode = (hashCode * 397) ^ (MachineName == null ? 0 : MachineName.GetHashCode());
                 hashCode = (hashCode * 397) ^ (InstallId == null ? 0 : InstallId.GetHashCode());
                 hashCode = (hashCode * 397) ^ (RuntimeVersion == null ? 0 : RuntimeVersion.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 return hashCode;
             }
         }

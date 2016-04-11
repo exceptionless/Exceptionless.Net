@@ -97,7 +97,7 @@ namespace Exceptionless.Models.Data {
                 hashCode = (hashCode * 397) ^ (ClientIpAddress == null ? 0 : ClientIpAddress.GetHashCode());
                 hashCode = (hashCode * 397) ^ (Cookies == null ? 0 : Cookies.GetCollectionHashCode(_cookieHashCodeExclusions));
                 hashCode = (hashCode * 397) ^ (QueryString == null ? 0 : QueryString.GetCollectionHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 return hashCode;
             }
         }

@@ -48,7 +48,7 @@ namespace Exceptionless.Models.Data {
                 hashCode = (hashCode * 397) ^ IsEntry.GetHashCode();
                 hashCode = (hashCode * 397) ^ CreatedDate.GetHashCode();
                 hashCode = (hashCode * 397) ^ ModifiedDate.GetHashCode();
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 return hashCode;
             }
         }

@@ -49,7 +49,7 @@ namespace Exceptionless.Models.Data {
             unchecked {
                 var hashCode = Identity == null ? 0 : Identity.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Name == null ? 0 : Name.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 return hashCode;
             }
         }

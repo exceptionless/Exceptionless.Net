@@ -40,7 +40,7 @@ namespace Exceptionless.Models.Data {
             unchecked {
                 var hashCode = EmailAddress == null ? 0 : EmailAddress.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Description == null ? 0 : Description.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 return hashCode;
             }
         }

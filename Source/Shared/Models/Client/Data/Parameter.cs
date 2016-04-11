@@ -33,7 +33,7 @@ namespace Exceptionless.Models.Data {
                 var hashCode = Name == null ? 0 : Name.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Type == null ? 0 : Type.GetHashCode());
                 hashCode = (hashCode * 397) ^ (TypeNamespace == null ? 0 : TypeNamespace.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 hashCode = (hashCode * 397) ^ (GenericArguments == null ? 0 : GenericArguments.GetCollectionHashCode());
                 return hashCode;
             }
