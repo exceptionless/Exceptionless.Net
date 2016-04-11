@@ -5,13 +5,11 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
-using System.Web.Http.Controllers;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
-using Exceptionless.Models.Data;
 
 namespace Exceptionless.WebApi {
     [Priority(90)]
@@ -20,31 +18,40 @@ namespace Exceptionless.WebApi {
             if (!context.ContextData.ContainsKey("HttpActionContext"))
                 return;
 
-            HttpActionContext actionContext = context.ContextData.GetHttpActionContext();
+            var actionContext = context.ContextData.GetHttpActionContext();
             if (actionContext == null)
                 return;
 
-            IPrincipal principal = GetPrincipal(actionContext.Request);
-            if (context.Client.Configuration.IncludePrivateInformation && principal != null && principal.Identity.IsAuthenticated)
-                context.Event.SetUserIdentity(principal.Identity.Name);
+            var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
+            if (context.Client.Configuration.IncludePrivateInformation) {
+                var user = context.Event.GetUserIdentity(serializer);
+                if (user == null) {
+                    IPrincipal principal = GetPrincipal(actionContext.Request);
+                    if (principal != null && principal.Identity.IsAuthenticated)
+                        context.Event.SetUserIdentity(principal.Identity.Name);
+                }
+            }
 
-            RequestInfo requestInfo = null;
+            var ri = context.Event.GetRequestInfo(serializer);
+            if (ri != null)
+                return;
+
             try {
-                requestInfo = actionContext.GetRequestInfo(context.Client.Configuration);
+                ri = actionContext.GetRequestInfo(context.Client.Configuration);
             } catch (Exception ex) {
                 context.Log.Error(typeof(ExceptionlessWebApiPlugin), ex, "Error adding request info.");
             }
 
-            if (requestInfo == null)
+            if (ri == null)
                 return;
 
-            var error = context.Event.GetError(context.Client.Configuration.Resolver.GetJsonSerializer());
+            var error = context.Event.GetError(serializer);
             if (error != null && error.Code == "404") {
                 context.Event.Type = Event.KnownTypes.NotFound;
-                context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+                context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
             }
 
-            context.Event.AddRequestInfo(requestInfo);
+            context.Event.AddRequestInfo(ri);
         }
 
         private static IPrincipal GetPrincipal(HttpRequestMessage request) {
