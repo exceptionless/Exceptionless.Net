@@ -62,13 +62,16 @@ namespace Exceptionless {
             return hashCode;
         }
 
-        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source) {
+        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source, IList<string> exclusions = null) {
             var assemblyQualifiedName = typeof(TValue).AssemblyQualifiedName;
             int hashCode = assemblyQualifiedName == null ? 0 : assemblyQualifiedName.GetHashCode();
 
             var keyValuePairHashes = new List<int>(source.Keys.Count);
 
             foreach (var key in source.Keys.OrderBy(x => x)) {
+                if (exclusions != null && exclusions.Contains(key))
+                    continue;
+
                 var item = source[key];
                 unchecked {
                     var kvpHash = key.GetHashCode();

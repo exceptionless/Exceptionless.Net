@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Exceptionless.Models {
     public class Event : IData {
@@ -71,6 +72,7 @@ namespace Exceptionless.Models {
             return Equals((Event)obj);
         }
 
+        private static readonly List<string> _exclusions = new List<string> { KnownDataKeys.TraceLog }; 
         public override int GetHashCode() {
             unchecked {
                 var hashCode = Type == null ? 0 : Type.GetHashCode();
@@ -79,7 +81,7 @@ namespace Exceptionless.Models {
                 hashCode = (hashCode * 397) ^ (Message == null ? 0 : Message.GetHashCode());
                 hashCode = (hashCode * 397) ^ (Geo == null ? 0 : Geo.GetHashCode());
                 hashCode = (hashCode * 397) ^ Value.GetHashCode();
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode(_exclusions));
                 return hashCode;
             }
         }

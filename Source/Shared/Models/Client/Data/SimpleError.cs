@@ -50,7 +50,7 @@ namespace Exceptionless.Models.Data {
                 var hashCode = Message == null ? 0 : Message.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Type == null ? 0 : Type.GetHashCode());
                 hashCode = (hashCode * 397) ^ (StackTrace == null ? 0 : StackTrace.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetHashCode());
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
                 hashCode = (hashCode * 397) ^ (Inner == null ? 0 : Inner.GetHashCode());
                 return hashCode;
             }

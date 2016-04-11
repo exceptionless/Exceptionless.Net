@@ -10,6 +10,7 @@ namespace Exceptionless.Plugins.Default {
     public class DuplicateCheckerPlugin : IEventPlugin, IDisposable {
         private readonly ConcurrentQueue<Tuple<int, DateTimeOffset>> _processed = new ConcurrentQueue<Tuple<int, DateTimeOffset>>();
         private readonly ConcurrentQueue<MergedEvent> _mergedEvents = new ConcurrentQueue<MergedEvent>();
+        private readonly object _lock = new object();
         private readonly TimeSpan _interval;
         private Timer _timer;
 
@@ -26,43 +27,51 @@ namespace Exceptionless.Plugins.Default {
             _interval = interval ?? TimeSpan.FromSeconds(60);
             _timer = new Timer(OnTimer, null, _interval, _interval);
         }
-        
+
         public void Run(EventPluginContext context) {
             int hashCode = context.Event.GetHashCode();
             int count = context.Event.Count ?? 1;
+            context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), String.Concat("Checking event: ", context.Event.Message, " with hash: ", hashCode));
 
-            // Increment the occurrence count if the event is already queued for submission.
-            var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
-            if (merged != null) {
-                merged.IncrementCount(count);
-                merged.UpdateDate(context.Event.Date);
-                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate error event with hash:", hashCode));
-                context.Cancel = true;
-                return;
-            }
+            lock (_lock) {
+                // Increment the occurrence count if the event is already queued for submission.
+                var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
+                if (merged != null) {
+                    merged.IncrementCount(count);
+                    merged.UpdateDate(context.Event.Date);
+                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate event with hash:", hashCode));
+                    context.Cancel = true;
+                    return;
+                }
 
-            DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
-            if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
-                // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
-                _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
-                context.Cancel = true;
-            } else {
+                DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
+                if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
+                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Adding event with hash:", hashCode, " to cache."));
+                    // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
+                    _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
+                    context.Cancel = true;
+                    return;
+                }
+
+                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Enqueueing event with hash:", hashCode, " to cache."));
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
+
+                Tuple<int, DateTimeOffset> temp;
+                while (_processed.Count > 50)
+                    _processed.TryDequeue(out temp);
             }
-            
-            Tuple<int, DateTimeOffset> temp;
-            while (_processed.Count > 50)
-                _processed.TryDequeue(out temp);
         }
-        
+
         private void OnTimer(object state) {
             EnqueueMergedEvents();
         }
 
         private void EnqueueMergedEvents() {
-            MergedEvent mergedEvent;
-            while (_mergedEvents.TryDequeue(out mergedEvent))
-                mergedEvent.Enqueue();
+            lock (_lock) {
+                MergedEvent mergedEvent;
+                while (_mergedEvents.TryDequeue(out mergedEvent))
+                    mergedEvent.Enqueue();
+            }
         }
 
         public void Dispose() {

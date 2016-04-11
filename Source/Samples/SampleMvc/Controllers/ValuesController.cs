@@ -20,7 +20,7 @@ namespace Exceptionless.SampleMvc.Controllers {
         }
 
         // POST api/values
-        public void Post([FromBody] string value) {
+        public void Post([FromBody] Person person) {
             throw new ApplicationException("WebApi POST error");
         }
 
@@ -29,5 +29,9 @@ namespace Exceptionless.SampleMvc.Controllers {
 
         // DELETE api/values/5
         public void Delete(int id) {}
+    }
+
+    public class Person {
+        public string Name { get; set; }
     }
 }

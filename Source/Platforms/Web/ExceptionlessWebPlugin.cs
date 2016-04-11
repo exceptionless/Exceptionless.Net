@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Web;
+using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
-using Exceptionless.Models.Data;
 
 namespace Exceptionless.Web {
     [Priority(90)]
@@ -12,7 +12,7 @@ namespace Exceptionless.Web {
         private const string TAGS_HTTP_CONTEXT_NAME = "Exceptionless.Tags";
 
         public void Run(EventPluginContext context) {
-            HttpContextBase httpContext = context.ContextData.GetHttpContext();
+            var httpContext = context.ContextData.GetHttpContext();
 
             // if the context is not passed in, try and grab it
             if (httpContext == null && HttpContext.Current != null)
@@ -20,25 +20,29 @@ namespace Exceptionless.Web {
 
             if (httpContext == null)
                 return;
-
-            // ev.ExceptionlessClientInfo.Platform = ".NET Web";
-            if (context.Client.Configuration.IncludePrivateInformation
-                && httpContext.User != null
-                && httpContext.User.Identity.IsAuthenticated)
-                context.Event.SetUserIdentity(httpContext.User.Identity.Name);
+            
+            var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
+            if (context.Client.Configuration.IncludePrivateInformation && httpContext.User != null && httpContext.User.Identity.IsAuthenticated) {
+                var user = context.Event.GetUserIdentity(serializer);
+                if (user == null)
+                    context.Event.SetUserIdentity(httpContext.User.Identity.Name);
+            }
 
             var tags = httpContext.Items[TAGS_HTTP_CONTEXT_NAME] as TagSet;
             if (tags != null)
                 context.Event.Tags.UnionWith(tags);
+            
+            var ri = context.Event.GetRequestInfo(serializer);
+            if (ri != null)
+                return;
 
-            RequestInfo requestInfo = null;
             try {
-                requestInfo = httpContext.GetRequestInfo(context.Client.Configuration);
+                ri = httpContext.GetRequestInfo(context.Client.Configuration);
             } catch (Exception ex) {
                 context.Log.Error(typeof(ExceptionlessWebPlugin), ex, "Error adding request info.");
             }
 
-            if (requestInfo == null)
+            if (ri == null)
                 return;
 
             var httpException = context.ContextData.GetException() as HttpException;
@@ -46,11 +50,11 @@ namespace Exceptionless.Web {
                 int httpCode = httpException.GetHttpCode();
                 if (httpCode == 404) {
                     context.Event.Type = Event.KnownTypes.NotFound;
-                    context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+                    context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
                 }
             }
 
-            context.Event.AddRequestInfo(requestInfo);
+            context.Event.AddRequestInfo(ri);
         }
     }
 }
