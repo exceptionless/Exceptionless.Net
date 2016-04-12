@@ -632,7 +632,7 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Skip until benchmark.net is updated with the runtime fixes (0.9.5")]
         public void RunBenchmark() {
             var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
 
