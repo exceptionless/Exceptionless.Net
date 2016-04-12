@@ -1,6 +1,7 @@
 version: 3.4.{build}
 clone_depth: 2
 configuration: Release
+os: Previous Visual Studio 2015
 
 #environment:
 #  VERSION_SUFFIX: -preview
