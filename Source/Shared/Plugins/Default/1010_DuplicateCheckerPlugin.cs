@@ -84,7 +84,6 @@ namespace Exceptionless.Plugins.Default {
         private class MergedEvent {
             private int _count;
             private readonly EventPluginContext _context;
-            private readonly object _lock = new object();
 
             public MergedEvent(int hashCode, EventPluginContext context, int count) {
                 HashCode = hashCode;
@@ -104,10 +103,8 @@ namespace Exceptionless.Plugins.Default {
             }
 
             public void UpdateDate(DateTimeOffset date) {
-                lock (_lock) {
-                    if (date > _context.Event.Date)
-                        _context.Event.Date = date;
-                }
+                if (date > _context.Event.Date)
+                    _context.Event.Date = date;
             }
         }
     }
