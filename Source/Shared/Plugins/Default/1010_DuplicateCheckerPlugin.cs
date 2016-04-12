@@ -27,17 +27,18 @@ namespace Exceptionless.Plugins.Default {
             _interval = interval ?? TimeSpan.FromSeconds(60);
             _timer = new Timer(OnTimer, null, _interval, _interval);
         }
-        
+
         public void Run(EventPluginContext context) {
             int hashCode = context.Event.GetHashCode();
             int count = context.Event.Count ?? 1;
             context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), String.Concat("Checking event: ", context.Event.Message, " with hash: ", hashCode));
-            
+
             lock (_lock) {
                 // Increment the occurrence count if the event is already queued for submission.
                 var merged = _mergedEvents.FirstOrDefault(s => s.HashCode == hashCode);
                 if (merged != null) {
                     merged.IncrementCount(count);
+                    merged.UpdateDate(context.Event.Date);
                     context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate event with hash:", hashCode));
                     context.Cancel = true;
                     return;
@@ -59,7 +60,7 @@ namespace Exceptionless.Plugins.Default {
                     _processed.Dequeue();
             }
         }
-        
+
         private void OnTimer(object state) {
             EnqueueMergedEvents();
         }
@@ -99,6 +100,11 @@ namespace Exceptionless.Plugins.Default {
             public void Resubmit() {
                 _context.Event.Count = _count;
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
+            }
+
+            public void UpdateDate(DateTimeOffset date) {
+                if (date > _context.Event.Date)
+                    _context.Event.Date = date;
             }
         }
     }
