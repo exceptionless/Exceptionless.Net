@@ -7,7 +7,7 @@ namespace Exceptionless.Models.Data {
         public int Column { get; set; }
 
         protected bool Equals(StackFrame other) {
-            return base.Equals(other) && string.Equals(FileName, other.FileName) && LineNumber == other.LineNumber && Column == other.Column;
+            return base.Equals(other) && string.Equals(FileName, other.FileName);
         }
 
         public override bool Equals(object obj) {
@@ -24,8 +24,6 @@ namespace Exceptionless.Models.Data {
             unchecked {
                 int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (FileName == null ? 0 : FileName.GetHashCode());
-                hashCode = (hashCode * 397) ^ LineNumber;
-                hashCode = (hashCode * 397) ^ Column;
                 return hashCode;
             }
         }
