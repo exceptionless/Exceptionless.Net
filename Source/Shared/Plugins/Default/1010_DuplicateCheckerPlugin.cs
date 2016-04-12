@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
 using Exceptionless.Logging;
 using Exceptionless.Dependency;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(1010)]
     public class DuplicateCheckerPlugin : IEventPlugin, IDisposable {
-        private readonly ConcurrentQueue<Tuple<int, DateTimeOffset>> _processed = new ConcurrentQueue<Tuple<int, DateTimeOffset>>();
-        private readonly ConcurrentQueue<MergedEvent> _mergedEvents = new ConcurrentQueue<MergedEvent>();
+        private readonly Queue<Tuple<int, DateTimeOffset>> _processed = new Queue<Tuple<int, DateTimeOffset>>();
+        private readonly Queue<MergedEvent> _mergedEvents = new Queue<MergedEvent>();
         private readonly object _lock = new object();
         private readonly TimeSpan _interval;
         private Timer _timer;
@@ -54,10 +54,9 @@ namespace Exceptionless.Plugins.Default {
 
                 context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Enqueueing event with hash:", hashCode, " to cache."));
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
-
-                Tuple<int, DateTimeOffset> temp;
+                
                 while (_processed.Count > 50)
-                    _processed.TryDequeue(out temp);
+                    _processed.Dequeue();
             }
         }
         
@@ -67,9 +66,8 @@ namespace Exceptionless.Plugins.Default {
 
         private void EnqueueMergedEvents() {
             lock (_lock) {
-                MergedEvent mergedEvent;
-                while (_mergedEvents.TryDequeue(out mergedEvent))
-                    mergedEvent.Enqueue();
+                while (_mergedEvents.Count > 0)
+                    _mergedEvents.Dequeue().Resubmit();
             }
         }
 
@@ -98,7 +96,7 @@ namespace Exceptionless.Plugins.Default {
                 Interlocked.Add(ref _count, value);
             }
 
-            public void Enqueue() {
+            public void Resubmit() {
                 _context.Event.Count = _count;
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
             }
