@@ -158,29 +158,34 @@ namespace Exceptionless {
 
             assemblies = assemblies.Where(a => a != null).Distinct().ToList();
 
-            foreach (var assembly in assemblies) {
-                object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessAttribute), false);
-                if (attributes.Length <= 0 || !(attributes[0] is ExceptionlessAttribute))
-                    continue;
+            try {
+                foreach (var assembly in assemblies) {
+                    object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessAttribute), false);
+                    if (attributes.Length <= 0 || !(attributes[0] is ExceptionlessAttribute))
+                        continue;
 
-                var attr = attributes[0] as ExceptionlessAttribute;
+                    var attr = attributes[0] as ExceptionlessAttribute;
 
-                config.Enabled = attr.Enabled;
-                
-                if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
-                    config.ApiKey = attr.ApiKey;
-                if (!String.IsNullOrEmpty(attr.ServerUrl))
-                    config.ServerUrl = attr.ServerUrl;
-                
-                break;
-            }
+                    config.Enabled = attr.Enabled;
 
-            foreach (var assembly in assemblies) {
-                object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessSettingAttribute), false);
-                foreach (ExceptionlessSettingAttribute attribute in attributes.OfType<ExceptionlessSettingAttribute>()) {
-                    if (!String.IsNullOrEmpty(attribute.Name))
-                        config.Settings[attribute.Name] = attribute.Value;
+                    if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
+                        config.ApiKey = attr.ApiKey;
+                    if (!String.IsNullOrEmpty(attr.ServerUrl))
+                        config.ServerUrl = attr.ServerUrl;
+
+                    break;
                 }
+
+                foreach (var assembly in assemblies) {
+                    object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessSettingAttribute), false);
+                    foreach (ExceptionlessSettingAttribute attribute in attributes.OfType<ExceptionlessSettingAttribute>()) {
+                        if (!String.IsNullOrEmpty(attribute.Name))
+                            config.Settings[attribute.Name] = attribute.Value;
+                    }
+                }
+            } catch (Exception ex) {
+                var log = config.Resolver.GetLog();
+                log.Error(ex, "Error while reading attribute configuration. Please contact support for more information.");
             }
         }
     }
