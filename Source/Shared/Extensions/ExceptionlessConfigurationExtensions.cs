@@ -92,16 +92,18 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">Exceptionless configuration</param>
         /// <param name="sendHeartbeats">Controls whether heartbeat events are sent on an interval.</param>
-        /// <param name="heartbeatInterval">The interval at which heartbeats are sent after the last sent event. The default is 30 seconds.</param>
+        /// <param name="heartbeatInterval">The interval at which heartbeats are sent after the last sent event. The default is 5 minutes.</param>
         /// <param name="useSessionIdManagement">Allows you to manually control the session id. This is only recommended for single user desktop environments.</param>
         public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true, TimeSpan? heartbeatInterval = null, bool useSessionIdManagement = false) {
             config.SessionsEnabled = true;
 
-            if (useSessionIdManagement) 
+            if (useSessionIdManagement)
                 config.AddPlugin<SessionIdManagementPlugin>();
 
             if (sendHeartbeats)
                 config.AddPlugin(new HeartbeatPlugin(heartbeatInterval));
+            else
+                config.RemovePlugin<HeartbeatPlugin>();
         }
 
         public static InMemoryExceptionlessLog UseInMemoryLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {

@@ -44,7 +44,7 @@ namespace Exceptionless.Models {
         public decimal? Value { get; set; }
 
         /// <summary>
-        /// The number of duplicated events
+        /// The number of duplicated events.
         /// </summary>
         public int? Count { get; set; }
 
