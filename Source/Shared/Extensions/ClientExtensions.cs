@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 
@@ -209,19 +211,16 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Creates a session heartbeat event.
-        /// </summary>
-        /// <param name="client">The client instance.</param>
-        public static EventBuilder CreateSessionHeartbeat(this ExceptionlessClient client) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionHeartbeat);
-        }
-
-        /// <summary>
         /// Submits a session heartbeat event.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        public static void SubmitSessionHeartbeat(this ExceptionlessClient client) {
-            client.CreateSessionHeartbeat().Submit();
+        /// <param name="sessionIdOrUserId">The session id or user id.</param>
+        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionIdOrUserId) {
+            if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
+                return;
+
+            var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
+            Task.Factory.StartNew(() => submissionClient.SendHeartbeat(sessionIdOrUserId, client.Configuration));
         }
     }
 }

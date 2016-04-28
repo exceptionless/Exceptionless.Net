@@ -86,9 +86,7 @@ namespace SampleConsole {
                 } else if (keyInfo.Key == ConsoleKey.D5) {
                     ExceptionlessClient.Default.Configuration.UseSessions(false, null, true);
                     ExceptionlessClient.Default.SubmitSessionStart();
-                } else if (keyInfo.Key == ConsoleKey.D6)
-                    ExceptionlessClient.Default.SubmitSessionHeartbeat();
-                else if (keyInfo.Key == ConsoleKey.D7)
+                } else if (keyInfo.Key == ConsoleKey.D7)
                     ExceptionlessClient.Default.SubmitSessionEnd();
                 else if (keyInfo.Key == ConsoleKey.D8)
                     ExceptionlessClient.Default.Configuration.SetUserIdentity(Guid.NewGuid().ToString("N"));

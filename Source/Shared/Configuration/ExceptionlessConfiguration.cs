@@ -11,12 +11,14 @@ using Exceptionless.Models;
 namespace Exceptionless {
     public class ExceptionlessConfiguration {
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
+        private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";
         private const string DEFAULT_USER_AGENT = "exceptionless/" + ThisAssembly.AssemblyFileVersion;
         private const int DEFAULT_SUBMISSION_BATCH_SIZE = 50;
 
         private readonly IDependencyResolver _resolver;
         private bool _configLocked;
         private string _apiKey;
+        private string _heartbeatServerUrl;
         private string _serverUrl;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
@@ -28,6 +30,7 @@ namespace Exceptionless {
                 throw new ArgumentNullException("resolver");
 
             ServerUrl = DEFAULT_SERVER_URL;
+            HeartbeatServerUrl = DEFAULT_HEARTBEAT_SERVER_URL;
             UserAgent = DEFAULT_USER_AGENT;
             SubmissionBatchSize = DEFAULT_SUBMISSION_BATCH_SIZE;
             Enabled = true;
@@ -69,6 +72,23 @@ namespace Exceptionless {
 
                 _validationResult = null;
                 _serverUrl = value;
+            }
+        }
+
+        /// <summary>
+        /// The server url that all events will be sent to.
+        /// </summary>
+        public string HeartbeatServerUrl {
+            get { return _heartbeatServerUrl; }
+            set {
+                if (_heartbeatServerUrl == value)
+                    return;
+
+                if (_configLocked)
+                    throw new ArgumentException("HeartbeatServerUrl can't be changed after the client has been initialized.");
+
+                _validationResult = null;
+                _heartbeatServerUrl = value;
             }
         }
 
@@ -357,6 +377,9 @@ namespace Exceptionless {
 
             if (String.IsNullOrEmpty(ServerUrl))
                 result.Messages.Add("ServerUrl is not set.");
+
+            if (String.IsNullOrEmpty(HeartbeatServerUrl))
+                result.Messages.Add("HeartbeatServerUrl is not set.");
 
             return result;
         }

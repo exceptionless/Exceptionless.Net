@@ -186,6 +186,10 @@ namespace Exceptionless.Tests {
             public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
                 throw new NotImplementedException();
             }
+
+            public void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config) {
+                throw new NotImplementedException();
+            }
         }
     }
 }

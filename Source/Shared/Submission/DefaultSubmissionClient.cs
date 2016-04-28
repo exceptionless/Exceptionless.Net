@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using Exceptionless.Configuration;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Json.Linq;
 using Exceptionless.Models;
@@ -15,7 +16,7 @@ namespace Exceptionless.Submission {
 
             HttpWebResponse response;
             try {
-                var request = CreateHttpWebRequest(config, "events");
+                var request = CreateHttpWebRequest(config, String.Format("{0}/events", config.GetServiceEndPoint()));
                 response = request.PostJsonAsync(data).Result as HttpWebResponse;
             } catch (AggregateException aex) {
                 var ex = aex.GetInnermostException() as WebException;
@@ -39,7 +40,7 @@ namespace Exceptionless.Submission {
 
             HttpWebResponse response;
             try {
-                var request = CreateHttpWebRequest(config, String.Format("events/by-ref/{0}/user-description", referenceId));
+                var request = CreateHttpWebRequest(config, String.Format("{0}/events/by-ref/{1}/user-description", config.GetServiceEndPoint(), referenceId));
                 response = request.PostJsonAsync(data).Result as HttpWebResponse;
             } catch (AggregateException aex) {
                 var ex = aex.GetInnermostException() as WebException;
@@ -61,7 +62,7 @@ namespace Exceptionless.Submission {
         public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
             HttpWebResponse response;
             try {
-                var request = CreateHttpWebRequest(config, "projects/config");
+                var request = CreateHttpWebRequest(config, String.Format("{0}/projects/config", config.GetServiceEndPoint()));
                 response = request.GetJsonAsync().Result as HttpWebResponse;
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
@@ -77,6 +78,16 @@ namespace Exceptionless.Submission {
 
             var settings = serializer.Deserialize<ClientConfiguration>(json);
             return new SettingsResponse(true, settings.Settings, settings.Version);
+        }
+
+        public void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config) {
+            try {
+                var request = CreateHttpWebRequest(config, String.Format("{0}/events/session/{1}/heartbeat", config.GetHeartbeatServiceEndPoint(), sessionIdOrUserId));
+                var response = request.GetResponseAsync().Result;
+            } catch (Exception ex) {
+                var log = config.Resolver.GetLog();
+                log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()));
+            }
         }
 
         private static string GetResponseMessage(HttpWebResponse response) {
@@ -97,11 +108,11 @@ namespace Exceptionless.Submission {
             return message;
         }
 
-        protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string endPoint) {
+        protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string url) {
 #if PORTABLE40
-            var request = WebRequest.CreateHttp(String.Concat(config.GetServiceEndPoint(), endPoint));
+            var request = WebRequest.CreateHttp(url);
 #else 
-            var request = (HttpWebRequest)WebRequest.Create(String.Concat(config.GetServiceEndPoint(), endPoint));            
+            var request = (HttpWebRequest)WebRequest.Create(url);            
 #endif
             request.AddAuthorizationHeader(config);
             request.SetUserAgent(config);

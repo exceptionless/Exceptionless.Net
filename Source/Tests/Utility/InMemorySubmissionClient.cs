@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Exceptionless;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission;
@@ -23,8 +22,8 @@ namespace Exceptionless.Tests.Utility {
                 if (String.IsNullOrEmpty(e.Type))
                     e.Type = Event.KnownTypes.Log;
             });
-            Events.AddRange(data);
 
+            Events.AddRange(data);
             return new SubmissionResponse(202, "Accepted");
         }
 
@@ -41,5 +40,7 @@ namespace Exceptionless.Tests.Utility {
         public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
             return new SettingsResponse(true);
         }
+
+        public void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config) {}
     }
 }
