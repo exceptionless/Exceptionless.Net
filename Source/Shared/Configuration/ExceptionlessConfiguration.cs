@@ -72,6 +72,7 @@ namespace Exceptionless {
 
                 _validationResult = null;
                 _serverUrl = value;
+                _heartbeatServerUrl = value;
             }
         }
 

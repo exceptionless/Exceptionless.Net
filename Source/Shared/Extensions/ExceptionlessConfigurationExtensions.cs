@@ -173,7 +173,7 @@ namespace Exceptionless {
                     if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
                         config.ApiKey = attr.ApiKey;
                     if (!String.IsNullOrEmpty(attr.ServerUrl))
-                        config.ServerUrl = config.HeartbeatServerUrl = attr.ServerUrl;
+                        config.ServerUrl = attr.ServerUrl;
 
                     break;
                 }

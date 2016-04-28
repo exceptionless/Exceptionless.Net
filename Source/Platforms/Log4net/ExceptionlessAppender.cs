@@ -17,7 +17,7 @@ namespace Exceptionless.Log4net {
                 if (!String.IsNullOrEmpty(ApiKey) && ApiKey != "API_KEY_HERE")
                     config.ApiKey = ApiKey;
                 if (!String.IsNullOrEmpty(ServerUrl))
-                    config.ServerUrl = config.HeartbeatServerUrl = ServerUrl;
+                    config.ServerUrl = ServerUrl;
                 config.UseInMemoryStorage();
             });
         }

@@ -96,7 +96,7 @@ namespace Exceptionless {
                 config.ApiKey = section.ApiKey;
             
             if (!String.IsNullOrEmpty(section.ServerUrl))
-                config.ServerUrl = config.HeartbeatServerUrl = section.ServerUrl;
+                config.ServerUrl = section.ServerUrl;
 
             if (section.QueueMaxAge.HasValue)
                 config.QueueMaxAge = section.QueueMaxAge.Value;
@@ -176,7 +176,7 @@ namespace Exceptionless {
             
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
-                config.ServerUrl = config.HeartbeatServerUrl = serverUrl;
+                config.ServerUrl = serverUrl;
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Exceptionless {
             
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
-                config.ServerUrl = config.HeartbeatServerUrl = serverUrl;
+                config.ServerUrl = serverUrl;
         }
 
         private static string GetEnvironmentalVariable(string name) {
