@@ -164,6 +164,8 @@ namespace Exceptionless {
         /// </summary>
         public bool SessionsEnabled { get; set; }
 
+        internal string CurrentSessionIdentifier { get; set; }
+
         /// <summary>
         /// Maximum number of events that should be sent to the server together in a batch. (Defaults to 50)
         /// </summary>

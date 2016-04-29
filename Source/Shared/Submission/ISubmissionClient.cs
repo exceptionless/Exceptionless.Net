@@ -8,6 +8,6 @@ namespace Exceptionless.Submission {
         SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer);
         SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer);
         SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer);
-        void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config);
+        void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config);
     }
 }

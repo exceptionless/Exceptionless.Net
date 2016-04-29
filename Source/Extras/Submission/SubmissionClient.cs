@@ -88,10 +88,9 @@ namespace Exceptionless.Extras.Submission {
             return new SettingsResponse(true, settings.Settings, settings.Version);
         }
         
-        public void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config) {
+        public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
             try {
-                var request = CreateHttpWebRequest(config, String.Format("{0}/events/session/{1}/heartbeat", config.GetHeartbeatServiceEndPoint(), sessionIdOrUserId));
-                request.Timeout = 1;
+                var request = CreateHttpWebRequest(config, String.Format("{0}/events/session/heartbeat?id={1}&close={2}", config.GetHeartbeatServiceEndPoint(), sessionIdOrUserId, closeSession));
                 var response = request.GetResponseAsync().Result;
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();

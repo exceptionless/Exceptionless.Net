@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Exceptionless.Dependency;
-using Exceptionless.Models.Data;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(100)]
@@ -18,26 +17,21 @@ namespace Exceptionless.Plugins.Default {
         }
 
         public void Run(EventPluginContext context) {
-            if (context.Event.IsSessionEnd()) {
-                if (_heartbeat != null) {
-                    _heartbeat.Dispose();
-                    _heartbeat = null;
-                }
+            if (String.IsNullOrEmpty(context.Client.Configuration.CurrentSessionIdentifier)) {
+                var user = context.Event.GetUserIdentity(context.Client.Configuration.Resolver.GetJsonSerializer());
+                if (user == null || String.IsNullOrEmpty(user.Identity))
+                    return;
 
-                return;
+                context.Client.Configuration.CurrentSessionIdentifier = user.Identity;
             }
 
-            var user = context.Event.GetUserIdentity(context.Client.Configuration.Resolver.GetJsonSerializer());
-            if (user == null || String.IsNullOrEmpty(user.Identity))
-                return;
-            
             if (_heartbeat == null) {
-                _heartbeat = new SessionHeartbeat(user, _interval, context.Client);
-            } else if (_heartbeat.User.Identity != user.Identity) {
+                _heartbeat = new SessionHeartbeat(context.Client.Configuration.CurrentSessionIdentifier, _interval, context.Client);
+            } else if (_heartbeat.SessionIdentifier != context.Client.Configuration.CurrentSessionIdentifier) {
                 if (_heartbeat != null)
                     _heartbeat.Dispose();
 
-                _heartbeat = new SessionHeartbeat(user, _interval, context.Client);
+                _heartbeat = new SessionHeartbeat(context.Client.Configuration.CurrentSessionIdentifier, _interval, context.Client);
             } else {
                 if (_heartbeat != null)
                     _heartbeat.DelayNext();
@@ -57,21 +51,21 @@ namespace Exceptionless.Plugins.Default {
         private readonly TimeSpan _interval;
         private readonly ExceptionlessClient _client;
 
-        public SessionHeartbeat(UserInfo user, TimeSpan interval, ExceptionlessClient client) {
-            User = user;
+        public SessionHeartbeat(string sessionIdentifier, TimeSpan interval, ExceptionlessClient client) {
+            SessionIdentifier = sessionIdentifier;
             _interval = interval;
             _client = client;
             _timer = new Timer(SendHeartbeat, null, _interval, _interval);
         }
         
-        public UserInfo User { get; private set; }
+        public string SessionIdentifier { get; private set; }
         
         public void DelayNext() {
             _timer.Change(_interval, _interval);
         }
 
         private void SendHeartbeat(object state) {
-            _client.SubmitSessionHeartbeat(User.Identity);
+            _client.SubmitSessionHeartbeat(SessionIdentifier);
         }
 
         public void Dispose() {

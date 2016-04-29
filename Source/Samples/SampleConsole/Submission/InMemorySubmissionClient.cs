@@ -30,7 +30,7 @@ namespace Exceptionless.SampleConsole {
             return new SettingsResponse(true);
         }
 
-        public void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config) {
+        public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
             _heartbeatContainer[sessionIdOrUserId] = DateTime.UtcNow;
         }
     }

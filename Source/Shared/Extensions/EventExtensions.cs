@@ -77,13 +77,6 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Returns true if the event type is session end.
-        /// </summary>
-        public static bool IsSessionEnd(this Event ev) {
-            return ev.Type == Event.KnownTypes.SessionEnd;
-        }
-
-        /// <summary>
         /// Adds the request info to the event.
         /// </summary>
         public static void AddRequestInfo(this Event ev, RequestInfo request) {

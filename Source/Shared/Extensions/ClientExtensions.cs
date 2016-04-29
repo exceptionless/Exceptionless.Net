@@ -195,32 +195,31 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Creates a session end event.
-        /// </summary>
-        /// <param name="client">The client instance.</param>
-        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd);
-        }
-
-        /// <summary>
-        /// Submits a session end event.
-        /// </summary>
-        /// <param name="client">The client instance.</param>
-        public static void SubmitSessionEnd(this ExceptionlessClient client) {
-            client.CreateSessionEnd().Submit();
-        }
-
-        /// <summary>
-        /// Submits a session heartbeat event.
+        /// Submits session end.
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionIdOrUserId">The session id or user id.</param>
-        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionIdOrUserId) {
+        public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+            sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
             if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
                 return;
 
             var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
-            Task.Factory.StartNew(() => submissionClient.SendHeartbeat(sessionIdOrUserId, client.Configuration));
+            submissionClient.SendHeartbeat(sessionIdOrUserId, true, client.Configuration);
+        }
+
+        /// <summary>
+        /// Submits session heartbeat.
+        /// </summary>
+        /// <param name="client">The client instance.</param>
+        /// <param name="sessionIdOrUserId">The session id or user id.</param>
+        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+            sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
+            if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
+                return;
+
+            var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
+            submissionClient.SendHeartbeat(sessionIdOrUserId, false, client.Configuration);
         }
     }
 }

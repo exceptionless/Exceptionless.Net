@@ -92,7 +92,6 @@ namespace Exceptionless.Models {
             public const string Log = "log";
             public const string NotFound = "404";
             public const string Session = "session";
-            public const string SessionEnd = "sessionend";
         }
 
         public static class KnownTags {

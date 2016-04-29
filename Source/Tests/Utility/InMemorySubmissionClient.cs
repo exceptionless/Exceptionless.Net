@@ -41,6 +41,6 @@ namespace Exceptionless.Tests.Utility {
             return new SettingsResponse(true);
         }
 
-        public void SendHeartbeat(string sessionIdOrUserId, ExceptionlessConfiguration config) {}
+        public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {}
     }
 }
