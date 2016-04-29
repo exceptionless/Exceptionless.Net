@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
+using System.Web.Http.Controllers;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Extensions;
@@ -15,22 +16,13 @@ namespace Exceptionless.WebApi {
     [Priority(90)]
     internal class ExceptionlessWebApiPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            if (!context.ContextData.ContainsKey("HttpActionContext"))
-                return;
-
             var actionContext = context.ContextData.GetHttpActionContext();
+            var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
+            if (context.Client.Configuration.IncludePrivateInformation)
+                AddUser(context, actionContext, serializer);
+
             if (actionContext == null)
                 return;
-
-            var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
-            if (context.Client.Configuration.IncludePrivateInformation) {
-                var user = context.Event.GetUserIdentity(serializer);
-                if (user == null) {
-                    IPrincipal principal = GetPrincipal(actionContext.Request);
-                    if (principal != null && principal.Identity.IsAuthenticated)
-                        context.Event.SetUserIdentity(principal.Identity.Name);
-                }
-            }
 
             var ri = context.Event.GetRequestInfo(serializer);
             if (ri != null)
@@ -54,9 +46,19 @@ namespace Exceptionless.WebApi {
             context.Event.AddRequestInfo(ri);
         }
 
+        private static void AddUser(EventPluginContext context, HttpActionContext actionContext, IJsonSerializer serializer) {
+            var user = context.Event.GetUserIdentity(serializer);
+            if (user != null)
+                return;
+
+            var principal = GetPrincipal(actionContext != null ? actionContext.Request : null);
+            if (principal != null && principal.Identity.IsAuthenticated)
+                context.Event.SetUserIdentity(principal.Identity.Name);
+        }
+
         private static IPrincipal GetPrincipal(HttpRequestMessage request) {
             if (request == null)
-                throw new ArgumentNullException("request");
+                return Thread.CurrentPrincipal;
 
             const string RequestContextKey = "MS_RequestContext";
 
@@ -73,7 +75,6 @@ namespace Exceptionless.WebApi {
             }
 
             var principal = _principalGetAccessor(context) as IPrincipal;
-
             return principal ?? Thread.CurrentPrincipal;
         }
 

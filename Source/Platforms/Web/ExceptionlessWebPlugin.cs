@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Web;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
@@ -17,16 +18,13 @@ namespace Exceptionless.Web {
             // if the context is not passed in, try and grab it
             if (httpContext == null && HttpContext.Current != null)
                 httpContext = HttpContext.Current.ToWrapped();
+            
+            var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
+            if (context.Client.Configuration.IncludePrivateInformation)
+                AddUser(context, httpContext, serializer);
 
             if (httpContext == null)
                 return;
-            
-            var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
-            if (context.Client.Configuration.IncludePrivateInformation && httpContext.User != null && httpContext.User.Identity.IsAuthenticated) {
-                var user = context.Event.GetUserIdentity(serializer);
-                if (user == null)
-                    context.Event.SetUserIdentity(httpContext.User.Identity.Name);
-            }
 
             var tags = httpContext.Items[TAGS_HTTP_CONTEXT_NAME] as TagSet;
             if (tags != null)
@@ -55,6 +53,17 @@ namespace Exceptionless.Web {
             }
 
             context.Event.AddRequestInfo(ri);
+        }
+
+        private static void AddUser(EventPluginContext context, HttpContextBase httpContext, IJsonSerializer serializer) {
+            var user = context.Event.GetUserIdentity(serializer);
+            if (user != null)
+                return;
+
+            if (httpContext != null && httpContext.User != null && httpContext.User.Identity.IsAuthenticated)
+                context.Event.SetUserIdentity(httpContext.User.Identity.Name);
+            else if (Thread.CurrentPrincipal != null && Thread.CurrentPrincipal.Identity.IsAuthenticated)
+                context.Event.SetUserIdentity(Thread.CurrentPrincipal.Identity.Name);
         }
     }
 }
