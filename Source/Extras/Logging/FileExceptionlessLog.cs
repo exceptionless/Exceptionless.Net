@@ -18,6 +18,7 @@ namespace Exceptionless.Logging {
                 throw new ArgumentNullException("filePath");
 
             FilePath = filePath;
+            MinimumLogLevel = LogLevel.Trace;
             _append = append;
 
             Init();
@@ -67,7 +68,7 @@ namespace Exceptionless.Logging {
 
         public string FilePath { get; private set; }
 
-        public LogLevel MinimumLogLevel { get; set; } = LogLevel.Trace;
+        public LogLevel MinimumLogLevel { get; set; }
 
         public void Error(string message, string source = null, Exception exception = null) {
             if (source != null)
