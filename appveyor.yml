@@ -8,7 +8,7 @@ configuration: Release
 init:
   - git config --global core.autocrlf true
   - ps: $env:GIT_HASH=$env:APPVEYOR_REPO_COMMIT.Substring(0, 10)
-  - ps: If ("$env:APPVEYOR_REPO_TAG" -ne "true") { $env:VERSION_SUFFIX="-preview" }
+  - ps: If ("$env:APPVEYOR_REPO_TAG" -ne "true") { $env:VERSION_SUFFIX="-pre" }
 
 assembly_info:
   patch: true
