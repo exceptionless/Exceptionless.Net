@@ -7,19 +7,18 @@ configuration: Release
 
 init:
   - git config --global core.autocrlf true
-
-install:
   - ps: $env:GIT_HASH=$env:APPVEYOR_REPO_COMMIT.Substring(0, 10)
+  - ps: If ("$env:APPVEYOR_REPO_TAG" -ne "true") { $env:VERSION_SUFFIX="-preview" }
 
 assembly_info:
   patch: true
   file: Source\GlobalAssemblyInfo.cs
-  assembly_version: "{version}.0"
-  assembly_file_version: "{version}.0"
-  assembly_informational_version: "{version} $(GIT_HASH)"
+  assembly_version: "{version}"
+  assembly_file_version: "{version}"
+  assembly_informational_version: "{version}$(VERSION_SUFFIX) $(GIT_HASH)"
 
 before_build:
-  - nuget restore -verbosity quiet
+  - appveyor-retry nuget restore -verbosity quiet
 
 build_script:
   - ps: .\Libraries\Build.ps1
@@ -31,17 +30,22 @@ test:
 after_test:
   - ps: .\Libraries\Package.ps1
 
+artifacts:
+  - path: Build\Deploy\packages\*.nupkg
+    name: ReleaseArtifacts
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: 0s81q7bweVLTFSOKxnIhan7el6bIFiN8HJ1kYJzOkeFXX7wgGSq9bs/rV53X9qpf
+  artifact: ReleaseArtifacts
+  draft: true
+  on:
+    branch: master
+    appveyor_repo_tag: true
+    
 notifications:
   - provider: Slack
     auth_token:
       secure: GniMpFE62HprSyQNQoej/fBOAdbQe8EMWAMMNXX0s2JxeNePjemiO1bCf4eYweE4p70mm0sCwMjeEP/Ps9aTMA==
     channel: '#notifications'
-
-artifacts:
-  - path: Build\Deploy\packages\*.nupkg
-
-deploy:
-  - provider: Environment
-    name: MyGet
-    on:
-      branch: master
