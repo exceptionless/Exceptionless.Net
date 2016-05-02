@@ -628,17 +628,15 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Fact(Skip = "Skip until benchmark.net is updated with the runtime fixes (0.9.5")]
+        [Fact]
         public void RunBenchmark() {
             var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
 
-            foreach (var benchmark in summary.Benchmarks) {
-                var report = summary.Reports[benchmark];
-
+            foreach (var report in summary.Reports) {
                 _writer.WriteLine(report.ToString());
 
                 var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
-                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", benchmark.ShortInfo, benchmarkMedianMilliseconds));
+                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.Benchmark.ShortInfo, benchmarkMedianMilliseconds));
             }
         }
 
