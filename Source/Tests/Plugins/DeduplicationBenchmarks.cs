@@ -6,7 +6,6 @@ using Exceptionless.Models;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Tests.Utility;
-using Xunit;
 
 namespace Exceptionless.Tests.Plugins {
     public class DeduplicationBenchmarks {
