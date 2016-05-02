@@ -68,26 +68,12 @@ namespace Exceptionless {
         public static bool IsFeatureUsage(this Event ev) {
             return ev.Type == Event.KnownTypes.FeatureUsage;
         }
-
-        /// <summary>
-        /// Returns true if the event type is session heartbeat.
-        /// </summary>
-        public static bool IsSessionHeartbeat(this Event ev) {
-            return ev.Type == Event.KnownTypes.SessionHeartbeat;
-        }
-
+        
         /// <summary>
         /// Returns true if the event type is session start.
         /// </summary>
         public static bool IsSessionStart(this Event ev) {
             return ev.Type == Event.KnownTypes.Session;
-        }
-
-        /// <summary>
-        /// Returns true if the event type is session end.
-        /// </summary>
-        public static bool IsSessionEnd(this Event ev) {
-            return ev.Type == Event.KnownTypes.SessionEnd;
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 
@@ -193,35 +195,31 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Creates a session end event.
+        /// Submits session end.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        public static EventBuilder CreateSessionEnd(this ExceptionlessClient client) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionEnd);
+        /// <param name="sessionIdOrUserId">The session id or user id.</param>
+        public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+            sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
+            if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
+                return;
+
+            var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
+            submissionClient.SendHeartbeat(sessionIdOrUserId, true, client.Configuration);
         }
 
         /// <summary>
-        /// Submits a session end event.
+        /// Submits session heartbeat.
         /// </summary>
         /// <param name="client">The client instance.</param>
-        public static void SubmitSessionEnd(this ExceptionlessClient client) {
-            client.CreateSessionEnd().Submit();
-        }
+        /// <param name="sessionIdOrUserId">The session id or user id.</param>
+        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+            sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
+            if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
+                return;
 
-        /// <summary>
-        /// Creates a session heartbeat event.
-        /// </summary>
-        /// <param name="client">The client instance.</param>
-        public static EventBuilder CreateSessionHeartbeat(this ExceptionlessClient client) {
-            return client.CreateEvent().SetType(Event.KnownTypes.SessionHeartbeat);
-        }
-
-        /// <summary>
-        /// Submits a session heartbeat event.
-        /// </summary>
-        /// <param name="client">The client instance.</param>
-        public static void SubmitSessionHeartbeat(this ExceptionlessClient client) {
-            client.CreateSessionHeartbeat().Submit();
+            var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
+            submissionClient.SendHeartbeat(sessionIdOrUserId, false, client.Configuration);
         }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
+using Exceptionless.Logging;
 
 namespace Exceptionless.SampleWebApi.Controllers {
     public class ValuesController : ApiController {
         // GET api/values
         public IEnumerable<string> Get() {
+            ExceptionlessClient.Default.SubmitLog("ValuesController", "Getting results", LogLevel.Info);
             throw new ApplicationException("WebApi GET error");
         }
 
