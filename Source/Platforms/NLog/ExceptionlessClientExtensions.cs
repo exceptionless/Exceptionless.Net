@@ -22,18 +22,18 @@ namespace Exceptionless.NLog {
                 .ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
 
             object value;
-            if (properties.TryGetValue("Value", out value)) {
+            if (properties.TryGetValue("@value", out value)) {
                 try {
                     builder.SetValue(Convert.ToDecimal(value));
-                    properties.Remove("Value");
+                    properties.Remove("@value");
                 } catch (Exception) {}
             }
 
             object stackingKey;
-            if (properties.TryGetValue("StackingKey", out stackingKey)) {
+            if (properties.TryGetValue(Event.KnownDataKeys.ManualStackingInfo, out stackingKey)) {
                 try {
                     builder.SetManualStackingKey(stackingKey.ToString());
-                    properties.Remove("StackingKey");
+                    properties.Remove(Event.KnownDataKeys.ManualStackingInfo);
                 } catch (Exception) { }
             }
             
