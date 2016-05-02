@@ -58,33 +58,35 @@ namespace Exceptionless.Serializer {
         }
 
         private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, IEnumerable<string> excludedPropertyNames) {
-            if (excludedPropertyNames != null && property.PropertyName.AnyWildcardMatches(excludedPropertyNames, true))
-                return false;
-
-            bool isPrimitiveType = DefaultContractResolver.IsJsonPrimitiveType(property.PropertyType);
-            bool isPastMaxDepth = !(isPrimitiveType ? jw.CurrentDepth <= maxDepth : jw.CurrentDepth < maxDepth);
-            if (isPastMaxDepth)
-                return false;
-
-            if (isPrimitiveType)
-                return true;
-
-            object value = property.ValueProvider.GetValue(obj);
-            if (value == null)
-                return false;
-
-            if (typeof(ICollection).IsAssignableFrom(property.PropertyType)) {
-                var collection = value as ICollection;
-                if (collection != null && collection.Count == 0)
+            try {
+                if (excludedPropertyNames != null && property.PropertyName.AnyWildcardMatches(excludedPropertyNames, true))
                     return false;
-            }
 
-            var collectionType = value.GetType().GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
-            if (collectionType != null) {
-                int count = (int)collectionType.GetProperty("Count").GetValue(value, null);
-                if (count == 0)
+                bool isPrimitiveType = DefaultContractResolver.IsJsonPrimitiveType(property.PropertyType);
+                bool isPastMaxDepth = !(isPrimitiveType ? jw.CurrentDepth <= maxDepth : jw.CurrentDepth < maxDepth);
+                if (isPastMaxDepth)
                     return false;
-            }
+
+                if (isPrimitiveType)
+                    return true;
+
+                object value = property.ValueProvider.GetValue(obj);
+                if (value == null)
+                    return false;
+
+                if (typeof(ICollection).IsAssignableFrom(property.PropertyType)) {
+                    var collection = value as ICollection;
+                    if (collection != null)
+                        return collection.Count > 0;
+                }
+
+                var collectionType = value.GetType().GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
+                if (collectionType != null) {
+                    var countProperty = collectionType.GetProperty("Count");
+                    if (countProperty != null)
+                        return (int)countProperty.GetValue(value, null) > 0;
+                }
+            } catch (Exception) {}
 
             return true;
         }

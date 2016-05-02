@@ -45,6 +45,11 @@
         <xs:documentation>Pass NLog internal exceptions to the application. Default value is: false.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="internalLogToTrace" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation>Write internal NLog messages to the the System.Diagnostics.Trace. Default value is: false</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="NLogTargets">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
@@ -611,6 +616,7 @@
       <xs:element name="regex" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="text" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="wholeWords" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="compileRegex" minOccurs="0" maxOccurs="1" type="xs:boolean" />
       <xs:element name="backgroundColor" minOccurs="0" maxOccurs="1" type="NLog.Targets.ConsoleOutputColor" />
       <xs:element name="foregroundColor" minOccurs="0" maxOccurs="1" type="NLog.Targets.ConsoleOutputColor" />
     </xs:choice>
@@ -632,6 +638,11 @@
     <xs:attribute name="wholeWords" type="xs:boolean">
       <xs:annotation>
         <xs:documentation>Indicates whether to match whole words only.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="compileRegex" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation>Compile the ? This can improve the performance, but at the costs of more memory usage. If false, the Regex Cache is used.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="backgroundColor" type="NLog.Targets.ConsoleOutputColor">
@@ -911,7 +922,9 @@
           <xs:element name="log" minOccurs="0" maxOccurs="1" type="xs:string" />
           <xs:element name="machineName" minOccurs="0" maxOccurs="1" type="xs:string" />
           <xs:element name="source" minOccurs="0" maxOccurs="1" type="Layout" />
+          <xs:element name="onOverflow" minOccurs="0" maxOccurs="1" type="NLog.Targets.EventLogTargetOverflowAction" />
           <xs:element name="entryType" minOccurs="0" maxOccurs="1" type="Layout" />
+          <xs:element name="maxMessageLength" minOccurs="0" maxOccurs="1" type="xs:integer" />
         </xs:choice>
         <xs:attribute name="name" type="xs:string">
           <xs:annotation>
@@ -948,14 +961,31 @@
             <xs:documentation>Value to be used as the event Source.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="onOverflow" type="NLog.Targets.EventLogTargetOverflowAction">
+          <xs:annotation>
+            <xs:documentation>Action to take if the message is larger than the  option.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="entryType" type="SimpleLayoutAttribute">
           <xs:annotation>
             <xs:documentation>Optional entrytype. When not set, or when not convertable to  then determined by </xs:documentation>
           </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="maxMessageLength" type="xs:integer">
+          <xs:annotation>
+            <xs:documentation>Message length limit to write to the Event Log.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:simpleType name="NLog.Targets.EventLogTargetOverflowAction">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Truncate" />
+      <xs:enumeration value="Split" />
+      <xs:enumeration value="Discard" />
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="FallbackGroup">
     <xs:complexContent>
       <xs:extension base="CompoundTargetBase">
@@ -1090,7 +1120,7 @@
         </xs:attribute>
         <xs:attribute name="archiveDateFormat" type="xs:string">
           <xs:annotation>
-            <xs:documentation>Value specifying the date format to use when archving files.</xs:documentation>
+            <xs:documentation>Value specifying the date format to use when archiving files.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="archiveOldFileOnStartup" type="xs:boolean">
@@ -1661,7 +1691,7 @@
         </xs:attribute>
         <xs:attribute name="methodName" type="xs:string">
           <xs:annotation>
-            <xs:documentation>Method name. The method must be public and static.</xs:documentation>
+            <xs:documentation>Method name. The method must be public and static. Use the AssemblyQualifiedName , https://msdn.microsoft.com/en-us/library/system.type.assemblyqualifiedname(v=vs.110).aspx e.g.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
       </xs:extension>

@@ -44,10 +44,10 @@ namespace Exceptionless {
             client.UnregisterOnProcessExitHandler();
             
             client.SubmittingEvent -= OnSubmittingEvent;
-            
+
+            client.ProcessQueue();
             if (client.Configuration.SessionsEnabled)
                 client.SubmitSessionEnd();
-            client.ProcessQueue();
         }
 
         private static void OnSubmittingEvent(object sender, EventSubmittingEventArgs e) {
@@ -63,10 +63,10 @@ namespace Exceptionless {
         private static void RegisterOnProcessExitHandler(this ExceptionlessClient client) {
             if (_onProcessExit == null) {
                 _onProcessExit = (sender, args) => {
+                    client.ProcessQueue();
+
                     if (client.Configuration.SessionsEnabled)
                         client.SubmitSessionEnd();
-
-                    client.ProcessQueue();
                 };
             }
 

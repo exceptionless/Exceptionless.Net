@@ -2,16 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Running;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission;
+using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
 using Xunit;
 using Xunit.Abstractions;
+using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.Tests.Plugins {
     public class PluginTests {
@@ -19,10 +23,18 @@ namespace Exceptionless.Tests.Plugins {
         public PluginTests(ITestOutputHelper output) {
             _writer = new TestOutputWriter(output);
         }
+        
+        private ExceptionlessClient CreateClient() {
+            return new ExceptionlessClient(c => {
+                c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace   });
+                c.ReadFromAttributes();
+                c.UserAgent = "testclient/1.0.0.0";
+            });
+        }
 
         [Fact]
         public void ConfigurationDefaults_EnsureNoDuplicateTagsOrData() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             var context = new EventPluginContext(client, new Event());
 
             var plugin = new ConfigurationDefaultsPlugin();
@@ -44,7 +56,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void ConfigurationDefaults_IgnoredProperties() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             client.Configuration.DefaultData.Add("Message", "Test");
 
             var context = new EventPluginContext(client, new Event());
@@ -62,11 +74,11 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void ConfigurationDefaults_SerializedProperties() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.EnvironmentInfo, new EnvironmentInfo { MachineName = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.Error, new Error { Message = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.Level, "Debug");
-            client.Configuration.DefaultData.Add(Event.KnownDataKeys.ManualStackingKey, "blake");
+            client.Configuration.DefaultData.Add(Event.KnownDataKeys.ManualStackingInfo, "blake");
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.RequestInfo, new RequestInfo { Host = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.SimpleError, new SimpleError { Message = "blake" });
             client.Configuration.DefaultData.Add(Event.KnownDataKeys.SubmissionMethod, "test");
@@ -87,7 +99,7 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("blake", context.Event.GetError().Message);
             Assert.Equal("blake", context.Event.GetError(serializer).Message);
             Assert.Equal("Debug", context.Event.Data[Event.KnownDataKeys.Level]);
-            Assert.Equal("blake", context.Event.Data[Event.KnownDataKeys.ManualStackingKey]);
+            Assert.Equal("blake", context.Event.Data[Event.KnownDataKeys.ManualStackingInfo]);
             Assert.True(context.Event.Data[Event.KnownDataKeys.RequestInfo] is string);
             Assert.Equal("blake", context.Event.GetRequestInfo().Host);
             Assert.Equal("blake", context.Event.GetRequestInfo(serializer).Host);
@@ -111,7 +123,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void IgnoreUserAgentPlugin_DiscardBot() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             client.Configuration.AddUserAgentBotPatterns("*Bot*");
             var plugin = new IgnoreUserAgentPlugin();
 
@@ -133,7 +145,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void HandleAggregateExceptionsPlugin_SingleInnerException() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             var plugin = new HandleAggregateExceptionsPlugin();
             
             var exceptionOne = new Exception("one");
@@ -153,8 +165,7 @@ namespace Exceptionless.Tests.Plugins {
             context = new EventPluginContext(client, new Event());
             context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
             plugin.Run(context);
-            Assert.False(context.Cancel);
-            Assert.Equal(exceptionOne, context.ContextData.GetException());
+            Assert.True(context.Cancel);
         }
 
         [Fact]
@@ -189,7 +200,7 @@ namespace Exceptionless.Tests.Plugins {
                     RandomValue = "Test"
                 });
 
-                var client = new ExceptionlessClient();
+                var client = CreateClient();
                 var context = new EventPluginContext(client, new Event());
                 context.ContextData.SetException(exception);
                 plugin.Run(context);
@@ -246,7 +257,7 @@ namespace Exceptionless.Tests.Plugins {
                     data.Remove("@exceptionless");
 
                 var exception = new MyApplicationException("Test") { SetsDataProperty = data };
-                var client = new ExceptionlessClient();
+                var client = CreateClient();
                 client.Configuration.AddDataExclusions("SetsDataProperty");
                 var context = new EventPluginContext(client, new Event());
                 context.ContextData.SetException(exception);
@@ -279,7 +290,7 @@ namespace Exceptionless.Tests.Plugins {
                     } 
                 };
 
-                var client = new ExceptionlessClient();
+                var client = CreateClient();
                 var context = new EventPluginContext(client, new Event());
                 context.ContextData.SetException(exception);
                 plugin.Run(context);
@@ -304,7 +315,7 @@ namespace Exceptionless.Tests.Plugins {
             };
 
             foreach (var plugin in errorPlugins) {
-                var client = new ExceptionlessClient();
+                var client = CreateClient();
                 var context = new EventPluginContext(client, new Event());
                 context.ContextData.SetException(exception);
 
@@ -313,7 +324,7 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.NotNull(error);
                 Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
                 var json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
-                Assert.Equal("{\"ignored_property\":\"Test\",\"random_value\":\"Test\"}", json);
+                Assert.Equal("{\"IgnoredProperty\":\"Test\",\"RandomValue\":\"Test\"}", json);
 
                 client.Configuration.AddDataExclusions("Ignore*");
                 context = new EventPluginContext(client, new Event());
@@ -324,13 +335,13 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.NotNull(error);
                 Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
                 json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
-                Assert.Equal("{\"random_value\":\"Test\"}", json);
+                Assert.Equal("{\"RandomValue\":\"Test\"}", json);
             }
         }
 
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             var ev = new Event { Type = Event.KnownTypes.Session };
             var plugin = new EnvironmentInfoPlugin();
 
@@ -344,7 +355,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void EnvironmentInfo_ShouldAddSessionStart() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Session });
          
             var plugin = new EnvironmentInfoPlugin();
@@ -355,7 +366,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void CanCancel() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             foreach (var plugin in client.Configuration.Plugins)
                 client.Configuration.RemovePlugin(plugin.Key);
 
@@ -370,7 +381,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void ShouldUseReferenceIds() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             foreach (var plugin in client.Configuration.Plugins)
                 client.Configuration.RemovePlugin(plugin.Key);
 
@@ -386,7 +397,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void PrivateInformation_WillSetIdentity() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             var plugin = new SetEnvironmentUserPlugin();
 
             var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Log, Message = "test" });
@@ -398,7 +409,7 @@ namespace Exceptionless.Tests.Plugins {
         
         [Fact]
         public void PrivateInformation_WillNotUpdateIdentity() {
-            var client = new ExceptionlessClient();
+            var client = CreateClient();
             var plugin = new SetEnvironmentUserPlugin();
 
             var ev = new Event { Type = Event.KnownTypes.Log, Message = "test" };
@@ -418,15 +429,11 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData(Event.KnownTypes.NotFound, null, false)]
         [InlineData(Event.KnownTypes.Session, null, true)]
         [InlineData(Event.KnownTypes.Session, "123456789", false)]
-        [InlineData(Event.KnownTypes.SessionEnd, null, true)]
-        [InlineData(Event.KnownTypes.SessionEnd, "123456789", false)]
-        [InlineData(Event.KnownTypes.SessionHeartbeat, null, true)]
-        [InlineData(Event.KnownTypes.SessionHeartbeat, "123456789", false)]
         public void CancelSessionsWithNoUserTest(string eventType, string identity, bool cancelled) {
             var ev = new Event { Type = eventType };
             ev.SetUserIdentity(identity);
 
-            var context = new EventPluginContext(new ExceptionlessClient(), ev);
+            var context = new EventPluginContext(CreateClient(), ev);
             var plugin = new CancelSessionsWithNoUserPlugin();
             plugin.Run(context);
             Assert.Equal(cancelled, context.Cancel);
@@ -469,7 +476,7 @@ namespace Exceptionless.Tests.Plugins {
 
             for (int i = 0; i < 2; i++) {
                 foreach (var pluginRegistration in configuration.Plugins)
-                    pluginRegistration.Plugin.Run(new EventPluginContext(new ExceptionlessClient(), new Event()));
+                    pluginRegistration.Plugin.Run(new EventPluginContext(CreateClient(), new Event()));
             }
 
             configuration.RemovePlugin<CounterTestPlugin>();
@@ -527,6 +534,112 @@ namespace Exceptionless.Tests.Plugins {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             foreach (var plugin in config.Plugins)
                 _writer.WriteLine(plugin);
+        }
+
+        [Fact]
+        public void VerifyDeduplication() {
+            var client = CreateClient();
+            var errorPlugin = new ErrorPlugin();
+
+            EventPluginContext mergedContext = null;
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
+                for (int index = 0; index < 10; index++) {
+                    var builder = GetException().ToExceptionless();
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+
+                    errorPlugin.Run(context);
+                    duplicateCheckerPlugin.Run(context);
+
+                    if (index == 0) {
+                        Assert.False(context.Cancel);
+                        Assert.Null(context.Event.Count);
+                    } else {
+                        Assert.True(context.Cancel);
+                        if (index == 1)
+                            mergedContext = context;
+                    }
+                }
+            }
+
+            Thread.Sleep(50);
+            Assert.Equal(9, mergedContext.Event.Count.GetValueOrDefault());
+        }
+
+        [Fact]
+        public void VerifyDeduplicationMultithreaded() {
+            var client = CreateClient();
+            var errorPlugin = new ErrorPlugin();
+
+            List<EventPluginContext> contexts = new List<EventPluginContext>();
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(100))) {
+                var result = Parallel.For(0, 10, index => {
+                    var builder = GetException().ToExceptionless();
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+                    contexts.Add(context);
+
+                    errorPlugin.Run(context);
+                    duplicateCheckerPlugin.Run(context);
+                });
+
+                while (!result.IsCompleted)
+                    Thread.Sleep(1);
+            }
+
+            Thread.Sleep(150);
+            Assert.Equal(1, contexts.Count(c => !c.Cancel));
+            Assert.Equal(9, contexts.Count(c => c.Cancel));
+            Assert.Equal(9, contexts.Sum(c => c.Event.Count.GetValueOrDefault()));
+        }
+
+        [Fact]
+        public void VerifyDeduplicationFromFiles()
+        {
+            var client = CreateClient();
+            var errorPlugin = new ErrorPlugin();
+
+            foreach (var ev in ErrorDataReader.GetEvents()) {
+                using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
+
+                    for (int index = 0; index < 2; index++) {
+                        var contextData = new ContextData();
+                        var context = new EventPluginContext(client, ev, contextData);
+
+                        errorPlugin.Run(context);
+                        duplicateCheckerPlugin.Run(context);
+
+                        if (index == 0) {
+                            Assert.False(context.Cancel);
+                            Assert.Null(context.Event.Count);
+                        } else {
+                            Assert.True(context.Cancel);
+                            Thread.Sleep(50);
+                            Assert.Equal(1, context.Event.Count);
+                        }
+                    }
+                }
+            }
+        }
+
+        private Exception GetException(string message = "Test") {
+            try {
+                throw new Exception(message);
+            } catch (Exception ex) {
+                return ex;
+            }
+        }
+
+        [Fact(Skip = "Skip until benchmark.net is updated with the runtime fixes (0.9.5")]
+        public void RunBenchmark() {
+            var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
+
+            foreach (var benchmark in summary.Benchmarks) {
+                var report = summary.Reports[benchmark];
+
+                _writer.WriteLine(report.ToString());
+
+                var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
+                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", benchmark.ShortInfo, benchmarkMedianMilliseconds));
+            }
         }
 
         public class PluginWithNoPriority : IEventPlugin {

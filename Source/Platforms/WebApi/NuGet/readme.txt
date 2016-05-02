@@ -23,7 +23,7 @@ the web.config Exceptionless section.
 
 <exceptionless apiKey="API_KEY_HERE" />
 
-Finally, you must import the "Exceptionless" namespace and call the following line
+Next, you must import the "Exceptionless" namespace and call the following line
 of code to start reporting unhandled exceptions. You will need to run code during 
 application startup and pass it an HttpConfiguration instance. Please note that this
 code is normally placed inside of the WebApiConfig classes Register method.
@@ -33,6 +33,23 @@ Exceptionless.ExceptionlessClient.Default.RegisterWebApi(config)
 If you are hosting Web API inside of ASP.NET, you would register Exceptionless like:
 
 Exceptionless.ExceptionlessClient.Default.RegisterWebApi(GlobalConfiguration.Configuration)
+
+Finally, if you are targetting WebApi 2.1 or newer you will need to copy the following 
+ExceptionLogger into your project and register it as a service.
+
+using Exceptionless.Plugins;
+public class ExceptionlessExceptionLogger : ExceptionLogger {
+    public override void Log(ExceptionLoggerContext context) {
+        var contextData = new ContextData();
+        contextData.MarkAsUnhandledError();
+        contextData.SetSubmissionMethod("ExceptionLogger");
+        contextData.Add("HttpActionContext", context.ExceptionContext.ActionContext);
+
+        context.Exception.ToExceptionless(contextData).Submit();
+    }
+}
+
+config.Services.Add(typeof(IExceptionLogger), new ExceptionlessExceptionLogger());
 
 Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
 for examples on sending events to Exceptionless.

@@ -26,16 +26,17 @@ namespace Exceptionless {
         public static void Unregister(this ExceptionlessClient client) {
             client.Shutdown();
             client.UnregisterOnProcessExitHandler();
+
+            client.ProcessQueue();
             if (client.Configuration.SessionsEnabled)
                 client.SubmitSessionEnd();
-            client.ProcessQueue();
         }
 
         private static void RegisterOnProcessExitHandler(this ExceptionlessClient client) {
             if (_onProcessExit == null) {
                 _onProcessExit = (sender, args) => {
-                    client.SubmitSessionEnd();
                     client.ProcessQueue();
+                    client.SubmitSessionEnd();
                 };
             }
 

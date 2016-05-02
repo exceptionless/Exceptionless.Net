@@ -5,7 +5,7 @@ namespace Exceptionless.Plugins.Default {
     [Priority(1000)]
     public class CancelSessionsWithNoUserPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            if (!context.Event.IsSessionStart() && !context.Event.IsSessionEnd() && !context.Event.IsSessionHeartbeat())
+            if (!context.Event.IsSessionStart())
                 return;
 
             var user = context.Event.GetUserIdentity(context.Client.Configuration.Resolver.GetJsonSerializer());

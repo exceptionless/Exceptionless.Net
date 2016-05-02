@@ -1,0 +1,538 @@
+{
+  "id": "56b8b54d5f7fba68941ed111",
+  "organization_id": "50b401fa9064371a7ceae311",
+  "project_id": "50b404049064371a7c819311",
+  "stack_id": "517a79cf78415502ecc373eb",
+  "is_first_occurrence": false,
+  "is_fixed": false,
+  "is_hidden": false,
+  "created_utc": "2016-02-08T15:33:33.8084556",
+  "idx": {
+    "session-r": "56b89f1ef40b1d35605aafb8"
+  },
+  "type": "error",
+  "date": "2016-02-08T15:33:33.0407997+00:00",
+  "tags": [
+    "Critical"
+  ],
+  "message": "A potentially dangerous Request.Form value was detected from the client (exampleNumbers=\"Earlier, <a href=\"http://www....\").",
+  "geo": "41.0136,28.955",
+  "data": {
+    "Cart": {
+      "is_dirty": true,
+      "creation_date": "2016-02-08T15:33:07.9001072+00:00",
+      "discount_rate": 0.0,
+      "sub_total": 13294.0,
+      "total_price": 13294.0,
+      "items": [
+        {
+          "unit_price_with_sub_items": 299.0,
+          "total_price_with_sub_items": 299.0,
+          "is_dirty": true,
+          "id": "ec3d1faa-11fe-4492-9953-47833169aaf1",
+          "code": "example",
+          "creation_date": "2016-02-08T15:33:22.5893723+00:00",
+          "product_id": 142,
+          "product_name": "example example 7",
+          "quantity": 1,
+          "unit_price": 299.0,
+          "discount_rate": 0.0,
+          "volume_discounts": [
+            {
+              "quantity": 3,
+              "percentage": 0.15
+            },
+            {
+              "quantity": 5,
+              "percentage": 0.2
+            },
+            {
+              "quantity": 10,
+              "percentage": 0.3
+            }
+          ],
+          "total_price": 299.0
+        },
+        {
+          "unit_price_with_sub_items": 499.0,
+          "total_price_with_sub_items": 499.0,
+          "is_dirty": true,
+          "id": "8d0a9ee7-762e-3444-892f-937b7d407d22",
+          "code": "example",
+          "creation_date": "2016-02-08T15:33:24.4246344+00:00",
+          "product_id": 150,
+          "product_name": "example example 7 Server License",
+          "quantity": 1,
+          "unit_price": 499.0,
+          "discount_rate": 0.0,
+          "volume_discounts": [
+            {
+              "quantity": 3,
+              "percentage": 0.15
+            },
+            {
+              "quantity": 5,
+              "percentage": 0.2
+            },
+            {
+              "quantity": 10,
+              "percentage": 0.3
+            }
+          ],
+          "total_price": 499.0
+        },
+        {
+          "unit_price_with_sub_items": 1499.0,
+          "total_price_with_sub_items": 1499.0,
+          "is_dirty": true,
+          "id": "4123f74f-19c8-3444-9bd4-c6987c1cdf70",
+          "code": "CS-SDK",
+          "creation_date": "2016-02-08T15:33:25.4194085+00:00",
+          "product_id": 148,
+          "product_name": "example example 7 SDK",
+          "quantity": 1,
+          "unit_price": 1499.0,
+          "discount_rate": 0.0,
+          "volume_discounts": [
+            {
+              "quantity": 3,
+              "percentage": 0.15
+            },
+            {
+              "quantity": 5,
+              "percentage": 0.2
+            },
+            {
+              "quantity": 10,
+              "percentage": 0.3
+            }
+          ],
+          "total_price": 1499.0
+        },
+        {
+          "unit_price_with_sub_items": 2999.0,
+          "total_price_with_sub_items": 2999.0,
+          "is_dirty": true,
+          "id": "e864eb1f-1cba-3444-b0f1-9dc3012d51bd",
+          "code": "CS-CSDK",
+          "creation_date": "2016-02-08T15:33:27.3605384+00:00",
+          "product_id": 149,
+          "product_name": "example example 7 Commercial SDK",
+          "quantity": 1,
+          "unit_price": 2999.0,
+          "discount_rate": 0.0,
+          "volume_discounts": [
+            {
+              "quantity": 3,
+              "percentage": 0.15
+            },
+            {
+              "quantity": 5,
+              "percentage": 0.2
+            },
+            {
+              "quantity": 10,
+              "percentage": 0.3
+            }
+          ],
+          "total_price": 2999.0
+        },
+        {
+          "unit_price_with_sub_items": 2999.0,
+          "total_price_with_sub_items": 2999.0,
+          "is_dirty": true,
+          "id": "18224d42-9f11-3444-aa51-fca11b826b75",
+          "code": "example-SL",
+          "creation_date": "2016-02-08T15:33:28.0321244+00:00",
+          "product_id": 144,
+          "product_name": "example example 7 Site License",
+          "quantity": 1,
+          "unit_price": 2999.0,
+          "discount_rate": 0.0,
+          "total_price": 2999.0
+        },
+        {
+          "unit_price_with_sub_items": 4999.0,
+          "total_price_with_sub_items": 4999.0,
+          "is_dirty": true,
+          "id": "1b49dc0a-6bda-3444-862d-7d44ff3fa0bf",
+          "code": "example-ESL",
+          "creation_date": "2016-02-08T15:33:29.6213571+00:00",
+          "product_id": 145,
+          "product_name": "example example 7 Enterprise License",
+          "quantity": 1,
+          "unit_price": 4999.0,
+          "discount_rate": 0.0,
+          "total_price": 4999.0
+        }
+      ]
+    },
+    "@version": "2.0.2432 856a43a4c8",
+    "@error": {
+      "message": "A potentially dangerous Request.Form value was detected from the client (exampleNumbers=\"Earlier, <a href=\"http://www....\").",
+      "type": "System.Web.HttpRequestValidationException",
+      "data": {
+        "@ext": {
+          "web_event_code": 0,
+          "error_code": -2147467259
+        },
+        "@target": {
+          "ExceptionType": "System.Web.HttpRequestValidationException",
+          "Method": "System.Web.HttpRequest.ValidateString(String value, String collectionKey, RequestValidationSource requestCollection)",
+          "Message": "A potentially dangerous Request.Form value was detected from the client (exampleNumbers=\"Earlier, <a href=\"http://www....\")."
+        }
+      },
+      "stack_trace": [
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web",
+          "declaring_type": "HttpRequest",
+          "name": "ValidateString",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 194,
+            "NativeOffset": 4602193
+          },
+          "parameters": [
+            {
+              "name": "value",
+              "type": "String",
+              "type_namespace": "System"
+            },
+            {
+              "name": "collectionKey",
+              "type": "String",
+              "type_namespace": "System"
+            },
+            {
+              "name": "requestCollection",
+              "type": "RequestValidationSource",
+              "type_namespace": "System.Web.Util"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web",
+          "declaring_type": "HttpRequest+<>c__DisplayClass280_0",
+          "name": "<ValidateHttpValueCollection>b__0",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 22
+          },
+          "parameters": [
+            {
+              "name": "key",
+              "type": "String",
+              "type_namespace": "System"
+            },
+            {
+              "name": "value",
+              "type": "String",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web",
+          "declaring_type": "HttpValueCollection",
+          "name": "EnsureKeyValidated",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 40,
+            "NativeOffset": 86
+          },
+          "parameters": [
+            {
+              "name": "key",
+              "type": "String",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web",
+          "declaring_type": "HttpValueCollection",
+          "name": "GetValues",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 17
+          },
+          "parameters": [
+            {
+              "name": "name",
+              "type": "String",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "NameValueCollectionValueProvider+ValueProviderResultPlaceholder",
+          "name": "GetResultFromCollection",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 20
+          },
+          "parameters": [
+            {
+              "name": "key",
+              "type": "String",
+              "type_namespace": "System"
+            },
+            {
+              "name": "collection",
+              "type": "NameValueCollection",
+              "type_namespace": "System.Collections.Specialized"
+            },
+            {
+              "name": "culture",
+              "type": "CultureInfo",
+              "type_namespace": "System.Globalization"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "NameValueCollectionValueProvider",
+          "name": "GetValue",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 37,
+            "NativeOffset": 107
+          },
+          "parameters": [
+            {
+              "name": "key",
+              "type": "String",
+              "type_namespace": "System"
+            },
+            {
+              "name": "skipValidation",
+              "type": "Boolean",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "ValueProviderCollection",
+          "name": "GetValue",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 0,
+            "NativeOffset": 89
+          },
+          "parameters": [
+            {
+              "name": "key",
+              "type": "String",
+              "type_namespace": "System"
+            },
+            {
+              "name": "skipValidation",
+              "type": "Boolean",
+              "type_namespace": "System"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "DefaultModelBinder",
+          "name": "BindModel",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 124,
+            "NativeOffset": 264
+          },
+          "parameters": [
+            {
+              "name": "controllerContext",
+              "type": "ControllerContext",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "bindingContext",
+              "type": "ModelBindingContext",
+              "type_namespace": "System.Web.Mvc"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "ControllerActionInvoker",
+          "name": "GetParameterValue",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 156,
+            "NativeOffset": 330
+          },
+          "parameters": [
+            {
+              "name": "controllerContext",
+              "type": "ControllerContext",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "parameterDescriptor",
+              "type": "ParameterDescriptor",
+              "type_namespace": "System.Web.Mvc"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc",
+          "declaring_type": "ControllerActionInvoker",
+          "name": "GetParameterValues",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 30,
+            "NativeOffset": 105
+          },
+          "parameters": [
+            {
+              "name": "controllerContext",
+              "type": "ControllerContext",
+              "type_namespace": "System.Web.Mvc"
+            },
+            {
+              "name": "actionDescriptor",
+              "type": "ActionDescriptor",
+              "type_namespace": "System.Web.Mvc"
+            }
+          ]
+        },
+        {
+          "line_number": 0,
+          "column": 0,
+          "is_signature_target": false,
+          "declaring_namespace": "System.Web.Mvc.Async",
+          "declaring_type": "AsyncControllerActionInvoker+<>c__DisplayClass21",
+          "name": "<BeginInvokeAction>b__19",
+          "module_id": -1,
+          "data": {
+            "ILOffset": 491,
+            "NativeOffset": 552
+          },
+          "parameters": [
+            {
+              "name": "asyncCallback",
+              "type": "AsyncCallback",
+              "type_namespace": "System"
+            },
+            {
+              "name": "asyncState",
+              "type": "Object",
+              "type_namespace": "System"
+            }
+          ]
+        }
+      ],
+      "target_method": {
+        "is_signature_target": true,
+        "declaring_namespace": "System.Web",
+        "declaring_type": "HttpRequest",
+        "name": "ValidateString",
+        "module_id": -1,
+        "parameters": [
+          {
+            "name": "value",
+            "type": "String",
+            "type_namespace": "System"
+          },
+          {
+            "name": "collectionKey",
+            "type": "String",
+            "type_namespace": "System"
+          },
+          {
+            "name": "requestCollection",
+            "type": "RequestValidationSource",
+            "type_namespace": "System.Web.Util"
+          }
+        ]
+      }
+    },
+    "@environment": {
+      "processor_count": 2,
+      "total_physical_memory": 3757625344,
+      "available_physical_memory": 2259492864,
+      "command_line": "D:\\Windows\\SysWOW64\\inetsrv\\w3wp.exe -ap \"cst-web\" -v \"v4.0\" -a \"\\\\.\\pipe\\iisipmfcca87a6-8cd6-4675-83ad-b9e660761c45\" -h \"C:\\DWASFiles\\Sites\\cst-web\\Config\\applicationhost.config\" -w \"C:\\DWASFiles\\Sites\\cst-web\\Config\\rootweb.config\" -m 0",
+      "process_name": "D:\\Windows\\SysWOW64\\inetsrv\\w3wp.exe",
+      "process_id": "3760",
+      "process_memory_size": 131276800,
+      "thread_id": "6620",
+      "architecture": "x64",
+      "ip_address": "127.0.0.1",
+      "machine_name": "RD000D3A10CC51",
+      "install_id": "8a706cdf2d7a4a4bbcd0dee60b06fc69",
+      "runtime_version": "4.0.30319.42000",
+      "data": {
+        "AppDomainName": "/LM/W3SVC/2010694787/ROOT-5-130991837016574603"
+      }
+    },
+    "@user": {
+      "identity": "cst-web"
+    },
+    "@request": {
+      "user_agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)",
+      "http_method": "POST",
+      "is_secure": false,
+      "host": "www.example.com",
+      "port": 80,
+      "path": "/supportrenewal",
+      "referrer": "http://www.example.com/supportrenewal",
+      "client_ip_address": "216.238.179.240,168.66.179.64",
+      "cookies": {
+        "a_r_r_affinity": "fe54b7e899e9e55b95e44ccc7abce15c16dc8173759abf0a0ce2d27c9fca12b5"
+      },
+      "post_data": {
+        "example_numbers": "EXCEPTION: A potentially dangerous Request.Form value was detected from the client (exampleNumbers=\"Earlier, <a href=\"http://www....\").",
+        "next_step": "Next Step"
+      },
+      "data": {
+        "@browser": "IE",
+        "@browser_version": "6.0",
+        "@browser_major_version": "6",
+        "@os": "Windows XP",
+        "@is_bot": false
+      }
+    },
+    "@submission_method": "SendErrorsAttribute",
+    "@location": {
+      "country": "TR"
+    },
+    "@ref:session": "56b89f1ef40b1d35605aafb8"
+  }
+}

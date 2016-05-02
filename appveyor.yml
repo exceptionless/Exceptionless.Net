@@ -1,4 +1,4 @@
-version: 3.3.{build}
+version: 3.5.{build}
 clone_depth: 2
 configuration: Release
 
@@ -24,13 +24,17 @@ before_build:
 build_script:
   - ps: .\Libraries\Build.ps1
 
+test:
+  assemblies:
+    - '**\*.Tests.dll'
+
 after_test:
   - ps: .\Libraries\Package.ps1
 
 notifications:
   - provider: Slack
     auth_token:
-      secure: PigIGGo7UUDwdb0KGM/s7OfpAng/OMJx7q33jKfzudFBiXi1EBEd0DRmkbCc7CiX
+      secure: GniMpFE62HprSyQNQoej/fBOAdbQe8EMWAMMNXX0s2JxeNePjemiO1bCf4eYweE4p70mm0sCwMjeEP/Ps9aTMA==
     channel: '#notifications'
 
 artifacts:

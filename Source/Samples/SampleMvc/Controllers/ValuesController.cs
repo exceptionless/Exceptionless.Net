@@ -6,7 +6,12 @@ namespace Exceptionless.SampleMvc.Controllers {
     public class ValuesController : ApiController {
         // GET api/values
         public IEnumerable<string> Get() {
-            throw new ApplicationException("WebApi GET error");
+            try {
+                throw new ApplicationException("WebApi GET error");
+            } catch (Exception ex) {
+                ex.ToExceptionless().Submit();
+                throw;
+            }
         }
 
         // GET api/values/5
@@ -15,7 +20,7 @@ namespace Exceptionless.SampleMvc.Controllers {
         }
 
         // POST api/values
-        public void Post([FromBody] string value) {
+        public void Post([FromBody] Person person) {
             throw new ApplicationException("WebApi POST error");
         }
 
@@ -24,5 +29,9 @@ namespace Exceptionless.SampleMvc.Controllers {
 
         // DELETE api/values/5
         public void Delete(int id) {}
+    }
+
+    public class Person {
+        public string Name { get; set; }
     }
 }

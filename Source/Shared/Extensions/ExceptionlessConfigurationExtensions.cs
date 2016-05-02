@@ -92,16 +92,18 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">Exceptionless configuration</param>
         /// <param name="sendHeartbeats">Controls whether heartbeat events are sent on an interval.</param>
-        /// <param name="heartbeatInterval">The interval at which heartbeats are sent after the last sent event. The default is 30 seconds.</param>
+        /// <param name="heartbeatInterval">The interval at which heartbeats are sent after the last sent event. The default is 1 minutes.</param>
         /// <param name="useSessionIdManagement">Allows you to manually control the session id. This is only recommended for single user desktop environments.</param>
         public static void UseSessions(this ExceptionlessConfiguration config, bool sendHeartbeats = true, TimeSpan? heartbeatInterval = null, bool useSessionIdManagement = false) {
             config.SessionsEnabled = true;
 
-            if (useSessionIdManagement) 
+            if (useSessionIdManagement)
                 config.AddPlugin<SessionIdManagementPlugin>();
 
             if (sendHeartbeats)
                 config.AddPlugin(new HeartbeatPlugin(heartbeatInterval));
+            else
+                config.RemovePlugin<HeartbeatPlugin>();
         }
 
         public static InMemoryExceptionlessLog UseInMemoryLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
@@ -161,29 +163,34 @@ namespace Exceptionless {
 
             assemblies = assemblies.Where(a => a != null).Distinct().ToList();
 
-            foreach (var assembly in assemblies) {
-                object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessAttribute), false);
-                if (attributes.Length <= 0 || !(attributes[0] is ExceptionlessAttribute))
-                    continue;
+            try {
+                foreach (var assembly in assemblies) {
+                    object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessAttribute), false);
+                    if (attributes.Length <= 0 || !(attributes[0] is ExceptionlessAttribute))
+                        continue;
 
-                var attr = attributes[0] as ExceptionlessAttribute;
+                    var attr = attributes[0] as ExceptionlessAttribute;
 
-                config.Enabled = attr.Enabled;
-                
-                if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
-                    config.ApiKey = attr.ApiKey;
-                if (!String.IsNullOrEmpty(attr.ServerUrl))
-                    config.ServerUrl = attr.ServerUrl;
-                
-                break;
-            }
+                    config.Enabled = attr.Enabled;
 
-            foreach (var assembly in assemblies) {
-                object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessSettingAttribute), false);
-                foreach (ExceptionlessSettingAttribute attribute in attributes.OfType<ExceptionlessSettingAttribute>()) {
-                    if (!String.IsNullOrEmpty(attribute.Name))
-                        config.Settings[attribute.Name] = attribute.Value;
+                    if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
+                        config.ApiKey = attr.ApiKey;
+                    if (!String.IsNullOrEmpty(attr.ServerUrl))
+                        config.ServerUrl = attr.ServerUrl;
+
+                    break;
                 }
+
+                foreach (var assembly in assemblies) {
+                    object[] attributes = assembly.GetCustomAttributes(typeof(ExceptionlessSettingAttribute), false);
+                    foreach (ExceptionlessSettingAttribute attribute in attributes.OfType<ExceptionlessSettingAttribute>()) {
+                        if (!String.IsNullOrEmpty(attribute.Name))
+                            config.Settings[attribute.Name] = attribute.Value;
+                    }
+                }
+            } catch (Exception ex) {
+                var log = config.Resolver.GetLog();
+                log.Error(ex, "Error while reading attribute configuration. Please contact support for more information.");
             }
         }
     }
@@ -193,7 +200,18 @@ namespace Exceptionless.Extensions {
     public static class ExceptionlessConfigurationExtensions {
         public static Uri GetServiceEndPoint(this ExceptionlessConfiguration config) {
             var builder = new UriBuilder(config.ServerUrl);
-            builder.Path += builder.Path.EndsWith("/") ? "api/v2/" : "/api/v2/";
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
+
+            // EnableSSL
+            if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
+                builder.Port = 443;
+
+            return builder.Uri;
+        }
+        
+        public static Uri GetHeartbeatServiceEndPoint(this ExceptionlessConfiguration config) {
+            var builder = new UriBuilder(config.HeartbeatServerUrl);
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
 
             // EnableSSL
             if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
