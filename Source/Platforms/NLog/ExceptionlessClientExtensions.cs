@@ -17,6 +17,18 @@ namespace Exceptionless.NLog {
             builder.Target.Date = ev.TimeStamp;
             builder.SetSource(ev.LoggerName);
 
+            var properties = ev.Properties
+                .Where(kvp => !_ignoredEventProperties.Contains(kvp.Key.ToString(), StringComparer.OrdinalIgnoreCase))
+                .ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
+
+            object value;
+            if (properties.TryGetValue("value", out value)) {
+                try {
+                    builder.SetValue(Convert.ToDecimal(value));
+                    properties.Remove("value");
+                } catch (Exception) {}
+            }
+
             if (ev.Exception == null)
                 builder.SetProperty(Event.KnownDataKeys.Level, ev.Level.Name);
             
@@ -27,8 +39,8 @@ namespace Exceptionless.NLog {
             if (tagList.Count > 0)
                 builder.AddTags(tagList.ToArray());
 
-            foreach (var p in ev.Properties.Where(kvp => !_ignoredEventProperties.Contains(kvp.Key.ToString(), StringComparer.OrdinalIgnoreCase)))
-                builder.SetProperty(p.Key.ToString(), p.Value);
+            foreach (var p in properties)
+                builder.SetProperty(p.Key, p.Value);
 
             return builder;
         }
