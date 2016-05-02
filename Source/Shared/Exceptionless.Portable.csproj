@@ -73,6 +73,7 @@
     <Compile Include="Plugins\Default\020_SimpleErrorPlugin.cs" />
     <Compile Include="Plugins\Default\050_EnvironmentInfoPlugin.cs" />
     <Compile Include="Plugins\Default\015_HandleAggregateExceptionsPlugin.cs" />
+    <Compile Include="Plugins\Default\000_EventExclusionPlugin.cs" />
     <Compile Include="Plugins\PriortyAttribute.cs" />
     <Compile Include="EventBuilder.cs" />
     <Compile Include="Events\ConfigurationUpdatedEventArgs.cs" />

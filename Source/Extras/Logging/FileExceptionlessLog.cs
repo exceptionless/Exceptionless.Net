@@ -67,7 +67,7 @@ namespace Exceptionless.Logging {
 
         public string FilePath { get; private set; }
 
-        public LogLevel MinimumLogLevel { get; set; }
+        public LogLevel MinimumLogLevel { get; set; } = LogLevel.Trace;
 
         public void Error(string message, string source = null, Exception exception = null) {
             if (source != null)

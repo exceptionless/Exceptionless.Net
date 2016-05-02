@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Exceptionless.Logging;
 using log4net.Core;
 
 namespace Exceptionless.Log4net {
     public static class ExceptionlessClientExtensions {
         public static EventBuilder CreateFromLogEvent(this ExceptionlessClient client, LoggingEvent ev) {
-            var builder = ev.ExceptionObject != null ? client.CreateException(ev.ExceptionObject) : client.CreateLog(ev.LoggerName, ev.RenderedMessage, ev.Level.Name);
+            var builder = ev.ExceptionObject != null ? client.CreateException(ev.ExceptionObject) : client.CreateLog(ev.LoggerName, ev.RenderedMessage, ev.Level.ToLogLevel());
             builder.Target.Date = ev.TimeStamp;
 
             if (!String.IsNullOrWhiteSpace(ev.RenderedMessage))
@@ -24,6 +25,25 @@ namespace Exceptionless.Log4net {
             }
 
             return builder;
+        }
+
+        public static LogLevel ToLogLevel(this Level level) {
+            if (level == Level.Trace || level == Level.Finest)
+                return LogLevel.Trace;
+            if (level == Level.Debug || level == Level.Fine)
+                return LogLevel.Debug;
+            if (level == Level.Info)
+                return LogLevel.Info;
+            if (level == Level.Warn)
+                return LogLevel.Warn;
+            if (level == Level.Error)
+                return LogLevel.Error;
+            if (level == Level.Fatal)
+                return LogLevel.Fatal;
+            if (level == Level.Off)
+                return LogLevel.Off;
+
+            return LogLevel.Off;
         }
 
         public static void SubmitFromLogEvent(this ExceptionlessClient client, LoggingEvent ev) {

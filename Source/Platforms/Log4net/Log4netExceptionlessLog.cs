@@ -4,9 +4,9 @@ using log4net;
 
 namespace Exceptionless.Log4net {
     public class Log4netExceptionlessLog : IExceptionlessLog {
-        public Log4netExceptionlessLog(LogLevel? minimumLogLevel = null) {
-            if (minimumLogLevel.HasValue)
-                MinimumLogLevel = minimumLogLevel.Value;
+        public Log4netExceptionlessLog(LogLevel minimumLogLevel = null) {
+            if (minimumLogLevel != null)
+                MinimumLogLevel = minimumLogLevel;
         }
 
         public LogLevel MinimumLogLevel { get; set; }

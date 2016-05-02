@@ -33,6 +33,10 @@ namespace Exceptionless.Log4net {
             if (!_client.Configuration.IsValid)
                 return;
 
+            var minLogLevel = _client.Configuration.Settings.GetMinLogLevel(loggingEvent.LoggerName);
+            if (loggingEvent.Level.ToLogLevel() < minLogLevel)
+                return;
+
             base.Append(loggingEvent);
         }
     }

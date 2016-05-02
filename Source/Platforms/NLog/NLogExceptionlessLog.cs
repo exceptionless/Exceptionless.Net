@@ -8,9 +8,9 @@ namespace Exceptionless.NLog {
     public class NLogExceptionlessLog : IExceptionlessLog {
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public NLogExceptionlessLog(LogLevel? minimumLogLevel = null) {
-            if (minimumLogLevel.HasValue)
-                MinimumLogLevel = minimumLogLevel.Value;
+        public NLogExceptionlessLog(LogLevel minimumLogLevel = null) {
+            if (minimumLogLevel != null)
+                MinimumLogLevel = minimumLogLevel;
         }
 
         public LogLevel MinimumLogLevel { get; set; }

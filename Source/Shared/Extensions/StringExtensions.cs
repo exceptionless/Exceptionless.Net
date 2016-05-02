@@ -29,12 +29,15 @@ namespace Exceptionless.Extensions {
             if (ignoreCase)
                 value = value.ToLower();
 
-            return patternsToMatch.Any(pattern => CheckForMatch(pattern, value, ignoreCase));
+            return patternsToMatch.Any(pattern => IsPatternMatch(value, pattern, ignoreCase));
         }
 
-        private static bool CheckForMatch(string pattern, string value, bool ignoreCase = true) {
+        public static bool IsPatternMatch(this string value, string pattern, bool ignoreCase = true) {
             if (pattern == null || value == null)
                 return false;
+
+            if (pattern.Equals("*"))
+                return true;
 
             bool startsWithWildcard = pattern.StartsWith("*");
             if (startsWithWildcard)

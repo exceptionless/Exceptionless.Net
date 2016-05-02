@@ -36,17 +36,17 @@ namespace Exceptionless {
             config.Resolver.Register<IObjectStorage>(new FolderObjectStorage(config.Resolver, folder));
         }
 
-        public static void UseTraceLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
-            config.Resolver.Register<IExceptionlessLog>(new TraceExceptionlessLog { MinimumLogLevel = minLogLevel });
+        public static void UseTraceLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
+            config.Resolver.Register<IExceptionlessLog>(new TraceExceptionlessLog { MinimumLogLevel = minLogLevel ?? LogLevel.Info });
         }
 
-        public static void UseFileLogger(this ExceptionlessConfiguration config, string logPath, LogLevel minLogLevel = LogLevel.Info) {
-            var log = new SafeExceptionlessLog(new FileExceptionlessLog(logPath)) { MinimumLogLevel = minLogLevel };
+        public static void UseFileLogger(this ExceptionlessConfiguration config, string logPath, LogLevel minLogLevel = null) {
+            var log = new SafeExceptionlessLog(new FileExceptionlessLog(logPath)) { MinimumLogLevel = minLogLevel ?? LogLevel.Info };
             config.Resolver.Register<IExceptionlessLog>(log);
         }
 
-        public static void UseIsolatedStorageLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
-            var log = new SafeExceptionlessLog(new IsolatedStorageFileExceptionlessLog("exceptionless.log")) { MinimumLogLevel = minLogLevel };
+        public static void UseIsolatedStorageLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
+            var log = new SafeExceptionlessLog(new IsolatedStorageFileExceptionlessLog("exceptionless.log")) { MinimumLogLevel = minLogLevel ?? LogLevel.Info };
             config.Resolver.Register<IExceptionlessLog>(log);
         }
 
