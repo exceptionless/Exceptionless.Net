@@ -19,16 +19,24 @@ namespace Exceptionless.NLog {
 
             var properties = ev.Properties
                 .Where(kvp => !_ignoredEventProperties.Contains(kvp.Key.ToString(), StringComparer.OrdinalIgnoreCase))
-                .ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
+                .ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
 
             object value;
-            if (properties.TryGetValue("value", out value)) {
+            if (properties.TryGetValue("Value", out value)) {
                 try {
                     builder.SetValue(Convert.ToDecimal(value));
-                    properties.Remove("value");
+                    properties.Remove("Value");
                 } catch (Exception) {}
             }
 
+            object stackingKey;
+            if (properties.TryGetValue("StackingKey", out stackingKey)) {
+                try {
+                    builder.SetManualStackingKey(stackingKey.ToString());
+                    properties.Remove("StackingKey");
+                } catch (Exception) { }
+            }
+            
             if (ev.Exception == null)
                 builder.SetProperty(Event.KnownDataKeys.Level, ev.Level.Name);
             
