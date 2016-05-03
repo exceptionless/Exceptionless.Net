@@ -3,7 +3,7 @@ using Exceptionless.Dependency;
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins {
-    [Priority(15)]
+    [Priority(5)]
     public class HandleAggregateExceptionsPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             var aggregateException = context.ContextData.GetException() as AggregateException;

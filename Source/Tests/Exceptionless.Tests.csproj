@@ -38,8 +38,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BenchmarkDotNet, Version=0.9.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\BenchmarkDotNet.0.9.4\lib\net45\BenchmarkDotNet.dll</HintPath>
     <Reference Include="BenchmarkDotNet, Version=0.9.5.0, Culture=neutral, PublicKeyToken=aa0ca2f9092cefc4, processorArchitecture=MSIL">
       <HintPath>..\..\packages\BenchmarkDotNet.0.9.5\lib\net45\BenchmarkDotNet.dll</HintPath>
       <Private>True</Private>

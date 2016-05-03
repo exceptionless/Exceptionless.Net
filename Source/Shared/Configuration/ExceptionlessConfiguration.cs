@@ -236,8 +236,7 @@ namespace Exceptionless {
         /// <summary>
         /// A list of event exclusion callbacks that will keep events from being submitted.
         /// </summary>
-        public IEnumerable<Func<Event, bool>> EventExclusions
-        {
+        public IEnumerable<Func<Event, bool>> EventExclusions {
             get { return _eventExclusions; }
         }
 
@@ -246,7 +245,8 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="eventExclusionCallback">The callback to call to check to see if an event should be excluded.</param>
         public void AddEventExclusion(Func<Event, bool> eventExclusionCallback) {
-            _eventExclusions.Add(eventExclusionCallback);
+            if (eventExclusionCallback != null)
+                _eventExclusions.Add(eventExclusionCallback);
         }
 
         /// <summary>
