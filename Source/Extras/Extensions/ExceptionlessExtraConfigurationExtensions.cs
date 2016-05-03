@@ -90,7 +90,8 @@ namespace Exceptionless {
             if (section == null)
                 return;
 
-            config.Enabled = section.Enabled;
+            if (!section.Enabled)
+                config.Enabled = false;
             
             if (IsValidApiKey(section.ApiKey))
                 config.ApiKey = section.ApiKey;
@@ -171,8 +172,8 @@ namespace Exceptionless {
                 config.ApiKey = apiKey;
 
             bool enabled;
-            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled))
-                config.Enabled = enabled;
+            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled) && !enabled)
+                config.Enabled = false;
             
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
@@ -189,8 +190,8 @@ namespace Exceptionless {
                 config.ApiKey = apiKey;
 
             bool enabled;
-            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled"), out enabled))
-                config.Enabled = enabled;
+            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled"), out enabled) && !enabled)
+                config.Enabled = false;
             
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))

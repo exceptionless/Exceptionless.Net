@@ -171,7 +171,8 @@ namespace Exceptionless {
 
                     var attr = attributes[0] as ExceptionlessAttribute;
 
-                    config.Enabled = attr.Enabled;
+                    if (!attr.Enabled)
+                        config.Enabled = false;
 
                     if (!String.IsNullOrEmpty(attr.ApiKey) && attr.ApiKey != "API_KEY_HERE")
                         config.ApiKey = attr.ApiKey;
