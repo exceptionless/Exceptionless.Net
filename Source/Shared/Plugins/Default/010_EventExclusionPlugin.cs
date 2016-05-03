@@ -4,7 +4,7 @@ using Exceptionless.Models;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(10)]
-    public class EventExclusionPlugin : IEventPlugin {
+    public sealed class EventExclusionPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             foreach (var callback in context.Client.Configuration.EventExclusions) {
                 try {
@@ -35,16 +35,20 @@ namespace Exceptionless.Plugins.Default {
                 context.Cancel = true;
                 return;
             }
+            
+            try {
+                var exception = context.ContextData.GetException();
+                while (exception != null) {
+                    if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(Event.KnownTypes.Error, exception.GetType().FullName)) {
+                        context.Log.Info("Cancelling error from excluded exception type: " + exception.GetType().FullName);
+                        context.Cancel = true;
+                        return;
+                    }
 
-            var exception = context.ContextData.GetException();
-            while (exception != null) {
-                if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(Event.KnownTypes.Error, exception.GetType().FullName)) {
-                    context.Log.Info("Cancelling error from excluded exception type: " + exception.GetType().FullName);
-                    context.Cancel = true;
-                    return;
+                    exception = exception.InnerException;
                 }
-
-                exception = exception.InnerException;
+            } catch (Exception ex) {
+                context.Log.Error(ex, "Error checking excluded exception types: " + ex.Message);
             }
         }
     }

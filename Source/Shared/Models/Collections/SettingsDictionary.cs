@@ -21,7 +21,7 @@ namespace Exceptionless.Models {
         public string GetString(string name, string @default) {
             string value;
 
-            if (TryGetValue(name, out value))
+            if (name != null && TryGetValue(name, out value))
                 return value;
 
             return @default;
@@ -33,9 +33,9 @@ namespace Exceptionless.Models {
 
         public bool GetBoolean(string name, bool @default) {
             bool value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -49,9 +49,9 @@ namespace Exceptionless.Models {
 
         public int GetInt32(string name, int @default) {
             int value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -65,9 +65,9 @@ namespace Exceptionless.Models {
 
         public long GetInt64(string name, long @default) {
             long value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -77,9 +77,9 @@ namespace Exceptionless.Models {
 
         public double GetDouble(string name, double @default = 0d) {
             double value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -93,9 +93,9 @@ namespace Exceptionless.Models {
 
         public DateTime GetDateTime(string name, DateTime @default) {
             DateTime value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -109,9 +109,9 @@ namespace Exceptionless.Models {
 
         public DateTimeOffset GetDateTimeOffset(string name, DateTimeOffset @default) {
             DateTimeOffset value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -124,9 +124,9 @@ namespace Exceptionless.Models {
         }
 
         public Guid GetGuid(string name, Guid @default) {
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             return result ? new Guid(temp) : @default;
         }
 
@@ -168,7 +168,7 @@ namespace Exceptionless.Models {
 
             foreach (var eventType in _eventTypes) {
                 Dictionary<string, bool> sourceDictionary;
-                if (!_typeSourceEnabled.TryGetValue(eventType.Key, out sourceDictionary))
+                if (eventType.Key == null || !_typeSourceEnabled.TryGetValue(eventType.Key, out sourceDictionary))
                     continue;
 
                 if (!args.Item.Key.StartsWith(eventType.Value))
@@ -189,6 +189,9 @@ namespace Exceptionless.Models {
 
         private readonly Dictionary<string, LogLevel> _minLogLevels = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
         public LogLevel GetMinLogLevel(string loggerName) {
+            if (String.IsNullOrEmpty(loggerName))
+                loggerName = "*";
+
             LogLevel minLogLevel;
             if (_minLogLevels.TryGetValue(loggerName, out minLogLevel))
                 return minLogLevel;
@@ -206,9 +209,12 @@ namespace Exceptionless.Models {
 
         private readonly Dictionary<string, Dictionary<string, bool>> _typeSourceEnabled = new Dictionary<string, Dictionary<string, bool>>(StringComparer.OrdinalIgnoreCase);
         public bool GetTypeAndSourceEnabled(string type, string source) {
+            if (type == null)
+                return true;
+
             Dictionary<string, bool> sourceDictionary;
             bool sourceEnabled;
-            if (_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
+            if (source != null && _typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
                 if (sourceDictionary.TryGetValue(source, out sourceEnabled))
                     return sourceEnabled;
             }
@@ -222,6 +228,9 @@ namespace Exceptionless.Models {
 
         private readonly Dictionary<string, string> _eventTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private string GetTypeAndSourceSetting(string type, string source, string defaultValue) {
+            if (type == null)
+                return defaultValue;
+
             Dictionary<string, bool> sourceDictionary;
             string sourcePrefix;
             if (!_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
@@ -237,7 +246,7 @@ namespace Exceptionless.Models {
             string settingValue;
             if (TryGetValue(sourcePrefix + source, out settingValue))
                 return settingValue;
-
+            
             // check for wildcard match
             var sourceSettings = this
                 .Where(kvp => kvp.Key.StartsWith(sourcePrefix))

@@ -47,8 +47,10 @@ namespace Exceptionless.Extensions {
             if (endsWithWildcard)
                 pattern = pattern.Substring(0, pattern.Length - 1);
 
-            if (ignoreCase)
+            if (ignoreCase) {
+                value = value.ToLower();
                 pattern = pattern.ToLower();
+            }
 
             if (startsWithWildcard && endsWithWildcard)
                 return value.Contains(pattern);
