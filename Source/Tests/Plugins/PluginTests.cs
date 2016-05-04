@@ -166,8 +166,30 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Theory]
-        [InlineData(null, null, null, null, true)]
-        [InlineData("Test", null, null, null, true)]
+        [InlineData(null, null, null, null, false)]
+        [InlineData("feature", null, null, null, false)]
+        [InlineData("feature", "test", null, null, false)]
+        [InlineData("feature", "test", "@@feature:Test", "true", false)]
+        [InlineData("feature", "test", "@@feature:Test", "false", true)]
+        [InlineData("feature", "test", "@@feature:*", "false", true)]
+        [InlineData("404", "/unknown", "@@404:*", "false", true)]
+        [InlineData("404", "/unknown", "@@404:/unknown", "false", true)]
+        [InlineData("404", "/unknown", "@@404:/unknown", "true", false)]
+        public void EventExclusionPlugin_SourceType(string type, string source, string settingKey, string settingValue, bool cancelled) {
+            var client = CreateClient();
+            if (settingKey != null)
+                client.Configuration.Settings.Add(settingKey, settingValue);
+
+            var ev = new Event { Type = type, Source = source };
+            var context = new EventPluginContext(client, ev);
+            var plugin = new EventExclusionPlugin();
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+        }
+
+        [Theory]
+        [InlineData(null, null, null, null, false)]
+        [InlineData("Test", null, null, null, false)]
         [InlineData("Test", "Trace", null, null, true)]
         [InlineData("Test", "Warn", null, null, false)]
         [InlineData("Test", "Error", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
@@ -195,7 +217,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("@@error:System.Exception", true)]
         [InlineData("@@error:*Exception", true)]
         [InlineData("@@error:*", true)]
-        public void EventExclusionPlugin_SimpleException(string settingKey, bool cancelled) {
+        public void EventExclusionPlugin_ExceptionType(string settingKey, bool cancelled) {
             var client = CreateClient();
             if (settingKey != null)
                 client.Configuration.Settings.Add(settingKey, Boolean.FalseString);
