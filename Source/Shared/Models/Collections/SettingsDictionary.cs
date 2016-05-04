@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Exceptionless.Extensions;
+using Exceptionless.Logging;
 using Exceptionless.Models.Collections;
 
 namespace Exceptionless.Models {
@@ -18,7 +21,7 @@ namespace Exceptionless.Models {
         public string GetString(string name, string @default) {
             string value;
 
-            if (TryGetValue(name, out value))
+            if (name != null && TryGetValue(name, out value))
                 return value;
 
             return @default;
@@ -30,9 +33,9 @@ namespace Exceptionless.Models {
 
         public bool GetBoolean(string name, bool @default) {
             bool value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -46,9 +49,9 @@ namespace Exceptionless.Models {
 
         public int GetInt32(string name, int @default) {
             int value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -62,9 +65,9 @@ namespace Exceptionless.Models {
 
         public long GetInt64(string name, long @default) {
             long value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -74,9 +77,9 @@ namespace Exceptionless.Models {
 
         public double GetDouble(string name, double @default = 0d) {
             double value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -90,9 +93,9 @@ namespace Exceptionless.Models {
 
         public DateTime GetDateTime(string name, DateTime @default) {
             DateTime value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -106,9 +109,9 @@ namespace Exceptionless.Models {
 
         public DateTimeOffset GetDateTimeOffset(string name, DateTimeOffset @default) {
             DateTimeOffset value;
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
@@ -121,9 +124,9 @@ namespace Exceptionless.Models {
         }
 
         public Guid GetGuid(string name, Guid @default) {
-            string temp;
+            string temp = null;
 
-            bool result = TryGetValue(name, out temp);
+            bool result = name != null && TryGetValue(name, out temp);
             return result ? new Guid(temp) : @default;
         }
 
@@ -146,6 +149,118 @@ namespace Exceptionless.Models {
             return list;
         }
 
+        protected override void OnChanged(ChangedEventArgs<KeyValuePair<string, string>> args) {
+            if (args.Item.Key == null || !args.Item.Key.StartsWith("@@")) {
+                base.OnChanged(args);
+                return;
+            }
+
+            if (args.Item.Key.StartsWith(KnownKeys.LogLevelPrefix)) {
+                var logLevelKeysToRemove = new List<string>();
+                foreach (string key in _minLogLevels.Keys) {
+                    if (key.IsPatternMatch(args.Item.Key.Substring(6)))
+                        logLevelKeysToRemove.Add(key);
+                }
+
+                foreach (var logger in logLevelKeysToRemove)
+                    _minLogLevels.Remove(logger);
+            }
+
+            foreach (var eventType in _eventTypes) {
+                Dictionary<string, bool> sourceDictionary;
+                if (eventType.Key == null || !_typeSourceEnabled.TryGetValue(eventType.Key, out sourceDictionary))
+                    continue;
+
+                if (!args.Item.Key.StartsWith(eventType.Value))
+                    continue;
+
+                var sourceKeysToRemove = new List<string>();
+                foreach (string key in sourceDictionary.Keys) {
+                    if (key.IsPatternMatch(args.Item.Key.Substring(eventType.Value.Length)))
+                        sourceKeysToRemove.Add(key);
+                }
+
+                foreach (var logger in sourceKeysToRemove)
+                    sourceDictionary.Remove(logger);
+            }
+
+            base.OnChanged(args);
+        }
+
+        private readonly Dictionary<string, LogLevel> _minLogLevels = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
+        public LogLevel GetMinLogLevel(string loggerName) {
+            if (String.IsNullOrEmpty(loggerName))
+                loggerName = "*";
+
+            LogLevel minLogLevel;
+            if (_minLogLevels.TryGetValue(loggerName, out minLogLevel))
+                return minLogLevel;
+
+            var setting = GetTypeAndSourceSetting("log", loggerName, "Trace");
+            if (setting == null) {
+                _minLogLevels[loggerName] = LogLevel.Trace;
+                return LogLevel.Trace;
+            }
+
+            minLogLevel = LogLevel.FromString(setting);
+            _minLogLevels[loggerName] = minLogLevel;
+            return minLogLevel;
+        }
+
+        private readonly Dictionary<string, Dictionary<string, bool>> _typeSourceEnabled = new Dictionary<string, Dictionary<string, bool>>(StringComparer.OrdinalIgnoreCase);
+        public bool GetTypeAndSourceEnabled(string type, string source) {
+            if (type == null)
+                return true;
+
+            Dictionary<string, bool> sourceDictionary;
+            bool sourceEnabled;
+            if (source != null && _typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
+                if (sourceDictionary.TryGetValue(source, out sourceEnabled))
+                    return sourceEnabled;
+            }
+
+            var setting = GetTypeAndSourceSetting(type, source, "true");
+            if (!Boolean.TryParse(setting, out sourceEnabled))
+                sourceEnabled = true;
+
+            return sourceEnabled;
+        }
+
+        private readonly Dictionary<string, string> _eventTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private string GetTypeAndSourceSetting(string type, string source, string defaultValue) {
+            if (type == null)
+                return defaultValue;
+
+            Dictionary<string, bool> sourceDictionary;
+            string sourcePrefix;
+            if (!_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
+                sourcePrefix = "@@" + type + ":";
+                _eventTypes.Add(type, sourcePrefix);
+                sourceDictionary = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+                _typeSourceEnabled.Add(type, sourceDictionary);
+            } else {
+                sourcePrefix = _eventTypes[type];
+            }
+
+            // check for exact source match
+            string settingValue;
+            if (TryGetValue(sourcePrefix + source, out settingValue))
+                return settingValue;
+            
+            // check for wildcard match
+            var sourceSettings = this
+                .Where(kvp => kvp.Key.StartsWith(sourcePrefix))
+                .Select(kvp => new KeyValuePair<string, string>(kvp.Key.Substring(sourcePrefix.Length), kvp.Value))
+                .ToList();
+
+            foreach (var kvp in sourceSettings) {
+                if (source.IsPatternMatch(kvp.Key))
+                    return kvp.Value;
+            }
+
+            return defaultValue;
+        }
+
         public void Apply(IEnumerable<KeyValuePair<string, string>> values) {
             if (values == null)
                 return;
@@ -159,6 +274,7 @@ namespace Exceptionless.Models {
         public static class KnownKeys {
             public const string DataExclusions = "@@DataExclusions";
             public const string UserAgentBotPatterns = "@@UserAgentBotPatterns";
+            public const string LogLevelPrefix = "@@log:";
         }
     }
 }

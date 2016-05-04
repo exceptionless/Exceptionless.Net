@@ -120,7 +120,97 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("blake", context.Event.GetUserIdentity().Identity);
             Assert.Equal("blake", context.Event.GetUserIdentity(serializer).Identity);
         }
+        
+        [Fact]
+        public void EventExclusionPlugin_EventExclusions() {
+            var client = CreateClient();
+            var plugin = new EventExclusionPlugin();
 
+            // ignore any event that has a value of 2
+            client.Configuration.AddEventExclusion(e => e.Value.GetValueOrDefault() != 2);
+            
+            var ev = new Event { Value = 1 };
+            var context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            
+            ev.Value = 2;
+            context = new EventPluginContext(client, ev);
+            plugin.Run(context);
+            Assert.True(context.Cancel);
+        }
+
+        [Theory]
+        [InlineData(null, null, null, null, false)]
+        [InlineData("Test", null, null, null, false)]
+        [InlineData("Test", "Trace", null, null, false)]
+        [InlineData("Test", "Off", null, null, true)]
+        [InlineData("Test", "Abc", null, null, false)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", true)]
+        [InlineData("Test", "Info", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", true)]
+        [InlineData("Test", "Warn", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", false)]
+        public void EventExclusionPlugin_LogLevels(string source, string level, string settingKey, string settingValue, bool cancelled) {
+            var client = CreateClient();
+            if (settingKey != null)
+                client.Configuration.Settings.Add(settingKey, settingValue);
+            
+            var ev = new Event { Type = Event.KnownTypes.Log, Source = source };
+            if (!String.IsNullOrEmpty(level))
+                ev.SetProperty(Event.KnownDataKeys.Level, level);
+
+            var context = new EventPluginContext(client, ev);
+            var plugin = new EventExclusionPlugin();
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+        }
+
+        [Theory]
+        [InlineData(null, null, null, null, true)]
+        [InlineData("Test", null, null, null, true)]
+        [InlineData("Test", "Trace", null, null, true)]
+        [InlineData("Test", "Warn", null, null, false)]
+        [InlineData("Test", "Error", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
+        [InlineData("Test", "Info", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
+        public void EventExclusionPlugin_LogLevelsWithInfoDefault(string source, string level, string settingKey, string settingValue, bool cancelled) {
+            var client = CreateClient();
+            client.Configuration.Settings.Add(SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Info");
+            if (settingKey != null)
+                client.Configuration.Settings.Add(settingKey, settingValue);
+
+            var ev = new Event { Type = Event.KnownTypes.Log, Source = source };
+            if (!String.IsNullOrEmpty(level))
+                ev.SetProperty(Event.KnownDataKeys.Level, level);
+
+            var context = new EventPluginContext(client, ev);
+            var plugin = new EventExclusionPlugin();
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+        }
+
+        [Theory]
+        [InlineData(null, false)]
+        [InlineData("@@error:TestException", false)]
+        [InlineData("@@error:Exception", false)]
+        [InlineData("@@error:System.Exception", true)]
+        [InlineData("@@error:*Exception", true)]
+        [InlineData("@@error:*", true)]
+        public void EventExclusionPlugin_SimpleException(string settingKey, bool cancelled) {
+            var client = CreateClient();
+            if (settingKey != null)
+                client.Configuration.Settings.Add(settingKey, Boolean.FalseString);
+            
+            var plugin = new EventExclusionPlugin();
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(GetException());
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+
+            context.ContextData.SetException(GetNestedSimpleException());
+            plugin.Run(context);
+            Assert.Equal(cancelled, context.Cancel);
+        }
+        
         [Fact]
         public void IgnoreUserAgentPlugin_DiscardBot() {
             var client = CreateClient();
@@ -592,8 +682,7 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
-        public void VerifyDeduplicationFromFiles()
-        {
+        public void VerifyDeduplicationFromFiles() {
             var client = CreateClient();
             var errorPlugin = new ErrorPlugin();
 
@@ -625,6 +714,14 @@ namespace Exceptionless.Tests.Plugins {
                 throw new Exception(message);
             } catch (Exception ex) {
                 return ex;
+            }
+        }
+
+        private Exception GetNestedSimpleException(string message = "Test") {
+            try {
+                throw new Exception("nested " + message);
+            } catch (Exception ex) {
+                return new ApplicationException(message, ex);
             }
         }
 

@@ -25,7 +25,11 @@ namespace Exceptionless.Log4net {
         protected override void Append(LoggingEvent loggingEvent) {
             if (!_client.Configuration.IsValid)
                 return;
-            
+
+            var minLogLevel = _client.Configuration.Settings.GetMinLogLevel(loggingEvent.LoggerName);
+            if (loggingEvent.Level.ToLogLevel() < minLogLevel)
+                return;
+
             _client.SubmitFromLogEvent(loggingEvent);
         }
     }

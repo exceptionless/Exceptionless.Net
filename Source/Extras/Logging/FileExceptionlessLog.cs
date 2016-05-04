@@ -18,6 +18,7 @@ namespace Exceptionless.Logging {
                 throw new ArgumentNullException("filePath");
 
             FilePath = filePath;
+            MinimumLogLevel = LogLevel.Trace;
             _append = append;
 
             Init();

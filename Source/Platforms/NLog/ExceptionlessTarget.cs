@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NLog;
 using NLog.Common;
 using NLog.Config;
 using NLog.Targets;
@@ -34,6 +35,10 @@ namespace Exceptionless.NLog {
 
         protected override void Write(AsyncLogEventInfo info) {
             if (!_client.Configuration.IsValid)
+                return;
+
+            LogLevel minLogLevel = LogLevel.FromOrdinal(_client.Configuration.Settings.GetMinLogLevel(info.LogEvent.LoggerName).Ordinal);
+            if (info.LogEvent.Level < minLogLevel)
                 return;
 
             var builder = _client.CreateFromLogEvent(info.LogEvent);

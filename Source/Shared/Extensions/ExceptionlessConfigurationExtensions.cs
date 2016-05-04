@@ -106,7 +106,10 @@ namespace Exceptionless {
                 config.RemovePlugin<HeartbeatPlugin>();
         }
 
-        public static InMemoryExceptionlessLog UseInMemoryLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = LogLevel.Info) {
+        public static InMemoryExceptionlessLog UseInMemoryLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
+            if (minLogLevel == null)
+                minLogLevel = LogLevel.Info;
+
             var logger = new InMemoryExceptionlessLog { MinimumLogLevel = minLogLevel };
             config.Resolver.Register<IExceptionlessLog>(logger);
 

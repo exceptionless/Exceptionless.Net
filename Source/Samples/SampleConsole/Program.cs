@@ -191,18 +191,16 @@ namespace SampleConsole {
         }
 
         private static ConsoleColor GetColor(InMemoryExceptionlessLog.LogEntry logEntry) {
-            switch (logEntry.Level) {
-                case LogLevel.Debug:
-                    return ConsoleColor.Gray;
-                case LogLevel.Error:
-                    return ConsoleColor.Yellow;
-                case LogLevel.Info:
-                    return ConsoleColor.White;
-                case LogLevel.Trace:
-                    return ConsoleColor.DarkGray;
-                case LogLevel.Warn:
-                    return ConsoleColor.Magenta;
-            }
+            if (logEntry.Level == LogLevel.Debug)
+                return ConsoleColor.Gray;
+            if (logEntry.Level == LogLevel.Error)
+                return ConsoleColor.Yellow;
+            if (logEntry.Level == LogLevel.Info)
+                return ConsoleColor.White;
+            if (logEntry.Level == LogLevel.Trace)
+                return ConsoleColor.DarkGray;
+            if (logEntry.Level == LogLevel.Warn)
+                return ConsoleColor.Magenta;
 
             return ConsoleColor.White;
         }
