@@ -144,6 +144,8 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData(null, null, null, null, false)]
         [InlineData("Test", null, null, null, false)]
         [InlineData("Test", "Trace", null, null, false)]
+        [InlineData("Test", "Off", null, null, true)]
+        [InlineData("Test", "Abc", null, null, false)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", true)]
         [InlineData("Test", "Info", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", true)]

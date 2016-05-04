@@ -2,6 +2,7 @@
 
 namespace Exceptionless.Logging {
     public sealed class LogLevel : IComparable, IEquatable<LogLevel> {
+        public static readonly LogLevel Other = new LogLevel("Other", -1);
         public static readonly LogLevel Trace = new LogLevel("Trace", 0);
         public static readonly LogLevel Debug = new LogLevel("Debug", 1);
         public static readonly LogLevel Info = new LogLevel("Info", 2);
@@ -90,6 +91,8 @@ namespace Exceptionless.Logging {
 
         public static LogLevel FromOrdinal(int ordinal) {
             switch (ordinal) {
+                case -1:
+                    return Other;
                 case 0:
                     return Trace;
                 case 1:
@@ -127,7 +130,7 @@ namespace Exceptionless.Logging {
             if (levelName.Equals("Off", StringComparison.OrdinalIgnoreCase))
                 return LogLevel.Off;
 
-            throw new ArgumentException("Unknown log level: " + levelName);
+            return LogLevel.Other;
         }
 
         public override string ToString() {

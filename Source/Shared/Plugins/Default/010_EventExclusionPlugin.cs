@@ -22,7 +22,7 @@ namespace Exceptionless.Plugins.Default {
                 var minLogLevel = context.Client.Configuration.Settings.GetMinLogLevel(context.Event.Source);
                 var logLevel = LogLevel.FromString(context.Event.Data.GetValueOrDefault(Event.KnownDataKeys.Level, "Trace").ToString());
 
-                if (logLevel < minLogLevel) {
+                if (logLevel != LogLevel.Other && (logLevel == LogLevel.Off || logLevel < minLogLevel)) {
                     context.Log.Info("Cancelling log event due to minimum log level.");
                     context.Cancel = true;
                 }
