@@ -16,12 +16,13 @@ namespace Exceptionless.Plugins.Default {
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="interval">The interval at which the client will automatically ensure the configuration settings are up-to-date when idle.</param>
-        public UpdateConfigurationSettingsWhileIdlePlugin(ExceptionlessConfiguration configuration, TimeSpan? interval = null) {
+        /// <param name="startupInterval">The amount of time after the plugin is initialized that the settings should be updated. This will default to 5 seconds. If an event is submitted before this time than configuration will be updated after the specified interval.</param>
+        public UpdateConfigurationSettingsWhileIdlePlugin(ExceptionlessConfiguration configuration, TimeSpan? interval = null, TimeSpan? startupInterval = null) {
             _configuration = configuration;
 
-            var startupInterval = interval ?? TimeSpan.FromSeconds(5);
-            _interval = interval.HasValue && interval.Value.Ticks > 0 ? interval.Value : TimeSpan.FromMinutes(5);
-            _timer = new Timer(UpdateConfiguration, null, startupInterval, _interval);
+            startupInterval = startupInterval.HasValue && startupInterval.Value.Ticks >= 0 ? startupInterval.Value : TimeSpan.FromSeconds(5);
+            _interval = interval.HasValue && interval.Value.Ticks >= TimeSpan.TicksPerMinute ? interval.Value : TimeSpan.FromMinutes(5);
+            _timer = new Timer(UpdateConfiguration, null, startupInterval.Value, _interval);
         }
 
         public void Run(EventPluginContext context) {
