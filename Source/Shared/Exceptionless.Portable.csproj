@@ -76,6 +76,7 @@
     <Compile Include="Plugins\Default\050_EnvironmentInfoPlugin.cs" />
     <Compile Include="Plugins\Default\005_HandleAggregateExceptionsPlugin.cs" />
     <Compile Include="Plugins\Default\010_EventExclusionPlugin.cs" />
+    <Compile Include="Plugins\Default\1020_UpdateConfigurationSettingsWhileIdlePlugin.cs" />
     <Compile Include="Plugins\PriortyAttribute.cs" />
     <Compile Include="EventBuilder.cs" />
     <Compile Include="Events\ConfigurationUpdatedEventArgs.cs" />

@@ -150,6 +150,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("Test", "Info", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", true)]
         [InlineData("Test", "Warn", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", false)]
+        [InlineData("Test", "Warn", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Off", true)]
         public void EventExclusionPlugin_LogLevels(string source, string level, string settingKey, string settingValue, bool cancelled) {
             var client = CreateClient();
             if (settingKey != null)

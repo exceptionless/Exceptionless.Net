@@ -8,6 +8,9 @@ using Exceptionless.Storage;
 namespace Exceptionless.Configuration {
     public static class SettingsManager {
         public static void ApplySavedServerSettings(ExceptionlessConfiguration config) {
+            if (config == null)
+                return;
+
             if (String.IsNullOrEmpty(config.ApiKey) || String.Equals(config.ApiKey, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase)) {
                 config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to apply saved server settings: ApiKey is not set.");
                 return;
@@ -18,6 +21,9 @@ namespace Exceptionless.Configuration {
         }
 
         private static SettingsDictionary GetSavedServerSettings(ExceptionlessConfiguration config) {
+            if (config == null)
+                return new SettingsDictionary();
+
             string configPath = GetConfigPath(config);
             if (String.IsNullOrEmpty(configPath))
                 return new SettingsDictionary();
@@ -36,6 +42,9 @@ namespace Exceptionless.Configuration {
         }
 
         public static void CheckVersion(int version, ExceptionlessConfiguration config) {
+            if (config == null)
+                return;
+
             if (String.IsNullOrEmpty(config.ApiKey) || String.Equals(config.ApiKey, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase)) {
                 config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to check version: ApiKey is not set.");
                 return;
@@ -49,6 +58,9 @@ namespace Exceptionless.Configuration {
         }
 
         public static void UpdateSettings(ExceptionlessConfiguration config) {
+            if (config == null)
+                return;
+
             if (String.IsNullOrEmpty(config.ApiKey) || String.Equals(config.ApiKey, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase)) {
                 config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to update settings: ApiKey is not set.");
                 return;
@@ -79,7 +91,7 @@ namespace Exceptionless.Configuration {
         }
 
         private static string GetConfigPath(ExceptionlessConfiguration config) {
-            return config.GetQueueName() + "\\server-settings.json";
+            return (config != null ? config.GetQueueName() : String.Empty) + "\\server-settings.json";
         }
     }
 }

@@ -32,6 +32,7 @@ namespace Exceptionless.Plugins {
             config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<SubmissionMethodPlugin>();
             config.AddPlugin<CancelSessionsWithNoUserPlugin>();
+            config.AddPlugin<UpdateConfigurationSettingsWhileIdlePlugin>(new UpdateConfigurationSettingsWhileIdlePlugin(config));
         }
     }
 }
