@@ -41,23 +41,28 @@ namespace Exceptionless.Configuration {
             return new SettingsDictionary();
         }
 
-        public static void CheckVersion(int version, ExceptionlessConfiguration config) {
+        public static int GetVersion(ExceptionlessConfiguration config) {
             if (config == null)
-                return;
+                return 0;
 
             if (String.IsNullOrEmpty(config.ApiKey) || String.Equals(config.ApiKey, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase)) {
-                config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to check version: ApiKey is not set.");
-                return;
+                config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to get version: ApiKey is not set.");
+                return 0;
             }
 
             var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
-            if (version <= persistedClientData.GetInt32(String.Concat(config.GetQueueName(), "-ServerConfigVersion"), -1))
+            return persistedClientData.GetInt32(String.Concat(config.GetQueueName(), "-ServerConfigVersion"), 0);
+        }
+        
+        public static void CheckVersion(int version, ExceptionlessConfiguration config) {
+            int currentVersion = GetVersion(config);
+            if (version <= currentVersion)
                 return;
 
-            UpdateSettings(config);
+            UpdateSettings(config, currentVersion);
         }
 
-        public static void UpdateSettings(ExceptionlessConfiguration config) {
+        public static void UpdateSettings(ExceptionlessConfiguration config, int? version = null) {
             if (config == null)
                 return;
 
@@ -66,10 +71,13 @@ namespace Exceptionless.Configuration {
                 return;
             }
 
+            if (!version.HasValue || version < 0)
+                version = GetVersion(config);
+            
             var serializer = config.Resolver.GetJsonSerializer();
             var client = config.Resolver.GetSubmissionClient();
 
-            var response = client.GetSettings(config, serializer);
+            var response = client.GetSettings(config, version.Value, serializer);
             if (!response.Success || response.Settings == null)
                 return;
 

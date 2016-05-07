@@ -104,7 +104,7 @@ namespace Exceptionless.Tests {
                 throw new NotImplementedException();
             }
 
-            public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
+            public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
                 throw new NotImplementedException();
             }
 

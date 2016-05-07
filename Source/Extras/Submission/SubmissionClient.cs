@@ -67,15 +67,18 @@ namespace Exceptionless.Extras.Submission {
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version,  IJsonSerializer serializer) {
             HttpWebResponse response;
             try {
-                var request = CreateHttpWebRequest(config, String.Format("{0}/projects/config", config.GetServiceEndPoint()));
+                var request = CreateHttpWebRequest(config, String.Format("{0}/projects/config?v={1}", config.GetServiceEndPoint(), version));
                 response = request.GetJsonAsync().Result as HttpWebResponse;
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
                 return new SettingsResponse(false, message: message);
             }
+
+            if (response != null && response.StatusCode == HttpStatusCode.NotModified)
+                return new SettingsResponse(false, message: "Settings have not been modified.");
 
             if (response == null || response.StatusCode != HttpStatusCode.OK)
                 return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", GetResponseMessage(response)));
