@@ -52,12 +52,12 @@ namespace Exceptionless.Queue {
             if (_processingQueue)
                 return;
 
-            _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
             if (!_config.Enabled) {
                 _log.Info(typeof(DefaultEventQueue), "Configuration is disabled. The queue will not be processed.");
                 return;
             }
 
+            _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
             _processingQueue = true;
             
             try {

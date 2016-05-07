@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Logging;
@@ -10,6 +12,7 @@ using Exceptionless.Submission;
 
 namespace Exceptionless {
     public class ExceptionlessClient : IDisposable {
+        private readonly Timer _updateSettingsTimer;
         private readonly Lazy<IExceptionlessLog> _log;
         private readonly Lazy<IEventQueue> _queue;
         private readonly Lazy<ISubmissionClient> _submissionClient;
@@ -41,6 +44,9 @@ namespace Exceptionless {
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
+
+            var initialDelay = configuration.UpdateSettingsWhenIdleInterval > TimeSpan.Zero ? TimeSpan.FromSeconds(5) : TimeSpan.FromMilliseconds(-1);
+            _updateSettingsTimer = new Timer(state => SettingsManager.UpdateSettings(Configuration), null, initialDelay, configuration.UpdateSettingsWhenIdleInterval);
         }
 
         public ExceptionlessConfiguration Configuration { get; private set; }
@@ -175,6 +181,7 @@ namespace Exceptionless {
             }
 
             OnSubmittedEvent(new EventSubmittedEventArgs(this, ev, pluginContextData));
+            _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
         }
 
         /// <summary>Creates a new instance of <see cref="Event" />.</summary>
