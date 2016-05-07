@@ -39,7 +39,13 @@ namespace Exceptionless {
             _queue = new Lazy<IEventQueue>(() => {
                 // config can't be changed after the queue starts up.
                 Configuration.LockConfig();
-                return Configuration.Resolver.GetEventQueue();
+
+                var q = Configuration.Resolver.GetEventQueue();
+                q.EventsPosted += (sender, args) => {
+                    _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
+                };
+
+                return q;
             });
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
@@ -181,7 +187,6 @@ namespace Exceptionless {
             }
 
             OnSubmittedEvent(new EventSubmittedEventArgs(this, ev, pluginContextData));
-            _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
         }
 
         /// <summary>Creates a new instance of <see cref="Event" />.</summary>

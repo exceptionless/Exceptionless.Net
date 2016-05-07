@@ -71,7 +71,8 @@ namespace Exceptionless.Queue {
                     bool deleteBatch = true;
 
                     try {
-                        var response = _client.PostEvents(batch.Select(b => b.Item2), _config, _serializer);
+                        var events = batch.Select(b => b.Item2).ToList();
+                        var response = _client.PostEvents(events, _config, _serializer);
                         if (response.Success) {
                             _log.FormattedInfo(typeof(DefaultEventQueue), "Sent {0} events to \"{1}\".", batch.Count, _config.ServerUrl);
                         } else if (response.ServiceUnavailable) {
@@ -104,6 +105,8 @@ namespace Exceptionless.Queue {
                             SuspendProcessing();
                             deleteBatch = false;
                         }
+
+                        OnEventsPosted(new EventsPostedEventArgs { Events = events, Response = response });
                     } catch (AggregateException ex) {
                         _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while submitting events: ", ex.Flatten().Message));
                         SuspendProcessing();
@@ -160,6 +163,12 @@ namespace Exceptionless.Queue {
                 _storage.CleanupQueueFiles(_config.GetQueueName(), TimeSpan.Zero);
 #pragma warning restore 4014
             } catch (Exception) { }
+        }
+
+        public event EventHandler<EventsPostedEventArgs> EventsPosted;
+
+        protected virtual void OnEventsPosted(EventsPostedEventArgs e) {
+            EventsPosted?.Invoke(this, e);
         }
 
         private bool IsQueueProcessingSuspended {
