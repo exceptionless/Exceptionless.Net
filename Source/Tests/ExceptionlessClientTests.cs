@@ -97,19 +97,18 @@ namespace Exceptionless.Tests {
 
         public class MySubmissionClient : ISubmissionClient {
             public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                throw new NotImplementedException();
+                return new SubmissionResponse(202);
             }
 
             public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                throw new NotImplementedException();
+                return new SubmissionResponse(202);
             }
 
             public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
-                throw new NotImplementedException();
+                return new SettingsResponse(false);
             }
 
             public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
-                throw new NotImplementedException();
             }
         }
     }
