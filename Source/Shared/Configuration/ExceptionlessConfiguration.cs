@@ -76,6 +76,7 @@ namespace Exceptionless {
                 _validationResult = null;
                 _serverUrl = value;
                 _heartbeatServerUrl = value;
+                OnChanged();
             }
         }
 
@@ -93,6 +94,7 @@ namespace Exceptionless {
 
                 _validationResult = null;
                 _heartbeatServerUrl = value;
+                OnChanged();
             }
         }
 
@@ -115,6 +117,7 @@ namespace Exceptionless {
 
                 _validationResult = null;
                 _apiKey = value;
+                OnChanged();
             }
         }
 
@@ -160,12 +163,17 @@ namespace Exceptionless {
         public TimeSpan UpdateSettingsWhenIdleInterval {
             get { return _updateSettingsWhenIdleInterval; }
             set {
+                if (_updateSettingsWhenIdleInterval == value)
+                    return;
+
                 if (value > TimeSpan.Zero && value < TimeSpan.FromSeconds(15))
                     _updateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
                 else if (value <= TimeSpan.Zero)
                     _updateSettingsWhenIdleInterval = TimeSpan.FromMilliseconds(-1);
                 else
                     _updateSettingsWhenIdleInterval = value;
+                
+                OnChanged();
             }
         }
 
@@ -459,6 +467,13 @@ namespace Exceptionless {
                 if (disposable != null)
                     disposable.Dispose();
             }
+        }
+
+        public event EventHandler Changed;
+
+        protected virtual void OnChanged() {
+            if (Changed != null)
+                Changed.Invoke(this, EventArgs.Empty);
         }
     }
 }

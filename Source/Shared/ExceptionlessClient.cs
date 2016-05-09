@@ -25,11 +25,8 @@ namespace Exceptionless {
         }
 
         public ExceptionlessClient(Action<ExceptionlessConfiguration> configure) : this(new ExceptionlessConfiguration(DependencyResolver.CreateDefault())) {
-            if (configure == null)
-                return;
-
-            configure(Configuration);
-            _updateSettingsTimer.Change(GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval);
+            if (configure != null)
+                configure(Configuration);
         }
 
         public ExceptionlessClient(ExceptionlessConfiguration configuration) {
@@ -37,7 +34,9 @@ namespace Exceptionless {
                 throw new ArgumentNullException("configuration");
 
             Configuration = configuration;
+            Configuration.Changed += OnConfigurationChanged;
             Configuration.Resolver.Register(typeof(ExceptionlessConfiguration), () => Configuration);
+
             _log = new Lazy<IExceptionlessLog>(() => Configuration.Resolver.GetLog());
             _queue = new Lazy<IEventQueue>(() => {
                 // config can't be changed after the queue starts up.
@@ -60,7 +59,11 @@ namespace Exceptionless {
         private void OnQueueEventsPosted(object sender, EventsPostedEventArgs args) {
             _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
         }
-        
+
+        private void OnConfigurationChanged(object sender, EventArgs e) {
+            _updateSettingsTimer.Change(!_queue.IsValueCreated ? GetInitialSettingsDelay() : Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
+        }
+
         public ExceptionlessConfiguration Configuration { get; private set; }
 
         /// <summary>
@@ -268,6 +271,7 @@ namespace Exceptionless {
         }
 
         void IDisposable.Dispose() {
+            Configuration.Changed -= OnConfigurationChanged;
             if (_queue.IsValueCreated)
                 _queue.Value.EventsPosted -= OnQueueEventsPosted;
 
