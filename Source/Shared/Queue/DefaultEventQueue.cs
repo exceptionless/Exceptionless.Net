@@ -168,7 +168,8 @@ namespace Exceptionless.Queue {
         public event EventHandler<EventsPostedEventArgs> EventsPosted;
 
         protected virtual void OnEventsPosted(EventsPostedEventArgs e) {
-            EventsPosted?.Invoke(this, e);
+            if (EventsPosted != null)
+                EventsPosted.Invoke(this, e);
         }
 
         private bool IsQueueProcessingSuspended {
