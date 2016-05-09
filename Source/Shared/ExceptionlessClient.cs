@@ -25,8 +25,11 @@ namespace Exceptionless {
         }
 
         public ExceptionlessClient(Action<ExceptionlessConfiguration> configure) : this(new ExceptionlessConfiguration(DependencyResolver.CreateDefault())) {
-            if (configure != null)
-                configure(Configuration);
+            if (configure == null)
+                return;
+
+            configure(Configuration);
+            _updateSettingsTimer.Change(GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval);
         }
 
         public ExceptionlessClient(ExceptionlessConfiguration configuration) {
@@ -34,27 +37,30 @@ namespace Exceptionless {
                 throw new ArgumentNullException("configuration");
 
             Configuration = configuration;
-            configuration.Resolver.Register(typeof(ExceptionlessConfiguration), () => Configuration);
+            Configuration.Resolver.Register(typeof(ExceptionlessConfiguration), () => Configuration);
             _log = new Lazy<IExceptionlessLog>(() => Configuration.Resolver.GetLog());
             _queue = new Lazy<IEventQueue>(() => {
                 // config can't be changed after the queue starts up.
                 Configuration.LockConfig();
 
                 var q = Configuration.Resolver.GetEventQueue();
-                q.EventsPosted += (sender, args) => {
-                    _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
-                };
-
+                q.EventsPosted += OnQueueEventsPosted;
                 return q;
             });
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
-
-            var initialDelay = configuration.UpdateSettingsWhenIdleInterval > TimeSpan.Zero ? TimeSpan.FromSeconds(5) : TimeSpan.FromMilliseconds(-1);
-            _updateSettingsTimer = new Timer(state => SettingsManager.UpdateSettings(Configuration), null, initialDelay, configuration.UpdateSettingsWhenIdleInterval);
+            _updateSettingsTimer = new Timer(state => SettingsManager.UpdateSettings(Configuration), null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval);
         }
 
+        private TimeSpan GetInitialSettingsDelay() {
+            return Configuration.UpdateSettingsWhenIdleInterval > TimeSpan.Zero ? TimeSpan.FromSeconds(5) : TimeSpan.FromMilliseconds(-1);
+        }
+
+        private void OnQueueEventsPosted(object sender, EventsPostedEventArgs args) {
+            _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
+        }
+        
         public ExceptionlessConfiguration Configuration { get; private set; }
 
         /// <summary>
@@ -262,6 +268,10 @@ namespace Exceptionless {
         }
 
         void IDisposable.Dispose() {
+            if (_queue.IsValueCreated)
+                _queue.Value.EventsPosted -= OnQueueEventsPosted;
+
+            _updateSettingsTimer.Dispose();
             Configuration.Resolver.Dispose();
         }
 

@@ -29,6 +29,9 @@ namespace Exceptionless.Tests.Plugins {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace   });
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
+
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
 

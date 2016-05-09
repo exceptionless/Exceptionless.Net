@@ -28,11 +28,11 @@ namespace Exceptionless.Configuration {
             if (String.IsNullOrEmpty(configPath))
                 return new SettingsDictionary();
 
-            var fileStorage = config.Resolver.GetFileStorage();
-            if (!fileStorage.Exists(configPath))
-                return new SettingsDictionary();
-
             try {
+                var fileStorage = config.Resolver.GetFileStorage();
+                if (!fileStorage.Exists(configPath))
+                    return new SettingsDictionary();
+            
                 return fileStorage.GetObject<SettingsDictionary>(configPath);
             } catch (Exception ex) {
                 config.Resolver.GetLog().FormattedError(typeof(SettingsManager), ex, "Unable to read and apply saved server settings: {0}", ex.Message);
@@ -50,8 +50,13 @@ namespace Exceptionless.Configuration {
                 return 0;
             }
 
-            var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
-            return persistedClientData.GetInt32(String.Concat(config.GetQueueName(), "-ServerConfigVersion"), 0);
+            try {
+                var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
+                return persistedClientData.GetInt32(String.Concat(config.GetQueueName(), "-ServerConfigVersion"), 0);
+            } catch (Exception ex) {
+                config.Resolver.GetLog().Error(typeof(SettingsManager), ex, "Error occurred getting settings version.");
+                return 0;
+            }
         }
         
         public static void CheckVersion(int version, ExceptionlessConfiguration config) {
@@ -65,37 +70,41 @@ namespace Exceptionless.Configuration {
         public static void UpdateSettings(ExceptionlessConfiguration config, int? version = null) {
             if (config == null)
                 return;
-
+            
             if (String.IsNullOrEmpty(config.ApiKey) || String.Equals(config.ApiKey, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase)) {
                 config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to update settings: ApiKey is not set.");
                 return;
             }
 
-            if (!version.HasValue || version < 0)
-                version = GetVersion(config);
-            
-            var serializer = config.Resolver.GetJsonSerializer();
-            var client = config.Resolver.GetSubmissionClient();
+            try {
+                if (!version.HasValue || version < 0)
+                    version = GetVersion(config);
 
-            var response = client.GetSettings(config, version.Value, serializer);
-            if (!response.Success || response.Settings == null)
-                return;
+                var serializer = config.Resolver.GetJsonSerializer();
+                var client = config.Resolver.GetSubmissionClient();
 
-            var savedServerSettings = GetSavedServerSettings(config);
-            config.Settings.Apply(response.Settings);
+                var response = client.GetSettings(config, version.Value, serializer);
+                if (!response.Success || response.Settings == null)
+                    return;
 
-            // TODO: Store snapshot of settings after reading from config and attributes and use that to revert to defaults.
-            // Remove any existing server settings that are not in the new server settings.
-            foreach (string key in savedServerSettings.Keys.Except(response.Settings.Keys)) {
-                if (config.Settings.ContainsKey(key))
-                    config.Settings.Remove(key);
+                var savedServerSettings = GetSavedServerSettings(config);
+                config.Settings.Apply(response.Settings);
+
+                // TODO: Store snapshot of settings after reading from config and attributes and use that to revert to defaults.
+                // Remove any existing server settings that are not in the new server settings.
+                foreach (string key in savedServerSettings.Keys.Except(response.Settings.Keys)) {
+                    if (config.Settings.ContainsKey(key))
+                        config.Settings.Remove(key);
+                }
+
+                var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
+                persistedClientData[String.Concat(config.GetQueueName(), "-ServerConfigVersion")] = response.SettingsVersion.ToString();
+
+                var fileStorage = config.Resolver.GetFileStorage();
+                fileStorage.SaveObject(GetConfigPath(config), response.Settings);
+            } catch (Exception ex) {
+                config.Resolver.GetLog().Error(typeof(SettingsManager), ex, "Error occurred updating settings.");
             }
-
-            var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
-            persistedClientData[String.Concat(config.GetQueueName(), "-ServerConfigVersion")] = response.SettingsVersion.ToString();
-
-            var fileStorage = config.Resolver.GetFileStorage();
-            fileStorage.SaveObject(GetConfigPath(config), response.Settings);
         }
 
         private static string GetConfigPath(ExceptionlessConfiguration config) {
