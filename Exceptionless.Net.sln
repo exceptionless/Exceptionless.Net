@@ -59,11 +59,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless", "Source\Pla
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Log4net", "Source\Platforms\Log4net\Exceptionless.Log4net.csproj", "{C3411D82-A4C9-41AF-99B8-F71926D69FD1}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ExceptionLess.Core", "ExceptionLess.Core\ExceptionLess.Core.xproj", "{D620E20B-C48E-4158-8055-682FF9C3A823}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{2E4076C1-B659-4691-9364-BF2979A49B12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExceptionlessCore.Tests", "ExceptionlessCore.Tests\ExceptionlessCore.Tests.csproj", "{BC3E9DA6-036C-4CCB-8C2A-3344D570672C}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ExceptionLess.Core", "Source\Platforms\Core\ExceptionLess.Core.xproj", "{D620E20B-C48E-4158-8055-682FF9C3A823}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExceptionlessCore.Tests", "Source\ExceptionlessCore.Tests\ExceptionlessCore.Tests.csproj", "{BC3E9DA6-036C-4CCB-8C2A-3344D570672C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
