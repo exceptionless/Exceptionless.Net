@@ -68,14 +68,9 @@ namespace Exceptionless.Configuration {
         }
 
         public static void UpdateSettings(ExceptionlessConfiguration config, int? version = null) {
-            if (config == null)
+            if (config == null || !config.IsValid || !config.Enabled)
                 return;
             
-            if (String.IsNullOrEmpty(config.ApiKey) || String.Equals(config.ApiKey, "API_KEY_HERE", StringComparison.OrdinalIgnoreCase)) {
-                config.Resolver.GetLog().Error(typeof(SettingsManager), "Unable to update settings: ApiKey is not set.");
-                return;
-            }
-
             try {
                 if (!version.HasValue || version < 0)
                     version = GetVersion(config);
