@@ -147,7 +147,7 @@ namespace Exceptionless.Queue {
             if (!duration.HasValue)
                 duration = TimeSpan.FromMinutes(5);
 
-            _log.Info(typeof(ExceptionlessClient), String.Format("Suspending processing for: {0}.", duration.Value));
+            _log.Info(typeof(DefaultEventQueue), String.Format("Suspending processing for: {0}.", duration.Value));
             _suspendProcessingUntil = DateTime.Now.Add(duration.Value);
             _queueTimer.Change(duration.Value, _processQueueInterval);
 
@@ -168,8 +168,12 @@ namespace Exceptionless.Queue {
         public event EventHandler<EventsPostedEventArgs> EventsPosted;
 
         protected virtual void OnEventsPosted(EventsPostedEventArgs e) {
-            if (EventsPosted != null)
-                EventsPosted.Invoke(this, e);
+            try {
+                if (EventsPosted != null)
+                    EventsPosted.Invoke(this, e);
+            } catch (Exception ex) {
+                _log.Error(typeof(DefaultEventQueue), ex, "Error while calling OnEventsPosted event handlers.");
+            }
         }
 
         private bool IsQueueProcessingSuspended {

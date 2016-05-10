@@ -49,19 +49,21 @@ namespace Exceptionless {
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
-            _updateSettingsTimer = new Timer(state => SettingsManager.UpdateSettings(Configuration), null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval);
+            _updateSettingsTimer = new Timer(state => SettingsManager.UpdateSettings(Configuration), null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
         }
 
         private TimeSpan GetInitialSettingsDelay() {
-            return Configuration.UpdateSettingsWhenIdleInterval > TimeSpan.Zero ? TimeSpan.FromSeconds(5) : TimeSpan.FromMilliseconds(-1);
+            return Configuration.UpdateSettingsWhenIdleInterval != null && Configuration.UpdateSettingsWhenIdleInterval > TimeSpan.Zero ? TimeSpan.FromSeconds(5) : TimeSpan.FromMilliseconds(-1);
         }
 
         private void OnQueueEventsPosted(object sender, EventsPostedEventArgs args) {
-            _updateSettingsTimer.Change(Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
+            var interval = Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1);
+            _updateSettingsTimer.Change(interval, interval);
         }
 
         private void OnConfigurationChanged(object sender, EventArgs e) {
-            _updateSettingsTimer.Change(!_queue.IsValueCreated ? GetInitialSettingsDelay() : Configuration.UpdateSettingsWhenIdleInterval, Configuration.UpdateSettingsWhenIdleInterval);
+            var interval = Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1);
+            _updateSettingsTimer.Change(!_queue.IsValueCreated ? GetInitialSettingsDelay() : interval, interval);
         }
 
         public ExceptionlessConfiguration Configuration { get; private set; }

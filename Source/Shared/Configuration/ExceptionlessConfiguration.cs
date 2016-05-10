@@ -22,7 +22,7 @@ namespace Exceptionless {
         private string _serverUrl;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
-        private TimeSpan _updateSettingsWhenIdleInterval;
+        private TimeSpan? _updateSettingsWhenIdleInterval;
         private readonly List<string> _exclusions = new List<string>();
         private readonly List<string> _userAgentBotPatterns = new List<string>();
         private readonly List<Func<Event, bool>> _eventExclusions = new List<Func<Event, bool>>();
@@ -42,7 +42,6 @@ namespace Exceptionless {
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
             IncludePrivateInformation = true;
-            _updateSettingsWhenIdleInterval = TimeSpan.FromMinutes(2);
 
             _resolver = resolver;
 
@@ -160,15 +159,15 @@ namespace Exceptionless {
         /// <summary>
         /// How often the client should check for updated server settings when idle. The default is every 2 minutes. 
         /// </summary>
-        public TimeSpan UpdateSettingsWhenIdleInterval {
+        public TimeSpan? UpdateSettingsWhenIdleInterval {
             get { return _updateSettingsWhenIdleInterval; }
             set {
                 if (_updateSettingsWhenIdleInterval == value)
                     return;
 
-                if (value > TimeSpan.Zero && value < TimeSpan.FromSeconds(15))
+                if (value.HasValue && value > TimeSpan.Zero && value < TimeSpan.FromSeconds(15))
                     _updateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
-                else if (value <= TimeSpan.Zero)
+                else if (value.HasValue && value <= TimeSpan.Zero)
                     _updateSettingsWhenIdleInterval = TimeSpan.FromMilliseconds(-1);
                 else
                     _updateSettingsWhenIdleInterval = value;
@@ -472,8 +471,12 @@ namespace Exceptionless {
         public event EventHandler Changed;
 
         protected virtual void OnChanged() {
+            try {
             if (Changed != null)
                 Changed.Invoke(this, EventArgs.Empty);
+            } catch (Exception ex) {
+                Resolver.GetLog().Error(typeof(ExceptionlessConfiguration), ex, "Error while calling OnChanged event handlers.");
+            }
         }
     }
 }
