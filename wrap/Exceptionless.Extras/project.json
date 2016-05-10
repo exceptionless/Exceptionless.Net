@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0-*",
+  "frameworks": {
+    "net40-Client": {
+      "wrappedProject": "../../Source/Extras/Exceptionless.Extras.csproj",
+      "bin": {
+        "assembly": "../../Source/Extras/obj/{configuration}/Exceptionless.Extras.dll",
+        "pdb": "../../Source/Extras/obj/{configuration}/Exceptionless.Extras.pdb"
+      },
+      "dependencies": {
+        "Exceptionless.Portable": "1.0.0-*"
+      }
+    }
+  }
+}
