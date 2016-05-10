@@ -32,15 +32,26 @@ namespace Exceptionless.Models {
         }
 
         public bool GetBoolean(string name, bool @default) {
-            bool value;
             string temp = null;
-
-            bool result = name != null && TryGetValue(name, out temp);
-            if (!result)
+            if (String.IsNullOrWhiteSpace(name) || !TryGetValue(name, out temp))
+                return @default;
+            
+            if (String.IsNullOrEmpty(temp))
                 return @default;
 
-            result = bool.TryParse(temp, out value);
-            return result ? value : @default;
+            temp = temp.ToLowerInvariant().Trim();
+
+            bool value;
+            if (bool.TryParse(temp, out value))
+                return value;
+
+            if (String.Equals(temp, "yes") || String.Equals(temp, "1"))
+                return true;
+            
+            if (String.Equals(temp, "no") || String.Equals(temp, "0"))
+                return false;
+
+            return @default;
         }
 
         public int GetInt32(string name) {
