@@ -115,7 +115,10 @@ namespace Exceptionless.Logging {
         public static LogLevel FromString(string levelName) {
             if (levelName == null)
                 throw new ArgumentNullException("levelName");
-            if (levelName.Equals("Trace", StringComparison.OrdinalIgnoreCase))
+            if (levelName.Equals("Trace", StringComparison.OrdinalIgnoreCase) 
+                || levelName.Equals("true", StringComparison.OrdinalIgnoreCase) 
+                || levelName.Equals("1", StringComparison.OrdinalIgnoreCase)
+                || levelName.Equals("yes", StringComparison.OrdinalIgnoreCase))
                 return LogLevel.Trace;
             if (levelName.Equals("Debug", StringComparison.OrdinalIgnoreCase))
                 return LogLevel.Debug;
@@ -127,7 +130,10 @@ namespace Exceptionless.Logging {
                 return LogLevel.Error;
             if (levelName.Equals("Fatal", StringComparison.OrdinalIgnoreCase))
                 return LogLevel.Fatal;
-            if (levelName.Equals("Off", StringComparison.OrdinalIgnoreCase))
+            if (levelName.Equals("Off", StringComparison.OrdinalIgnoreCase) 
+                || levelName.Equals("false", StringComparison.OrdinalIgnoreCase) 
+                || levelName.Equals("0", StringComparison.OrdinalIgnoreCase)
+                || levelName.Equals("no", StringComparison.OrdinalIgnoreCase))
                 return LogLevel.Off;
 
             return LogLevel.Other;
