@@ -229,13 +229,15 @@ namespace SampleConsole {
             Console.WriteLine("Press 's' to stop sending.");
             int eventCount = 0;
 
+            var levels = new[] { LogLevel.Trace, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error, LogLevel.Fatal, LogLevel.Other };
+
             Task.Factory.StartNew(delegate {
                 while (eventCount < maxEvents) {
                     if (token.IsCancellationRequested)
                         break;
 
                     if (ev != null && ev.IsLog())
-                        ev.SetProperty(Event.KnownDataKeys.Level, RandomData.GetEnum<LogLevel>().Name);
+                        ev.SetProperty(Event.KnownDataKeys.Level, levels.Random().Name);
 
                     SendEvent(ev, false);
                     eventCount++;
