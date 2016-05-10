@@ -234,6 +234,9 @@ namespace SampleConsole {
                     if (token.IsCancellationRequested)
                         break;
 
+                    if (ev != null && ev.IsLog())
+                        ev.SetProperty(Event.KnownDataKeys.Level, RandomData.GetEnum<LogLevel>().Name);
+
                     SendEvent(ev, false);
                     eventCount++;
                     lock (_writeLock) {
