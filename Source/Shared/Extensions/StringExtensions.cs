@@ -1,25 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
         public static string ToLowerUnderscoredWords(this string value) {
-            var builder = new StringBuilder(value.Length + 10);
-            for (int index = 0; index < value.Length; index++) {
-                char c = value[index];
-                if (Char.IsUpper(c)) {
-                    if (index > 0 && value[index - 1] != '_')
-                        builder.Append('_');
+           string[] tokens = String.Join(" ", SplitPascalCaseWords(value)).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+           if (tokens.Length == 0)
+              return String.Empty;
 
-                    builder.Append(Char.ToLower(c));
-                } else {
-                    builder.Append(c);
-                }
-            }
+           var sb = new StringBuilder(tokens[0]);
+           for (int i = 1; i < tokens.Length; i++) {
+              if (tokens[i - 1][tokens[i - 1].Length - 1] != '_' && tokens[i][0] != '_')
+                 sb.Append('_');
+              sb.Append(tokens[i]);
+           }
 
-            return builder.ToString();
+           return sb.ToString().ToLower();
+        }
+
+        private static string[] SplitPascalCaseWords(string value)
+        {
+           if (value == null)
+              throw new ArgumentNullException("value");
+
+           if (value.Length == 0)
+              return new string[0];
+
+           char[] chars = value.ToCharArray();
+           var words = new List<string>();
+           int tokenStart = 0;
+           UnicodeCategory currentChar = CharUnicodeInfo.GetUnicodeCategory(chars[tokenStart]);
+
+           for (int i = tokenStart + 1; i < chars.Length; i++) {
+              UnicodeCategory nextChar = CharUnicodeInfo.GetUnicodeCategory(chars[i]);
+              if (nextChar == currentChar)
+                 continue;
+
+              if (currentChar == UnicodeCategory.UppercaseLetter && nextChar == UnicodeCategory.LowercaseLetter) {
+                 int newTokenStart = i - 1;
+                 if (newTokenStart != tokenStart) {
+                    words.Add(new String(chars, tokenStart, newTokenStart - tokenStart));
+                    tokenStart = newTokenStart;
+                 }
+              }
+              else if (currentChar == UnicodeCategory.LowercaseLetter && nextChar == UnicodeCategory.UppercaseLetter) {
+                 words.Add(new String(chars, tokenStart, i - tokenStart));
+                 tokenStart = i;
+              }
+
+              currentChar = nextChar;
+           }
+
+           words.Add(new String(chars, tokenStart, chars.Length - tokenStart));
+           return words.ToArray();
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
