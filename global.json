@@ -1,6 +1,9 @@
 ﻿{
-  "projects": [ "src" ],
-  "sdk": {
-    "version": "1.0.0-preview1-002702"
-  }
+    "projects": [
+        "src",
+        "src/Platforms"
+    ],
+    "sdk": {
+        "version": "1.0.0-preview1-002702"
+    }
 }
