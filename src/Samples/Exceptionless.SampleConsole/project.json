@@ -21,7 +21,7 @@
         "NLog.Schema": "4.3.0"
     },
     "frameworks": {
-        "net452": {
+        "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ],
                 "compile": [

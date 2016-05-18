@@ -21,15 +21,13 @@
     "dependencies": {
         "Exceptionless.Extras": {
             "target": "project"
-        }
+        },
+        "Microsoft.AspNet.WebApi.Core": "5.2.3"
     },
     "frameworks": {
         "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ]
-            },
-            "dependencies": {
-                "Microsoft.AspNet.WebApi.Core": "5.2.3" 
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",

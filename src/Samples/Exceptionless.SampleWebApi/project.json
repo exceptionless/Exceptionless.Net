@@ -17,7 +17,7 @@
         "Owin": "1.0"
     },
     "frameworks": {
-        "net452": {
+        "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ]
             }
