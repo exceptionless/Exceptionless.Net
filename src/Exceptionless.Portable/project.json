@@ -1,0 +1,63 @@
+﻿{
+    "title": "Exceptionless Portable Class Library",
+    "description": "Exceptionless client for portable applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "packOptions": {
+        "summary": "Exceptionless client for portable applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH", "pcl" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        }
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "warningsAsErrors": true
+    },
+    "frameworks": {
+        ".NETPortable,Version=v4.0,Profile=Profile328": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "PORTABLE40" ]
+            },
+            "frameworkAssemblies": {
+                "mscorlib": "",
+                "System": "",
+                "System.Core": "",
+                "System.Net": "",
+                "System.Runtime.Serialization": "",
+                "System.Xml": ""
+            }
+        },
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "System.Data": "",
+                "System.Net": "4.0.0.0",
+                "System.Numerics": "",
+                "System.Runtime.Serialization": "",
+                "System.Xml": "",
+                "System.Xml.Linq": ""
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "System.Data": "",
+                "System.Net.Http": "",
+                "System.Numerics": "",
+                "System.Runtime.Serialization": "",
+                "System.Xml": "",
+                "System.Xml.Linq": ""
+            }
+        }
+    }
+}

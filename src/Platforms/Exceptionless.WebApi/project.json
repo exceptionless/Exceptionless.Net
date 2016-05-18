@@ -1,0 +1,41 @@
+﻿{
+    "title": "Exceptionless client for ASP.NET Web API applications.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "packOptions": {
+        "summary": "Exceptionless client for ASP.NET Web API applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "Web Api", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        }
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Exceptionless.Extras": {
+            "target": "project"
+        }
+    },
+    "frameworks": {
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ]
+            },
+            "dependencies": {
+                "Microsoft.AspNet.WebApi.Core": "5.2.3" 
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": "",
+                "System.Net.Http": "",
+                "System.ServiceModel": ""
+            }
+        }
+    }
+}

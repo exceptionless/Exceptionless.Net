@@ -103,6 +103,10 @@ publish/
 
 # NuGet Packages Directory
 packages/
+*.lock.json
+*.nuget.props
+*.nuget.targets
+.vs
 
 # Windows Azure Build Output
 csx

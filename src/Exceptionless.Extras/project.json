@@ -1,0 +1,34 @@
+﻿{
+    "dependencies": {
+        "Exceptionless.Portable": {
+            "target": "project"
+        }
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "warningsAsErrors": true
+    },
+    "frameworks": {
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "Microsoft.VisualBasic": "",
+                "System.Configuration": "",
+                "System.Net": "4.0.0.0"
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "Microsoft.VisualBasic": "", 
+                "System.Configuration": "",
+                "System.Net.Http": ""
+            }
+        }
+    },
+    "supports": { }
+}

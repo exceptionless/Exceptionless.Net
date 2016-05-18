@@ -1,0 +1,48 @@
+﻿{
+    "title": "Exceptionless client for ASP.NET WebForms applications.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "packOptions": {
+        "summary": "Exceptionless client for ASP.NET WebForms applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "WebForms", "Web Forms", "Wcf", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        }
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Exceptionless.Extras": {
+            "target": "project"
+        }
+    },
+    "frameworks": {
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": "",
+                "System.ServiceModel": "",
+                "System.Web": ""
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": "",
+                "System.ServiceModel": "",
+                "System.Web": ""
+            }
+        }
+    }
+}

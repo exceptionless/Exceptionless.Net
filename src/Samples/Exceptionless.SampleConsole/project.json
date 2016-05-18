@@ -1,0 +1,34 @@
+﻿{
+    "buildOptions": {
+        "emitEntryPoint": true,
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Exceptionless": {
+            "target": "project"
+        },
+        "Exceptionless.DateTimeExtensions": "3.1.45",
+        "Exceptionless.Log4net": {
+            "target": "project"
+        },
+        "Exceptionless.NLog": {
+            "target": "project"
+        },
+        "Exceptionless.RandomData": "1.0.22.0",
+        "log4net": "2.0.5",
+        "NLog": "4.3.3",
+        "NLog.Config": "4.3.3",
+        "NLog.Schema": "4.3.0"
+    },
+    "frameworks": {
+        "net452": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ],
+                "compile": [
+                    "**/*.cs",
+                    "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"
+                ]
+            }
+        }
+    }
+}
