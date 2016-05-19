@@ -1,10 +1,10 @@
 ﻿{
-    "title": "Exceptionless client for Nancy applications.",
+    "title": "Exceptionless client for ASP.NET Web API applications.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
     "packOptions": {
-        "summary": "Exceptionless client for Nancy applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
-        "tags": [ "Nancy", "NancyFx", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "summary": "Exceptionless client for ASP.NET Web API applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "Web Api", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -17,23 +17,24 @@
     },
     "buildOptions": {
         "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
+        "keyFile": "../../Exceptionless.snk",
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Exceptionless.Extras": {
+        "Exceptionless.Extras.Signed": {
             "target": "project"
         },
-        "Nancy": "1.4.3"
+        "Microsoft.AspNet.WebApi.Core": "5.2.3"
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            }
-        },
         "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": "",
+                "System.Net.Http": "",
+                "System.ServiceModel": ""
             }
         }
     }

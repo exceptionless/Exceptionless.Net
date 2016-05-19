@@ -1,10 +1,10 @@
 ﻿{
-    "title": "Exceptionless client for ASP.NET MVC 3+ applications.",
+    "title": "Exceptionless client for ASP.NET WebForms applications.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
     "packOptions": {
-        "summary": "Exceptionless client for ASP.NET MVC 3+ applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
-        "tags": [ "MVC", "ASP.NET", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "summary": "Exceptionless client for ASP.NET WebForms applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "WebForms", "Web Forms", "Wcf", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -16,22 +16,14 @@
         }
     },
     "buildOptions": {
-        "compile": [
-            "**/*.cs",
-            "../../GlobalAssemblyInfo.cs",
-            "../Exceptionless.Web/ExceptionlessClientExtensions.cs",
-            "../Exceptionless.Web/ExceptionlessWebExtensions.cs",
-            "../Exceptionless.Web/ExceptionlessWebPlugin.cs",
-            "../Exceptionless.Web/RequestInfoCollector.cs",
-            "../Exceptionless.Web/WebLastReferenceIdManager.cs"
-        ],
+        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
+        "keyFile": "../../Exceptionless.snk",
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Exceptionless.Extras": {
+        "Exceptionless.Extras.Signed": {
             "target": "project"
-        },
-        "Microsoft.AspNet.Mvc": "3.0.20105.1"
+        }
     },
     "frameworks": {
         "net40": {
@@ -40,6 +32,7 @@
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",
+                "System.ServiceModel": "",
                 "System.Web": ""
             }
         },
@@ -49,6 +42,7 @@
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",
+                "System.ServiceModel": "",
                 "System.Web": ""
             }
         }

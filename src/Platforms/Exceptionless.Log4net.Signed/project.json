@@ -1,10 +1,10 @@
 ﻿{
-    "title": "Exceptionless client for Nancy applications.",
+    "title": "Log4net appender that sends log entries to Exceptionless.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
     "packOptions": {
-        "summary": "Exceptionless client for Nancy applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
-        "tags": [ "Nancy", "NancyFx", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "summary": "Log4net appender that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "Log4net", "Appender", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -15,25 +15,32 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         }
     },
-    "buildOptions": {
-        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
-        "warningsAsErrors": true
-    },
     "dependencies": {
-        "Exceptionless.Extras": {
+        "Exceptionless.Portable": {
             "target": "project"
         },
-        "Nancy": "1.4.3"
+        "log4net": "2.0.5"
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
+        "keyFile": "../../Exceptionless.snk",
+        "warningsAsErrors": true
     },
     "frameworks": {
         "net40": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": ""
             }
         },
         "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": ""
             }
         }
     }

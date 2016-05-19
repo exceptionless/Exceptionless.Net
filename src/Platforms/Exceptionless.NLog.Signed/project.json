@@ -1,10 +1,10 @@
 ﻿{
-    "title": "Exceptionless client for Nancy applications.",
+    "title": "NLog target that sends log entries to Exceptionless.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
     "packOptions": {
-        "summary": "Exceptionless client for Nancy applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
-        "tags": [ "Nancy", "NancyFx", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "summary": "NLog target that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "NLog", "Target", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -17,13 +17,14 @@
     },
     "buildOptions": {
         "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
+        "keyFile": "../../Exceptionless.snk",
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Exceptionless.Extras": {
+        "Exceptionless.Portable.Signed": {
             "target": "project"
         },
-        "Nancy": "1.4.3"
+        "NLog": "4.3.3"
     },
     "frameworks": {
         "net40": {

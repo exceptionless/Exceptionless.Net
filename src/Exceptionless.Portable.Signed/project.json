@@ -17,6 +17,7 @@
     },
     "buildOptions": {
         "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "keyFile": "../Exceptionless.snk",
         "warningsAsErrors": true
     },
     "frameworks": {

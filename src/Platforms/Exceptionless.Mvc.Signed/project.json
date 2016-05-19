@@ -25,10 +25,11 @@
             "../Exceptionless.Web/RequestInfoCollector.cs",
             "../Exceptionless.Web/WebLastReferenceIdManager.cs"
         ],
+        "keyFile": "../../Exceptionless.snk",
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Exceptionless.Extras": {
+        "Exceptionless.Extras.Signed": {
             "target": "project"
         },
         "Microsoft.AspNet.Mvc": "3.0.20105.1"
