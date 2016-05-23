@@ -8,13 +8,13 @@ namespace ExceptionLess.Core
 {
     public class ExceptionlessCorePlugIn
     {
-        private readonly IList<IExceptionlessCoreHandlerError> _exceptionlessCoreHandlerError;
+        private readonly IList<IExceptionlessCoreErrorHandler> _exceptionlessCoreHandlerError;
 
         /// <summary>
         /// </summary>
         public ExceptionlessCorePlugIn()
         {
-            _exceptionlessCoreHandlerError = new List<IExceptionlessCoreHandlerError>();
+            _exceptionlessCoreHandlerError = new List<IExceptionlessCoreErrorHandler>();
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace ExceptionLess.Core
         /// Adds and exception filter.
         /// </summary>
         /// <param name="exceptionlessCoreHandlerError">The exception Handler Error.</param>
-        public void AddExceptionlessCoreHandlerError(IExceptionlessCoreHandlerError exceptionlessCoreHandlerError)
+        public void AddExceptionlessCoreHandlerError(IExceptionlessCoreErrorHandler exceptionlessCoreHandlerError)
         {
             _exceptionlessCoreHandlerError.Add(exceptionlessCoreHandlerError);
         }

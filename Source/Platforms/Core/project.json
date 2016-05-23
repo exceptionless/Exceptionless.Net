@@ -1,32 +1,32 @@
-﻿{
+{
+  "title": "Exceptionless.Core",
+  "copyright": "Exceptionless",
+  "description": "Handler Exception Less project with ASP.NET CORE 1 RC2",
+  "language": "en",
   "version": "1.0.0-*",
-  "description": "ExceptionLess.Core Class Library",
-  "authors": [ "ABR_Desktop" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+  "dependencies": {
+    "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Http.Abstractions": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Http.Extensions": "1.0.0-rc2-final",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-final",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-rc2-final",
+    "Microsoft.Net.Http.Headers": "1.0.0-rc2-final",
+    "NETStandard.Library": "1.5.0-rc2-24027",
+    "System.Diagnostics.DiagnosticSource": "4.0.0-rc2-24027"
+  },
+  "commands": {
+    "test": "xunit.runner.dnx"
+  },
   "frameworks": {
-    "dnx451": {      
-      }
-    },
-  "dnxcore50": {
-    "dependencies": {
-      "System.Collections": "4.0.0.0",
-      "System.Collections.Concurrent": "4.0.0.0",
-      "System.ComponentModel": "4.0.0.0",
-      "System.Linq": "4.0.0.0",
-      "System.Reflection": "4.0.10.0",
-      "System.Runtime": "4.0.20.0",
-      "System.Runtime.InteropServices": "4.0.10.0",
-      "System.Threading": "4.0.0.0",
-      "System.Threading.Tasks": "4.0.0.0"
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
     }
   },
-  "dependencies": {
-    "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Http.Abstractions": "1.0.0-rc1-final",
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-rc1-final",
-    "Microsoft.Net.Http.Headers": "1.0.0-rc1-final"
+  "buildOptions": {
+    "defines": [ "DEBUG", "TRACE" ]
   }
-  }
-
+}

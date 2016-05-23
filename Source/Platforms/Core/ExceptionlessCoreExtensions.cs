@@ -1,18 +1,16 @@
-﻿using ExceptionLess.Core.Interfaces;
-using Microsoft.AspNet.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ExceptionLess.Core;
+using ExceptionLess.Core.Interfaces;
 
 namespace ExceptionLess.Core
 {
     public static class ExceptionlessCoreExtensions
     {
         /// <summary>
-        /// Adds the exception filter manager.
+        /// Adds the AspNetCore service.
         /// </summary>
         /// <param name="services">The services.</param>
         /// <returns></returns>
@@ -23,11 +21,11 @@ namespace ExceptionLess.Core
         }
 
         /// <summary>
-        /// Uses the exception intercept manager.
+        /// Uses the AspNetCore App Builder.
         /// </summary>
         /// <param name="built">The builder.</param>
         /// <returns></returns>
-        public static IApplicationBuilder UseExceptionCoreManager(this IApplicationBuilder builder, ExceptionlessCoreOptions options = null)
+        public static IApplicationBuilder UseExceptionCorePlugIn(this IApplicationBuilder builder, ExceptionlessCoreOptions options = null)
         {
             var middlewareOptions = options ?? new ExceptionlessCoreOptions()
             {
@@ -38,24 +36,24 @@ namespace ExceptionLess.Core
         }
 
         /// <summary>
-        /// Adds an exception intercept handler.
+        /// Adds an AspNetCore exception handler.
         /// </summary>
         /// <param name="built">The builder.</param>
-        /// <param name="exceptionFilter">The exception handler.</param>
+        /// <param name="exceptionlessCoreErrorHandler">The exception handler.</param>
         /// <returns></returns>
-        public static IApplicationBuilder AddExceptionlessCoreHandlerError(this IApplicationBuilder builder, IExceptionlessCoreHandlerError exceptionlessCoreHandlerError)
+        public static IApplicationBuilder AddExceptionlessCoreHandlerError(this IApplicationBuilder builder, IExceptionlessCoreErrorHandler exceptionlessCoreErrorHandler)
         {
             var exceptionlessCorePlugIn = builder.ApplicationServices.GetService<ExceptionlessCorePlugIn>();
             if (exceptionlessCorePlugIn != null)
             {
-                exceptionlessCorePlugIn.AddExceptionlessCoreHandlerError(exceptionlessCoreHandlerError);
+                exceptionlessCorePlugIn.AddExceptionlessCoreHandlerError(exceptionlessCoreErrorHandler);
             }
 
             return builder;
         }
 
         /// <summary>
-        /// Adds an exception intercept handler.
+        /// Adds an AspNetCore exception handler.
         /// </summary>
         /// <param name="built">The builder.</param>
         /// <param name="exceptionFilterType">Type of the exception handler.</param>
@@ -65,7 +63,7 @@ namespace ExceptionLess.Core
             var exceptionlessCoreHandlerError = builder.ApplicationServices.GetService(exceptionFilterType);
             if (exceptionlessCoreHandlerError != null)
             {
-                var handler = exceptionlessCoreHandlerError as IExceptionlessCoreHandlerError;
+                var handler = exceptionlessCoreHandlerError as IExceptionlessCoreErrorHandler;
                 if (handler != null)
                 {
                     builder.AddExceptionlessCoreHandlerError(handler);
@@ -76,17 +74,17 @@ namespace ExceptionLess.Core
         }
 
         /// <summary>
-        /// Adds an exception intercept handler.
+        /// Adds an AspNetCore exception handler.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="built">The builder.</param>
         /// <returns></returns>
-        public static IApplicationBuilder AddExceptionlessCoreHandlerError<T>(this IApplicationBuilder builder) where T : IExceptionlessCoreHandlerError
+        public static IApplicationBuilder AddExceptionlessCoreHandlerError<T>(this IApplicationBuilder builder) where T : IExceptionlessCoreErrorHandler
         {
-            var exceptionlessCoreHandlerError = builder.ApplicationServices.GetService<T>();
-            if (exceptionlessCoreHandlerError != null)
+            var exceptionlessCoreErrorHandler = builder.ApplicationServices.GetService<T>();
+            if (exceptionlessCoreErrorHandler != null)
             {
-                builder.AddExceptionlessCoreHandlerError(exceptionlessCoreHandlerError);
+                builder.AddExceptionlessCoreHandlerError(exceptionlessCoreErrorHandler);
             }
 
             return builder;

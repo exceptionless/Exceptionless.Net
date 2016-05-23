@@ -9,14 +9,14 @@ namespace ExceptionLess.Core.Interfaces
     /// IExceptionlessCoreHandlerError.
     /// </summary>   
     ///     
-    public interface IExceptionlessCoreHandlerError
+    public interface IExceptionlessCoreErrorHandler
     {
         /// <summary>
-        /// Handles exception asynchronously.
+        /// Handles AspNetCore exception asynchronously.
         /// </summary>
-        /// <param name="exceptionContext">The exception context.</param>
+        /// <param name="exceptionlessCoreErrorAttribute">The exception context.</param>
         /// <returns></returns>
-        Task HandleAsync(IExceptionlessCoreErrorAttribute exceptionContext);
+        Task HandleAsync(IExceptionlessCoreErrorAttribute exceptionlessCoreErrorAttribute);
     }  
 
 }

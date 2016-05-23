@@ -1,7 +1,7 @@
 ﻿using ExceptionLess.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System;
-using System.Threading.Tasks;
-using Microsoft.AspNet.Http;
+
 
 namespace ExceptionLess.Core
 {

@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNet.Builder;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Diagnostics;
-using Microsoft.AspNet.Http.Features;
-using System.Runtime.Remoting.Contexts;
 using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Http;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace ExceptionLess.Core
 {
@@ -19,7 +14,7 @@ namespace ExceptionLess.Core
         private readonly RequestDelegate _next;
         private readonly ExceptionlessCoreOptions _exceptionlessCoreOptions;
         private readonly DiagnosticSource _diagnosticSource;
-        private readonly ExceptionlessCorePlugIn _exceptionCoreManager;
+        private readonly ExceptionlessCorePlugIn _exceptionlessCorePlugIn;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionlessCoreMiddleware"/> class.
@@ -29,8 +24,7 @@ namespace ExceptionLess.Core
         /// <param name="options">The options.</param>
         /// <param name="diagnosticSource">The diagnostic source.</param>
         /// <param name="exceptionlessCorePlugIn">The exception Core manager.</param>
-        public ExceptionlessCoreMiddleware(
-            ILoggerFactory loggerFactory,
+        public ExceptionlessCoreMiddleware(            
             RequestDelegate next,
             ExceptionlessCoreOptions exceptionlessCoreOptions,
             DiagnosticSource diagnosticSource,
@@ -39,7 +33,7 @@ namespace ExceptionLess.Core
             _next = next;
             _exceptionlessCoreOptions = exceptionlessCoreOptions;
             _diagnosticSource = diagnosticSource;
-            _exceptionCoreManager = exceptionlessCorePlugIn;
+            _exceptionlessCorePlugIn = exceptionlessCorePlugIn;
             
         }
 
@@ -87,7 +81,7 @@ namespace ExceptionLess.Core
                         Exception = ex
                     };
 
-                    await _exceptionCoreManager.CoreAsync(exceptionContext);
+                    await _exceptionlessCorePlugIn.CoreAsync(exceptionContext);
 
                     if (_diagnosticSource.IsEnabled("Microsoft.AspNet.Diagnostics.HandledException"))
                     {

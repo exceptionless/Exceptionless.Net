@@ -1,5 +1,6 @@
-﻿using System;
-using Microsoft.AspNet.Http;
+﻿using Microsoft.AspNetCore.Http;
+using System;
+
 
 namespace ExceptionLess.Core.Interfaces
 {
@@ -21,6 +22,7 @@ namespace ExceptionLess.Core.Interfaces
         /// </value>
         Exception Exception { get; }
 
+        
         
     }
 }
