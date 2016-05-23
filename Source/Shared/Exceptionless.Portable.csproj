@@ -325,6 +325,11 @@
     <Compile Include="Newtonsoft.Json\WriteState.cs" />
     <Compile Include="Polyfill\ConcurrentQueue.cs" />
     <Compile Include="Polyfill\ObjectPool.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Queue\IEventQueue.cs" />
     <Compile Include="Queue\DefaultEventQueue.cs" />
     <Compile Include="Serializer\DataDictionaryConverter.cs" />
@@ -351,6 +356,10 @@
     <Compile Include="Submission\SubmissionResponse.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <None Include="app.config" />
     <EmbeddedResource Include="Json.Dynamic.snk" />
     <None Include="NuGet\Exceptionless.Portable.nuspec" />
