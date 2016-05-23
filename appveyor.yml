@@ -20,7 +20,7 @@ assembly_info:
 
 before_build:
   - appveyor-retry nuget restore -verbosity quiet
-  - dotnet restore
+  - dotnet restore -v Minimal
 
 build_script:
   - ps: .\tools\Build.ps1
@@ -32,7 +32,7 @@ after_test:
   - ps: .\tools\Package.ps1
 
 artifacts:
-  - path: Build\Deploy\packages\*.nupkg
+  - path: artifacts\*.nupkg
     name: ReleaseArtifacts
 
 deploy:

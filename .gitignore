@@ -98,6 +98,7 @@ DocProject/Help/html
 publish/
 
 # Publish Web Output
+artifacts
 *.Publish.xml
 *.pubxml
 

@@ -13,6 +13,9 @@
         "repository": {
             "type": "git",
             "url": "https://github.com/exceptionless/Exceptionless.Net"
+        },
+        "files": {
+            "include": [ "NuGet/readme.txt" ]
         }
     },
     "dependencies": {

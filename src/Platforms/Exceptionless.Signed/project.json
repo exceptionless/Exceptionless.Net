@@ -13,11 +13,13 @@
         "repository": {
             "type": "git",
             "url": "https://github.com/exceptionless/Exceptionless.Net"
-        }
-    },
-    "dependencies": {
-        "Exceptionless.Extras.Signed": {
-            "target": "project"
+        },
+        "files": {
+            "mappings": {
+                "tools/": "../Exceptionless/NuGet/tools/*",
+                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+            },
+            "include": [ "../Exceptionless/NuGet/readme.txt" ]
         }
     },
     "buildOptions": {
@@ -36,6 +38,14 @@
         ],
         "warningsAsErrors": true,
         "xmlDoc": true
+    },
+    "dependencies": {
+        "Exceptionless.Extras.Signed": {
+            "target": "project"
+        },
+        "Exceptionless.Portable.Signed": {
+            "target": "project"
+        }
     },
     "frameworks": {
         "net40": {

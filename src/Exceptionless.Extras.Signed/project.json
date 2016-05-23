@@ -1,4 +1,20 @@
 ﻿{
+    "title": "Exceptionless client extras.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "packOptions": {
+        "summary": "Exceptionless client extras. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        }
+    },
     "dependencies": {
         "Exceptionless.Portable.Signed": {
             "target": "project"

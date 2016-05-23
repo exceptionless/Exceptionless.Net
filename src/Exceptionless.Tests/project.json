@@ -8,6 +8,9 @@
         "Exceptionless.Extras": {
             "target": "project"
         },
+        "Exceptionless.Portable": {
+            "target": "project"
+        },
         "Exceptionless.RandomData": "1.0.22.0",
         "Foundatio": "4.0.958",
         "Moq": "4.2.1510.2205",
