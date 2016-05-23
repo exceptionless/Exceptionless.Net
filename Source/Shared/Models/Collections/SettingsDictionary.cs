@@ -32,15 +32,14 @@ namespace Exceptionless.Models {
         }
 
         public bool GetBoolean(string name, bool @default) {
-            bool value;
             string temp = null;
-
-            bool result = name != null && TryGetValue(name, out temp);
-            if (!result)
+            if (String.IsNullOrWhiteSpace(name) || !TryGetValue(name, out temp))
                 return @default;
-
-            result = bool.TryParse(temp, out value);
-            return result ? value : @default;
+            
+            if (String.IsNullOrEmpty(temp))
+                return @default;
+            
+            return temp.ToBoolean(@default);
         }
 
         public int GetInt32(string name) {
@@ -219,11 +218,7 @@ namespace Exceptionless.Models {
                     return sourceEnabled;
             }
 
-            var setting = GetTypeAndSourceSetting(type, source, "true");
-            if (!Boolean.TryParse(setting, out sourceEnabled))
-                sourceEnabled = true;
-
-            return sourceEnabled;
+            return GetTypeAndSourceSetting(type, source, "true").ToBoolean(true);
         }
 
         private readonly Dictionary<string, string> _eventTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

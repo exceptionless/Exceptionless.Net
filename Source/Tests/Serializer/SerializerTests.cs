@@ -162,6 +162,9 @@ namespace Exceptionless.Tests.Serializer {
                 c.UseTraceLogger();
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
+
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
     }

@@ -22,6 +22,7 @@ namespace Exceptionless {
         private string _serverUrl;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
+        private TimeSpan? _updateSettingsWhenIdleInterval;
         private readonly List<string> _exclusions = new List<string>();
         private readonly List<string> _userAgentBotPatterns = new List<string>();
         private readonly List<Func<Event, bool>> _eventExclusions = new List<Func<Event, bool>>();
@@ -74,6 +75,7 @@ namespace Exceptionless {
                 _validationResult = null;
                 _serverUrl = value;
                 _heartbeatServerUrl = value;
+                OnChanged();
             }
         }
 
@@ -91,6 +93,7 @@ namespace Exceptionless {
 
                 _validationResult = null;
                 _heartbeatServerUrl = value;
+                OnChanged();
             }
         }
 
@@ -113,6 +116,7 @@ namespace Exceptionless {
 
                 _validationResult = null;
                 _apiKey = value;
+                OnChanged();
             }
         }
 
@@ -151,6 +155,26 @@ namespace Exceptionless {
         /// Contains a dictionary of custom settings that can be used to control the client and will be automatically updated from the server.
         /// </summary>
         public SettingsDictionary Settings { get; private set; }
+
+        /// <summary>
+        /// How often the client should check for updated server settings when idle. The default is every 2 minutes. 
+        /// </summary>
+        public TimeSpan? UpdateSettingsWhenIdleInterval {
+            get { return _updateSettingsWhenIdleInterval; }
+            set {
+                if (_updateSettingsWhenIdleInterval == value)
+                    return;
+
+                if (value.HasValue && value > TimeSpan.Zero && value < TimeSpan.FromSeconds(15))
+                    _updateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
+                else if (value.HasValue && value <= TimeSpan.Zero)
+                    _updateSettingsWhenIdleInterval = TimeSpan.FromMilliseconds(-1);
+                else
+                    _updateSettingsWhenIdleInterval = value;
+                
+                OnChanged();
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to include private information about the local machine.
@@ -441,6 +465,17 @@ namespace Exceptionless {
                 var disposable = _plugin.Value as IDisposable;
                 if (disposable != null)
                     disposable.Dispose();
+            }
+        }
+
+        public event EventHandler Changed;
+
+        protected virtual void OnChanged() {
+            try {
+            if (Changed != null)
+                Changed.Invoke(this, EventArgs.Empty);
+            } catch (Exception ex) {
+                Resolver.GetLog().Error(typeof(ExceptionlessConfiguration), ex, "Error while calling OnChanged event handlers.");
             }
         }
     }

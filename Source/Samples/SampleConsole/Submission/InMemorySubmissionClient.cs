@@ -26,7 +26,7 @@ namespace Exceptionless.SampleConsole {
             return new SubmissionResponse(200);
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
             return new SettingsResponse(true);
         }
 

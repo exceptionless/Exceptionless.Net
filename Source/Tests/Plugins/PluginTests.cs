@@ -29,6 +29,9 @@ namespace Exceptionless.Tests.Plugins {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace   });
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
+
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
 
@@ -147,6 +150,12 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("Test", "Off", null, null, true)]
         [InlineData("Test", "Abc", null, null, false)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", true)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "false", true)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "no", true)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "0", true)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "true", false)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "yes", false)]
+        [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "1", false)]
         [InlineData("Test", "Info", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", true)]
         [InlineData("Test", "Warn", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", false)]

@@ -38,6 +38,7 @@ namespace SampleConsole {
             Console.CursorVisible = false;
             StartDisplayingLogMessages();
 
+            ExceptionlessClient.Default.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
             ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
             ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
@@ -86,7 +87,9 @@ namespace SampleConsole {
                 } else if (keyInfo.Key == ConsoleKey.D5) {
                     ExceptionlessClient.Default.Configuration.UseSessions(false, null, true);
                     ExceptionlessClient.Default.SubmitSessionStart();
-                } else if (keyInfo.Key == ConsoleKey.D7)
+                } else if (keyInfo.Key == ConsoleKey.D6)
+                    SendContinuousEvents(250, token, ev: new Event { Type = Event.KnownTypes.Log, Source = "SampleConsole.Program.Main", Message = "Sample console application event" });
+                else if (keyInfo.Key == ConsoleKey.D7)
                     ExceptionlessClient.Default.SubmitSessionEnd();
                 else if (keyInfo.Key == ConsoleKey.D8)
                     ExceptionlessClient.Default.Configuration.SetUserIdentity(Guid.NewGuid().ToString("N"));
@@ -151,7 +154,7 @@ namespace SampleConsole {
                 Console.WriteLine("3: Send continuous");
                 Console.WriteLine("4: Send session start");
                 Console.WriteLine("5: Send session start (manual)");
-                Console.WriteLine("6: Send heart beat");
+                Console.WriteLine("6: Send continuous log event");
                 Console.WriteLine("7: Send session end");
                 Console.WriteLine("8: Change user identity");
                 Console.WriteLine("P: Process queue");
@@ -221,17 +224,22 @@ namespace SampleConsole {
             }
         }
 
-        private static void SendContinuousEvents(int delay, CancellationToken token, int maxEvents = Int32.MaxValue, int maxDaysOld = 90) {
+        private static void SendContinuousEvents(int delay, CancellationToken token, int maxEvents = Int32.MaxValue, int maxDaysOld = 90, Event ev = null) {
             Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
             Console.WriteLine("Press 's' to stop sending.");
             int eventCount = 0;
+
+            var levels = new[] { LogLevel.Trace, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error, LogLevel.Fatal, LogLevel.Other };
 
             Task.Factory.StartNew(delegate {
                 while (eventCount < maxEvents) {
                     if (token.IsCancellationRequested)
                         break;
 
-                    SendEvent(false);
+                    if (ev != null && ev.IsLog())
+                        ev.SetProperty(Event.KnownDataKeys.Level, levels.Random().Name);
+
+                    SendEvent(ev, false);
                     eventCount++;
                     lock (_writeLock) {
                         Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 4);
@@ -246,11 +254,11 @@ namespace SampleConsole {
         }
 
         private static readonly RandomEventGenerator _rnd = new RandomEventGenerator();
-        private static void SendEvent(bool writeToConsole = true) {
+        private static void SendEvent(Event ev = null, bool writeToConsole = true) {
             _rnd.MinDate = DateTime.Now.Subtract(_dateSpans[_dateSpanIndex]);
             _rnd.MaxDate = DateTime.Now;
 
-            ExceptionlessClient.Default.SubmitEvent(_rnd.Generate());
+            ExceptionlessClient.Default.SubmitEvent(ev ?? _rnd.Generate());
 
             if (writeToConsole) {
                 lock (_writeLock) {

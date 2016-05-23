@@ -63,7 +63,26 @@ namespace Exceptionless.Extensions {
 
             return value.Equals(pattern);
         }
-        
+
+        public static bool ToBoolean(this string input, bool @default = false) {
+            if (String.IsNullOrEmpty(input))
+                return @default;
+
+            input = input.ToLowerInvariant().Trim();
+
+            bool value;
+            if (bool.TryParse(input, out value))
+                return value;
+
+            if (String.Equals(input, "yes") || String.Equals(input, "1"))
+                return true;
+
+            if (String.Equals(input, "no") || String.Equals(input, "0"))
+                return false;
+
+            return @default;
+        }
+
         public static string ToHex(this IEnumerable<byte> bytes) {
             var sb = new StringBuilder();
             foreach (byte b in bytes)

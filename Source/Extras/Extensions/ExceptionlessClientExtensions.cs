@@ -27,6 +27,9 @@ namespace Exceptionless {
             client.Configuration.UseTraceLogEntriesPlugin();
             client.Configuration.AddPlugin<VersionPlugin>();
             
+            if (client.Configuration.UpdateSettingsWhenIdleInterval == null)
+                client.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromMinutes(2);
+
             client.RegisterAppDomainUnhandledExceptionHandler(appDomain);
             client.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
         }

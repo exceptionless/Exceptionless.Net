@@ -70,7 +70,7 @@ namespace Exceptionless.Tests.Configuration {
             submissionClient.Setup(m => m.PostEvents(It.IsAny<IEnumerable<Event>>(), config, It.IsAny<IJsonSerializer>()))
                 .Callback(() => SettingsManager.CheckVersion(1, config))
                 .Returns(() => new SubmissionResponse(202, "Accepted"));
-            submissionClient.Setup(m => m.GetSettings(config, It.IsAny<IJsonSerializer>()))
+            submissionClient.Setup(m => m.GetSettings(config, 0, It.IsAny<IJsonSerializer>()))
                 .Returns(() => new SettingsResponse(true, new SettingsDictionary { { "Test", "Test" }, { "LocalSettingToOverride", "2" } }, 1));
 
             config.Resolver.Register<ISubmissionClient>(submissionClient.Object);

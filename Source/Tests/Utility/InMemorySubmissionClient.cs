@@ -37,7 +37,7 @@ namespace Exceptionless.Tests.Utility {
             return new SubmissionResponse(200, "OK");
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
             return new SettingsResponse(true);
         }
 

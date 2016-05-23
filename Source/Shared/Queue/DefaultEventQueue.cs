@@ -52,12 +52,12 @@ namespace Exceptionless.Queue {
             if (_processingQueue)
                 return;
 
-            _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
             if (!_config.Enabled) {
                 _log.Info(typeof(DefaultEventQueue), "Configuration is disabled. The queue will not be processed.");
                 return;
             }
 
+            _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
             _processingQueue = true;
             
             try {
@@ -71,7 +71,8 @@ namespace Exceptionless.Queue {
                     bool deleteBatch = true;
 
                     try {
-                        var response = _client.PostEvents(batch.Select(b => b.Item2), _config, _serializer);
+                        var events = batch.Select(b => b.Item2).ToList();
+                        var response = _client.PostEvents(events, _config, _serializer);
                         if (response.Success) {
                             _log.FormattedInfo(typeof(DefaultEventQueue), "Sent {0} events to \"{1}\".", batch.Count, _config.ServerUrl);
                         } else if (response.ServiceUnavailable) {
@@ -104,6 +105,8 @@ namespace Exceptionless.Queue {
                             SuspendProcessing();
                             deleteBatch = false;
                         }
+
+                        OnEventsPosted(new EventsPostedEventArgs { Events = events, Response = response });
                     } catch (AggregateException ex) {
                         _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while submitting events: ", ex.Flatten().Message));
                         SuspendProcessing();
@@ -144,7 +147,7 @@ namespace Exceptionless.Queue {
             if (!duration.HasValue)
                 duration = TimeSpan.FromMinutes(5);
 
-            _log.Info(typeof(ExceptionlessClient), String.Format("Suspending processing for: {0}.", duration.Value));
+            _log.Info(typeof(DefaultEventQueue), String.Format("Suspending processing for: {0}.", duration.Value));
             _suspendProcessingUntil = DateTime.Now.Add(duration.Value);
             _queueTimer.Change(duration.Value, _processQueueInterval);
 
@@ -160,6 +163,17 @@ namespace Exceptionless.Queue {
                 _storage.CleanupQueueFiles(_config.GetQueueName(), TimeSpan.Zero);
 #pragma warning restore 4014
             } catch (Exception) { }
+        }
+
+        public event EventHandler<EventsPostedEventArgs> EventsPosted;
+
+        protected virtual void OnEventsPosted(EventsPostedEventArgs e) {
+            try {
+                if (EventsPosted != null)
+                    EventsPosted.Invoke(this, e);
+            } catch (Exception ex) {
+                _log.Error(typeof(DefaultEventQueue), ex, "Error while calling OnEventsPosted event handlers.");
+            }
         }
 
         private bool IsQueueProcessingSuspended {

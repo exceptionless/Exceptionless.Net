@@ -14,6 +14,9 @@ namespace Exceptionless.Tests {
                 c.UseTraceLogger();
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
+                
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
 
@@ -43,17 +46,17 @@ namespace Exceptionless.Tests {
         public void CanFireOnSubmittingEvent() {
             var client = CreateClient();
             var ev = new Event { Message = "Unit Test" };
-            var list = new List<EventSubmittingEventArgs>();
+            var submittingEventArgs = new List<EventSubmittingEventArgs>();
 
             client.SubmittingEvent += (sender, e) => {
-                list.Add(e);
+                submittingEventArgs.Add(e);
             }; 
 
             new EventBuilder(ev, client).Submit();
-            Assert.Equal(1, list.Count);
+            Assert.Equal(1, submittingEventArgs.Count);
 
             new EventBuilder(ev, client, new ContextData()).Submit();
-            Assert.Equal(2, list.Count);  
+            Assert.Equal(2, submittingEventArgs.Count);  
         }
 
         [Fact]
@@ -72,13 +75,13 @@ namespace Exceptionless.Tests {
             client.Shutdown();
         }
 
-        [Fact (Skip = "This test shows off throwing a stack overflow exception: Issue #26")]
-        public void WillThrowStackOverflowExceptionDuringOnSubmitting() {
+        [Fact]
+        public void WillNotThrowStackOverflowExceptionDuringOnSubmitting() {
             var client = CreateClient();
-            var list = new List<EventSubmittingEventArgs>();
+            var submittingEventArgs = new List<EventSubmittingEventArgs>();
 
             client.SubmittingEvent += (sender, e) => {
-                list.Add(e);
+                submittingEventArgs.Add(e);
                 if (e.IsUnhandledError) {
                     new EventBuilder(e.Event, e.Client, e.PluginContextData).AddTags("Unhandled").Submit();
                     e.Cancel = true;
@@ -88,7 +91,7 @@ namespace Exceptionless.Tests {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             new Exception("Test").ToExceptionless(contextData, client).Submit();
-            Assert.Equal(2, list.Count);  
+            Assert.Equal(1, submittingEventArgs.Count);  
         }
         
         private class Person {
@@ -97,19 +100,18 @@ namespace Exceptionless.Tests {
 
         public class MySubmissionClient : ISubmissionClient {
             public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                throw new NotImplementedException();
+                return new SubmissionResponse(202);
             }
 
             public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                throw new NotImplementedException();
+                return new SubmissionResponse(202);
             }
 
-            public SettingsResponse GetSettings(ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                throw new NotImplementedException();
+            public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+                return new SettingsResponse(false);
             }
 
             public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
-                throw new NotImplementedException();
             }
         }
     }
