@@ -2,12 +2,16 @@
 . .\Settings.ps1
 
 Function Create-Directory([string] $directory_name) {
+    If (Test-Path -Path $directory_name) {
+        Remove-Item -Recurse -Force -Path $directory_name | Out-Null
+    }
+    
     If (!(Test-Path -Path $directory_name)) {
         New-Item $directory_name -ItemType Directory | Out-Null
     }
 }
 
-Create-Directory -Path $artifacts_dir
+Create-Directory $artifacts_dir
 
 ForEach ($p in $client_projects) {
     If (Test-Path "$($p.SourceDir)\project.json") {
@@ -25,7 +29,7 @@ ForEach ($p in $client_projects) {
     $isSignedProject = $($p.Name).EndsWith(".Signed")
     $assemblyName = $($p.Name).Replace(".Signed", "")
     $workingDirectory = "$working_dir\$($p.Name)"
-    Create-Directory -Path $workingDirectory
+    Create-Directory $workingDirectory
 
     Write-Host "Building Client NuGet Package: $($p.Name)" -ForegroundColor Yellow
 
