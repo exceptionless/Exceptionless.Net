@@ -16,14 +16,18 @@
         }
     },
     "dependencies": {
-        "Exceptionless.Portable": {
+        "Exceptionless.Portable.Signed": {
             "target": "project"
         },
         "log4net": "2.0.5"
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
-        "warningsAsErrors": true
+        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ], 
+        "nowarn": [
+            "CS1591"
+        ],
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "frameworks": {
         "net40": {

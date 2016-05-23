@@ -16,20 +16,32 @@
         }
     },
     "dependencies": {
-        "Exceptionless.Portable": {
+        "Exceptionless.Portable.Signed": {
             "target": "project"
         },
         "log4net": "2.0.5"
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
-        "keyFile": "../../Exceptionless.snk",
-        "warningsAsErrors": true
+        "compile": {
+            "include": [
+                "../Exceptionless.Log4net/**/*.cs",
+                "../../GlobalAssemblyInfo.cs"
+            ],
+            "exclude": [
+                "../Exceptionless.Log4net/obj/"
+            ]
+        },
+        "keyFile": "../../Exceptionless.snk", 
+        "nowarn": [
+            "CS1591"
+        ],
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "frameworks": {
         "net40": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": ""
@@ -37,7 +49,7 @@
         },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": ""

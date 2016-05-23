@@ -52,13 +52,23 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(SignAssembly)' == 'false' ">
     <Reference Include="Exceptionless.Extras">
-      <HintPath>..\..\Exceptionless.Extras\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.dll</HintPath>
+      <HintPath>$(SolutionDir)\src\Exceptionless.Extras\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Portable">
-      <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+      <HintPath>$(SolutionDir)\src\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(SignAssembly)' == 'true' ">
+    <Reference Include="Exceptionless.Extras">
+      <HintPath>$(SolutionDir)\src\Exceptionless.Extras.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.Signed.dll</HintPath>
+    </Reference>
+    <Reference Include="Exceptionless.Portable">
+      <HintPath>$(SolutionDir)\src\Exceptionless.Portable.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.Signed.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Windows.Forms" />

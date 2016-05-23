@@ -16,14 +16,27 @@
         }
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
-        "keyFile": "../Exceptionless.snk",
-        "warningsAsErrors": true
+        "compile": {
+            "include": [
+                "../Exceptionless.Portable/**/*.cs",
+                "../GlobalAssemblyInfo.cs"
+            ],
+            "exclude": [
+                "../Exceptionless.Portable/obj/"
+            ]
+        },
+        "keyFile": "../Exceptionless.snk", 
+        "nowarn": [
+            "CS0419",
+            "CS1591"
+        ],
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "frameworks": {
         ".NETPortable,Version=v4.0,Profile=Profile328": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "PORTABLE40" ]
+                "define": [ "EMBEDDED", "SIGNED", "PORTABLE40" ]
             },
             "frameworkAssemblies": {
                 "mscorlib": "",
@@ -36,7 +49,7 @@
         },
         "net40": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
             },
             "frameworkAssemblies": {
                 "System.Data": "",
@@ -49,7 +62,7 @@
         },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Data": "",

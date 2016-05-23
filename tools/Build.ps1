@@ -23,6 +23,8 @@ ForEach ($p in $client_projects) {
         If ($($p.Name).EndsWith(".Signed")) {
             $name = $($p.Name).Replace(".Signed", "");
             msbuild "$($p.SourceDir)\$name.csproj" `
+                        /p:AssemblyName="$($p.Name)" `
+                        /p:DocumentationFile="bin\$($configuration)\$($b.TargetFrameworkVersionProperty)\$($p.Name).Signed.xml" `
                         /p:SignAssembly=true `
                         /p:AssemblyOriginatorKeyFile="$sign_file" `
                         /p:Configuration="$configuration" `
@@ -36,6 +38,8 @@ ForEach ($p in $client_projects) {
                         /t:"Rebuild"
         } else {
             msbuild "$($p.SourceDir)\$($p.Name).csproj" `
+                        /p:AssemblyName="$($p.Name)" `
+                        /p:DocumentationFile="bin\$($configuration)\$($b.TargetFrameworkVersionProperty)\$($p.Name).xml" `
                         /p:SignAssembly=false `
                         /p:Configuration="$configuration" `
                         /p:Platform="AnyCPU" `

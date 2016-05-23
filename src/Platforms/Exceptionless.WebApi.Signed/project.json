@@ -16,9 +16,21 @@
         }
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
-        "keyFile": "../../Exceptionless.snk",
-        "warningsAsErrors": true
+        "compile": {
+            "include": [
+                "../Exceptionless.WebApi/**/*.cs",
+                "../../GlobalAssemblyInfo.cs"
+            ],
+            "exclude": [
+                "../Exceptionless.WebApi/obj/"
+            ]
+        },
+        "keyFile": "../../Exceptionless.snk", 
+        "nowarn": [
+            "CS1591"
+        ],
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "dependencies": {
         "Exceptionless.Extras.Signed": {
@@ -29,7 +41,7 @@
     "frameworks": {
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",

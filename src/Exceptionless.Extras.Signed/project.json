@@ -5,14 +5,26 @@
         }
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
-        "keyFile": "../Exceptionless.snk",
-        "warningsAsErrors": true
+        "compile": {
+            "include": [
+                "../Exceptionless.Extras/**/*.cs",
+                "../GlobalAssemblyInfo.cs"
+            ],
+            "exclude": [
+                "../Exceptionless.Extras/obj/"
+            ]
+        },
+        "keyFile": "../Exceptionless.snk", 
+        "nowarn": [
+            "CS1591"
+        ],
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "frameworks": {
         "net40": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.VisualBasic": "",
@@ -22,7 +34,7 @@
         },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.VisualBasic": "", 

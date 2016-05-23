@@ -21,8 +21,12 @@
         }
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
-        "warningsAsErrors": true
+        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ], 
+        "nowarn": [
+            "CS1591"
+        ],
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "frameworks": {
         "net40": {

@@ -24,8 +24,12 @@
             "../Exceptionless.Web/ExceptionlessWebPlugin.cs",
             "../Exceptionless.Web/RequestInfoCollector.cs",
             "../Exceptionless.Web/WebLastReferenceIdManager.cs"
+        ], 
+        "nowarn": [
+            "CS1591"
         ],
-        "warningsAsErrors": true
+        "warningsAsErrors": true,
+        "xmlDoc": true
     },
     "dependencies": {
         "Exceptionless.Extras": {
