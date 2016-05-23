@@ -32,7 +32,7 @@ before_build:
 build_script:
   - ps: .\tools\Build.ps1
 
-test:
+test_script:
   - dotnet test src\Exceptionless.Tests\
 
 after_test:
