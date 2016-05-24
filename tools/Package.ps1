@@ -27,7 +27,6 @@ ForEach ($p in $client_projects) {
     }
     
     $isSignedProject = $($p.Name).EndsWith(".Signed")
-    $assemblyName = $($p.Name).Replace(".Signed", "")
     $workingDirectory = "$working_dir\$($p.Name)"
     Create-Directory $workingDirectory
 
@@ -38,6 +37,8 @@ ForEach ($p in $client_projects) {
         $buildDirectory = "$build_dir\$configuration\$($p.Name)\lib\$($b.NuGetDir)"
         $workingLibDirectory = "$workingDirectory\lib\$($b.NuGetDir)"
         Create-Directory $workingLibDirectory
+        
+        Get-ChildItem -Path $buildDirectory | Where-Object { $_.Name -eq "$($p.Name).dll" -Or $_.Name -eq "$($p.Name).pdb" -or $_.Name -eq "$($p.Name).xml" } | Copy-Item -Destination $workingLibDirectory
     }
 
     # Copy the source code for Symbol Source.
@@ -53,7 +54,8 @@ ForEach ($p in $client_projects) {
 
     $nuspecFile = "$workingDirectory\$($p.Name).nuspec"
     If ($isSignedProject) {
-        Rename-Item -Path "$workingDirectory\$assemblyName.nuspec" -NewName $nuspecFile
+        $unsignedNuspecFile = $($p.Name).Replace(".Signed", "");
+        Rename-Item -Path "$workingDirectory\$unsignedNuspecFile.nuspec" -NewName $nuspecFile
     }
 
     # update NuGet nuspec file.
