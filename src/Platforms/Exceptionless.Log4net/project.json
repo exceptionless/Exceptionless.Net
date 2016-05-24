@@ -3,8 +3,8 @@
     "title": "Log4net appender that sends log entries to Exceptionless.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "description": "Log4net appender that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
     "packOptions": {
-        "summary": "Log4net appender that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
         "tags": [ "Log4net", "Appender", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",

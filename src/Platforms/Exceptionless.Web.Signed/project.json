@@ -3,8 +3,8 @@
     "title": "Exceptionless client for ASP.NET WebForms applications.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "description": "Exceptionless client for ASP.NET WebForms applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
     "packOptions": {
-        "summary": "Exceptionless client for ASP.NET WebForms applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
         "tags": [ "WebForms", "Web Forms", "Wcf", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
