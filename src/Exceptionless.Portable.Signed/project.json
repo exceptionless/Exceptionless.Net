@@ -29,6 +29,11 @@
                 "../Exceptionless.Portable/obj/"
             ]
         },
+        "embed": {
+            "mappings": {
+                "Exceptionless.Json.Dynamic.snk": "../Exceptionless.Portable/Json.Dynamic.snk"
+            }
+        },
         "keyFile": "../Exceptionless.snk", 
         "nowarn": [
             "CS0419",

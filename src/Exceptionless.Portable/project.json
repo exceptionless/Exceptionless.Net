@@ -21,6 +21,11 @@
     },
     "buildOptions": {
         "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "embed": {
+            "mappings": {
+                "Exceptionless.Json.Dynamic.snk": "Json.Dynamic.snk"
+            }
+        },
         "warningsAsErrors": true, 
         "nowarn": [
             "CS0419",
