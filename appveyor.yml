@@ -23,7 +23,7 @@ before_build:
       Get-ChildItem -Path .\ -Filter project.json -Recurse -Name |
       ForEach {
           $content = Get-Content "$_"
-          $content = $content.Replace("99.99.99-dev", "{version}$(VERSION_SUFFIX)")
+          $content = $content.Replace("99.99.99-dev", "$($env:APPVEYOR_BUILD_VERSION)$($env:VERSION_SUFFIX)")
           Set-Content "$_" $content -Encoding UTF8
       }
   - appveyor-retry nuget restore -verbosity quiet
