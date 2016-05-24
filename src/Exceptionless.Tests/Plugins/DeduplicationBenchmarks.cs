@@ -52,25 +52,18 @@ namespace Exceptionless.Tests.Plugins {
             _duplicateCheckerPlugin.Run(context);
         }
 
-
-
         [Benchmark]
-        public void IdenticalExceptions()
-        {
+        public void IdenticalExceptions() {
             var context = new EventPluginContext(_client, _fixedEventBuilder.Target, _fixedEventBuilder.PluginContextData);
 
             _errorPlugin.Run(context);
             _duplicateCheckerPlugin.Run(context);
         }
 
-        private Exception GetException(string message = "Test")
-        {
-            try
-            {
+        private Exception GetException(string message = "Test") {
+            try {
                 throw new Exception(message);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 return ex;
             }
         }
