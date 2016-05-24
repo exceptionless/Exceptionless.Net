@@ -1,6 +1,7 @@
 ﻿{
     "testRunner": "xunit",
     "buildOptions": {
+        "optimize": true,
         "warningsAsErrors": true
     },
     "dependencies": {
