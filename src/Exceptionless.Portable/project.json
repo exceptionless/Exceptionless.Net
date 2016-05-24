@@ -26,11 +26,12 @@
                 "Exceptionless.Json.Dynamic.snk": "Json.Dynamic.snk"
             }
         },
-        "warningsAsErrors": true, 
         "nowarn": [
             "CS0419",
             "CS1591"
         ],
+        "optimize": true,
+        "warningsAsErrors": true, 
         "xmlDoc": true
     },
     "frameworks": {

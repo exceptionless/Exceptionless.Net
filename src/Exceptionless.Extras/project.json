@@ -26,6 +26,7 @@
         "nowarn": [
             "CS1591"
         ],
+        "optimize": true,
         "warningsAsErrors": true,
         "xmlDoc": true
     },
