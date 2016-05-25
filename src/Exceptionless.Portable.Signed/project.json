@@ -45,7 +45,7 @@
     "frameworks": {
         ".NETPortable,Version=v4.6,Profile=Profile151": {
             "buildOptions": {
-                "define": [ "PORTABLE", "NETSTANDARD1_2" ]
+                "define": [ "SIGNED", "PORTABLE", "NETSTANDARD1_2" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.CSharp": "",
