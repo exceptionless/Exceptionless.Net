@@ -43,7 +43,7 @@
     "frameworks": {
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": ""

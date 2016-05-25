@@ -65,10 +65,14 @@ namespace Exceptionless.Json.Utilities
         public static void AddRange<T>(this IList<T> initial, IEnumerable<T> collection)
         {
             if (initial == null)
-                throw new ArgumentNullException("initial");
+            {
+                throw new ArgumentNullException(nameof(initial));
+            }
 
             if (collection == null)
+            {
                 return;
+            }
 
             foreach (T value in collection)
             {
@@ -79,7 +83,7 @@ namespace Exceptionless.Json.Utilities
 #if (NET20 || NET35 || PORTABLE40)
         public static void AddRange<T>(this IList<T> initial, IEnumerable collection)
         {
-            ValidationUtils.ArgumentNotNull(initial, "initial");
+            ValidationUtils.ArgumentNotNull(initial, nameof(initial));
 
             // because earlier versions of .NET didn't support covariant generics
             initial.AddRange(collection.Cast<T>());
@@ -88,15 +92,21 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsDictionaryType(Type type)
         {
-            ValidationUtils.ArgumentNotNull(type, "type");
+            ValidationUtils.ArgumentNotNull(type, nameof(type));
 
             if (typeof(IDictionary).IsAssignableFrom(type))
+            {
                 return true;
+            }
             if (ReflectionUtils.ImplementsGenericDefinition(type, typeof(IDictionary<,>)))
+            {
                 return true;
+            }
 #if !(NET40 || NET35 || NET20 || PORTABLE40)
             if (ReflectionUtils.ImplementsGenericDefinition(type, typeof(IReadOnlyDictionary<,>)))
+            {
                 return true;
+            }
 #endif
 
             return false;
@@ -124,7 +134,9 @@ namespace Exceptionless.Json.Utilities
                     if (match == null)
                     {
                         if (genericEnumerable.IsAssignableFrom(parameters[0].ParameterType))
+                        {
                             match = constructor;
+                        }
                     }
                 }
             }
@@ -140,7 +152,9 @@ namespace Exceptionless.Json.Utilities
         public static bool AddDistinct<T>(this IList<T> list, T value, IEqualityComparer<T> comparer)
         {
             if (list.ContainsValue(value, comparer))
+            {
                 return false;
+            }
 
             list.Add(value);
             return true;
@@ -150,15 +164,21 @@ namespace Exceptionless.Json.Utilities
         public static bool ContainsValue<TSource>(this IEnumerable<TSource> source, TSource value, IEqualityComparer<TSource> comparer)
         {
             if (comparer == null)
+            {
                 comparer = EqualityComparer<TSource>.Default;
+            }
 
             if (source == null)
-                throw new ArgumentNullException("source");
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
 
             foreach (TSource local in source)
             {
                 if (comparer.Equals(local, value))
+                {
                     return true;
+                }
             }
 
             return false;
@@ -170,7 +190,9 @@ namespace Exceptionless.Json.Utilities
             foreach (T value in values)
             {
                 if (!list.AddDistinct(value, comparer))
+                {
                     allAdded = false;
+                }
             }
 
             return allAdded;
@@ -182,7 +204,9 @@ namespace Exceptionless.Json.Utilities
             foreach (T value in collection)
             {
                 if (predicate(value))
+                {
                     return index;
+                }
 
                 index++;
             }
@@ -190,8 +214,20 @@ namespace Exceptionless.Json.Utilities
             return -1;
         }
 
+        public static bool Contains(this IEnumerable list, object value, IEqualityComparer comparer)
+        {
+            foreach (object item in list)
+            {
+                if (comparer.Equals(item, value))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
-        /// Returns the index of the first occurrence in a sequence by using a specified IEqualityComparer.
+        /// Returns the index of the first occurrence in a sequence by using a specified IEqualityComparer{TSource}.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <param name="list">A sequence in which to locate a value.</param>
@@ -223,16 +259,24 @@ namespace Exceptionless.Json.Utilities
 
                 // don't keep calculating dimensions for arrays inside the value array
                 if (dimensions.Count == dimensionsCount)
+                {
                     break;
+                }
 
                 if (currentArray.Count == 0)
+                {
                     break;
+                }
 
                 object v = currentArray[0];
                 if (v is IList)
+                {
                     currentArray = (IList)v;
+                }
                 else
+                {
                     break;
+                }
             }
 
             return dimensions;
@@ -251,7 +295,9 @@ namespace Exceptionless.Json.Utilities
             IList list = (IList)JaggedArrayGetValue(values, indices);
             int currentValuesLength = list.Count;
             if (currentValuesLength != dimensionLength)
+            {
                 throw new Exception("Cannot deserialize non-cubical array as multidimensional array.");
+            }
 
             int[] newIndices = new int[dimension + 1];
             for (int i = 0; i < dimension; i++)
@@ -273,9 +319,13 @@ namespace Exceptionless.Json.Utilities
             {
                 int index = indices[i];
                 if (i == indices.Length - 1)
+                {
                     return currentList[index];
+                }
                 else
+                {
                     currentList = (IList)currentList[index];
+                }
             }
             return currentList;
         }

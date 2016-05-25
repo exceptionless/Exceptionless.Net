@@ -31,7 +31,7 @@
         },
         "embed": {
             "mappings": {
-                "Exceptionless.Json.Dynamic.snk": "../Exceptionless.Portable/Json.Dynamic.snk"
+                "Exceptionless.Json.Dynamic.snk": "../Exceptionless.Portable/Newtonsoft.Json/Dynamic.snk"
             }
         },
         "keyFile": "../Exceptionless.snk", 
@@ -46,7 +46,7 @@
     "frameworks": {
         ".NETPortable,Version=v4.0,Profile=Profile328": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "PORTABLE40" ]
+                "define": [ "SIGNED", "PORTABLE40" ]
             },
             "frameworkAssemblies": {
                 "mscorlib": "",
@@ -59,7 +59,7 @@
         },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
+                "define": [ "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Data": "",

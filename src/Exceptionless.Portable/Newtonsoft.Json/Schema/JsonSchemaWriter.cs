@@ -23,6 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Collections.Generic;
 using Exceptionless.Json.Linq;
 using Exceptionless.Json.Serialization;
@@ -36,6 +37,7 @@ using System.Linq;
 
 namespace Exceptionless.Json.Schema
 {
+    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaWriter
     {
         private readonly JsonWriter _writer;
@@ -43,7 +45,7 @@ namespace Exceptionless.Json.Schema
 
         public JsonSchemaWriter(JsonWriter writer, JsonSchemaResolver resolver)
         {
-            ValidationUtils.ArgumentNotNull(writer, "writer");
+            ValidationUtils.ArgumentNotNull(writer, nameof(writer));
             _writer = writer;
             _resolver = resolver;
         }
@@ -65,10 +67,12 @@ namespace Exceptionless.Json.Schema
 
         public void WriteSchema(JsonSchema schema)
         {
-            ValidationUtils.ArgumentNotNull(schema, "schema");
+            ValidationUtils.ArgumentNotNull(schema, nameof(schema));
 
             if (!_resolver.LoadedSchemas.Contains(schema))
+            {
                 _resolver.LoadedSchemas.Add(schema);
+            }
 
             _writer.WriteStartObject();
             WritePropertyIfNotNull(_writer, JsonSchemaConstants.IdPropertyName, schema.Id);
@@ -79,7 +83,9 @@ namespace Exceptionless.Json.Schema
             WritePropertyIfNotNull(_writer, JsonSchemaConstants.HiddenPropertyName, schema.Hidden);
             WritePropertyIfNotNull(_writer, JsonSchemaConstants.TransientPropertyName, schema.Transient);
             if (schema.Type != null)
-                WriteType(JsonSchemaConstants.TypePropertyName, _writer, schema.Type.Value);
+            {
+                WriteType(JsonSchemaConstants.TypePropertyName, _writer, schema.Type.GetValueOrDefault());
+            }
             if (!schema.AllowAdditionalProperties)
             {
                 _writer.WritePropertyName(JsonSchemaConstants.AdditionalPropertiesPropertyName);
@@ -136,7 +142,9 @@ namespace Exceptionless.Json.Schema
                 schema.Default.WriteTo(_writer);
             }
             if (schema.Disallow != null)
-                WriteType(JsonSchemaConstants.DisallowPropertyName, _writer, schema.Disallow.Value);
+            {
+                WriteType(JsonSchemaConstants.DisallowPropertyName, _writer, schema.Disallow.GetValueOrDefault());
+            }
             if (schema.Extends != null && schema.Extends.Count > 0)
             {
                 _writer.WritePropertyName(JsonSchemaConstants.ExtendsPropertyName);
@@ -175,7 +183,9 @@ namespace Exceptionless.Json.Schema
         private void WriteItems(JsonSchema schema)
         {
             if (schema.Items == null && !schema.PositionalItemsValidation)
+            {
                 return;
+            }
 
             _writer.WritePropertyName(JsonSchemaConstants.ItemsPropertyName);
 
@@ -208,12 +218,18 @@ namespace Exceptionless.Json.Schema
         {
             IList<JsonSchemaType> types;
             if (System.Enum.IsDefined(typeof(JsonSchemaType), type))
+            {
                 types = new List<JsonSchemaType> { type };
+            }
             else
+            {
                 types = EnumUtils.GetFlagsValues(type).Where(v => v != JsonSchemaType.None).ToList();
+            }
 
             if (types.Count == 0)
+            {
                 return;
+            }
 
             writer.WritePropertyName(propertyName);
 

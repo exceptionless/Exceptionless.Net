@@ -54,7 +54,7 @@ namespace Exceptionless.Json.Bson
 
         public void Close()
         {
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
             _writer.Close();
 #else
             _writer.Dispose();
@@ -142,9 +142,13 @@ namespace Exceptionless.Json.Bson
                     {
                         DateTime dateTime = (DateTime)value.Value;
                         if (DateTimeKindHandling == DateTimeKind.Utc)
+                        {
                             dateTime = dateTime.ToUniversalTime();
+                        }
                         else if (DateTimeKindHandling == DateTimeKind.Local)
+                        {
                             dateTime = dateTime.ToLocalTime();
+                        }
 
                         ticks = DateTimeUtils.ConvertDateTimeToJavaScriptTicks(dateTime, false);
                     }
@@ -186,14 +190,16 @@ namespace Exceptionless.Json.Bson
                 }
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("t", "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
+                    throw new ArgumentOutOfRangeException(nameof(t), "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
             }
         }
 
         private void WriteString(string s, int byteCount, int? calculatedlengthPrefix)
         {
             if (calculatedlengthPrefix != null)
-                _writer.Write(calculatedlengthPrefix.Value);
+            {
+                _writer.Write(calculatedlengthPrefix.GetValueOrDefault());
+            }
 
             WriteUtf8Bytes(s, byteCount);
 
@@ -318,7 +324,7 @@ namespace Exceptionless.Json.Bson
                     return value.CalculatedSize;
                 }
                 default:
-                    throw new ArgumentOutOfRangeException("t", "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
+                    throw new ArgumentOutOfRangeException(nameof(t), "Unexpected token when writing BSON: {0}".FormatWith(CultureInfo.InvariantCulture, t.Type));
             }
         }
     }
