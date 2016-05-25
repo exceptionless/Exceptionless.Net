@@ -34,9 +34,9 @@
         "xmlDoc": true
     },
     "frameworks": {
-        ".NETPortable,Version=v4.5,Profile=Profile259": {
+        ".NETPortable,Version=v4.6,Profile=Profile151": {
             "buildOptions": {
-                "define": [ "PORTABLE" ]
+                "define": [ "PORTABLE", "NETSTANDARD1_2" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.CSharp": "",
@@ -50,9 +50,12 @@
                 "System.Linq": "",
                 "System.Linq.Expressions": "",
                 "System.Net": "",
+                "System.Net.Primitives": "",
+                "System.Net.Requests": "",
                 "System.ObjectModel": "",
                 "System.Reflection": "",
                 "System.Reflection.Extensions": "",
+                "System.Reflection.Primitives": "",
                 "System.Resources.ResourceManager": "",
                 "System.Runtime": "",
                 "System.Runtime.Extensions": "",
@@ -63,6 +66,7 @@
                 "System.Text.RegularExpressions": "",
                 "System.Threading": "",
                 "System.Threading.Tasks": "",
+                "System.Threading.Timer": "",
                 "System.Xml": "",
                 "System.Xml.Linq": "",
                 "System.Xml.ReaderWriter": "",
@@ -79,7 +83,7 @@
                 "System.Numerics": "",
                 "System.Runtime.Serialization": "",
                 "System.Xml": "",
-                "System.Xml.Linq": "",
+                "System.Xml.Linq": ""
             }
         }
     }
