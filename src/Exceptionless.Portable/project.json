@@ -27,8 +27,7 @@
             }
         },
         "nowarn": [
-            //"CS0419",
-            //"CS1591"
+            "CS1591"
         ],
         "optimize": true,
         "warningsAsErrors": true, 

@@ -30,8 +30,5 @@ Get-ChildItem '.\Newtonsoft.Json' *.cs -recurse |
 del '.\Newtonsoft.Json\*.csproj' -Force
 del '.\Newtonsoft.Json\*.xproj' -Force
 del '.\Newtonsoft.Json\*project.json' -Force
-del '.\Newtonsoft.Json\Newtonsoft.Json.ruleset'
+del '.\Newtonsoft.Json\Newtonsoft.Json.ruleset' -Force
 del '.\Newtonsoft.Json\Properties' -Force -Recurse
-#del '.\Newtonsoft.Json\Converters\JsonValueConverter.cs'
-#del '.\Newtonsoft.Json\Utilities\LinqBridge.cs'
-#del '.\Newtonsoft.Json\Dynamic.snk'
