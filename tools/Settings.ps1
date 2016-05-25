@@ -31,6 +31,5 @@ $client_projects = @(
 )
 
 $client_build_configurations = @(
-    @{ Constants = "NET40"; TargetFrameworkVersionProperty="NET40";	NuGetDir = "net40"; },
     @{ Constants = "NET45"; TargetFrameworkVersionProperty="NET45";	NuGetDir = "net45"; }
 )

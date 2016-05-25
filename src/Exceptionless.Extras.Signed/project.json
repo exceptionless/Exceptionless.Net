@@ -40,16 +40,6 @@
         "xmlDoc": true
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "Microsoft.VisualBasic": "",
-                "System.Configuration": "",
-                "System.Net": "4.0.0.0"
-            }
-        },
         "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "SIGNED", "NET45" ]

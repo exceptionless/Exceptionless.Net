@@ -48,19 +48,6 @@
                 "System.Xml": ""
             }
         },
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "System.Data": "",
-                "System.Net": "4.0.0.0",
-                "System.Numerics": "",
-                "System.Runtime.Serialization": "",
-                "System.Xml": "",
-                "System.Xml.Linq": ""
-            }
-        },
         "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ]

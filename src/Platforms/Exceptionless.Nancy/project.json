@@ -42,11 +42,6 @@
         "Nancy": "1.4.3"
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            }
-        },
         "net45": {
             "buildOptions": {
                 "define": [ "EMBEDDED", "NET45" ]
