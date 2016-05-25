@@ -98,11 +98,16 @@ DocProject/Help/html
 publish/
 
 # Publish Web Output
+artifacts
 *.Publish.xml
 *.pubxml
 
 # NuGet Packages Directory
 packages/
+*.lock.json
+*.nuget.props
+*.nuget.targets
+.vs
 
 # Windows Azure Build Output
 csx

@@ -1,0 +1,56 @@
+﻿{
+    "version": "99.99.99-dev",
+    "title": "Exceptionless client for Nancy applications.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "description": "Exceptionless client for Nancy applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+    "packOptions": {
+        "tags": [ "Nancy", "NancyFx", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        },
+        "files": {
+            "mappings": {
+                "tools/": "NuGet/tools/*",
+                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+            },
+            "include": [ "NuGet/readme.txt" ]
+        }
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ], 
+        "nowarn": [
+            "CS1591"
+        ],
+        "optimize": true,
+        "warningsAsErrors": true,
+        "xmlDoc": true
+    },
+    "dependencies": {
+        "Exceptionless.Extras": {
+            "target": "project"
+        },
+        "Exceptionless.Portable": {
+            "target": "project"
+        },
+        "Nancy": "1.4.3"
+    },
+    "frameworks": {
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET40" ]
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ]
+            }
+        }
+    }
+}
