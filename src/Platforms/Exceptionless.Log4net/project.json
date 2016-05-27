@@ -1,0 +1,55 @@
+﻿{
+    "version": "99.99.99-dev",
+    "title": "Log4net appender that sends log entries to Exceptionless.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "description": "Log4net appender that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+    "packOptions": {
+        "tags": [ "Log4net", "Appender", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        },
+        "files": {
+            "include": [ "NuGet/readme.txt" ]
+        }
+    },
+    "dependencies": {
+        "Exceptionless.Portable.Signed": {
+            "target": "project"
+        },
+        "log4net": "2.0.5"
+    },
+    "buildOptions": {
+        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ], 
+        "nowarn": [
+            "CS1591"
+        ],
+        "optimize": true,
+        "warningsAsErrors": true,
+        "xmlDoc": true
+    },
+    "frameworks": {
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": ""
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": ""
+            }
+        }
+    }
+}

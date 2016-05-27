@@ -1,0 +1,65 @@
+﻿{
+    "version": "99.99.99-dev",
+    "title": "Exceptionless client extras.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "description": "Exceptionless client extras. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+    "packOptions": {
+        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        }
+    },
+    "dependencies": {
+        "Exceptionless.Portable.Signed": {
+            "target": "project"
+        }
+    },
+    "buildOptions": {
+        "compile": {
+            "include": [
+                "../Exceptionless.Extras/**/*.cs",
+                "../GlobalAssemblyInfo.cs"
+            ],
+            "exclude": [
+                "../Exceptionless.Extras/obj/"
+            ]
+        },
+        "keyFile": "../Exceptionless.snk", 
+        "nowarn": [
+            "CS1591"
+        ],
+        "optimize": true,
+        "warningsAsErrors": true,
+        "xmlDoc": true
+    },
+    "frameworks": {
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "Microsoft.VisualBasic": "",
+                "System.Configuration": "",
+                "System.Net": "4.0.0.0"
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "Microsoft.VisualBasic": "", 
+                "System.Configuration": "",
+                "System.Net.Http": ""
+            }
+        }
+    },
+    "supports": { }
+}

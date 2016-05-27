@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0-*", //  "version": "99.99.99-dev",
+  "title": "Exceptionless client for ASP.NET Core applications.",
+  "authors": [ "Exceptionless" ],
+  "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+  "description": "Exceptionless client for ASP.NET Core applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+  "packOptions": {
+    "tags": [ "Net Core", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+    "owners": [ "Exceptionless" ],
+    "projectUrl": "http://exceptionless.io",
+    "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
+    "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+    "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/exceptionless/Exceptionless.Net"
+    },
+    "files": {
+      "mappings": {
+        "tools/": "NuGet/tools/*",
+        "tools/exceptionless.psm1": "../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+      },
+      "include": [ "NuGet/readme.txt" ]
+    }
+  },
+  "frameworks": {
+    "netstandard1.5": {
+      "imports": [
+        "dnxcore50",
+        "dotnet4.5",
+        "portable-net45+win8"
+      ],
+      "dependencies": {
+        "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-final",
+        "Microsoft.AspNetCore.Diagnostics.Abstractions": "1.0.0-rc2-final",
+        "Microsoft.AspNetCore.Http.Abstractions": "1.0.0-rc2-final",
+        "Microsoft.AspNetCore.Http.Extensions": "1.0.0-rc2-final",
+        "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-final",
+        "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0-rc2-final",
+        "Microsoft.Net.Http.Headers": "1.0.0-rc2-final",
+        "NETStandard.Library": "1.5.0-rc2-24027",
+        "System.Diagnostics.DiagnosticSource": "4.0.0-rc2-24027",
+        "System.Runtime": "4.1.0-rc2-24027"
+      }
+    },
+    "net45": {
+      "dependencies": {
+        "Exceptionless.Extras": "99.99.99-dev",
+        "Exceptionless.Portable": "99.99.99-dev",
+        "Microsoft.AspNet.WebApi.Core": "5.2.3"
+      }
+    }
+  },
+  "buildOptions": {
+    "optimize": true,
+    "nowarn": [ "CS1591" ],
+    "xmlDoc": true
+  }
+}

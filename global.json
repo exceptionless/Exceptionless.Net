@@ -1,5 +1,10 @@
-{
-  "projects": [
-    "wrap"
-  ]
+﻿{
+    "projects": [
+        "src",
+        "src/Platforms",
+        "src/Samples"
+    ],
+    "sdk": {
+        "version": "1.0.0-preview1-002702"
+    }
 }

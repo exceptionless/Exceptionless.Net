@@ -1,0 +1,70 @@
+﻿{
+    "version": "99.99.99-dev",
+    "title": "Exceptionless client for non visual (ie. Console and Services) applications.",
+    "authors": [ "Exceptionless" ],
+    "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
+    "description": "Exceptionless client for non visual (ie. Console and Services) applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+    "packOptions": {
+        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "owners": [ "Exceptionless" ],
+        "projectUrl": "http://exceptionless.io",
+        "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
+        "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
+        "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0",
+        "repository": {
+            "type": "git",
+            "url": "https://github.com/exceptionless/Exceptionless.Net"
+        },
+        "files": {
+            "mappings": {
+                "tools/": "../Exceptionless/NuGet/tools/*",
+                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+            },
+            "include": [ "../Exceptionless/NuGet/readme.txt" ]
+        }
+    },
+    "buildOptions": {
+        "compile": {
+            "include": [
+                "../Exceptionless/**/*.cs",
+                "../../GlobalAssemblyInfo.cs"
+            ],
+            "exclude": [
+                "../Exceptionless/obj/"
+            ]
+        },
+        "keyFile": "../../Exceptionless.snk", 
+        "nowarn": [
+            "CS1591"
+        ],
+        "optimize": true,
+        "warningsAsErrors": true,
+        "xmlDoc": true
+    },
+    "dependencies": {
+        "Exceptionless.Extras.Signed": {
+            "target": "project"
+        },
+        "Exceptionless.Portable.Signed": {
+            "target": "project"
+        }
+    },
+    "frameworks": {
+        "net40": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": ""
+            }
+        },
+        "net45": {
+            "buildOptions": {
+                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
+            },
+            "frameworkAssemblies": {
+                "System.Configuration": ""
+            }
+        }
+    }
+}
