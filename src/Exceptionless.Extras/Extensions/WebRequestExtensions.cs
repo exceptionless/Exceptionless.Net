@@ -51,12 +51,10 @@ namespace Exceptionless.Extras.Extensions {
                 if (shouldCompress)
                     using (var zipStream = new GZipStream(t.Result, CompressionMode.Compress)) {
                         zipStream.Write(buffer, 0, buffer.Length);
-                        zipStream.Close();
                     }
                 else
                     using (var stream = new BinaryWriter(t.Result)) {
                         stream.Write(buffer, 0, buffer.Length);
-                        stream.Close();
                     }
 
                 return request.GetResponseAsync();

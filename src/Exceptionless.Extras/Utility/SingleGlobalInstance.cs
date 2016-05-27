@@ -20,7 +20,12 @@ namespace Exceptionless.Utility {
                 securitySettings.AddAccessRule(allowEveryoneRule);
 
                 bool wasCreated = false;
+#if NETSTANDARD1_5
+                _waitHandle = new Mutex(false, mutexId, out wasCreated);
+                ((Mutex)_waitHandle).SetAccessControl(securitySettings);
+#else
                 _waitHandle = new Mutex(false, mutexId, out wasCreated, securitySettings);
+#endif
             } catch (Exception) {
                 // We fallback to AutoResetEvent because Mutex isn't supported in medium trust.
                 _waitHandle = _namedLocks.GetOrAdd(_key, key => new AutoResetEvent(true));
@@ -32,7 +37,11 @@ namespace Exceptionless.Utility {
             InitWaitHandle();
 
             try {
+#if NETSTANDARD1_5
+                _hasHandle = _waitHandle.WaitOne(millisecondsTimeout);
+#else
                 _hasHandle = _waitHandle.WaitOne(millisecondsTimeout, false);
+#endif
 
                 if (_hasHandle == false)
                     throw new TimeoutException("Timeout waiting for exclusive access on SingleGlobalInstance");
@@ -49,7 +58,11 @@ namespace Exceptionless.Utility {
 
             if (_hasHandle && _waitHandle is Mutex) {
                 ((Mutex)_waitHandle).ReleaseMutex();
+#if NETSTANDARD1_5
+                _waitHandle.Dispose();
+#else
                 _waitHandle.Close();
+#endif
             }
 
             if (_hasHandle && _waitHandle is AutoResetEvent)

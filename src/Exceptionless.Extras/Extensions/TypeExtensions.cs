@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Exceptionless.Extras {
     internal static class TypeExtensions {
         public static PropertyInfo[] GetPublicProperties(this Type type) {
-            if (type.IsInterface) {
+            if (type.GetTypeInfo().IsInterface) {
                 var propertyInfos = new List<PropertyInfo>();
 
                 var considered = new List<Type>();

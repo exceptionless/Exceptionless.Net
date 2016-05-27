@@ -123,8 +123,10 @@ namespace Exceptionless.Extras.Submission {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.AddAuthorizationHeader(config);
             request.SetUserAgent(config.UserAgent);
+#if !NETSTANDARD1_5
             request.AllowAutoRedirect = true;
             request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
+#endif
 
             try {
                 request.UseDefaultCredentials = true;
@@ -137,12 +139,14 @@ namespace Exceptionless.Extras.Submission {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ConfigureServicePointManagerSettings() {
+#if !NETSTANDARD1_5
             try {
                 ServicePointManager.Expect100Continue = false;
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             } catch (Exception ex) {
                 Trace.WriteLine(String.Concat("An error occurred while configuring SSL certificate validation. Exception: ", ex));
             }
+#endif
         }
     }
 }

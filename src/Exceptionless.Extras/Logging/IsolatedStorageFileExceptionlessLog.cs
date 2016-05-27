@@ -12,7 +12,11 @@ namespace Exceptionless.Logging {
         protected override void Init() {}
 
         private IsolatedStorageFile GetStore() {
+#if NETSTANDARD1_5
+            return Run.WithRetries(() => IsolatedStorageFile.GetUserStoreForApplication());
+#else
             return Run.WithRetries(() => IsolatedStorageFile.GetStore(IsolatedStorageScope.Machine | IsolatedStorageScope.Assembly, typeof(IsolatedStorageObjectStorage), null));
+#endif
         }
 
         protected override WrappedDisposable<StreamWriter> GetWriter(bool append = false) {
@@ -20,9 +24,9 @@ namespace Exceptionless.Logging {
             return new WrappedDisposable<StreamWriter>(new StreamWriter(new IsolatedStorageFileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, store)), store.Dispose);
         }
 
-        protected override WrappedDisposable<FileStream> GetReader() {
+        protected override WrappedDisposable<Stream> GetReader() {
             var store = GetStore();
-            return new WrappedDisposable<FileStream>(new IsolatedStorageFileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, store), store.Dispose);
+            return new WrappedDisposable<Stream>(new IsolatedStorageFileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, store), store.Dispose);
         }
 
         protected internal override string GetFileContents() {

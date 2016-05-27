@@ -1,4 +1,4 @@
-﻿{
+{
     "version": "99.99.99-dev",
     "title": "Log4net appender that sends log entries to Exceptionless.",
     "authors": [ "Exceptionless" ],
@@ -20,7 +20,7 @@
         }
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless.Portable": {
             "target": "project"
         },
         "log4net": "2.0.5"

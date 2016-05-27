@@ -37,11 +37,17 @@ namespace Exceptionless.Logging {
         }
 
         protected virtual WrappedDisposable<StreamWriter> GetWriter(bool append = false) {
+#if NETSTANDARD1_5
+            return new WrappedDisposable<StreamWriter>(new StreamWriter(
+                new FileStream(FilePath, append ? FileMode.Append : FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite), Encoding.ASCII)
+            );
+#else
             return new WrappedDisposable<StreamWriter>(new StreamWriter(FilePath, append, Encoding.ASCII));
+#endif
         }
 
-        protected virtual WrappedDisposable<FileStream> GetReader() {
-            return new WrappedDisposable<FileStream>(new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        protected virtual WrappedDisposable<Stream> GetReader() {
+            return new WrappedDisposable<Stream>(new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
         }
 
         protected internal virtual string GetFileContents() {

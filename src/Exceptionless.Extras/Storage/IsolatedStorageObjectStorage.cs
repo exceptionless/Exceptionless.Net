@@ -21,7 +21,11 @@ namespace Exceptionless.Extras.Storage {
         }
 
         private IsolatedStorageFile GetIsolatedStorage() {
+#if NETSTANDARD1_5
+            return Run.WithRetries(() => IsolatedStorageFile.GetUserStoreForApplication());
+#else
             return Run.WithRetries(() => IsolatedStorageFile.GetStore(IsolatedStorageScope.Machine | IsolatedStorageScope.Assembly, typeof(IsolatedStorageObjectStorage), null));
+#endif
         }
 
         public IEnumerable<string> GetObjects(string searchPattern = null, int? limit = null) {

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if !NETSTANDARD1_5
 using System.Configuration;
+#endif
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -64,16 +66,24 @@ namespace Exceptionless {
 
         public static void ReadAllConfig(this ExceptionlessConfiguration config, params Assembly[] configAttributesAssemblies) {
             if (configAttributesAssemblies == null || configAttributesAssemblies.Length == 0)
+#if NETSTANDARD1_5
+                config.ReadFromAttributes(Assembly.GetEntryAssembly());
+#else
                 config.ReadFromAttributes(Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly());
+#endif
             else
                 config.ReadFromAttributes(configAttributesAssemblies);
 
+#if !NETSTANDARD1_5
             config.ReadFromConfigSection();
             config.ReadFromAppSettings();
+#endif
+
             config.ReadFromEnvironmentalVariables();
             config.ApplySavedServerSettings();
         }
 
+#if !NETSTANDARD1_5
         /// <summary>
         /// Reads the Exceptionless configuration from the app.config or web.config files configuration section.
         /// </summary>
@@ -179,6 +189,7 @@ namespace Exceptionless {
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
         }
+#endif
 
         /// <summary>
         /// Reads the Exceptionless configuration from Environment Variables.

@@ -28,7 +28,7 @@ namespace Exceptionless.Utility {
                 }
             } while (attempts-- >= 1);
 
-            throw new ApplicationException("Should not get here.");
+            throw new Exception("Should not get here.");
         }
     }
 }
