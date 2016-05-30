@@ -2,7 +2,7 @@
 using ExceptionLess.AspNetCore.Interfaces;
 using System.Threading.Tasks;
 
-namespace Exceptionless.Exceptionless.SampleCoreWebApi
+namespace Exceptionless.SampleCoreWebApi.ExceptionlessCore.ExceptionLoggers
     {
     public class ExceptionDbLogger : IExceptionlessCoreErrorHandler
     {

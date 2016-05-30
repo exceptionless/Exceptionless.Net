@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using ExceptionLess.AspNetCore;
+using Exceptionless.SampleCoreMvc.ExceptionlessCore;
 
 namespace Exceptionless.SampleCoreMvc
     {
@@ -35,13 +36,18 @@ namespace Exceptionless.SampleCoreMvc
 
             //app.AddExceptionlessCoreHandlerError(new ExceptionJIRALogger());
             //app.AddExceptionlessCoreHandlerError(new ExceptionDbLogger());
-
+            
             // force the exception
             // The broken section of our application.
             app.Map("/throw", throwApp =>
             {
                 throwApp.Run(context => { throw new Exception("Oh my goodness...what happened to you!"); });
             });
+
+            app.AddExceptionlessCoreHandlerError(new ExceptionFinalizer());
+            //app.UseMvc();
+
+
 
             // The home page.
             app.Run(async context =>

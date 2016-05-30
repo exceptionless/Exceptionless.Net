@@ -1,44 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Exceptionless.SampleCoreMvc.Controllers
-{
+namespace Exceptionless.SampleAspNetCore.Controllers
+    {
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
-        // GET api/values
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
+        public Task<string> Get(int id)
+            {
+            // throw an exception to simulate an unhandled exception.
+            if (id == 1)
+                {
+                throw new UnauthorizedAccessException("No such user exists for login.");
+                }
 
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody]string value)
-        {
-        }
+            if (id == 2)
+                {
+                throw new ValidationException("Missing user name.");
+                }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
+            throw new ArgumentNullException(nameof(id));
+            }
         }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
-    }
 }

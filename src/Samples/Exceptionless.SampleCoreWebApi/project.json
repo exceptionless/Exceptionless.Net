@@ -14,7 +14,8 @@
     "Microsoft.Extensions.Logging": "1.0.0-rc2-final",
     "Microsoft.Extensions.Logging.Console": "1.0.0-rc2-final",
     "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-final",
-    "Exceptionless.AspNetCore": "99.99.99-dev"
+    "Exceptionless.AspNetCore": "99.99.99-dev",
+    "System.ComponentModel.Annotations": "4.1.0-rc2-24027"
   },
 
   "tools": {

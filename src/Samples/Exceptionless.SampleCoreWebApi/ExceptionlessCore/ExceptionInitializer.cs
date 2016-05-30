@@ -3,7 +3,7 @@ using System;
 using System.Dynamic;
 using System.Threading.Tasks;
 
-namespace Exceptionless.SampleCoreWebApi
+namespace Exceptionless.SampleCoreWebApi.ExceptionlessCore
     {
     public class ExceptionInitializer : IExceptionlessCoreErrorHandler
     {

@@ -35,7 +35,8 @@
     "Exceptionless.AspNetCore": "99.99.99-dev",
     "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-final",
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-rc2-final",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-final"
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-final",
+    "Newtonsoft.Json": "8.0.3"
   },
 
   "tools": {

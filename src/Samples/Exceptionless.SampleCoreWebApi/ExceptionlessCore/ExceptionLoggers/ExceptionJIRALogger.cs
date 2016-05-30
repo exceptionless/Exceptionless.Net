@@ -1,7 +1,7 @@
 ﻿using ExceptionLess.AspNetCore.Interfaces;
 using System.Threading.Tasks;
 
-namespace Exceptionless.SampleCoreMvc
+namespace Exceptionless.SampleCoreWebApi.ExceptionlessCore.ExceptionLoggers
     {
     public class ExceptionJIRALogger : IExceptionlessCoreErrorHandler
     {

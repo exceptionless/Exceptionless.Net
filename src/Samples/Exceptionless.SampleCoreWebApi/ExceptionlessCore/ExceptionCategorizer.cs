@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 
-namespace Exceptionless.SampleCoreWebApi
+namespace Exceptionless.SampleCoreWebApi.ExceptionlessCore
     {
     public enum ExceptionCategoryType
     {

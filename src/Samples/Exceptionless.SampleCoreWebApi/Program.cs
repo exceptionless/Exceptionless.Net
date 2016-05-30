@@ -5,8 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
+using Exceptionless.SampleCoreWebApi;
 
-namespace Exceptionless.SampleCoreMvc
+namespace Exceptionless.S
 {
     public class Program
     {
