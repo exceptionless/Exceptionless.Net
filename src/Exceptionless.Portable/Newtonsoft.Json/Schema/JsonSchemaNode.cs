@@ -35,6 +35,7 @@ using System.Linq;
 
 namespace Exceptionless.Json.Schema
 {
+    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaNode
     {
         public string Id { get; private set; }

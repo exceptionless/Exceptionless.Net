@@ -24,24 +24,26 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\$(TargetFrameworkVersion)\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;EMBEDDED;</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\$(TargetFrameworkVersion)\</OutputPath>
-    <DefineConstants>TRACE;EMBEDDED;</DefineConstants>
+    <DefineConstants>TRACE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.Wpf.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET40' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET45' ">
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -54,10 +56,10 @@
   </PropertyGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'false' ">
     <Reference Include="Exceptionless.Extras">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Extras\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.dll</HintPath>
+      <HintPath>..\..\Exceptionless.Extras\bin\Debug\net45\Exceptionless.Extras.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Portable">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+      <HintPath>..\..\Exceptionless.Portable\bin\Debug\net45\Exceptionless.Portable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'true' ">

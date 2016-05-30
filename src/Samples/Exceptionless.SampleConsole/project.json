@@ -1,4 +1,4 @@
-﻿{
+{
     "buildOptions": {
         "emitEntryPoint": true,
         "warningsAsErrors": true
@@ -23,7 +23,7 @@
     "frameworks": {
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ],
+                "define": [ "NET45" ],
                 "compile": [
                     "**/*.cs",
                     "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"

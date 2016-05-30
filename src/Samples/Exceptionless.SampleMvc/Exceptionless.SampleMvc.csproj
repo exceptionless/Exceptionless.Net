@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;EMBEDDED;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -41,7 +41,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE;EMBEDDED;</DefineConstants>
+    <DefineConstants>TRACE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -136,10 +136,10 @@
       <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Mvc">
-      <HintPath>..\..\Exceptionless.Mvc\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Mvc.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.Mvc\bin\Debug\net45\Exceptionless.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.WebApi">
-      <HintPath>..\..\Exceptionless.WebApi\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.WebApi.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.WebApi\bin\Debug\net45\Exceptionless.WebApi.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -40,19 +40,36 @@
         "xmlDoc": true
     },
     "frameworks": {
-        "net40": {
+        "netstandard1.5": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
+                "debugType": "portable",
+                "define": [ "SIGNED", "NETSTANDARD1_5" ]
             },
-            "frameworkAssemblies": {
-                "Microsoft.VisualBasic": "",
-                "System.Configuration": "",
-                "System.Net": "4.0.0.0"
+            "dependencies": {
+                "Microsoft.Extensions.Configuration": "1.0.0-rc2-final",
+                "System.AppDomain": "2.0.5",
+                "System.Collections.Concurrent": "4.0.12-rc2-24027",
+                "System.Diagnostics.Process": "4.1.0-rc2-24027",
+                "System.Diagnostics.StackTrace": "4.0.1-rc2-24027",
+                "System.Diagnostics.Tools": "4.0.1-rc2-24027",
+                "System.Diagnostics.TraceSource": "4.0.0-rc2-24027",
+                "System.IO": "4.1.0-rc2-24027",
+                "System.IO.Compression": "4.1.0-rc2-24027",
+                "System.IO.FileSystem": "4.0.1-rc2-24027",
+                "System.IO.IsolatedStorage": "4.0.1-rc2-24027",
+                "System.Net.NameResolution": "4.0.0-rc2-24027",
+                "System.Runtime": "4.1.0-rc2-24027",
+                "System.Runtime.Extensions": "4.1.0-rc2-24027",
+                "System.Runtime.InteropServices": "4.1.0-rc2-24027",
+                "System.Security.AccessControl": "4.0.0-rc2-24027",
+                "System.Security.Principal": "4.0.1-rc2-24027",
+                "System.Threading.AccessControl": "4.0.0-rc2-24027",
+                "System.Threading.Thread": "4.0.0-rc2-24027"
             }
         },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
+                "define": [ "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.VisualBasic": "", 

@@ -50,17 +50,9 @@
         }
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "System.Configuration": ""
-            }
-        },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
+                "define": [ "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": ""

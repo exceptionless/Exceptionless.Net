@@ -54,6 +54,7 @@ namespace Exceptionless.Plugins {
         }
 
         private string GetVersionFromLoadedAssemblies() {
+#if !NETSTANDARD1_5
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).Assembly && a != GetType().Assembly && a != typeof(object).Assembly)) {
                 if (String.IsNullOrEmpty(assembly.FullName) || assembly.FullName.StartsWith("System.") || assembly.FullName.StartsWith("Microsoft."))
                     continue;
@@ -69,6 +70,7 @@ namespace Exceptionless.Plugins {
                 if (!String.IsNullOrEmpty(version))
                     return version;
             }
+#endif
 
             return null;
         }

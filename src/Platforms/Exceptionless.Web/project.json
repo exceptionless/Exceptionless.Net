@@ -1,4 +1,4 @@
-﻿{
+{
     "version": "99.99.99-dev",
     "title": "Exceptionless client for ASP.NET WebForms applications.",
     "authors": [ "Exceptionless" ],
@@ -41,19 +41,9 @@
         }
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "System.Configuration": "",
-                "System.ServiceModel": "",
-                "System.Web": ""
-            }
-        },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",

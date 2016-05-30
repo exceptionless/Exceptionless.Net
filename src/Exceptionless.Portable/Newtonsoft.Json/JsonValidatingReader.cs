@@ -44,8 +44,14 @@ using System.Linq;
 namespace Exceptionless.Json
 {
     /// <summary>
+    /// <para>
     /// Represents a reader that provides <see cref="JsonSchema"/> validation.
+    /// </para>
+    /// <note type="caution">
+    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
+    /// </note>
     /// </summary>
+    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     public class JsonValidatingReader : JsonReader, IJsonLineInfo
     {
         private class SchemaScope
@@ -92,7 +98,9 @@ namespace Exceptionless.Json
             private IEnumerable<string> GetRequiredProperties(JsonSchemaModel schema)
             {
                 if (schema == null || schema.Properties == null)
+                {
                     return Enumerable.Empty<string>();
+                }
 
                 return schema.Properties.Where(p => p.Value.Required).Select(p => p.Key);
             }
@@ -191,10 +199,14 @@ namespace Exceptionless.Json
             get
             {
                 if (_currentScope == null)
+                {
                     return new List<JsonSchemaModel>(new[] { _model });
+                }
 
                 if (_currentScope.Schemas == null || _currentScope.Schemas.Count == 0)
+                {
                     return EmptySchemaList;
+                }
 
                 switch (_currentScope.TokenType)
                 {
@@ -203,7 +215,9 @@ namespace Exceptionless.Json
                     case JTokenType.Object:
                     {
                         if (_currentScope.CurrentPropertyName == null)
+                        {
                             throw new JsonReaderException("CurrentPropertyName has not been set on scope.");
+                        }
 
                         IList<JsonSchemaModel> schemas = new List<JsonSchemaModel>();
 
@@ -226,7 +240,9 @@ namespace Exceptionless.Json
                             }
 
                             if (schemas.Count == 0 && schema.AllowAdditionalProperties && schema.AdditionalProperties != null)
+                            {
                                 schemas.Add(schema.AdditionalProperties);
+                            }
                         }
 
                         return schemas;
@@ -240,18 +256,24 @@ namespace Exceptionless.Json
                             if (!schema.PositionalItemsValidation)
                             {
                                 if (schema.Items != null && schema.Items.Count > 0)
+                                {
                                     schemas.Add(schema.Items[0]);
+                                }
                             }
                             else
                             {
                                 if (schema.Items != null && schema.Items.Count > 0)
                                 {
                                     if (schema.Items.Count > (_currentScope.ArrayItemCount - 1))
+                                    {
                                         schemas.Add(schema.Items[_currentScope.ArrayItemCount - 1]);
+                                    }
                                 }
 
                                 if (schema.AllowAdditionalItems && schema.AdditionalItems != null)
+                                {
                                     schemas.Add(schema.AdditionalItems);
+                                }
                             }
                         }
 
@@ -280,9 +302,13 @@ namespace Exceptionless.Json
         {
             ValidationEventHandler handler = ValidationEventHandler;
             if (handler != null)
+            {
                 handler(this, new ValidationEventArgs(exception));
+            }
             else
+            {
                 throw exception;
+            }
         }
 
         /// <summary>
@@ -292,7 +318,7 @@ namespace Exceptionless.Json
         /// <param name="reader">The <see cref="JsonReader"/> to read from while validating.</param>
         public JsonValidatingReader(JsonReader reader)
         {
-            ValidationUtils.ArgumentNotNull(reader, "reader");
+            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
             _reader = reader;
             _stack = new Stack<SchemaScope>();
         }
@@ -307,7 +333,9 @@ namespace Exceptionless.Json
             set
             {
                 if (TokenType != JsonToken.None)
+                {
                     throw new InvalidOperationException("Cannot change schema while validating JSON.");
+                }
 
                 _schema = value;
                 _model = null;
@@ -326,13 +354,17 @@ namespace Exceptionless.Json
         private void ValidateNotDisallowed(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             JsonSchemaType? currentNodeType = GetCurrentNodeSchemaType();
             if (currentNodeType != null)
             {
-                if (JsonSchemaGenerator.HasFlag(schema.Disallow, currentNodeType.Value))
+                if (JsonSchemaGenerator.HasFlag(schema.Disallow, currentNodeType.GetValueOrDefault()))
+                {
                     RaiseError("Type {0} is disallowed.".FormatWith(CultureInfo.InvariantCulture, currentNodeType), schema);
+                }
             }
         }
 
@@ -398,6 +430,30 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Double}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Double}"/>.</returns>
+        public override double? ReadAsDouble()
+        {
+            double? d = _reader.ReadAsDouble();
+
+            ValidateCurrentToken();
+            return d;
+        }
+
+        /// <summary>
+        /// Reads the next JSON token from the stream as a <see cref="Nullable{Boolean}"/>.
+        /// </summary>
+        /// <returns>A <see cref="Nullable{Boolean}"/>.</returns>
+        public override bool? ReadAsBoolean()
+        {
+            bool? b = _reader.ReadAsBoolean();
+
+            ValidateCurrentToken();
+            return b;
+        }
+
+        /// <summary>
         /// Reads the next JSON token from the stream as a <see cref="String"/>.
         /// </summary>
         /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
@@ -412,7 +468,7 @@ namespace Exceptionless.Json
         /// <summary>
         /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTime}"/>.
         /// </summary>
-        /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
+        /// <returns>A <see cref="Nullable{DateTime}"/>. This method will return <c>null</c> at the end of an array.</returns>
         public override DateTime? ReadAsDateTime()
         {
             DateTime? dateTime = _reader.ReadAsDateTime();
@@ -444,10 +500,14 @@ namespace Exceptionless.Json
         public override bool Read()
         {
             if (!_reader.Read())
+            {
                 return false;
+            }
 
             if (_reader.TokenType == JsonToken.Comment)
+            {
                 return true;
+            }
 
             ValidateCurrentToken();
             return true;
@@ -462,7 +522,9 @@ namespace Exceptionless.Json
                 _model = builder.Build(_schema);
 
                 if (!JsonTokenUtils.IsStartToken(_reader.TokenType))
+                {
                     Push(new SchemaScope(JTokenType.None, CurrentMemberSchemas));
+                }
             }
 
             switch (_reader.TokenType)
@@ -579,7 +641,9 @@ namespace Exceptionless.Json
                     if (schemaScope.CurrentItemWriter == null)
                     {
                         if (JsonTokenUtils.IsEndToken(_reader.TokenType))
+                        {
                             continue;
+                        }
 
                         schemaScope.CurrentItemWriter = new JTokenWriter();
                     }
@@ -597,7 +661,9 @@ namespace Exceptionless.Json
                         if (isInUniqueArray)
                         {
                             if (schemaScope.UniqueArrayItems.Contains(finishedItem, JToken.EqualityComparer))
+                            {
                                 RaiseError("Non-unique array item at index {0}.".FormatWith(CultureInfo.InvariantCulture, schemaScope.ArrayItemCount - 1), schemaScope.Schemas.First(s => s.UniqueItems));
+                            }
 
                             schemaScope.UniqueArrayItems.Add(finishedItem);
                         }
@@ -625,7 +691,9 @@ namespace Exceptionless.Json
         private void ValidateEndObject(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             Dictionary<string, bool> requiredProperties = _currentScope.RequiredProperties;
 
@@ -635,31 +703,43 @@ namespace Exceptionless.Json
                     requiredProperties.Where(kv => !kv.Value).Select(kv => kv.Key).ToList();
 
                 if (unmatchedRequiredProperties.Count > 0)
+                {
                     RaiseError("Required properties are missing from object: {0}.".FormatWith(CultureInfo.InvariantCulture, string.Join(", ", unmatchedRequiredProperties.ToArray())), schema);
+                }
             }
         }
 
         private void ValidateEndArray(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             int arrayItemCount = _currentScope.ArrayItemCount;
 
             if (schema.MaximumItems != null && arrayItemCount > schema.MaximumItems)
+            {
                 RaiseError("Array item count {0} exceeds maximum count of {1}.".FormatWith(CultureInfo.InvariantCulture, arrayItemCount, schema.MaximumItems), schema);
+            }
 
             if (schema.MinimumItems != null && arrayItemCount < schema.MinimumItems)
+            {
                 RaiseError("Array item count {0} is less than minimum count of {1}.".FormatWith(CultureInfo.InvariantCulture, arrayItemCount, schema.MinimumItems), schema);
+            }
         }
 
         private void ValidateNull(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             if (!TestType(schema, JsonSchemaType.Null))
+            {
                 return;
+            }
 
             ValidateNotDisallowed(schema);
         }
@@ -667,10 +747,14 @@ namespace Exceptionless.Json
         private void ValidateBoolean(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             if (!TestType(schema, JsonSchemaType.Boolean))
+            {
                 return;
+            }
 
             ValidateNotDisallowed(schema);
         }
@@ -678,27 +762,37 @@ namespace Exceptionless.Json
         private void ValidateString(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             if (!TestType(schema, JsonSchemaType.String))
+            {
                 return;
+            }
 
             ValidateNotDisallowed(schema);
 
             string value = _reader.Value.ToString();
 
             if (schema.MaximumLength != null && value.Length > schema.MaximumLength)
+            {
                 RaiseError("String '{0}' exceeds maximum length of {1}.".FormatWith(CultureInfo.InvariantCulture, value, schema.MaximumLength), schema);
+            }
 
             if (schema.MinimumLength != null && value.Length < schema.MinimumLength)
+            {
                 RaiseError("String '{0}' is less than minimum length of {1}.".FormatWith(CultureInfo.InvariantCulture, value, schema.MinimumLength), schema);
+            }
 
             if (schema.Patterns != null)
             {
                 foreach (string pattern in schema.Patterns)
                 {
                     if (!Regex.IsMatch(value, pattern))
+                    {
                         RaiseError("String '{0}' does not match regex pattern '{1}'.".FormatWith(CultureInfo.InvariantCulture, value, pattern), schema);
+                    }
                 }
             }
         }
@@ -706,10 +800,14 @@ namespace Exceptionless.Json
         private void ValidateInteger(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             if (!TestType(schema, JsonSchemaType.Integer))
+            {
                 return;
+            }
 
             ValidateNotDisallowed(schema);
 
@@ -718,17 +816,25 @@ namespace Exceptionless.Json
             if (schema.Maximum != null)
             {
                 if (JValue.Compare(JTokenType.Integer, value, schema.Maximum) > 0)
+                {
                     RaiseError("Integer {0} exceeds maximum value of {1}.".FormatWith(CultureInfo.InvariantCulture, value, schema.Maximum), schema);
+                }
                 if (schema.ExclusiveMaximum && JValue.Compare(JTokenType.Integer, value, schema.Maximum) == 0)
+                {
                     RaiseError("Integer {0} equals maximum value of {1} and exclusive maximum is true.".FormatWith(CultureInfo.InvariantCulture, value, schema.Maximum), schema);
+                }
             }
 
             if (schema.Minimum != null)
             {
                 if (JValue.Compare(JTokenType.Integer, value, schema.Minimum) < 0)
+                {
                     RaiseError("Integer {0} is less than minimum value of {1}.".FormatWith(CultureInfo.InvariantCulture, value, schema.Minimum), schema);
+                }
                 if (schema.ExclusiveMinimum && JValue.Compare(JTokenType.Integer, value, schema.Minimum) == 0)
+                {
                     RaiseError("Integer {0} equals minimum value of {1} and exclusive minimum is true.".FormatWith(CultureInfo.InvariantCulture, value, schema.Minimum), schema);
+                }
             }
 
             if (schema.DivisibleBy != null)
@@ -742,16 +848,24 @@ namespace Exceptionless.Json
                     BigInteger i = (BigInteger)value;
                     bool divisibleNonInteger = !Math.Abs(schema.DivisibleBy.Value - Math.Truncate(schema.DivisibleBy.Value)).Equals(0);
                     if (divisibleNonInteger)
+                    {
                         notDivisible = i != 0;
+                    }
                     else
+                    {
                         notDivisible = i % new BigInteger(schema.DivisibleBy.Value) != 0;
+                    }
                 }
                 else
 #endif
-                    notDivisible = !IsZero(Convert.ToInt64(value, CultureInfo.InvariantCulture) % schema.DivisibleBy.Value);
+                {
+                    notDivisible = !IsZero(Convert.ToInt64(value, CultureInfo.InvariantCulture) % schema.DivisibleBy.GetValueOrDefault());
+                }
 
                 if (notDivisible)
+                {
                     RaiseError("Integer {0} is not evenly divisible by {1}.".FormatWith(CultureInfo.InvariantCulture, JsonConvert.ToString(value), schema.DivisibleBy), schema);
+                }
             }
         }
 
@@ -778,10 +892,14 @@ namespace Exceptionless.Json
         private void ValidateFloat(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             if (!TestType(schema, JsonSchemaType.Float))
+            {
                 return;
+            }
 
             ValidateNotDisallowed(schema);
 
@@ -790,25 +908,35 @@ namespace Exceptionless.Json
             if (schema.Maximum != null)
             {
                 if (value > schema.Maximum)
+                {
                     RaiseError("Float {0} exceeds maximum value of {1}.".FormatWith(CultureInfo.InvariantCulture, JsonConvert.ToString(value), schema.Maximum), schema);
+                }
                 if (schema.ExclusiveMaximum && value == schema.Maximum)
+                {
                     RaiseError("Float {0} equals maximum value of {1} and exclusive maximum is true.".FormatWith(CultureInfo.InvariantCulture, JsonConvert.ToString(value), schema.Maximum), schema);
+                }
             }
 
             if (schema.Minimum != null)
             {
                 if (value < schema.Minimum)
+                {
                     RaiseError("Float {0} is less than minimum value of {1}.".FormatWith(CultureInfo.InvariantCulture, JsonConvert.ToString(value), schema.Minimum), schema);
+                }
                 if (schema.ExclusiveMinimum && value == schema.Minimum)
+                {
                     RaiseError("Float {0} equals minimum value of {1} and exclusive minimum is true.".FormatWith(CultureInfo.InvariantCulture, JsonConvert.ToString(value), schema.Minimum), schema);
+                }
             }
 
             if (schema.DivisibleBy != null)
             {
-                double remainder = FloatingPointRemainder(value, schema.DivisibleBy.Value);
+                double remainder = FloatingPointRemainder(value, schema.DivisibleBy.GetValueOrDefault());
 
                 if (!IsZero(remainder))
+                {
                     RaiseError("Float {0} is not evenly divisible by {1}.".FormatWith(CultureInfo.InvariantCulture, JsonConvert.ToString(value), schema.DivisibleBy), schema);
+                }
             }
         }
 
@@ -827,19 +955,25 @@ namespace Exceptionless.Json
         private void ValidatePropertyName(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return;
+            }
 
             string propertyName = Convert.ToString(_reader.Value, CultureInfo.InvariantCulture);
 
             if (_currentScope.RequiredProperties.ContainsKey(propertyName))
+            {
                 _currentScope.RequiredProperties[propertyName] = true;
+            }
 
             if (!schema.AllowAdditionalProperties)
             {
                 bool propertyDefinied = IsPropertyDefinied(schema, propertyName);
 
                 if (!propertyDefinied)
+                {
                     RaiseError("Property '{0}' has not been defined and the schema does not allow additional properties.".FormatWith(CultureInfo.InvariantCulture, propertyName), schema);
+                }
             }
 
             _currentScope.CurrentPropertyName = propertyName;
@@ -848,14 +982,18 @@ namespace Exceptionless.Json
         private bool IsPropertyDefinied(JsonSchemaModel schema, string propertyName)
         {
             if (schema.Properties != null && schema.Properties.ContainsKey(propertyName))
+            {
                 return true;
+            }
 
             if (schema.PatternProperties != null)
             {
                 foreach (string pattern in schema.PatternProperties.Keys)
                 {
                     if (Regex.IsMatch(propertyName, pattern))
+                    {
                         return true;
+                    }
                 }
             }
 
@@ -865,7 +1003,9 @@ namespace Exceptionless.Json
         private bool ValidateArray(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return true;
+            }
 
             return (TestType(schema, JsonSchemaType.Array));
         }
@@ -873,7 +1013,9 @@ namespace Exceptionless.Json
         private bool ValidateObject(JsonSchemaModel schema)
         {
             if (schema == null)
+            {
                 return true;
+            }
 
             return (TestType(schema, JsonSchemaType.Object));
         }

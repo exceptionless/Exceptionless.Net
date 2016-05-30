@@ -1,5 +1,6 @@
-using System.Configuration;
+#if !NETSTANDARD1_5
 using System;
+using System.Configuration;
 
 namespace Exceptionless {
     internal class ExceptionlessSection : ConfigurationSection {
@@ -68,3 +69,4 @@ namespace Exceptionless {
         }
     }
 }
+#endif

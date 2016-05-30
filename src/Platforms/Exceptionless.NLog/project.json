@@ -1,4 +1,4 @@
-﻿{
+{
     "version": "99.99.99-dev",
     "title": "NLog target that sends log entries to Exceptionless.",
     "authors": [ "Exceptionless" ],
@@ -35,14 +35,9 @@
         "NLog": "4.3.3"
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            }
-        },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "NET45" ]
             }
         }
     }

@@ -9,7 +9,10 @@ using System.Text;
 using System.Threading;
 using Exceptionless.Logging;
 using Exceptionless.Models.Data;
+
+#if !NETSTANDARD1_5
 using Microsoft.VisualBasic.Devices;
+#endif
 
 namespace Exceptionless.Services {
     public class EnvironmentInfoCollector : IEnvironmentInfoCollector {
@@ -25,6 +28,7 @@ namespace Exceptionless.Services {
                 return _environmentInfo;
 
             var info = new EnvironmentInfo();
+#if !NETSTANDARD1_5
             ComputerInfo computerInfo = null;
 
             try {
@@ -60,6 +64,7 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
             }
+#endif
 
             try {
                 info.ProcessorCount = Environment.ProcessorCount;
@@ -74,7 +79,7 @@ namespace Exceptionless.Services {
             }
 
             try {
-                IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName());
+                IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).GetAwaiter().GetResult();
                 if (hostEntry != null && hostEntry.AddressList.Any())
                     info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
             } catch (Exception ex) {
@@ -88,11 +93,13 @@ namespace Exceptionless.Services {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get process memory size. Error message: {0}", ex.Message);
             }
 
+#if !NETSTANDARD1_5
             try {
                 info.CommandLine = Environment.CommandLine;
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get command line. Error message: {0}", ex.Message);
             }
+#endif
 
             try {
                 if (IsUnix) {
@@ -131,6 +138,7 @@ namespace Exceptionless.Services {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get CPU architecture. Error message: {0}", ex.Message);
             }
 
+#if !NETSTANDARD1_5
             try {
                 info.RuntimeVersion = Environment.Version.ToString();
             } catch (Exception ex) {
@@ -142,6 +150,7 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
             }
+#endif
 
             try {
                 info.ThreadName = Thread.CurrentThread.Name;
@@ -171,9 +180,14 @@ namespace Exceptionless.Services {
         }
 
         private static bool IsUnix {
-            get {
+            get
+            {
+#if NETSTANDARD1_5
+                return false;
+#else
                 int platform = (int)Environment.OSVersion.Platform;
                 return platform == 4 || platform == 6 || platform == 128;
+#endif
             }
         }
     }
@@ -181,10 +195,10 @@ namespace Exceptionless.Services {
     internal static class KernelNativeMethods {
         #region Kernel32
 
-        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procName);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process(IntPtr hProcess, out bool wow64Process);
 

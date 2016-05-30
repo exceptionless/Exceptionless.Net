@@ -23,11 +23,19 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+
 namespace Exceptionless.Json.Schema
 {
     /// <summary>
+    /// <para>
     /// Specifies undefined schema Id handling options for the <see cref="JsonSchemaGenerator"/>.
+    /// </para>
+    /// <note type="caution">
+    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
+    /// </note>
     /// </summary>
+    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     public enum UndefinedSchemaIdHandling
     {
         /// <summary>

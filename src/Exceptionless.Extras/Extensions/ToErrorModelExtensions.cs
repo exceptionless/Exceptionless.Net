@@ -59,6 +59,7 @@ namespace Exceptionless.Extras {
                     error.Code = info.GetValue(exception, null).ToString();
             } catch (Exception) { }
 
+#if !NETSTANDARD1_5
             try {
                 if (exception.TargetSite != null) {
                     error.TargetMethod = new Method();
@@ -67,6 +68,7 @@ namespace Exceptionless.Extras {
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating TargetMethod: " + ex.Message);
             }
+#endif
 
             var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions).ToList();
             try {
@@ -136,7 +138,7 @@ namespace Exceptionless.Extras {
 
         private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
             var modules = new ModuleCollection();
-
+#if !NETSTANDARD1_5
             try {
                 int id = 1;
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -172,7 +174,7 @@ namespace Exceptionless.Extras {
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error loading modules: " + ex.Message);
             }
-
+#endif
             return modules;
         }
 
@@ -195,7 +197,9 @@ namespace Exceptionless.Extras {
 
                 try {
                     stackFrame.Data["ILOffset"] = frame.GetILOffset();
+#if !NETSTANDARD1_5
                     stackFrame.Data["NativeOffset"] = frame.GetNativeOffset();
+#endif
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame offset info: " + ex.Message);
                 }
@@ -217,7 +221,7 @@ namespace Exceptionless.Extras {
             method.Name = methodBase.Name;
             if (methodBase.DeclaringType != null) {
                 method.DeclaringNamespace = methodBase.DeclaringType.Namespace;
-                if (methodBase.DeclaringType.MemberType == MemberTypes.NestedType && methodBase.DeclaringType.DeclaringType != null)
+                if (methodBase.DeclaringType.GetTypeInfo().MemberType == MemberTypes.NestedType && methodBase.DeclaringType.DeclaringType != null)
                     method.DeclaringType = methodBase.DeclaringType.DeclaringType.Name + "+" + methodBase.DeclaringType.Name;
                 else
                     method.DeclaringType = methodBase.DeclaringType.Name;
