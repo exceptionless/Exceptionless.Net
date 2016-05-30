@@ -1,11 +1,11 @@
-﻿{
+{
   "version": "99.99.99-dev",
-  "title": "Exceptionless client for ASP.NET Core",
+  "title": "Exceptionless sample for MVC ASP.NET Core",
   "authors": [ "Exceptionless" ],
   "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
   "description": "Exceptionless client for ASP.NET Core. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
   "packOptions": {
-    "tags": [ "ASP.NET", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+    "tags": [ "ASP.NET", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH", "NetCore" ],
     "owners": [ "Exceptionless" ],
     "projectUrl": "http://exceptionless.io",
     "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -24,27 +24,27 @@
     "nowarn": [
       "CS1591"
     ],
+    "emitEntryPoint":  true,
+    "preserveCompilationContext": true,
+
     "optimize": true,
     "warningsAsErrors": true,
     "xmlDoc": true
   },
   "dependencies": {
-    "Exceptionless.Extras": {
-      "target": "project"
-    },
-    "Exceptionless.Portable": {
-      "target": "project"
-    },
-    "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-final",
-    "Microsoft.AspNetCore.Diagnostics.Abstractions": "1.0.0-rc2-final",
-    "Microsoft.AspNetCore.Http": "1.0.0-rc3-21028",
-    "Microsoft.AspNetCore.Http.Abstractions": "1.0.0-rc3-21028",
-    "Microsoft.AspNetCore.Http.Extensions": "1.0.0-rc3-21028",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc3-21028",
-    "Microsoft.Extensions.Logging.TraceSource": "1.0.0-rc2-final",
-    "Microsoft.Net.Http.Headers": "1.0.0-rc3-21028",
-    "System.Diagnostics.DiagnosticSource": "4.0.0-rc2-24027"
+    "Exceptionless.AspNetCore": "99.99.99-dev",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-final"
   },
+
+  "tools": {
+    "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
+      "version": "1.0.0-preview1-final",
+      "imports": "portable-net45+win8+dnxcore50"
+    }
+  },
+
   "frameworks": {
     "net451": { },
     "netcoreapp1.0": {
@@ -58,5 +58,15 @@
         }
       }
     }
+  },
+
+  "runtimeOptions": {
+    "gcServer": true
+  },
+
+  "publishOptions": {
+    "include": [
+      "web.config"
+    ]
   }
 }
