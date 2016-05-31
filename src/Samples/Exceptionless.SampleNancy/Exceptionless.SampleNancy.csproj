@@ -57,7 +57,7 @@
       <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Nancy">
-      <HintPath>..\..\Platforms\Exceptionless.Nancy\bin\Debug\net45\Exceptionless.Nancy.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.Nancy\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Nancy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

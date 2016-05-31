@@ -136,10 +136,10 @@
       <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Mvc">
-      <HintPath>..\..\Platforms\Exceptionless.Mvc\bin\Debug\net45\Exceptionless.Mvc.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.Mvc\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.WebApi">
-      <HintPath>..\..\Platforms\Exceptionless.WebApi\bin\Debug\net45\Exceptionless.WebApi.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.WebApi\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.WebApi.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

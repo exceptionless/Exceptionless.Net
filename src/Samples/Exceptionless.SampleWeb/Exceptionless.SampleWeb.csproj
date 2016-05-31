@@ -79,7 +79,7 @@
       <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Web">
-      <HintPath>..\..\Platforms\Exceptionless.Web\bin\Debug\net45\Exceptionless.Web.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.Web\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Web.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
