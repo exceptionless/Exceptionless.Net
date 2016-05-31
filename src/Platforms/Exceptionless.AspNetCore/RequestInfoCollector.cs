@@ -38,12 +38,14 @@ namespace Exceptionless.AspNetCore {
             info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
             info.QueryString = context.Request.Query.ToDictionary(exclusionList);
 
-            if (context.Request.Form.Count > 0) {
+            if (context.Request.HasFormContentType && context.Request.Form.Count > 0) {
                 info.PostData = context.Request.Form.ToDictionary(exclusionList);
             } else if (context.Request.ContentLength.HasValue && context.Request.ContentLength.Value > 0) {
                 if (context.Request.ContentLength.Value < 1024 * 50) {
                     try {
-                        context.Request.Body.Position = 0;
+                        if (context.Request.Body.Position > 0)
+                            context.Request.Body.Position = 0;
+
                         using (var inputStream = new StreamReader(context.Request.Body))
                             info.PostData = inputStream.ReadToEnd();
                     } catch (Exception ex) {
