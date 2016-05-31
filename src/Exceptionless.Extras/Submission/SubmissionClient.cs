@@ -25,13 +25,11 @@ namespace Exceptionless.Extras.Submission {
             HttpWebResponse response;
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/events", config.GetServiceEndPoint()));
-                response = request.PostJsonAsyncWithCompression(data).Result as HttpWebResponse;
-            } catch (AggregateException aex) {
-                var ex = aex.GetInnermostException() as WebException;
-                if (ex != null)
-                    response = (HttpWebResponse)ex.Response;
-                else
-                    return new SubmissionResponse(500, message: aex.GetMessage());
+                response = request.PostJsonAsyncWithCompression(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
+            } catch (WebException ex) {
+                response = (HttpWebResponse)ex.Response;
+                if (response == null)
+                    return new SubmissionResponse(500, message: ex.Message);
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
             }
@@ -49,13 +47,11 @@ namespace Exceptionless.Extras.Submission {
             HttpWebResponse response;
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/events/by-ref/{1}/user-description", config.GetServiceEndPoint(), referenceId));
-                response = request.PostJsonAsyncWithCompression(data).Result as HttpWebResponse;
-            } catch (AggregateException aex) {
-                var ex = aex.GetInnermostException() as WebException;
-                if (ex != null)
-                    response = (HttpWebResponse)ex.Response;
-                else
-                    return new SubmissionResponse(500, message: aex.GetMessage());
+                response = request.PostJsonAsyncWithCompression(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
+            } catch (WebException ex) {
+                response = (HttpWebResponse)ex.Response;
+                if (response == null)
+                    return new SubmissionResponse(500, message: ex.Message);
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
             }
@@ -71,7 +67,7 @@ namespace Exceptionless.Extras.Submission {
             HttpWebResponse response;
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/projects/config?v={1}", config.GetServiceEndPoint(), version));
-                response = request.GetJsonAsync().Result as HttpWebResponse;
+                response = request.GetJsonAsync().ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
                 return new SettingsResponse(false, message: message);
@@ -94,7 +90,7 @@ namespace Exceptionless.Extras.Submission {
         public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/events/session/heartbeat?id={1}&close={2}", config.GetHeartbeatServiceEndPoint(), sessionIdOrUserId, closeSession));
-                var response = request.GetResponseAsync().Result;
+                var response = request.GetResponseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();
                 log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()));

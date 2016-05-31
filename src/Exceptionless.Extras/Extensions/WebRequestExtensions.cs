@@ -11,15 +11,7 @@ using Exceptionless.Threading.Tasks;
 namespace Exceptionless.Extras.Extensions {
     public static class WebRequestExtensions {
         public const string JSON_CONTENT_TYPE = "application/json";
-
-        public static Task<Stream> GetRequestStreamAsync(this WebRequest request) {
-            return Task.Factory.FromAsync<Stream>(request.BeginGetRequestStream, request.EndGetRequestStream, null);
-        }
-
-        public static Task<WebResponse> GetResponseAsync(this WebRequest request) {
-            return Task.Factory.FromAsync<WebResponse>(request.BeginGetResponse, request.EndGetResponse, null);
-        }
-
+        
         public static void AddAuthorizationHeader(this WebRequest request, ExceptionlessConfiguration configuration) {
             var authorizationHeader = new AuthorizationHeader {
                 Scheme = ExceptionlessHeaders.Bearer,
@@ -38,7 +30,7 @@ namespace Exceptionless.Extras.Extensions {
                 request.Headers[ExceptionlessHeaders.Client] = userAgent;
         }
 
-        public static Task<WebResponse> PostJsonAsyncWithCompression(this HttpWebRequest request, string data) {
+        public static async Task<WebResponse> PostJsonAsyncWithCompression(this HttpWebRequest request, string data) {
             // don't compress data smaller than 4kb
             bool shouldCompress = data.Length > 1024 * 4;
             request.Accept = request.ContentType = JSON_CONTENT_TYPE;
@@ -47,18 +39,19 @@ namespace Exceptionless.Extras.Extensions {
                 request.Headers["Content-Encoding"] = "gzip";
 
             byte[] buffer = Encoding.UTF8.GetBytes(data);
-            return request.GetRequestStreamAsync().Then(t => {
-                if (shouldCompress)
-                    using (var zipStream = new GZipStream(t.Result, CompressionMode.Compress)) {
-                        zipStream.Write(buffer, 0, buffer.Length);
+            using (var requestStream = await request.GetRequestStreamAsync().ConfigureAwait(false)) {
+                if (shouldCompress) {
+                    using (var zipStream = new GZipStream(requestStream, CompressionMode.Compress)) {
+                        await zipStream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
                     }
-                else
-                    using (var stream = new BinaryWriter(t.Result)) {
+                } else {
+                    using (var stream = new BinaryWriter(requestStream)) {
                         stream.Write(buffer, 0, buffer.Length);
                     }
+                }
 
-                return request.GetResponseAsync();
-            });
+                return await request.GetResponseAsync();
+            }
         }
 
         public static Task<WebResponse> GetJsonAsync(this HttpWebRequest request) {
