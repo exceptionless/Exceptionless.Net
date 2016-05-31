@@ -1,4 +1,4 @@
-﻿using ExceptionLess.AspNetCore.Interfaces;
+﻿using Exceptionless.AspNetCore.Interfaces;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;

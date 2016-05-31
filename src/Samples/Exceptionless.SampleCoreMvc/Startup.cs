@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using ExceptionLess.AspNetCore;
+using Exceptionless.AspNetCore;
 using Exceptionless.SampleCoreMvc.ExceptionlessCore;
 
 namespace Exceptionless.SampleCoreMvc

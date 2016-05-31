@@ -1,6 +1,6 @@
 ﻿using Exceptionless.SampleCoreWebApi.ExceptionlessCore;
 using Exceptionless.SampleCoreWebApi.ExceptionlessCore.ExceptionLoggers;
-using ExceptionLess.AspNetCore;
+using Exceptionless.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;

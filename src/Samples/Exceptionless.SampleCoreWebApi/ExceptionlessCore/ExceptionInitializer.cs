@@ -1,4 +1,4 @@
-﻿using ExceptionLess.AspNetCore.Interfaces;
+﻿using Exceptionless.AspNetCore.Interfaces;
 using System;
 using System.Dynamic;
 using System.Threading.Tasks;
