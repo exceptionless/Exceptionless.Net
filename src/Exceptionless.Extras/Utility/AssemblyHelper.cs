@@ -32,8 +32,7 @@ namespace Exceptionless.Extras.Utility {
 
         public static List<Type> GetTypes(IExceptionlessLog log) {
             var types = new List<Type>();
-
-#if !NETSTANDARD1_5
+            
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies) {
                 try {
@@ -45,7 +44,6 @@ namespace Exceptionless.Extras.Utility {
                     log.Error(typeof(ExceptionlessExtraConfigurationExtensions), ex, String.Format("An error occurred while getting types for assembly \"{0}\".", assembly));
                 }
             }
-#endif
 
             return types;
         }

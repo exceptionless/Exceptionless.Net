@@ -138,7 +138,6 @@ namespace Exceptionless.Extras {
 
         private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
             var modules = new ModuleCollection();
-#if !NETSTANDARD1_5
             try {
                 int id = 1;
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -159,8 +158,8 @@ namespace Exceptionless.Extras {
                             if (_msPublicKeyTokens.Contains(publicKeyToken))
                                 continue;
 
-                            object[] attrs = assembly.GetCustomAttributes(typeof(GeneratedCodeAttribute), true);
-                            if (attrs.Length > 0)
+                            var attrs = assembly.GetCustomAttributes(typeof(GeneratedCodeAttribute)).ToList();
+                            if (attrs.Count > 0)
                                 continue;
                         } catch {}
                     }
@@ -174,7 +173,7 @@ namespace Exceptionless.Extras {
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error loading modules: " + ex.Message);
             }
-#endif
+
             return modules;
         }
 
