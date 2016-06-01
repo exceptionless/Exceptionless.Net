@@ -9,8 +9,7 @@ pull_requests:
 #environment:
 #  VERSION_SUFFIX: -preview
 
-init:
-  - ps: .\tools\DisplayEnvironmentInfo.ps1
+init: 
   - git config --global core.autocrlf true
   - ps: $env:GIT_HASH=$env:APPVEYOR_REPO_COMMIT.Substring(0, 10)
   - ps: If ("$env:APPVEYOR_REPO_TAG" -ne "true") { $env:VERSION_SUFFIX="-pre" }
@@ -21,6 +20,9 @@ assembly_info:
   assembly_version: "{version}.0"
   assembly_file_version: "{version}.0"
   assembly_informational_version: "{version}$(VERSION_SUFFIX) $(GIT_HASH)"
+
+install:
+  - ps: .\tools\DisplayEnvironmentInfo.ps1
 
 before_build:
   - ps: >-
