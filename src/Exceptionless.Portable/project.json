@@ -37,7 +37,7 @@
         "netstandard1.2": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "PORTABLE", "NETSTANDARD1_2" ]
+                "define": [ "PORTABLE", "NETSTANDARD", "NETSTANDARD1_2" ]
             },
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
@@ -71,7 +71,7 @@
         ".NETPortable,Version=v4.6,Profile=Profile151": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "PORTABLE", "NETSTANDARD1_2" ]
+                "define": [ "PORTABLE", "NETSTANDARD", "NETSTANDARD1_2" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.CSharp": "",

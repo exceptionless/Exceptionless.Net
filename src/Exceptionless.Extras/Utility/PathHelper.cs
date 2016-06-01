@@ -40,11 +40,7 @@ namespace Exceptionless.Extras.Utility {
         /// </summary>
         /// <returns>The DataDirectory path.</returns>
         public static string GetDataDirectory() {
-#if NETSTANDARD1_5
-            string dataDirectory = null;
-#else
             string dataDirectory = AppDomain.CurrentDomain.GetData("DataDirectory") as string;
-#endif
             if (String.IsNullOrEmpty(dataDirectory))
                 dataDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
