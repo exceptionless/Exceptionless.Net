@@ -3,10 +3,14 @@ os: Visual Studio 2015
 clone_depth: 2
 configuration: Release
 
+pull_requests:
+  do_not_increment_build_number: true
+  
 #environment:
 #  VERSION_SUFFIX: -preview
 
 init:
+  - ps: .\tools\DisplayEnvironmentInfo.ps1
   - git config --global core.autocrlf true
   - ps: $env:GIT_HASH=$env:APPVEYOR_REPO_COMMIT.Substring(0, 10)
   - ps: If ("$env:APPVEYOR_REPO_TAG" -ne "true") { $env:VERSION_SUFFIX="-pre" }
