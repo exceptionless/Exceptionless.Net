@@ -27,6 +27,7 @@ before_build:
           Set-Content "$_" $content -Encoding UTF8
       }
   - appveyor-retry nuget restore -verbosity quiet
+  - dotnet --version
   - dotnet restore -v Minimal
 
 build_script:
