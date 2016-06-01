@@ -23,7 +23,7 @@ namespace Exceptionless {
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }
 
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, IConfigurationRoot configuration) {
+        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, IConfiguration configuration) {
             ExceptionlessClient.Default.Configuration.ReadFromConfiguration(configuration);
             return app.UseExceptionless(ExceptionlessClient.Default);
         }
@@ -38,7 +38,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object you want to apply the settings to.</param>
         /// <param name="settings">The configuration settings</param>
-        public static void ReadFromConfiguration(this ExceptionlessConfiguration config, IConfigurationRoot settings) {
+        public static void ReadFromConfiguration(this ExceptionlessConfiguration config, IConfiguration settings) {
             if (config == null)
                 throw new ArgumentNullException("config");
 

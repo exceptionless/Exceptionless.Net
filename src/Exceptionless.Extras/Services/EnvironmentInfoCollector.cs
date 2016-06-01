@@ -155,8 +155,7 @@ namespace Exceptionless.Services {
 #if NETSTANDARD1_5
                 info.Data["ApplicationBasePath"] = computerInfo.Application.ApplicationBasePath;
                 info.Data["ApplicationName"] = computerInfo.Application.ApplicationName;
-                info.Data["ApplicationVersion"] = computerInfo.Application.ApplicationVersion;
-                info.Data["RuntimeFramework"] = computerInfo.Application.RuntimeFramework;
+                info.Data["RuntimeFramework"] = computerInfo.Application.RuntimeFramework.FullName;
 
                 info.OSName = computerInfo.Runtime.OperatingSystem;
                 info.OSVersion = computerInfo.Runtime.OperatingSystemVersion;

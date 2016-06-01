@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using Exceptionless.Extras;
+using Exceptionless.Logging;
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins {
@@ -23,15 +24,51 @@ namespace Exceptionless.Plugins {
                 return;
             
             _checkedForVersion = true;
-            string version = null;
-            try {
-                version = GetVersionFromLoadedAssemblies();
-            } catch (Exception) {}
+
+            string version = GetVersionFromRuntimeInfo(context.Log);
+            if (String.IsNullOrEmpty(version))
+                version = GetVersionFromLoadedAssemblies(context.Log);
 
             if (String.IsNullOrEmpty(version))
                 return;
 
             context.Event.Data[Event.KnownDataKeys.Version] = context.Client.Configuration.DefaultData[Event.KnownDataKeys.Version] = version;
+        }
+
+        private string GetVersionFromRuntimeInfo(IExceptionlessLog log) {
+#if NETSTANDARD1_5
+            try {
+                var platformService = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
+                return platformService.Application.ApplicationVersion;
+            } catch (Exception ex) {
+                log.FormattedInfo(typeof(VersionPlugin), "Unable to get Platform Services instance. Error: {0}", ex.Message);
+            }
+#endif
+            return null;
+        }
+        
+        private string GetVersionFromLoadedAssemblies(IExceptionlessLog log) {
+            try {
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).GetTypeInfo().Assembly && a != GetType().GetTypeInfo().Assembly && a != typeof(object).GetTypeInfo().Assembly)) {
+                    if (String.IsNullOrEmpty(assembly.FullName) || assembly.FullName.StartsWith("System.") || assembly.FullName.StartsWith("Microsoft."))
+                        continue;
+
+                    string company = assembly.GetCompany();
+                    if (!String.IsNullOrEmpty(company) && (String.Equals(company, "Exceptionless", StringComparison.OrdinalIgnoreCase) || String.Equals(company, "Microsoft Corporation", StringComparison.OrdinalIgnoreCase)))
+                        continue;
+            
+                    if (!assembly.GetReferencedAssemblies().Any(an => String.Equals(an.FullName, typeof(ExceptionlessClient).GetTypeInfo().Assembly.FullName)))
+                        continue;
+
+                    string version = GetVersionFromAssembly(assembly);
+                    if (!String.IsNullOrEmpty(version))
+                        return version;
+                }
+            } catch (Exception ex) {
+                log.FormattedInfo(typeof(VersionPlugin), "Unable to get version from loaded assemblies. Error: {0}", ex.Message);
+            }
+
+            return null;
         }
 
         private string GetVersionFromAssembly(Assembly assembly) {
@@ -44,7 +81,7 @@ namespace Exceptionless.Plugins {
 
             if (String.IsNullOrEmpty(version) || String.Equals(version, "0.0.0.0"))
                 version = assembly.GetVersion();
-            
+
             if (String.IsNullOrEmpty(version) || String.Equals(version, "0.0.0.0")) {
                 var assemblyName = assembly.GetAssemblyName();
                 version = assemblyName != null ? assemblyName.Version.ToString() : null;
@@ -53,24 +90,5 @@ namespace Exceptionless.Plugins {
             return !String.IsNullOrEmpty(version) && !String.Equals(version, "0.0.0.0") ? version : null;
         }
 
-        private string GetVersionFromLoadedAssemblies() {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).GetTypeInfo().Assembly && a != GetType().GetTypeInfo().Assembly && a != typeof(object).GetTypeInfo().Assembly)) {
-                if (String.IsNullOrEmpty(assembly.FullName) || assembly.FullName.StartsWith("System.") || assembly.FullName.StartsWith("Microsoft."))
-                    continue;
-
-                string company = assembly.GetCompany();
-                if (!String.IsNullOrEmpty(company) && (String.Equals(company, "Exceptionless", StringComparison.OrdinalIgnoreCase) || String.Equals(company, "Microsoft Corporation", StringComparison.OrdinalIgnoreCase)))
-                    continue;
-            
-                if (!assembly.GetReferencedAssemblies().Any(an => String.Equals(an.FullName, typeof(ExceptionlessClient).GetTypeInfo().Assembly.FullName)))
-                    continue;
-
-                string version = GetVersionFromAssembly(assembly);
-                if (!String.IsNullOrEmpty(version))
-                    return version;
-            }
-
-            return null;
-        }
     }
 }
