@@ -22,13 +22,14 @@ before_build:
   - ps: >-
       Get-ChildItem -Path .\ -Filter project.json -Recurse -Name |
       ForEach {
+          Write-Host "Updating $_"
           $content = Get-Content "$_"
           $content = $content.Replace("99.99.99-dev", "$($env:APPVEYOR_BUILD_VERSION)$($env:VERSION_SUFFIX)")
           Set-Content "$_" $content -Encoding UTF8
+          
+          dotnet restore "$_" -v Minimal
       }
   - appveyor-retry nuget restore -verbosity quiet
-  - ps: dotnet --version
-  - dotnet restore -v Minimal
 
 build_script:
   - ps: .\tools\Build.ps1
