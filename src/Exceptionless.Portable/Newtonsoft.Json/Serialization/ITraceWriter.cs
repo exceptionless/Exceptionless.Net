@@ -25,4 +25,14 @@ namespace Exceptionless.Json.Serialization
         /// <param name="ex">The trace exception. This parameter is optional.</param>
         void Trace(TraceLevel level, string message, Exception ex);
     }
+
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
+    public enum TraceLevel {
+        Off = 0,
+        Error = 1,
+        Warning = 2,
+        Info = 3,
+        Verbose = 4,
+    }
+#endif
 }

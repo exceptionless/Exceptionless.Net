@@ -366,7 +366,7 @@ namespace Exceptionless.Json
         {
             string text;
             string qc;
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
             text = value.ToString("D", CultureInfo.InvariantCulture);
             qc = quoteChar.ToString(CultureInfo.InvariantCulture);
 #else
@@ -991,7 +991,7 @@ namespace Exceptionless.Json
         #endregion
 
         #region Xml
-#if !(PORTABLE40 || PORTABLE || DOTNET)
+#if !(PORTABLE40 || PORTABLE || DOTNET || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
         /// <summary>
         /// Serializes the XML node to a JSON string.
         /// </summary>

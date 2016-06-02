@@ -99,7 +99,7 @@ namespace Exceptionless {
             return builder;
         }
 
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Adds the recent trace log entries to the event.
         /// </summary>

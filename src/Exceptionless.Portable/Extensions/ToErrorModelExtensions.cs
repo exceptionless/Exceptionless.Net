@@ -1,4 +1,4 @@
-﻿#if !NETPORTABLE && !NETSTANDARD1_2
+﻿#if !PORTABLE && !NETSTANDARD1_2
 using System;
 using System.Collections;
 using System.Collections.Concurrent;

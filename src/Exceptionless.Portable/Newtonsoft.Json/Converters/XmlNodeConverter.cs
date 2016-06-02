@@ -48,7 +48,7 @@ namespace Exceptionless.Json.Converters
 {
 
     #region XmlNodeWrappers
-#if !DOTNET && !PORTABLE && !PORTABLE40
+#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
     internal class XmlDocumentWrapper : XmlNodeWrapper, IXmlDocument
     {
         private readonly XmlDocument _document;
@@ -89,10 +89,12 @@ namespace Exceptionless.Json.Converters
             return new XmlDeclarationWrapper(_document.CreateXmlDeclaration(version, encoding, standalone));
         }
 
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         public IXmlNode CreateXmlDocumentType(string name, string publicId, string systemId, string internalSubset)
         {
             return new XmlDocumentTypeWrapper(_document.CreateDocumentType(name, publicId, systemId, null));
         }
+#endif
 
         public IXmlNode CreateProcessingInstruction(string target, string data)
         {
@@ -195,6 +197,7 @@ namespace Exceptionless.Json.Converters
         }
     }
 
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
     internal class XmlDocumentTypeWrapper : XmlNodeWrapper, IXmlDocumentType
     {
         private readonly XmlDocumentType _documentType;
@@ -230,6 +233,7 @@ namespace Exceptionless.Json.Converters
             get { return "DOCTYPE"; }
         }
     }
+#endif
 
     internal class XmlNodeWrapper : IXmlNode
     {
@@ -279,8 +283,10 @@ namespace Exceptionless.Json.Converters
                     return new XmlElementWrapper((XmlElement)node);
                 case XmlNodeType.XmlDeclaration:
                     return new XmlDeclarationWrapper((XmlDeclaration)node);
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
                 case XmlNodeType.DocumentType:
                     return new XmlDocumentTypeWrapper((XmlDocumentType)node);
+#endif
                 default:
                     return new XmlNodeWrapper(node);
             }
@@ -337,10 +343,10 @@ namespace Exceptionless.Json.Converters
         }
     }
 #endif
-    #endregion
+#endregion
 
-    #region Interfaces
-    internal interface IXmlDocument : IXmlNode
+                    #region Interfaces
+        internal interface IXmlDocument : IXmlNode
     {
         IXmlNode CreateComment(string text);
         IXmlNode CreateTextNode(string text);
@@ -348,7 +354,9 @@ namespace Exceptionless.Json.Converters
         IXmlNode CreateWhitespace(string text);
         IXmlNode CreateSignificantWhitespace(string text);
         IXmlNode CreateXmlDeclaration(string version, string encoding, string standalone);
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         IXmlNode CreateXmlDocumentType(string name, string publicId, string systemId, string internalSubset);
+#endif
         IXmlNode CreateProcessingInstruction(string target, string data);
         IXmlElement CreateElement(string elementName);
         IXmlElement CreateElement(string qualifiedName, string namespaceUri);
@@ -392,9 +400,9 @@ namespace Exceptionless.Json.Converters
         string NamespaceUri { get; }
         object WrappedNode { get; }
     }
-    #endregion
+#endregion
 
-    #region XNodeWrappers
+#region XNodeWrappers
 #if !NET20
     internal class XDeclarationWrapper : XObjectWrapper, IXmlDeclaration
     {
@@ -909,7 +917,7 @@ namespace Exceptionless.Json.Converters
         }
     }
 #endif
-    #endregion
+#endregion
 
     /// <summary>
     /// Converts XML to and from JSON.
@@ -943,7 +951,7 @@ namespace Exceptionless.Json.Converters
         /// <value><c>true</c> if the JSON root object is omitted; otherwise, <c>false</c>.</value>
         public bool OmitRootObject { get; set; }
 
-        #region Writing
+#region Writing
         /// <summary>
         /// Writes the JSON representation of the object.
         /// </summary>
@@ -978,7 +986,7 @@ namespace Exceptionless.Json.Converters
                 return XContainerWrapper.WrapNode((XObject)value);
             }
 #endif
-#if !(DOTNET || PORTABLE)
+#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
             if (value is XmlNode)
             {
                 return XmlNodeWrapper.WrapNode((XmlNode)value);
@@ -1312,9 +1320,9 @@ namespace Exceptionless.Json.Converters
                     throw new JsonSerializationException("Unexpected XmlNodeType when serializing nodes: " + node.NodeType);
             }
         }
-        #endregion
+#endregion
 
-        #region Reading
+#region Reading
         /// <summary>
         /// Reads the JSON representation of the object.
         /// </summary>
@@ -1347,7 +1355,7 @@ namespace Exceptionless.Json.Converters
                 rootNode = document;
             }
 #endif
-#if !(DOTNET || PORTABLE)
+#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
             if (typeof(XmlNode).IsAssignableFrom(objectType))
             {
                 if (objectType != typeof(XmlDocument))
@@ -1356,8 +1364,10 @@ namespace Exceptionless.Json.Converters
                 }
 
                 XmlDocument d = new XmlDocument();
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
                 // prevent http request when resolving any DTD references
                 d.XmlResolver = null;
+#endif
 
                 document = new XmlDocumentWrapper(d);
                 rootNode = document;
@@ -1421,10 +1431,12 @@ namespace Exceptionless.Json.Converters
                     {
                         CreateInstruction(reader, document, currentNode, propertyName);
                     }
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
                     else if (string.Equals(propertyName, "!DOCTYPE", StringComparison.OrdinalIgnoreCase))
                     {
                         CreateDocumentType(reader, document, currentNode);
                     }
+#endif
                     else
                     {
                         if (reader.TokenType == JsonToken.StartArray)
@@ -1586,7 +1598,7 @@ namespace Exceptionless.Json.Converters
 #endif
 
                 DateTime d = Convert.ToDateTime(reader.Value, CultureInfo.InvariantCulture);
-#if !PORTABLE
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
                 return XmlConvert.ToString(d, DateTimeUtils.ToSerializationMode(d.Kind));
 #else
                 return XmlConvert.ToString(d);
@@ -1787,6 +1799,7 @@ namespace Exceptionless.Json.Converters
             }
         }
 
+#if !(NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         private void CreateDocumentType(JsonReader reader, IXmlDocument document, IXmlNode currentNode)
         {
             string name = null;
@@ -1821,6 +1834,7 @@ namespace Exceptionless.Json.Converters
             IXmlNode documentType = document.CreateXmlDocumentType(name, publicId, systemId, internalSubset);
             currentNode.AppendChild(documentType);
         }
+#endif
 
         private IXmlElement CreateElement(string elementName, IXmlDocument document, string elementPrefix, XmlNamespaceManager manager)
         {
@@ -1917,7 +1931,7 @@ namespace Exceptionless.Json.Converters
         {
             return c.Where(a => a.NamespaceUri != JsonNamespaceUri);
         }
-        #endregion
+#endregion
 
         /// <summary>
         /// Determines whether this instance can convert the specified value type.
@@ -1934,7 +1948,7 @@ namespace Exceptionless.Json.Converters
                 return true;
             }
 #endif
-#if !(DOTNET || PORTABLE)
+#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
             if (typeof(XmlNode).IsAssignableFrom(valueType))
             {
                 return true;

@@ -5,7 +5,7 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Storage;
 
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,7 +21,7 @@ using Exceptionless.Utility;
 
 namespace Exceptionless {
     public static class ExceptionlessExtraConfigurationExtensions {
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Reads the Exceptionless configuration from the app.config or web.config file.
         /// </summary>
@@ -79,12 +79,12 @@ namespace Exceptionless {
                 config.ReadFromAttributes(configAttributesAssemblies);
             }
 
-#if !NETPORTABLE && !NETSTANDARD
+#if !PORTABLE && !NETSTANDARD
             config.ReadFromConfigSection();
             config.ReadFromAppSettings();
 #endif
 
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
             config.ReadFromEnvironmentalVariables();
 #endif
             config.ApplySavedServerSettings();
@@ -198,7 +198,7 @@ namespace Exceptionless {
         }
 #endif
 
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Reads the Exceptionless configuration from Environment Variables.
         /// </summary>

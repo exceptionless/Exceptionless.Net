@@ -21,7 +21,7 @@ namespace Exceptionless {
                 client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
 
             client.Configuration.ReadAllConfig();
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
             client.Configuration.UseErrorPlugin();
             client.Configuration.UseTraceLogEntriesPlugin();
             client.Configuration.AddPlugin<VersionPlugin>();

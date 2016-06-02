@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
 using System.Net.Sockets;
 #endif
 using System.Runtime.InteropServices;
@@ -44,7 +44,7 @@ namespace Exceptionless.Services {
             }
 #endif
 
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
             try {
                 IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
                 if (hostEntry != null && hostEntry.AddressList.Any())
@@ -62,7 +62,7 @@ namespace Exceptionless.Services {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get processor count. Error message: {0}", ex.Message);
             }
 
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
             try {
                 Process process = Process.GetCurrentProcess();
                 info.ProcessName = process.ProcessName;
@@ -86,7 +86,7 @@ namespace Exceptionless.Services {
         }
 
         private void PopulateThreadInfo(EnvironmentInfo info) {
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
             try {
                 info.ThreadId = Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
             } catch (Exception ex) {
@@ -136,7 +136,7 @@ namespace Exceptionless.Services {
 #endif
 
         private void PopulateRuntimeInfo(EnvironmentInfo info) {
-#if !NETPORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
             try {
 #if NET45 || NETSTANDARD1_5
                 info.MachineName = Environment.MachineName;

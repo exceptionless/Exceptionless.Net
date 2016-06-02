@@ -52,7 +52,7 @@ namespace Exceptionless.Json.Linq
     /// Represents an abstract JSON token.
     /// </summary>
     public abstract class JToken : IJEnumerable<JToken>, IJsonLineInfo
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         , ICloneable
 #endif
 #if !(NET35 || NET20 || PORTABLE40)
@@ -2378,7 +2378,7 @@ namespace Exceptionless.Json.Linq
         }
 #endif
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         object ICloneable.Clone()
         {
             return DeepClone();

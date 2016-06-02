@@ -1580,7 +1580,7 @@ namespace Exceptionless.Json
                     break;
 #endif
                 default:
-#if !PORTABLE
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
                     if (value is IConvertible)
                     {
                         // the value is a non-standard IConvertible

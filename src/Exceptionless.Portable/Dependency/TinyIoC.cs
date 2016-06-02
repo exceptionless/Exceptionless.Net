@@ -45,6 +45,19 @@
 #undef SERIALIZABLE
 #endif
 
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
+#undef COMPILED_EXPRESSIONS
+#undef READER_WRITER_LOCK_SLIM
+#endif
+
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4
+#undef APPDOMAIN_GETASSEMBLIES
+#endif
+
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#undef SERIALIZABLE
+#endif
+
 // CompactFramework / Windows Phone 7
 // By default does not support System.Linq.Expressions.
 // AppDomain object does not support enumerating all assemblies in the app domain.
@@ -74,14 +87,6 @@
 
 #if COMPILED_EXPRESSIONS
 #define USE_OBJECT_CONSTRUCTOR
-#endif
-
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4
-#undef APPDOMAIN_GETASSEMBLIES
-#endif
-
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-#undef SERIALIZABLE
 #endif
 
 #endregion
@@ -353,7 +358,7 @@ namespace TinyIoC
         }
     }
 
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
     [Flags]
     internal enum BindingFlags {
         Default = 0,
@@ -3428,7 +3433,7 @@ namespace TinyIoC
                     {
                         RegisterInternal(type, string.Empty, GetDefaultObjectFactory(type, type));
                     }
-#if PORTABLE
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
                     catch (MemberAccessException)
 #else
                     catch (MethodAccessException)
@@ -3467,7 +3472,7 @@ namespace TinyIoC
                         {
                             RegisterInternal(type, string.Empty, GetDefaultObjectFactory(type, firstImplementation));
                         }
-#if PORTABLE
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
                         catch (MemberAccessException)
 #else
                         catch (MethodAccessException)
@@ -4185,7 +4190,7 @@ namespace TinyIoC
 #endregion
     }
 
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
     static class ReverseTypeExtender
     {
         public static bool IsClass(this Type type)
@@ -4240,7 +4245,7 @@ namespace TinyIoC
     }
 #endif
     // reverse shim for WinRT SR changes...
-#if (!NETFX_CORE && !NETSTANDARD1_0 && !NETSTANDARD1_1 && !NETSTANDARD1_2 && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5)
+#if (!NETFX_CORE && !PORTABLE && !NETSTANDARD1_0 && !NETSTANDARD1_1 && !NETSTANDARD1_2 && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5)
     static class ReverseTypeExtender
     {
         public static bool IsClass(this Type type)

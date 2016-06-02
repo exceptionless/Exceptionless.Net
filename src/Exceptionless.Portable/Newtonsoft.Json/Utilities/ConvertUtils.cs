@@ -27,7 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.ComponentModel;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if !(NET20 || NET35 || PORTABLE40 || PORTABLE || NETSTANDARD1_0)
 using System.Numerics;
 #endif
 using System.Text;
@@ -37,9 +37,8 @@ using System.Reflection;
 #if NET20
 using Exceptionless.Json.Utilities.LinqBridge;
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NO_SQL_CLIENT)
 using System.Data.SqlTypes;
-
 #endif
 
 namespace Exceptionless.Json.Utilities
@@ -220,7 +219,7 @@ namespace Exceptionless.Json.Utilities
             return PrimitiveTypeCode.Object;
         }
 
-#if !PORTABLE
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
         public static TypeInformation GetTypeInformation(IConvertible convertable)
         {
             TypeInformation typeInformation = PrimitiveTypeCodes[(int)convertable.GetTypeCode()];
@@ -230,7 +229,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsConvertible(Type t)
         {
-#if !PORTABLE
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
             return typeof(IConvertible).IsAssignableFrom(t);
 #else
             return (
@@ -311,7 +310,7 @@ namespace Exceptionless.Json.Utilities
             return o => call(null, o);
         }
 
-#if !(NET20 || NET35 || PORTABLE || PORTABLE40)
+#if !(NET20 || NET35 || PORTABLE || PORTABLE40 || NETSTANDARD1_0)
         internal static BigInteger ToBigInteger(object value)
         {
             if (value is BigInteger)
@@ -586,7 +585,7 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.CannotConvertNull;
             }
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NO_SQL_CLIENT)
             if (initialValue is INullable)
             {
                 value = EnsureTypeAssignable(ToValue((INullable)initialValue), initialType, targetType);
@@ -668,7 +667,7 @@ namespace Exceptionless.Json.Utilities
             throw new ArgumentException("Could not cast or convert from {0} to {1}.".FormatWith(CultureInfo.InvariantCulture, (initialType != null) ? initialType.ToString() : "{null}", targetType));
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NO_SQL_CLIENT)
         public static object ToValue(INullable nullableValue)
         {
             if (nullableValue == null)

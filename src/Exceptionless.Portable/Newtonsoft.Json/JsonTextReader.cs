@@ -2326,7 +2326,7 @@ namespace Exceptionless.Json
 
             if (CloseInput && _reader != null)
             {
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
                 _reader.Close();
 #else
                 _reader.Dispose();

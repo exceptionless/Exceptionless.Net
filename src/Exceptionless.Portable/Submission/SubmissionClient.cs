@@ -116,7 +116,7 @@ namespace Exceptionless.Submission {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.AddAuthorizationHeader(config);
             request.SetUserAgent(config);
-#if !NETPORTABLE && !NETSTANDARD
+#if !PORTABLE && !NETSTANDARD
             request.AllowAutoRedirect = true;
             request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
 #endif
