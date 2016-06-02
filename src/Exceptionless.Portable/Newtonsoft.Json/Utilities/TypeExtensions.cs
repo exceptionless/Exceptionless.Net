@@ -37,7 +37,7 @@ namespace Exceptionless.Json.Utilities
     internal static class TypeExtensions
     {
 #if DOTNET || PORTABLE
-#if !DOTNET
+#if !DOTNET && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5
         private static BindingFlags DefaultFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
 
         public static MethodInfo GetGetMethod(this PropertyInfo propertyInfo)
@@ -78,7 +78,7 @@ namespace Exceptionless.Json.Utilities
             return type.GetTypeInfo().IsSubclassOf(c);
         }
 
-#if !DOTNET
+#if !DOTNET && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5
         public static bool IsAssignableFrom(this Type type, Type c)
         {
             return type.GetTypeInfo().IsAssignableFrom(c.GetTypeInfo());
@@ -243,7 +243,7 @@ namespace Exceptionless.Json.Utilities
 
         public static IEnumerable<MemberInfo> GetMember(this Type type, string name, MemberTypes memberType, BindingFlags bindingFlags)
         {
-#if PORTABLE
+#if PORTABLE && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5
             return type.GetMemberInternal(name, memberType, bindingFlags);
 #else
             return type.GetMember(name, bindingFlags).Where(m =>
@@ -272,7 +272,7 @@ namespace Exceptionless.Json.Utilities
             return type.GetTypeInfo().CustomAttributes.Any(a => a.AttributeType == attributeType);
         }
 
-#if !DOTNET
+#if !DOTNET && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5
         public static MethodInfo GetMethod(this Type type, string name)
         {
             return type.GetMethod(name, DefaultFlags);

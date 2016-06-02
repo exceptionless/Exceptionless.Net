@@ -54,7 +54,7 @@ namespace Exceptionless.Json.Utilities
     }
 #endif
 
-#if PORTABLE
+#if PORTABLE && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5
     [Flags]
     internal enum BindingFlags
     {
