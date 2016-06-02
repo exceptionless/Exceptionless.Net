@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET45 || NETSTANDARD1_4 || NETSTANDARD1_5
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,7 +12,7 @@ using Exceptionless.Extensions;
 using Exceptionless.Storage;
 using Exceptionless.Utility;
 
-namespace Exceptionless.Extras.Storage {
+namespace Exceptionless.Storage {
     public class IsolatedStorageObjectStorage : IObjectStorage {
         private readonly object _lockObject = new object();
         private readonly IDependencyResolver _resolver;
@@ -21,7 +22,7 @@ namespace Exceptionless.Extras.Storage {
         }
 
         private IsolatedStorageFile GetIsolatedStorage() {
-#if NETSTANDARD1_5
+#if NETSTANDARD
             return Run.WithRetries(() => IsolatedStorageFile.GetUserStoreForApplication());
 #else
             return Run.WithRetries(() => IsolatedStorageFile.GetStore(IsolatedStorageScope.Machine | IsolatedStorageScope.Assembly, typeof(IsolatedStorageObjectStorage), null));
@@ -247,3 +248,4 @@ namespace Exceptionless.Extras.Storage {
         }
     }
 }
+#endif

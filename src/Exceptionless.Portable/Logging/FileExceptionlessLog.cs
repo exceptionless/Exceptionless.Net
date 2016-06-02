@@ -1,9 +1,9 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Exceptionless.Extras.Utility;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Logging {
@@ -37,7 +37,7 @@ namespace Exceptionless.Logging {
         }
 
         protected virtual WrappedDisposable<StreamWriter> GetWriter(bool append = false) {
-#if NETSTANDARD1_5
+#if NETSTANDARD
             return new WrappedDisposable<StreamWriter>(new StreamWriter(
                 new FileStream(FilePath, append ? FileMode.Append : FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite), Encoding.ASCII)
             );
@@ -261,3 +261,4 @@ namespace Exceptionless.Logging {
         }
     }
 }
+#endif

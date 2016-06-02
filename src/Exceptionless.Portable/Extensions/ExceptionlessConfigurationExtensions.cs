@@ -160,7 +160,7 @@ namespace Exceptionless {
 
             if (assemblies == null) {
                 assemblies = new List<Assembly> {
-#if !NETSTANDARD1_2
+#if NET45
                     Assembly.GetCallingAssembly()
 #endif
                 };

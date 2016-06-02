@@ -1,8 +1,8 @@
 ﻿using System;
 using Exceptionless.Dependency;
-using Exceptionless.Extras.Storage;
 using Exceptionless.Logging;
 using Exceptionless.Serializer;
+using Exceptionless.Storage;
 
 namespace Exceptionless.Tests.Log {
     public class IsolatedStorageFileExceptionlessLogTests : FileExceptionlessLogTests {

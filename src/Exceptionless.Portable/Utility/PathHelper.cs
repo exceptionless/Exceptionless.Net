@@ -1,13 +1,17 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.IO;
 
-namespace Exceptionless.Extras.Utility {
+namespace Exceptionless.Utility {
     public static class PathHelper {
         private const string DATA_DIRECTORY = "|DataDirectory|";
 
         /// <summary>
         /// Expand the filename of the data source, resolving the |DataDirectory| macro as appropriate.
         /// </summary>
+        /// <remarks>
+        /// Expanding of the |DataDirectory| will only happen if access to AppDomain data is available.
+        /// </remarks>
         /// <param name="sourceFile">The database filename to expand</param>
         /// <returns>The expanded path and filename of the filename</returns>
         public static string ExpandPath(string sourceFile) {
@@ -17,6 +21,7 @@ namespace Exceptionless.Extras.Utility {
             if (!sourceFile.StartsWith(DATA_DIRECTORY, StringComparison.OrdinalIgnoreCase))
                 return Path.GetFullPath(sourceFile);
 
+#if NET45 || NETSTANDARD1_5
             string dataDirectory = GetDataDirectory();
             int length = DATA_DIRECTORY.Length;
 
@@ -33,8 +38,12 @@ namespace Exceptionless.Extras.Utility {
             fullPath = Path.GetFullPath(fullPath);
 
             return fullPath;
+#else
+            return sourceFile;
+#endif
         }
 
+#if NET45 || NETSTANDARD1_5
         /// <summary>
         /// Gets the data directory for the |DataDirectory| macro.
         /// </summary>
@@ -46,5 +55,7 @@ namespace Exceptionless.Extras.Utility {
 
             return Path.GetFullPath(dataDirectory);
         }
+#endif
     }
 }
+#endif

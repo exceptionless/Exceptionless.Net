@@ -1,4 +1,4 @@
-#if !NETSTANDARD1_5
+#if !NETPORTABLE && !NETSTANDARD
 using System;
 using System.Configuration;
 

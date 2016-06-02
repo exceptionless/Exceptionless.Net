@@ -1,7 +1,7 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Linq;
 using System.Reflection;
-using Exceptionless.Extras;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 
@@ -26,9 +26,10 @@ namespace Exceptionless.Plugins {
             _checkedForVersion = true;
 
             string version = GetVersionFromRuntimeInfo(context.Log);
+#if NET45 || NETSTANDARD1_5
             if (String.IsNullOrEmpty(version))
                 version = GetVersionFromLoadedAssemblies(context.Log);
-
+#endif
             if (String.IsNullOrEmpty(version))
                 return;
 
@@ -36,7 +37,7 @@ namespace Exceptionless.Plugins {
         }
 
         private string GetVersionFromRuntimeInfo(IExceptionlessLog log) {
-#if NETSTANDARD1_5
+#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
             try {
                 var platformService = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
                 return platformService.Application.ApplicationVersion;
@@ -46,7 +47,8 @@ namespace Exceptionless.Plugins {
 #endif
             return null;
         }
-        
+
+#if NET45 || NETSTANDARD1_5
         private string GetVersionFromLoadedAssemblies(IExceptionlessLog log) {
             try {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).GetTypeInfo().Assembly && a != GetType().GetTypeInfo().Assembly && a != typeof(object).GetTypeInfo().Assembly)) {
@@ -89,6 +91,7 @@ namespace Exceptionless.Plugins {
 
             return !String.IsNullOrEmpty(version) && !String.Equals(version, "0.0.0.0") ? version : null;
         }
-
+#endif
     }
 }
+#endif

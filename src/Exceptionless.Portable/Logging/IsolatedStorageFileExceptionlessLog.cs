@@ -1,8 +1,8 @@
-﻿using System;
+﻿#if NET45 || NETSTANDARD1_4 || NETSTANDARD1_5
+using System;
 using System.IO;
 using System.IO.IsolatedStorage;
-using Exceptionless.Extras.Storage;
-using Exceptionless.Extras.Utility;
+using Exceptionless.Storage;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Logging {
@@ -12,7 +12,7 @@ namespace Exceptionless.Logging {
         protected override void Init() {}
 
         private IsolatedStorageFile GetStore() {
-#if NETSTANDARD1_5
+#if NETSTANDARD
             return Run.WithRetries(() => IsolatedStorageFile.GetUserStoreForApplication());
 #else
             return Run.WithRetries(() => IsolatedStorageFile.GetStore(IsolatedStorageScope.Machine | IsolatedStorageScope.Assembly, typeof(IsolatedStorageObjectStorage), null));
@@ -59,3 +59,4 @@ namespace Exceptionless.Logging {
         }
     }
 }
+#endif

@@ -1,4 +1,4 @@
-﻿#if !NETSTANDARD1_5
+﻿#if NET45
 using System;
 using Exceptionless.Dependency;
 

@@ -1,9 +1,9 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.IO;
 using System.Reflection;
 
-
-namespace Exceptionless.Extras {
+namespace Exceptionless {
     internal static class ReflectionExtensions {
         public static AssemblyName GetAssemblyName(this Assembly assembly) {
             try {
@@ -14,17 +14,21 @@ namespace Exceptionless.Extras {
         }
 
         public static DateTime? GetCreationTime(this Assembly assembly) {
+#if NET45 || NETSTANDARD1_5
             try {
                 return File.GetCreationTime(assembly.Location);
             } catch {}
+#endif
 
             return null;
         }
 
         public static DateTime? GetLastWriteTime(this Assembly assembly) {
+#if NET45 || NETSTANDARD1_5
             try {
                 return File.GetLastWriteTime(assembly.Location);
             } catch {}
+#endif
 
             return null;
         }
@@ -53,3 +57,4 @@ namespace Exceptionless.Extras {
         }
     }
 }
+#endif

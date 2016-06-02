@@ -1,9 +1,9 @@
 using System;
 using System.Windows.Forms;
 using Exceptionless.Dependency;
-using Exceptionless.Extras.Utility;
 using Exceptionless.Models;
 using Exceptionless.Storage;
+using Exceptionless.Utility;
 
 namespace Exceptionless.Dialogs {
     public sealed partial class CrashReportForm : Form {

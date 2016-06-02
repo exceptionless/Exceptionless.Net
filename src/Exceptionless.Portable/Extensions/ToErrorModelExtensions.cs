@@ -1,5 +1,5 @@
-﻿using System;
-using System.CodeDom.Compiler;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ using Exceptionless.Models.Data;
 using Module = Exceptionless.Models.Data.Module;
 using StackFrame = System.Diagnostics.StackFrame;
 
-namespace Exceptionless.Extras {
+namespace Exceptionless {
     internal static class ToErrorModelExtensions {
         private static readonly ConcurrentDictionary<string, Module> _moduleCache = new ConcurrentDictionary<string, Module>();
         private static readonly string[] _exceptionExclusions = {
@@ -58,8 +58,8 @@ namespace Exceptionless.Extras {
                 if (info != null)
                     error.Code = info.GetValue(exception, null).ToString();
             } catch (Exception) { }
-
-#if !NETSTANDARD1_5
+            
+#if NET45
             try {
                 if (exception.TargetSite != null) {
                     error.TargetMethod = new Method();
@@ -138,6 +138,7 @@ namespace Exceptionless.Extras {
 
         private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
             var modules = new ModuleCollection();
+#if NET45 || NETSTANDARD1_5
             try {
                 int id = 1;
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -158,7 +159,7 @@ namespace Exceptionless.Extras {
                             if (_msPublicKeyTokens.Contains(publicKeyToken))
                                 continue;
 
-                            var attrs = assembly.GetCustomAttributes(typeof(GeneratedCodeAttribute)).ToList();
+                            var attrs = assembly.GetCustomAttributes(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute)).ToList();
                             if (attrs.Count > 0)
                                 continue;
                         } catch {}
@@ -173,7 +174,7 @@ namespace Exceptionless.Extras {
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error loading modules: " + ex.Message);
             }
-
+#endif
             return modules;
         }
 
@@ -196,7 +197,7 @@ namespace Exceptionless.Extras {
 
                 try {
                     stackFrame.Data["ILOffset"] = frame.GetILOffset();
-#if !NETSTANDARD1_5
+#if NET45
                     stackFrame.Data["NativeOffset"] = frame.GetNativeOffset();
 #endif
                 } catch (Exception ex) {
@@ -220,9 +221,11 @@ namespace Exceptionless.Extras {
             method.Name = methodBase.Name;
             if (methodBase.DeclaringType != null) {
                 method.DeclaringNamespace = methodBase.DeclaringType.Namespace;
+#if NET45 || NETSTANDARD1_5
                 if (methodBase.DeclaringType.GetTypeInfo().MemberType == MemberTypes.NestedType && methodBase.DeclaringType.DeclaringType != null)
                     method.DeclaringType = methodBase.DeclaringType.DeclaringType.Name + "+" + methodBase.DeclaringType.Name;
                 else
+#endif
                     method.DeclaringType = methodBase.DeclaringType.Name;
             }
 
@@ -297,12 +300,14 @@ namespace Exceptionless.Extras {
                 DateTime? lastWriteTime = assembly.GetLastWriteTime();
                 if (lastWriteTime.HasValue)
                     mod.ModifiedDate = lastWriteTime.Value;
-                
+
+#if NET45 || NETSTANDARD1_5
                 if (assembly == Assembly.GetEntryAssembly())
                     mod.IsEntry = true;
-
+#endif
                 return mod;
             });
         }
     }
 }
+#endif

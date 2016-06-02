@@ -1,17 +1,19 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
 using Exceptionless.Logging;
 
-namespace Exceptionless.Extras.Utility {
+namespace Exceptionless.Utility {
     public class AssemblyHelper {
         public static Assembly GetRootAssembly() {
 #if NETSTANDARD1_5
             return Assembly.GetEntryAssembly();
-#else
+#elif NET45
             return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+#else
+            return null;
 #endif
         }
 
@@ -29,10 +31,11 @@ namespace Exceptionless.Extras.Utility {
             // If there is an attribute, return its value
             return ((AssemblyTitleAttribute)attributes[0]).Title;
         }
-
+        
         public static List<Type> GetTypes(IExceptionlessLog log) {
             var types = new List<Type>();
-            
+
+#if NET45 || NETSTANDARD1_5
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies) {
                 try {
@@ -44,8 +47,10 @@ namespace Exceptionless.Extras.Utility {
                     log.Error(typeof(ExceptionlessExtraConfigurationExtensions), ex, String.Format("An error occurred while getting types for assembly \"{0}\".", assembly));
                 }
             }
+#endif
 
             return types;
         }
     }
 }
+#endif

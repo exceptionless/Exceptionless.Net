@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Exceptionless.Extras.Utility {
+namespace Exceptionless.Utility {
     public class WrappedDisposable<T> : IDisposable {
         private readonly Action _disposeAction;
 

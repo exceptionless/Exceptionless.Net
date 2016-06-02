@@ -33,9 +33,6 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Extras": {
-            "target": "project"
-        },
         "Exceptionless.Portable": {
             "target": "project"
         },

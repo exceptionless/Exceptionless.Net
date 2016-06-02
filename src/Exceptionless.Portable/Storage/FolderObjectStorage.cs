@@ -1,12 +1,12 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
-using Exceptionless.Extras.Utility;
-using Exceptionless.Storage;
+using Exceptionless.Utility;
 
-namespace Exceptionless.Extras.Storage {
+namespace Exceptionless.Storage {
     public class FolderObjectStorage : IObjectStorage {
         private readonly object _lockObject = new object();
         private readonly IDependencyResolver _resolver;
@@ -142,3 +142,4 @@ namespace Exceptionless.Extras.Storage {
         public void Dispose() {}
     }
 }
+#endif

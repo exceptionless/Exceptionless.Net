@@ -1,6 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Exceptionless.Plugins.Default;
@@ -67,3 +68,4 @@ namespace Exceptionless.Diagnostics {
         }
     }
 }
+#endif

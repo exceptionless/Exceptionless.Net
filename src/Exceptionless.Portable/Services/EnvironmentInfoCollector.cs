@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+#if !NETPORTABLE && !NETSTANDARD1_2
 using System.Net.Sockets;
+#endif
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -34,12 +36,15 @@ namespace Exceptionless.Services {
         }
 
         private void PopulateApplicationInfo(EnvironmentInfo info) {
+#if NET45 || NETSTANDARD1_5
             try {
                 info.Data.Add("AppDomainName", AppDomain.CurrentDomain.FriendlyName);
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
             }
+#endif
 
+#if !NETPORTABLE && !NETSTANDARD1_2
             try {
                 IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
                 if (hostEntry != null && hostEntry.AddressList.Any())
@@ -47,6 +52,7 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
             }
+#endif
         }
 
         private void PopulateProcessInfo(EnvironmentInfo info) {
@@ -56,6 +62,7 @@ namespace Exceptionless.Services {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get processor count. Error message: {0}", ex.Message);
             }
 
+#if !NETPORTABLE && !NETSTANDARD1_2
             try {
                 Process process = Process.GetCurrentProcess();
                 info.ProcessName = process.ProcessName;
@@ -69,15 +76,17 @@ namespace Exceptionless.Services {
             try {
 #if NETSTANDARD1_5
                 info.CommandLine = String.Join(" ", Environment.GetCommandLineArgs());
-#else
+#elif NET45
                 info.CommandLine = Environment.CommandLine;
 #endif
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get command line. Error message: {0}", ex.Message);
             }
+#endif
         }
 
         private void PopulateThreadInfo(EnvironmentInfo info) {
+#if !NETPORTABLE && !NETSTANDARD1_2
             try {
                 info.ThreadId = Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
             } catch (Exception ex) {
@@ -89,10 +98,11 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get current thread name. Error message: {0}", ex.Message);
             }
+#endif
         }
 
         private void PopulateMemoryInfo(EnvironmentInfo info) {
-#if !NETSTANDARD1_5
+#if NET45
             try {
                 if (IsMonoRuntime) {
                     if (PerformanceCounterCategory.Exists("Mono Memory")) {
@@ -113,7 +123,7 @@ namespace Exceptionless.Services {
 #endif
         }
 
-#if !NETSTANDARD1_5
+#if NET45
         private bool IsMonoRuntime {
             get {
                 try {
@@ -126,33 +136,41 @@ namespace Exceptionless.Services {
 #endif
 
         private void PopulateRuntimeInfo(EnvironmentInfo info) {
+#if !NETPORTABLE && !NETSTANDARD1_2
             try {
+#if NET45 || NETSTANDARD1_5
                 info.MachineName = Environment.MachineName;
+#else
+                Process process = Process.GetCurrentProcess();
+                info.MachineName = process.MachineName;
+#endif
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
             }
 
-#if NETSTANDARD1_5
+#if NETSTANDARD
             Microsoft.Extensions.PlatformAbstractions.PlatformServices computerInfo = null;
-#else
+#elif NET45
             Microsoft.VisualBasic.Devices.ComputerInfo computerInfo = null;
 #endif
 
             try {
-#if NETSTANDARD1_5
+#if NETSTANDARD
                 computerInfo = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
-#else
+#elif NET45
                 computerInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();                
 #endif
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);
             }
 
+#if NETSTANDARD || NET45
             if (computerInfo == null)
                 return;
+#endif
 
             try {
-#if NETSTANDARD1_5
+#if NETSTANDARD
                 info.Data["ApplicationBasePath"] = computerInfo.Application.ApplicationBasePath;
                 info.Data["ApplicationName"] = computerInfo.Application.ApplicationName;
                 info.Data["RuntimeFramework"] = computerInfo.Application.RuntimeFramework.FullName;
@@ -162,7 +180,7 @@ namespace Exceptionless.Services {
                 info.Architecture = computerInfo.Runtime.RuntimeArchitecture;
                 info.RuntimeVersion = computerInfo.Runtime.RuntimeVersion;
                 info.Data["RuntimeType"] = computerInfo.Runtime.RuntimeType; // Mono, CLR, CoreCLR
-#else
+#elif NET45
                 info.OSName = computerInfo.OSFullName;
                 info.OSVersion = computerInfo.OSVersion;
                 info.Architecture = Is64BitOperatingSystem() ? "x64" : "x86";
@@ -171,9 +189,10 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(EnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
             }
-        }
+#endif
+            }
 
-#if !NETSTANDARD1_5
+#if NET45
         private bool Is64BitOperatingSystem() {
             if (IntPtr.Size == 8) // 64-bit programs run only on Win64
                 return true;
@@ -192,7 +211,7 @@ namespace Exceptionless.Services {
         }
 
         private static class KernelNativeMethods {
-    #region Kernel32
+#region Kernel32
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procName);
@@ -217,7 +236,7 @@ namespace Exceptionless.Services {
             [DllImport("kernel32.dll")]
             public static extern int GetCurrentThreadId();
 
-    #endregion
+#endregion
 
             public static bool MethodExists(string moduleName, string methodName) {
                 IntPtr moduleHandle = GetModuleHandle(moduleName);

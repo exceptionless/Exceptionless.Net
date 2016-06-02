@@ -9,8 +9,6 @@ $sign_file = "$source_dir\Exceptionless.snk"
 $client_projects = @(
     @{ Name = "Exceptionless.Portable"; 		SourceDir = "$source_dir\Exceptionless.Portable";			        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Portable.Signed"; 	SourceDir = "$source_dir\Exceptionless.Portable.Signed";			ExternalNuGetDependencies = $null; },
-    @{ Name = "Exceptionless.Extras"; 		    SourceDir = "$source_dir\Exceptionless.Extras";			            ExternalNuGetDependencies = $null; },
-    @{ Name = "Exceptionless.Extras.Signed"; 	SourceDir = "$source_dir\Exceptionless.Extras.Signed";			    ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.AspNetCore";  		SourceDir = "$source_dir\Platforms\Exceptionless.AspNetCore";       ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Mvc";  			SourceDir = "$source_dir\Platforms\Exceptionless.Mvc"; 		        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Mvc.Signed";  		SourceDir = "$source_dir\Platforms\Exceptionless.Mvc.Signed"; 		ExternalNuGetDependencies = $null; },

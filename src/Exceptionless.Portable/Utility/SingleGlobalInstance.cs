@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Collections.Concurrent;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -20,7 +21,7 @@ namespace Exceptionless.Utility {
                 securitySettings.AddAccessRule(allowEveryoneRule);
 
                 bool wasCreated = false;
-#if NETSTANDARD1_5
+#if NETSTANDARD
                 _waitHandle = new Mutex(false, mutexId, out wasCreated);
                 ((Mutex)_waitHandle).SetAccessControl(securitySettings);
 #else
@@ -37,7 +38,7 @@ namespace Exceptionless.Utility {
             InitWaitHandle();
 
             try {
-#if NETSTANDARD1_5
+#if NETSTANDARD
                 _hasHandle = _waitHandle.WaitOne(millisecondsTimeout);
 #else
                 _hasHandle = _waitHandle.WaitOne(millisecondsTimeout, false);
@@ -58,7 +59,7 @@ namespace Exceptionless.Utility {
 
             if (_hasHandle && _waitHandle is Mutex) {
                 ((Mutex)_waitHandle).ReleaseMutex();
-#if NETSTANDARD1_5
+#if NETSTANDARD
                 _waitHandle.Dispose();
 #else
                 _waitHandle.Close();
@@ -72,3 +73,4 @@ namespace Exceptionless.Utility {
         }
     }
 }
+#endif

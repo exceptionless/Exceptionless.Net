@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using System.Threading;
 
 namespace Exceptionless.Utility {
@@ -32,3 +33,4 @@ namespace Exceptionless.Utility {
         }
     }
 }
+#endif

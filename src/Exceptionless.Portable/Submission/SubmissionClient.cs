@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
-using Exceptionless.Extras.Extensions;
 using Exceptionless.Json.Linq;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Submission;
 using Exceptionless.Submission.Net;
 
-namespace Exceptionless.Extras.Submission {
+namespace Exceptionless.Submission {
     public class SubmissionClient : ISubmissionClient {
         static SubmissionClient() {
             ConfigureServicePointManagerSettings();
@@ -118,8 +115,8 @@ namespace Exceptionless.Extras.Submission {
         protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string url) {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.AddAuthorizationHeader(config);
-            request.SetUserAgent(config.UserAgent);
-#if !NETSTANDARD1_5
+            request.SetUserAgent(config);
+#if !NETPORTABLE && !NETSTANDARD
             request.AllowAutoRedirect = true;
             request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
 #endif
@@ -135,12 +132,12 @@ namespace Exceptionless.Extras.Submission {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ConfigureServicePointManagerSettings() {
-#if !NETSTANDARD1_5
+#if NET45
             try {
                 ServicePointManager.Expect100Continue = false;
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             } catch (Exception ex) {
-                Trace.WriteLine(String.Concat("An error occurred while configuring SSL certificate validation. Exception: ", ex));
+                System.Diagnostics.Trace.WriteLine(String.Concat("An error occurred while configuring SSL certificate validation. Exception: ", ex));
             }
 #endif
         }

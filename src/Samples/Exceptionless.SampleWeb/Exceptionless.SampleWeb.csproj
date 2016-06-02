@@ -72,9 +72,6 @@
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Web.Mobile" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="Exceptionless.Extras">
-      <HintPath>..\..\Exceptionless.Extras\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.dll</HintPath>
-    </Reference>
     <Reference Include="Exceptionless.Portable">
       <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
+using Xunit;
+using Exceptionless;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
 using Exceptionless.Serializer;
-using Xunit;
-using System.Reflection;
-using System.Linq;
-using Exceptionless.Extras;
 
 namespace Exceptionless.Tests.Serializer {
     public class SerializerTests {

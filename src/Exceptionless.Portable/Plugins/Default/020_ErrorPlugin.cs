@@ -1,6 +1,6 @@
-﻿using System;
+﻿#if !NETPORTABLE && !NETSTANDARD1_2
+using System;
 using Exceptionless.Extensions;
-using Exceptionless.Extras;
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins {
@@ -22,3 +22,4 @@ namespace Exceptionless.Plugins {
         }
     }
 }
+#endif

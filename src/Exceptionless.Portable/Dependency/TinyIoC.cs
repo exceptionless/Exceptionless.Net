@@ -76,11 +76,11 @@
 #define USE_OBJECT_CONSTRUCTOR
 #endif
 
-#if NETSTANDARD1_2
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4
 #undef APPDOMAIN_GETASSEMBLIES
 #endif
 
-#if NETSTANDARD1_5 || NETSTANDARD1_2
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
 #undef SERIALIZABLE
 #endif
 
@@ -329,7 +329,7 @@ namespace TinyIoC
             Type[] assemblies;
 
             try {
-#if NETSTANDARD1_2
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
                 assemblies = assembly.ExportedTypes.ToArray();
 #else
                 assemblies = assembly.GetTypes();
@@ -353,7 +353,7 @@ namespace TinyIoC
         }
     }
 
-#if NETSTANDARD1_2
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
     [Flags]
     internal enum BindingFlags {
         Default = 0,
@@ -393,7 +393,7 @@ namespace TinyIoC
             _genericMethodCache = new SafeDictionary<GenericMethodCacheKey, MethodInfo>();
         }
 
-#if NETSTANDARD1_2
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
         private static BindingFlags DefaultFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
         
         public static ConstructorInfo[] GetConstructors(this Type type)
@@ -525,35 +525,7 @@ namespace TinyIoC
             return visibility && instance;
         }
 #endif
-
-        //#if NETFX_CORE
-        //		/// <summary>
-        //		/// Gets a generic method from a type given the method name, generic types and parameter types
-        //		/// </summary>
-        //		/// <param name="sourceType">Source type</param>
-        //		/// <param name="methodName">Name of the method</param>
-        //		/// <param name="genericTypes">Generic types to use to make the method generic</param>
-        //		/// <param name="parameterTypes">Method parameters</param>
-        //		/// <returns>MethodInfo or null if no matches found</returns>
-        //		/// <exception cref="System.Reflection.AmbiguousMatchException"/>
-        //		/// <exception cref="System.ArgumentException"/>
-        //		public static MethodInfo GetGenericMethod(this Type sourceType, string methodName, Type[] genericTypes, Type[] parameterTypes)
-        //		{
-        //			MethodInfo method;
-        //			var cacheKey = new GenericMethodCacheKey(sourceType, methodName, genericTypes, parameterTypes);
-
-        //			// Shouldn't need any additional locking
-        //			// we don't care if we do the method info generation
-        //			// more than once before it gets cached.
-        //			if (!_genericMethodCache.TryGetValue(cacheKey, out method))
-        //			{
-        //				method = GetMethod(sourceType, methodName, genericTypes, parameterTypes);
-        //				_genericMethodCache[cacheKey] = method;
-        //			}
-
-        //			return method;
-        //		}
-        //#else
+        
         /// <summary>
         /// Gets a generic method from a type given the method name, binding flags, generic types and parameter types
         /// </summary>
@@ -4168,28 +4140,6 @@ namespace TinyIoC
 
         private static bool IsValidAssignment(Type registerType, Type registerImplementation)
         {
-            //#if NETFX_CORE
-            //			var registerTypeDef = registerType.GetTypeInfo();
-            //			var registerImplementationDef = registerImplementation.GetTypeInfo();
-
-            //			if (!registerTypeDef.IsGenericTypeDefinition)
-            //			{
-            //				if (!registerTypeDef.IsAssignableFrom(registerImplementationDef))
-            //					return false;
-            //			}
-            //			else
-            //			{
-            //				if (registerTypeDef.IsInterface())
-            //				{
-            //					if (!registerImplementationDef.ImplementedInterfaces.Any(t => t.GetTypeInfo().Name == registerTypeDef.Name))
-            //						return false;
-            //				}
-            //				else if (registerTypeDef.IsAbstract() && registerImplementationDef.BaseType() != registerType)
-            //				{
-            //					return false;
-            //				}
-            //			}
-            //#else
             if (!registerType.IsGenericTypeDefinition())
             {
                 if (!registerType.IsAssignableFrom(registerImplementation))
@@ -4199,7 +4149,7 @@ namespace TinyIoC
             {
                 if (registerType.IsInterface())
                 {
-#if (PORTABLE || NETSTANDARD1_5)
+#if (PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
                     if (!registerImplementation.GetInterfaces().Any(t => t.Name == registerType.Name))
                         return false;
 #else
@@ -4235,7 +4185,7 @@ namespace TinyIoC
 #endregion
     }
 
-#if NETSTANDARD1_2 || NETSTANDARD1_5
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
     static class ReverseTypeExtender
     {
         public static bool IsClass(this Type type)
@@ -4290,7 +4240,7 @@ namespace TinyIoC
     }
 #endif
     // reverse shim for WinRT SR changes...
-#if (!NETFX_CORE && !NETSTANDARD1_2 && !NETSTANDARD1_5)
+#if (!NETFX_CORE && !NETSTANDARD1_0 && !NETSTANDARD1_1 && !NETSTANDARD1_2 && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5)
     static class ReverseTypeExtender
     {
         public static bool IsClass(this Type type)

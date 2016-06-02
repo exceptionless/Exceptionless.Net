@@ -1,26 +1,27 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-#if !NETSTANDARD1_5
-using System.Configuration;
-#endif
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using Exceptionless.Dependency;
-using Exceptionless.Diagnostics;
 using Exceptionless.Plugins.Default;
-using Exceptionless.Extras;
-using Exceptionless.Extras.Storage;
-using Exceptionless.Extras.Utility;
 using Exceptionless.Logging;
 using Exceptionless.Storage;
 
+#if !NETPORTABLE && !NETSTANDARD1_2
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Exceptionless.Diagnostics;
+#endif
+
+#if NET45
+using System.Configuration;
+using Exceptionless.Extensions;
+using Exceptionless.Utility;
+#endif
+
 namespace Exceptionless {
     public static class ExceptionlessExtraConfigurationExtensions {
-        private static Dictionary<string, string> _environmentVariables;
-
+#if !NETPORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Reads the Exceptionless configuration from the app.config or web.config file.
         /// </summary>
@@ -30,14 +31,6 @@ namespace Exceptionless {
             config.AddPlugin<Plugins.ErrorPlugin>();
         }
         
-        public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
-            config.Resolver.Register<IObjectStorage>(new IsolatedStorageObjectStorage(config.Resolver));
-        }
-
-        public static void UseFolderStorage(this ExceptionlessConfiguration config, string folder) {
-            config.Resolver.Register<IObjectStorage>(new FolderObjectStorage(config.Resolver, folder));
-        }
-
         public static void UseTraceLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
             config.Resolver.Register<IExceptionlessLog>(new TraceExceptionlessLog { MinimumLogLevel = minLogLevel ?? LogLevel.Info });
         }
@@ -47,11 +40,10 @@ namespace Exceptionless {
             config.Resolver.Register<IExceptionlessLog>(log);
         }
 
-        public static void UseIsolatedStorageLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
-            var log = new SafeExceptionlessLog(new IsolatedStorageFileExceptionlessLog("exceptionless.log")) { MinimumLogLevel = minLogLevel ?? LogLevel.Info };
-            config.Resolver.Register<IExceptionlessLog>(log);
+        public static void UseFolderStorage(this ExceptionlessConfiguration config, string folder) {
+            config.Resolver.Register<IObjectStorage>(new FolderObjectStorage(config.Resolver, folder));
         }
-
+        
         public static void UseTraceLogEntriesPlugin(this ExceptionlessConfiguration config, int? defaultMaxEntriesToInclude = null) {
             int maxEntriesToInclude = config.Settings.GetInt32(TraceLogPlugin.MaxEntriesToIncludeKey, defaultMaxEntriesToInclude ?? 0);
 
@@ -63,27 +55,42 @@ namespace Exceptionless {
 
             config.AddPlugin(typeof(TraceLogPlugin).Name, 70, c => new TraceLogPlugin(c));
         }
+#endif
+
+#if NET45 || NETSTANDARD1_4 || NETSTANDARD1_5
+        public static void UseIsolatedStorageLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
+            var log = new SafeExceptionlessLog(new IsolatedStorageFileExceptionlessLog("exceptionless.log")) { MinimumLogLevel = minLogLevel ?? LogLevel.Info };
+            config.Resolver.Register<IExceptionlessLog>(log);
+        }
+
+        public static void UseIsolatedStorage(this ExceptionlessConfiguration config) {
+            config.Resolver.Register<IObjectStorage>(new IsolatedStorageObjectStorage(config.Resolver));
+        }
+#endif
 
         public static void ReadAllConfig(this ExceptionlessConfiguration config, params Assembly[] configAttributesAssemblies) {
-            if (configAttributesAssemblies == null || configAttributesAssemblies.Length == 0)
+            if (configAttributesAssemblies == null || configAttributesAssemblies.Length == 0) {
 #if NETSTANDARD1_5
                 config.ReadFromAttributes(Assembly.GetEntryAssembly());
-#else
+#elif NET45
                 config.ReadFromAttributes(Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly());
 #endif
-            else
+            } else {
                 config.ReadFromAttributes(configAttributesAssemblies);
+            }
 
-#if !NETSTANDARD1_5
+#if !NETPORTABLE && !NETSTANDARD
             config.ReadFromConfigSection();
             config.ReadFromAppSettings();
 #endif
 
+#if !NETPORTABLE && !NETSTANDARD1_2
             config.ReadFromEnvironmentalVariables();
+#endif
             config.ApplySavedServerSettings();
         }
 
-#if !NETSTANDARD1_5
+#if NET45
         /// <summary>
         /// Reads the Exceptionless configuration from the app.config or web.config files configuration section.
         /// </summary>
@@ -122,7 +129,7 @@ namespace Exceptionless {
                 if (!String.IsNullOrEmpty(section.LogPath))
                     config.UseFileLogger(section.LogPath);
                 else if (!String.IsNullOrEmpty(section.StoragePath))
-                    config.UseFileLogger(Path.Combine(section.StoragePath, "exceptionless.log"));
+                    config.UseFileLogger(System.IO.Path.Combine(section.StoragePath, "exceptionless.log"));
                 else if (!config.Resolver.HasRegistration<IExceptionlessLog>())
                     config.UseIsolatedStorageLogger();
             }
@@ -191,6 +198,7 @@ namespace Exceptionless {
         }
 #endif
 
+#if !NETPORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Reads the Exceptionless configuration from Environment Variables.
         /// </summary>
@@ -208,6 +216,8 @@ namespace Exceptionless {
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
         }
+        
+        private static Dictionary<string, string> _environmentVariables;
 
         private static string GetEnvironmentalVariable(string name) {
             if (String.IsNullOrEmpty(name))
@@ -227,6 +237,7 @@ namespace Exceptionless {
 
             return _environmentVariables[name];
         }
+#endif
 
         private static bool IsValidApiKey(string apiKey) {
             return !String.IsNullOrEmpty(apiKey) && apiKey != "API_KEY_HERE";

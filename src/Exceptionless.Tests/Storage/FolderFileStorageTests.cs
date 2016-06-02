@@ -1,9 +1,8 @@
 ﻿using System;
+using Xunit;
 using Exceptionless.Dependency;
-using Exceptionless.Extras.Storage;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
-using Xunit;
 
 namespace Exceptionless.Tests.Storage {
     public class FolderFileStorageTests : FileStorageTestsBase {
