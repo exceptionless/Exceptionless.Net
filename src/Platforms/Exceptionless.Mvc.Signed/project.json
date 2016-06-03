@@ -47,9 +47,6 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Extras.Signed": {
-            "target": "project"
-        },
         "Exceptionless.Portable.Signed": {
             "target": "project"
         },
