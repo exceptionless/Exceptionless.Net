@@ -3,7 +3,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Exceptionless.Dependency;
-using Exceptionless.Plugins;
+using Exceptionless.Plugins.Default;
 using Exceptionless.Web;
 using Exceptionless.Web.Extensions;
 

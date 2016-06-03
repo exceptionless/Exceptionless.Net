@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Exceptionless.Plugins;
+using Exceptionless.Plugins.Default;
 using Exceptionless.ExtendedData;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;

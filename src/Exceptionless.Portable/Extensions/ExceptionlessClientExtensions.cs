@@ -14,17 +14,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void Startup(this ExceptionlessClient client) {
-            if (client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>())
-                client.Configuration.Resolver.Register<ISubmissionClient, SubmissionClient>();
-
-            if (client.Configuration.Resolver.HasDefaultRegistration<IEnvironmentInfoCollector, DefaultEnvironmentInfoCollector>())
-                client.Configuration.Resolver.Register<IEnvironmentInfoCollector, EnvironmentInfoCollector>();
-
             client.Configuration.ReadAllConfig();
 #if !PORTABLE && !NETSTANDARD1_2
-            client.Configuration.UseErrorPlugin();
             client.Configuration.UseTraceLogEntriesPlugin();
-            client.Configuration.AddPlugin<VersionPlugin>();
 #endif
 
             if (client.Configuration.UpdateSettingsWhenIdleInterval == null)

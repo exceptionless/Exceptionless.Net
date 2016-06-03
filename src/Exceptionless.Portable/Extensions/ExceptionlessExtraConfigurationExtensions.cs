@@ -22,15 +22,6 @@ using Exceptionless.Utility;
 namespace Exceptionless {
     public static class ExceptionlessExtraConfigurationExtensions {
 #if !PORTABLE && !NETSTANDARD1_2
-        /// <summary>
-        /// Reads the Exceptionless configuration from the app.config or web.config file.
-        /// </summary>
-        /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
-        public static void UseErrorPlugin(this ExceptionlessConfiguration config) {
-            config.RemovePlugin<SimpleErrorPlugin>();
-            config.AddPlugin<Plugins.ErrorPlugin>();
-        }
-        
         public static void UseTraceLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
             config.Resolver.Register<IExceptionlessLog>(new TraceExceptionlessLog { MinimumLogLevel = minLogLevel ?? LogLevel.Info });
         }

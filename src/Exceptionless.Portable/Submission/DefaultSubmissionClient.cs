@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -11,13 +12,17 @@ using Exceptionless.Submission.Net;
 
 namespace Exceptionless.Submission {
     public class DefaultSubmissionClient : ISubmissionClient {
+        static DefaultSubmissionClient() {
+            ConfigureServicePointManagerSettings();
+        }
+
         public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             var data = serializer.Serialize(events);
 
             HttpWebResponse response;
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/events", config.GetServiceEndPoint()));
-                response = request.PostJsonAsync(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
+                response = request.PostJsonAsyncWithCompression(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
             } catch (WebException ex) {
                 response = (HttpWebResponse)ex.Response;
                 if (response == null)
@@ -39,7 +44,7 @@ namespace Exceptionless.Submission {
             HttpWebResponse response;
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/events/by-ref/{1}/user-description", config.GetServiceEndPoint(), referenceId));
-                response = request.PostJsonAsync(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
+                response = request.PostJsonAsyncWithCompression(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
             } catch (WebException ex) {
                 response = (HttpWebResponse)ex.Response;
                 if (response == null)
@@ -55,7 +60,7 @@ namespace Exceptionless.Submission {
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version,  IJsonSerializer serializer) {
             HttpWebResponse response;
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/projects/config?v={1}", config.GetServiceEndPoint(), version));
@@ -78,7 +83,7 @@ namespace Exceptionless.Submission {
             var settings = serializer.Deserialize<ClientConfiguration>(json);
             return new SettingsResponse(true, settings.Settings, settings.Version);
         }
-
+        
         public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
             try {
                 var request = CreateHttpWebRequest(config, String.Format("{0}/events/session/heartbeat?id={1}&close={2}", config.GetHeartbeatServiceEndPoint(), sessionIdOrUserId, closeSession));
@@ -108,14 +113,33 @@ namespace Exceptionless.Submission {
         }
 
         protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string url) {
-#if PORTABLE40
-            var request = WebRequest.CreateHttp(url);
-#else 
-            var request = (HttpWebRequest)WebRequest.Create(url);            
-#endif
+            var request = (HttpWebRequest)WebRequest.Create(url);
             request.AddAuthorizationHeader(config);
             request.SetUserAgent(config);
+#if !PORTABLE && !NETSTANDARD
+            request.AllowAutoRedirect = true;
+            request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
+#endif
+
+            try {
+                request.UseDefaultCredentials = true;
+                //    if (Credentials != null)
+                //        request.Credentials = Credentials;
+            } catch (Exception) {}
+
             return request;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ConfigureServicePointManagerSettings() {
+#if NET45
+            try {
+                ServicePointManager.Expect100Continue = false;
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            } catch (Exception ex) {
+                System.Diagnostics.Trace.WriteLine(String.Concat("An error occurred while configuring SSL certificate validation. Exception: ", ex));
+            }
+#endif
         }
     }
 }
