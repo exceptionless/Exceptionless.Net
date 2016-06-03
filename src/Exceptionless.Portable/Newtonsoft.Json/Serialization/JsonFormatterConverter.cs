@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
 using System;
 using System.Globalization;
 using System.Runtime.Serialization;
@@ -40,8 +40,8 @@ namespace Exceptionless.Json.Serialization
 
         public JsonFormatterConverter(JsonSerializerInternalReader reader, JsonISerializableContract contract, JsonProperty member)
         {
-            ValidationUtils.ArgumentNotNull(reader, "serializer");
-            ValidationUtils.ArgumentNotNull(contract, "contract");
+            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(contract, nameof(contract));
 
             _reader = reader;
             _contract = contract;
@@ -50,7 +50,7 @@ namespace Exceptionless.Json.Serialization
 
         private T GetTokenValue<T>(object value)
         {
-            ValidationUtils.ArgumentNotNull(value, "value");
+            ValidationUtils.ArgumentNotNull(value, nameof(value));
 
             JValue v = (JValue)value;
             return (T)System.Convert.ChangeType(v.Value, typeof(T), CultureInfo.InvariantCulture);
@@ -58,21 +58,25 @@ namespace Exceptionless.Json.Serialization
 
         public object Convert(object value, Type type)
         {
-            ValidationUtils.ArgumentNotNull(value, "value");
+            ValidationUtils.ArgumentNotNull(value, nameof(value));
 
             JToken token = value as JToken;
             if (token == null)
-                throw new ArgumentException("Value is not a JToken.", "value");
+            {
+                throw new ArgumentException("Value is not a JToken.", nameof(value));
+            }
 
             return _reader.CreateISerializableItem(token, type, _contract, _member);
         }
 
         public object Convert(object value, TypeCode typeCode)
         {
-            ValidationUtils.ArgumentNotNull(value, "value");
+            ValidationUtils.ArgumentNotNull(value, nameof(value));
 
             if (value is JValue)
+            {
                 value = ((JValue)value).Value;
+            }
 
             return System.Convert.ChangeType(value, typeCode, CultureInfo.InvariantCulture);
         }

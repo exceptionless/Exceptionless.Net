@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Input;
 using Exceptionless.Dependency;
-using Exceptionless.Extras.Utility;
 using Exceptionless.Models;
 using Exceptionless.Storage;
+using Exceptionless.Utility;
 
 namespace Exceptionless.Dialogs {
     /// <summary>

@@ -43,43 +43,46 @@ namespace Exceptionless.ExtendedData {
 
             if (context.Request.Url != null)
                 info.Port = context.Request.Url.Port;
-
-            info.Cookies = context.Request.Cookies.ToDictionary(config.DataExclusions);
-
-            if (context.Request.Form.Count > 0)
-                info.PostData = context.Request.Form.ToDictionary(config.DataExclusions);
-            else if (context.Request.ContentLength > 0 && context.Request.ContentLength < 1024 * 50) {
-                try {
-                    context.Request.InputStream.Position = 0;
-                    using (var inputStream = new StreamReader(context.Request.InputStream))
-                        info.PostData = inputStream.ReadToEnd();
-                } catch (Exception ex) {
-                    info.PostData = "Error retrieving POST data: " + ex.Message;
-                }
+            
+            var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
+            info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
+            
+            if (context.Request.Form.Count > 0) {
+                info.PostData = context.Request.Form.ToDictionary(exclusionList);
             } else if (context.Request.ContentLength > 0) {
-                string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
-                info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
+                if (context.Request.ContentLength < 1024 * 50) {
+                    try {
+                        if (context.Request.InputStream.Position > 0)
+                            context.Request.InputStream.Position = 0;
+
+                        using (var inputStream = new StreamReader(context.Request.InputStream))
+                            info.PostData = inputStream.ReadToEnd();
+                    } catch (Exception ex) {
+                        info.PostData = "Error retrieving POST data: " + ex.Message;
+                    }
+                } else {
+                    string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
+                    info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
+                }
             }
 
             try {
-                info.QueryString = context.Request.QueryString.ToDictionary(config.DataExclusions);
+                info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
             } catch (Exception ex) {
-                config.Resolver.GetLog().Error(ex, "An error occurred while getting the cookies");
+                config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
             }
 
             return info;
         }
 
         private static readonly List<string> _ignoredFormFields = new List<string> {
-            "*VIEWSTATE*",
-            "*EVENTVALIDATION*"
+            "__*"
         };
 
         private static readonly List<string> _ignoredCookies = new List<string> {
-            "*ASPX*",
-            "__RequestVerificationToken",
-            "ASP.NET_SessionId",
-            "__LastErrorId"
+            ".ASPX*",
+            "__*",
+            "*SessionId*"
         };
 
         private static Dictionary<string, string> ToDictionary(this HttpCookieCollection cookies, IEnumerable<string> exclusions) {

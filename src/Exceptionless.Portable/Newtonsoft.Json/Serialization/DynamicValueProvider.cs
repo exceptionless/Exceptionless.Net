@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(PORTABLE40 || PORTABLE || NETFX_CORE)
+#if !(PORTABLE40 || PORTABLE || DOTNET)
 using System;
 using System.Collections.Generic;
 #if NET20
@@ -51,7 +51,7 @@ namespace Exceptionless.Json.Serialization
         /// <param name="memberInfo">The member info.</param>
         public DynamicValueProvider(MemberInfo memberInfo)
         {
-            ValidationUtils.ArgumentNotNull(memberInfo, "memberInfo");
+            ValidationUtils.ArgumentNotNull(memberInfo, nameof(memberInfo));
             _memberInfo = memberInfo;
         }
 
@@ -65,7 +65,9 @@ namespace Exceptionless.Json.Serialization
             try
             {
                 if (_setter == null)
+                {
                     _setter = DynamicReflectionDelegateFactory.Instance.CreateSet<object>(_memberInfo);
+                }
 
 #if DEBUG
                 // dynamic method doesn't check whether the type is 'legal' to set
@@ -73,7 +75,9 @@ namespace Exceptionless.Json.Serialization
                 if (value == null)
                 {
                     if (!ReflectionUtils.IsNullable(ReflectionUtils.GetMemberUnderlyingType(_memberInfo)))
+                    {
                         throw new JsonSerializationException("Incompatible value. Cannot set {0} to null.".FormatWith(CultureInfo.InvariantCulture, _memberInfo));
+                    }
                 }
                 else if (!ReflectionUtils.GetMemberUnderlyingType(_memberInfo).IsAssignableFrom(value.GetType()))
                 {
@@ -99,7 +103,9 @@ namespace Exceptionless.Json.Serialization
             try
             {
                 if (_getter == null)
+                {
                     _getter = DynamicReflectionDelegateFactory.Instance.CreateGet<object>(_memberInfo);
+                }
 
                 return _getter(target);
             }
@@ -110,4 +116,5 @@ namespace Exceptionless.Json.Serialization
         }
     }
 }
+
 #endif

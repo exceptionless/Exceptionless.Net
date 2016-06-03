@@ -31,9 +31,9 @@ using Exceptionless.Json.Utilities;
 namespace Exceptionless.Json
 {
     /// <summary>
-    /// The exception thrown when an error occurs while reading Json text.
+    /// The exception thrown when an error occurs while reading JSON text.
     /// </summary>
-#if !(NETFX_CORE || PORTABLE || PORTABLE40)
+#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
     [Serializable]
 #endif
     public class JsonReaderException : JsonException
@@ -84,7 +84,7 @@ namespace Exceptionless.Json
         {
         }
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonReaderException"/> class.
         /// </summary>

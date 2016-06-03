@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
@@ -74,13 +75,13 @@ namespace Exceptionless.Serializer {
                 if (value == null)
                     return false;
 
-                if (typeof(ICollection).IsAssignableFrom(property.PropertyType)) {
+                if (typeof(ICollection).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo())) {
                     var collection = value as ICollection;
                     if (collection != null)
                         return collection.Count > 0;
                 }
 
-                var collectionType = value.GetType().GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
+                var collectionType = value.GetType().GetInterfaces().FirstOrDefault(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
                 if (collectionType != null) {
                     var countProperty = collectionType.GetProperty("Count");
                     if (countProperty != null)

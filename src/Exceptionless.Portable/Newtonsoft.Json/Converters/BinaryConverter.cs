@@ -23,9 +23,11 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
 using System;
+#if !NO_SQL_CLIENT
 using System.Data.SqlTypes;
+#endif
 using System.Globalization;
 using Exceptionless.Json.Utilities;
 using System.Collections.Generic;
@@ -71,8 +73,13 @@ namespace Exceptionless.Json.Converters
                 return (byte[])_reflectionObject.GetValue(value, BinaryToArrayName);
             }
 #endif
+
+#if !NO_SQL_CLIENT
             if (value is SqlBinary)
+            {
                 return ((SqlBinary)value).Value;
+            }
+#endif
 
             throw new JsonSerializationException("Unexpected value type when writing binary: {0}".FormatWith(CultureInfo.InvariantCulture, value.GetType()));
         }
@@ -81,7 +88,13 @@ namespace Exceptionless.Json.Converters
         private void EnsureReflectionObject(Type t)
         {
             if (_reflectionObject == null)
+            {
+#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+                _reflectionObject = ReflectionObject.Create(t, System.Reflection.TypeExtensions.GetConstructor(t, new[] { typeof(byte[]) }), BinaryToArrayName);
+#else
                 _reflectionObject = ReflectionObject.Create(t, t.GetConstructor(new[] { typeof(byte[]) }), BinaryToArrayName);
+#endif
+            }
         }
 #endif
 
@@ -95,14 +108,12 @@ namespace Exceptionless.Json.Converters
         /// <returns>The object value.</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            Type t = (ReflectionUtils.IsNullableType(objectType))
-                ? Nullable.GetUnderlyingType(objectType)
-                : objectType;
-
             if (reader.TokenType == JsonToken.Null)
             {
                 if (!ReflectionUtils.IsNullable(objectType))
+                {
                     throw JsonSerializationException.Create(reader, "Cannot convert null value to {0}.".FormatWith(CultureInfo.InvariantCulture, objectType));
+                }
 
                 return null;
             }
@@ -125,6 +136,10 @@ namespace Exceptionless.Json.Converters
                 throw JsonSerializationException.Create(reader, "Unexpected token parsing binary. Expected String or StartArray, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
             }
 
+            Type t = (ReflectionUtils.IsNullableType(objectType))
+                ? Nullable.GetUnderlyingType(objectType)
+                : objectType;
+
 #if !NET20
             if (t.AssignableToTypeName(BinaryTypeName))
             {
@@ -134,8 +149,12 @@ namespace Exceptionless.Json.Converters
             }
 #endif
 
+#if !NO_SQL_CLIENT
             if (t == typeof(SqlBinary))
+            {
                 return new SqlBinary(data);
+            }
+#endif
 
             throw JsonSerializationException.Create(reader, "Unexpected object type when writing binary: {0}".FormatWith(CultureInfo.InvariantCulture, objectType));
         }
@@ -175,14 +194,21 @@ namespace Exceptionless.Json.Converters
         {
 #if !NET20
             if (objectType.AssignableToTypeName(BinaryTypeName))
+            {
                 return true;
+            }
 #endif
 
+#if !NO_SQL_CLIENT
             if (objectType == typeof(SqlBinary) || objectType == typeof(SqlBinary?))
+            {
                 return true;
+            }
+#endif
 
             return false;
         }
     }
 }
+
 #endif

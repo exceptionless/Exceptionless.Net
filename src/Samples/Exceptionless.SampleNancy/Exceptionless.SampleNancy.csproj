@@ -50,14 +50,11 @@
       <HintPath>..\..\..\packages\Nancy.Hosting.Aspnet.1.4.1\lib\net40\Nancy.Hosting.Aspnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Exceptionless.Extras">
-      <HintPath>..\..\Exceptionless.Extras\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.dll</HintPath>
-    </Reference>
     <Reference Include="Exceptionless.Portable">
       <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Nancy">
-      <HintPath>..\..\Exceptionless.Nancy\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Nancy.dll</HintPath>
+      <HintPath>..\..\Platforms\Exceptionless.Nancy\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Nancy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

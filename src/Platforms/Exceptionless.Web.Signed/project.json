@@ -20,7 +20,7 @@
                 "tools/": "../Exceptionless.Web/NuGet/tools/*",
                 "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
             },
-            "include": [ "../Exceptionless.Web/NuGet/readme.txt" ]
+            "include": [ "../Exceptionless.Web/readme.txt" ]
         }
     },
     "buildOptions": {
@@ -42,27 +42,14 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Extras.Signed": {
-            "target": "project"
-        },
         "Exceptionless.Portable.Signed": {
             "target": "project"
         }
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "System.Configuration": "",
-                "System.ServiceModel": "",
-                "System.Web": ""
-            }
-        },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "SIGNED", "NET45" ]
+                "define": [ "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",

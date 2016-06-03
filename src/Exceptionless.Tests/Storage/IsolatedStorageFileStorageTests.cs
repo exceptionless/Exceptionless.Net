@@ -1,6 +1,5 @@
 ﻿using System;
 using Exceptionless.Dependency;
-using Exceptionless.Extras.Storage;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
 

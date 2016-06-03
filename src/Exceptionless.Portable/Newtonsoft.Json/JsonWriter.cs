@@ -64,16 +64,16 @@ namespace Exceptionless.Json
 
         internal static readonly State[][] StateArrayTempate = new[]
         {
-            //                                      Start                    PropertyName            ObjectStart         Object            ArrayStart              Array                   ConstructorStart        Constructor             Closed          Error
+            //                                      Start                    PropertyName            ObjectStart         Object            ArrayStart              Array                   ConstructorStart        Constructor             Closed       Error
             //
-            /* None                        */new[] { State.Error,            State.Error,            State.Error,        State.Error,      State.Error,            State.Error,            State.Error,            State.Error,            State.Error,    State.Error },
-            /* StartObject                 */new[] { State.ObjectStart,      State.ObjectStart,      State.Error,        State.Error,      State.ObjectStart,      State.ObjectStart,      State.ObjectStart,      State.ObjectStart,      State.Error,    State.Error },
-            /* StartArray                  */new[] { State.ArrayStart,       State.ArrayStart,       State.Error,        State.Error,      State.ArrayStart,       State.ArrayStart,       State.ArrayStart,       State.ArrayStart,       State.Error,    State.Error },
-            /* StartConstructor            */new[] { State.ConstructorStart, State.ConstructorStart, State.Error,        State.Error,      State.ConstructorStart, State.ConstructorStart, State.ConstructorStart, State.ConstructorStart, State.Error,    State.Error },
-            /* Property                    */new[] { State.Property,         State.Error,            State.Property,     State.Property,   State.Error,            State.Error,            State.Error,            State.Error,            State.Error,    State.Error },
-            /* Comment                     */new[] { State.Start,            State.Property,         State.ObjectStart,  State.Object,     State.ArrayStart,       State.Array,            State.Constructor,      State.Constructor,      State.Error,    State.Error },
-            /* Raw                         */new[] { State.Start,            State.Property,         State.ObjectStart,  State.Object,     State.ArrayStart,       State.Array,            State.Constructor,      State.Constructor,      State.Error,    State.Error },
-            /* Value (this will be copied) */new[] { State.Start,            State.Object,           State.Error,        State.Error,      State.Array,            State.Array,            State.Constructor,      State.Constructor,      State.Error,    State.Error }
+            /* None                        */new[] { State.Error,            State.Error,            State.Error,        State.Error,      State.Error,            State.Error,            State.Error,            State.Error,            State.Error, State.Error },
+            /* StartObject                 */new[] { State.ObjectStart,      State.ObjectStart,      State.Error,        State.Error,      State.ObjectStart,      State.ObjectStart,      State.ObjectStart,      State.ObjectStart,      State.Error, State.Error },
+            /* StartArray                  */new[] { State.ArrayStart,       State.ArrayStart,       State.Error,        State.Error,      State.ArrayStart,       State.ArrayStart,       State.ArrayStart,       State.ArrayStart,       State.Error, State.Error },
+            /* StartConstructor            */new[] { State.ConstructorStart, State.ConstructorStart, State.Error,        State.Error,      State.ConstructorStart, State.ConstructorStart, State.ConstructorStart, State.ConstructorStart, State.Error, State.Error },
+            /* Property                    */new[] { State.Property,         State.Error,            State.Property,     State.Property,   State.Error,            State.Error,            State.Error,            State.Error,            State.Error, State.Error },
+            /* Comment                     */new[] { State.Start,            State.Property,         State.ObjectStart,  State.Object,     State.ArrayStart,       State.Array,            State.Constructor,      State.Constructor,      State.Error, State.Error },
+            /* Raw                         */new[] { State.Start,            State.Property,         State.ObjectStart,  State.Object,     State.ArrayStart,       State.Array,            State.Constructor,      State.Constructor,      State.Error, State.Error },
+            /* Value (this will be copied) */new[] { State.Start,            State.Object,           State.Error,        State.Error,      State.Array,            State.Array,            State.Constructor,      State.Constructor,      State.Error, State.Error }
         };
 
         internal static State[][] BuildStateArray()
@@ -113,7 +113,7 @@ namespace Exceptionless.Json
             StateArray = BuildStateArray();
         }
 
-        private readonly List<JsonPosition> _stack;
+        private List<JsonPosition> _stack;
         private JsonPosition _currentPosition;
         private State _currentState;
         private Formatting _formatting;
@@ -136,9 +136,11 @@ namespace Exceptionless.Json
         {
             get
             {
-                int depth = _stack.Count;
+                int depth = (_stack != null) ? _stack.Count : 0;
                 if (Peek() != JsonContainerType.None)
+                {
                     depth++;
+                }
 
                 return depth;
             }
@@ -180,10 +182,12 @@ namespace Exceptionless.Json
         {
             get
             {
-                if (_currentPosition.Type == JsonContainerType.None)
+                if (_currentPosition.Type == JsonContainerType.None || _stack == null)
+                {
                     return string.Empty;
+                }
 
-                return JsonPosition.BuildPath(_stack);
+                return JsonPosition.BuildPath(_stack, null);
             }
         }
 
@@ -195,17 +199,17 @@ namespace Exceptionless.Json
             get
             {
                 if (_currentPosition.Type == JsonContainerType.None)
+                {
                     return string.Empty;
+                }
 
                 bool insideContainer = (_currentState != State.ArrayStart
                                         && _currentState != State.ConstructorStart
                                         && _currentState != State.ObjectStart);
 
-                IEnumerable<JsonPosition> positions = (!insideContainer)
-                    ? _stack
-                    : _stack.Concat(new[] { _currentPosition });
+                JsonPosition? current = insideContainer ? (JsonPosition?)_currentPosition : null;
 
-                return JsonPosition.BuildPath(positions);
+                return JsonPosition.BuildPath(_stack, current);
             }
         }
 
@@ -222,7 +226,15 @@ namespace Exceptionless.Json
         public Formatting Formatting
         {
             get { return _formatting; }
-            set { _formatting = value; }
+            set
+            {
+                if (value < Formatting.None || value > Formatting.Indented)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _formatting = value;
+            }
         }
 
         /// <summary>
@@ -231,7 +243,15 @@ namespace Exceptionless.Json
         public DateFormatHandling DateFormatHandling
         {
             get { return _dateFormatHandling; }
-            set { _dateFormatHandling = value; }
+            set
+            {
+                if (value < DateFormatHandling.IsoDateFormat || value > DateFormatHandling.MicrosoftDateFormat)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _dateFormatHandling = value;
+            }
         }
 
         /// <summary>
@@ -240,7 +260,15 @@ namespace Exceptionless.Json
         public DateTimeZoneHandling DateTimeZoneHandling
         {
             get { return _dateTimeZoneHandling; }
-            set { _dateTimeZoneHandling = value; }
+            set
+            {
+                if (value < DateTimeZoneHandling.Local || value > DateTimeZoneHandling.RoundtripKind)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _dateTimeZoneHandling = value;
+            }
         }
 
         /// <summary>
@@ -251,6 +279,11 @@ namespace Exceptionless.Json
             get { return _stringEscapeHandling; }
             set
             {
+                if (value < StringEscapeHandling.Default || value > StringEscapeHandling.EscapeHtml)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
                 _stringEscapeHandling = value;
                 OnStringEscapeHandlingChanged();
             }
@@ -269,7 +302,15 @@ namespace Exceptionless.Json
         public FloatFormatHandling FloatFormatHandling
         {
             get { return _floatFormatHandling; }
-            set { _floatFormatHandling = value; }
+            set
+            {
+                if (value < FloatFormatHandling.String || value > FloatFormatHandling.DefaultValue)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _floatFormatHandling = value;
+            }
         }
 
         /// <summary>
@@ -295,7 +336,6 @@ namespace Exceptionless.Json
         /// </summary>
         protected JsonWriter()
         {
-            _stack = new List<JsonPosition>(4);
             _currentState = State.Start;
             _formatting = Formatting.None;
             _dateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
@@ -306,13 +346,22 @@ namespace Exceptionless.Json
         internal void UpdateScopeWithFinishedValue()
         {
             if (_currentPosition.HasIndex)
+            {
                 _currentPosition.Position++;
+            }
         }
 
         private void Push(JsonContainerType value)
         {
             if (_currentPosition.Type != JsonContainerType.None)
+            {
+                if (_stack == null)
+                {
+                    _stack = new List<JsonPosition>();
+                }
+
                 _stack.Add(_currentPosition);
+            }
 
             _currentPosition = new JsonPosition(value);
         }
@@ -321,7 +370,7 @@ namespace Exceptionless.Json
         {
             JsonPosition oldPosition = _currentPosition;
 
-            if (_stack.Count > 0)
+            if (_stack != null && _stack.Count > 0)
             {
                 _currentPosition = _stack[_stack.Count - 1];
                 _stack.RemoveAt(_stack.Count - 1);
@@ -353,7 +402,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Writes the beginning of a Json object.
+        /// Writes the beginning of a JSON object.
         /// </summary>
         public virtual void WriteStartObject()
         {
@@ -361,7 +410,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Writes the end of a Json object.
+        /// Writes the end of a JSON object.
         /// </summary>
         public virtual void WriteEndObject()
         {
@@ -369,7 +418,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Writes the beginning of a Json array.
+        /// Writes the beginning of a JSON array.
         /// </summary>
         public virtual void WriteStartArray()
         {
@@ -421,7 +470,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Writes the end of the current Json object or array.
+        /// Writes the end of the current JSON object or array.
         /// </summary>
         public virtual void WriteEnd()
         {
@@ -434,7 +483,7 @@ namespace Exceptionless.Json
         /// <param name="reader">The <see cref="JsonReader"/> to read the token from.</param>
         public void WriteToken(JsonReader reader)
         {
-            WriteToken(reader, true, true);
+            WriteToken(reader, true);
         }
 
         /// <summary>
@@ -444,9 +493,9 @@ namespace Exceptionless.Json
         /// <param name="writeChildren">A flag indicating whether the current token's children should be written.</param>
         public void WriteToken(JsonReader reader, bool writeChildren)
         {
-            ValidationUtils.ArgumentNotNull(reader, "reader");
+            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
 
-            WriteToken(reader, writeChildren, true);
+            WriteToken(reader, writeChildren, true, true);
         }
 
         /// <summary>
@@ -459,51 +508,7 @@ namespace Exceptionless.Json
         /// A null value can be passed to the method for token's that don't have a value, e.g. <see cref="JsonToken.StartObject"/>.</param>
         public void WriteToken(JsonToken token, object value)
         {
-            WriteTokenInternal(token, value);
-        }
-
-        /// <summary>
-        /// Writes the <see cref="JsonToken"/> token.
-        /// </summary>
-        /// <param name="token">The <see cref="JsonToken"/> to write.</param>
-        public void WriteToken(JsonToken token)
-        {
-            WriteTokenInternal(token, null);
-        }
-
-        internal void WriteToken(JsonReader reader, bool writeChildren, bool writeDateConstructorAsDate)
-        {
-            int initialDepth;
-
-            if (reader.TokenType == JsonToken.None)
-                initialDepth = -1;
-            else if (!JsonTokenUtils.IsStartToken(reader.TokenType))
-                initialDepth = reader.Depth + 1;
-            else
-                initialDepth = reader.Depth;
-
-            WriteToken(reader, initialDepth, writeChildren, writeDateConstructorAsDate);
-        }
-
-        internal void WriteToken(JsonReader reader, int initialDepth, bool writeChildren, bool writeDateConstructorAsDate)
-        {
-            do
-            {
-                // write a JValue date when the constructor is for a date
-                if (writeDateConstructorAsDate && reader.TokenType == JsonToken.StartConstructor && string.Equals(reader.Value.ToString(), "Date", StringComparison.Ordinal))
-                    WriteConstructorDate(reader);
-                else
-                    WriteTokenInternal(reader.TokenType, reader.Value);
-            } while (
-                // stop if we have reached the end of the token being read
-                initialDepth - 1 < reader.Depth - (JsonTokenUtils.IsEndToken(reader.TokenType) ? 1 : 0)
-                && writeChildren
-                && reader.Read());
-        }
-
-        private void WriteTokenInternal(JsonToken tokenType, object value)
-        {
-            switch (tokenType)
+            switch (token)
             {
                 case JsonToken.None:
                     // read to next
@@ -515,18 +520,18 @@ namespace Exceptionless.Json
                     WriteStartArray();
                     break;
                 case JsonToken.StartConstructor:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
                     WriteStartConstructor(value.ToString());
                     break;
                 case JsonToken.PropertyName:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
                     WritePropertyName(value.ToString());
                     break;
                 case JsonToken.Comment:
                     WriteComment((value != null) ? value.ToString() : null);
                     break;
                 case JsonToken.Integer:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
 #if !(NET20 || NET35 || PORTABLE || PORTABLE40)
                     if (value is BigInteger)
                     {
@@ -539,22 +544,30 @@ namespace Exceptionless.Json
                     }
                     break;
                 case JsonToken.Float:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
                     if (value is decimal)
+                    {
                         WriteValue((decimal)value);
+                    }
                     else if (value is double)
+                    {
                         WriteValue((double)value);
+                    }
                     else if (value is float)
+                    {
                         WriteValue((float)value);
+                    }
                     else
+                    {
                         WriteValue(Convert.ToDouble(value, CultureInfo.InvariantCulture));
+                    }
                     break;
                 case JsonToken.String:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
                     WriteValue(value.ToString());
                     break;
                 case JsonToken.Boolean:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
                     WriteValue(Convert.ToBoolean(value, CultureInfo.InvariantCulture));
                     break;
                 case JsonToken.Null:
@@ -573,43 +586,111 @@ namespace Exceptionless.Json
                     WriteEndConstructor();
                     break;
                 case JsonToken.Date:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
 #if !NET20
                     if (value is DateTimeOffset)
+                    {
                         WriteValue((DateTimeOffset)value);
+                    }
                     else
 #endif
+                    {
                         WriteValue(Convert.ToDateTime(value, CultureInfo.InvariantCulture));
+                    }
                     break;
                 case JsonToken.Raw:
                     WriteRawValue((value != null) ? value.ToString() : null);
                     break;
                 case JsonToken.Bytes:
-                    ValidationUtils.ArgumentNotNull(value, "value");
+                    ValidationUtils.ArgumentNotNull(value, nameof(value));
                     if (value is Guid)
+                    {
                         WriteValue((Guid)value);
+                    }
                     else
+                    {
                         WriteValue((byte[])value);
+                    }
                     break;
                 default:
-                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException("TokenType", tokenType, "Unexpected token type.");
+                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException(nameof(token), token, "Unexpected token type.");
             }
+        }
+
+        /// <summary>
+        /// Writes the <see cref="JsonToken"/> token.
+        /// </summary>
+        /// <param name="token">The <see cref="JsonToken"/> to write.</param>
+        public void WriteToken(JsonToken token)
+        {
+            WriteToken(token, null);
+        }
+
+        internal void WriteToken(JsonReader reader, bool writeChildren, bool writeDateConstructorAsDate, bool writeComments)
+        {
+            int initialDepth;
+
+            if (reader.TokenType == JsonToken.None)
+            {
+                initialDepth = -1;
+            }
+            else if (!JsonTokenUtils.IsStartToken(reader.TokenType))
+            {
+                initialDepth = reader.Depth + 1;
+            }
+            else
+            {
+                initialDepth = reader.Depth;
+            }
+
+            WriteToken(reader, initialDepth, writeChildren, writeDateConstructorAsDate, writeComments);
+        }
+
+        internal void WriteToken(JsonReader reader, int initialDepth, bool writeChildren, bool writeDateConstructorAsDate, bool writeComments)
+        {
+            do
+            {
+                // write a JValue date when the constructor is for a date
+                if (writeDateConstructorAsDate && reader.TokenType == JsonToken.StartConstructor && string.Equals(reader.Value.ToString(), "Date", StringComparison.Ordinal))
+                {
+                    WriteConstructorDate(reader);
+                }
+                else
+                {
+                    if (reader.TokenType != JsonToken.Comment || writeComments)
+                    {
+                        WriteToken(reader.TokenType, reader.Value);
+                    }
+                }
+            } while (
+                // stop if we have reached the end of the token being read
+                initialDepth - 1 < reader.Depth - (JsonTokenUtils.IsEndToken(reader.TokenType) ? 1 : 0)
+                && writeChildren
+                && reader.Read());
         }
 
         private void WriteConstructorDate(JsonReader reader)
         {
             if (!reader.Read())
+            {
                 throw JsonWriterException.Create(this, "Unexpected end when reading date constructor.", null);
+            }
             if (reader.TokenType != JsonToken.Integer)
+            {
                 throw JsonWriterException.Create(this, "Unexpected token when reading date constructor. Expected Integer, got " + reader.TokenType, null);
+            }
 
             long ticks = (long)reader.Value;
             DateTime date = DateTimeUtils.ConvertJavaScriptTicksToDateTime(ticks);
 
             if (!reader.Read())
+            {
                 throw JsonWriterException.Create(this, "Unexpected end when reading date constructor.", null);
+            }
             if (reader.TokenType != JsonToken.EndConstructor)
+            {
                 throw JsonWriterException.Create(this, "Unexpected token when reading date constructor. Expected EndConstructor, got " + reader.TokenType, null);
+            }
 
             WriteValue(date);
         }
@@ -680,19 +761,25 @@ namespace Exceptionless.Json
             }
 
             if (levelsToComplete == 0)
+            {
                 throw JsonWriterException.Create(this, "No token to close.", null);
+            }
 
             for (int i = 0; i < levelsToComplete; i++)
             {
                 JsonToken token = GetCloseTokenForType(Pop());
 
                 if (_currentState == State.Property)
+                {
                     WriteNull();
+                }
 
                 if (_formatting == Formatting.Indented)
                 {
                     if (_currentState != State.ObjectStart && _currentState != State.ArrayStart)
+                    {
                         WriteIndent();
+                    }
                 }
 
                 WriteEnd(token);
@@ -754,7 +841,9 @@ namespace Exceptionless.Json
             State newState = StateArray[(int)tokenBeingWritten][(int)_currentState];
 
             if (newState == State.Error)
+            {
                 throw JsonWriterException.Create(this, "Token {0} in state {1} would result in an invalid JSON object.".FormatWith(CultureInfo.InvariantCulture, tokenBeingWritten.ToString(), _currentState.ToString()), null);
+            }
 
             if ((_currentState == State.Object || _currentState == State.Array || _currentState == State.Constructor) && tokenBeingWritten != JsonToken.Comment)
             {
@@ -764,12 +853,16 @@ namespace Exceptionless.Json
             if (_formatting == Formatting.Indented)
             {
                 if (_currentState == State.Property)
+                {
                     WriteIndentSpace();
+                }
 
                 // don't indent a property when it is the first token to be written (i.e. at the start)
                 if ((_currentState == State.Array || _currentState == State.ArrayStart || _currentState == State.Constructor || _currentState == State.ConstructorStart)
                     || (tokenBeingWritten == JsonToken.PropertyName && _currentState != State.Start))
+                {
                     WriteIndent();
+                }
             }
 
             _currentState = newState;
@@ -988,9 +1081,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(int? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1001,9 +1098,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(uint? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1013,9 +1114,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(long? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1026,9 +1131,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(ulong? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1038,9 +1147,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(float? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1050,9 +1163,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(double? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1062,9 +1179,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(bool? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1074,9 +1195,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(short? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1087,9 +1212,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(ushort? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1099,9 +1228,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(char? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1111,9 +1244,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(byte? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1124,9 +1261,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(sbyte? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1136,9 +1277,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(decimal? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1148,9 +1293,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(DateTime? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
 #if !NET20
@@ -1161,9 +1310,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(DateTimeOffset? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 #endif
 
@@ -1174,9 +1327,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(Guid? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1186,9 +1343,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(TimeSpan? value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
-                WriteValue(value.Value);
+            {
+                WriteValue(value.GetValueOrDefault());
+            }
         }
 
         /// <summary>
@@ -1198,9 +1359,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(byte[] value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
+            {
                 InternalWriteValue(JsonToken.Bytes);
+            }
         }
 
         /// <summary>
@@ -1210,9 +1375,13 @@ namespace Exceptionless.Json
         public virtual void WriteValue(Uri value)
         {
             if (value == null)
+            {
                 WriteNull();
+            }
             else
+            {
                 InternalWriteValue(JsonToken.String);
+            }
         }
 
         /// <summary>
@@ -1232,7 +1401,9 @@ namespace Exceptionless.Json
                 // this is here because adding a WriteValue(BigInteger) to JsonWriter will
                 // mean the user has to add a reference to System.Numerics.dll
                 if (value is BigInteger)
+                {
                     throw CreateUnsupportedTypeException(this, value);
+                }
 #endif
 
                 WriteValue(this, ConvertUtils.GetTypeCode(value.GetType()), value);
@@ -1261,12 +1432,19 @@ namespace Exceptionless.Json
         void IDisposable.Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
         {
-            if (_currentState != State.Closed)
+            if (_currentState != State.Closed && disposing)
+            {
                 Close();
+            }
         }
 
         internal static void WriteValue(JsonWriter writer, PrimitiveTypeCode typeCode, object value)
@@ -1396,13 +1574,13 @@ namespace Exceptionless.Json
                 case PrimitiveTypeCode.Bytes:
                     writer.WriteValue((byte[])value);
                     break;
-#if !(PORTABLE || NETFX_CORE)
+#if !(PORTABLE || DOTNET)
                 case PrimitiveTypeCode.DBNull:
                     writer.WriteNull();
                     break;
 #endif
                 default:
-#if !(PORTABLE || NETFX_CORE)
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
                     if (value is IConvertible)
                     {
                         // the value is a non-standard IConvertible
@@ -1453,7 +1631,9 @@ namespace Exceptionless.Json
                     break;
                 case JsonToken.PropertyName:
                     if (!(value is string))
-                        throw new ArgumentException("A name is required when setting property name state.", "value");
+                    {
+                        throw new ArgumentException("A name is required when setting property name state.", nameof(value));
+                    }
 
                     InternalWritePropertyName((string)value);
                     break;
@@ -1483,7 +1663,7 @@ namespace Exceptionless.Json
                     InternalWriteEnd(JsonContainerType.Constructor);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("token");
+                    throw new ArgumentOutOfRangeException(nameof(token));
             }
         }
 
@@ -1520,7 +1700,9 @@ namespace Exceptionless.Json
             if (ws != null)
             {
                 if (!StringUtils.IsWhiteSpace(ws))
+                {
                     throw JsonWriterException.Create(this, "Only white space characters should be used.", null);
+                }
             }
         }
 

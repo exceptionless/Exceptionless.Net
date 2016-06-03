@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
+#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
 using System;
 using System.Data;
 using Exceptionless.Json.Serialization;
@@ -70,6 +70,11 @@ namespace Exceptionless.Json.Converters
         /// <returns>The object value.</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                return null;
+            }
+
             // handle typed datasets
             DataSet ds = (objectType == typeof(DataSet))
                 ? new DataSet()
@@ -77,7 +82,7 @@ namespace Exceptionless.Json.Converters
 
             DataTableConverter converter = new DataTableConverter();
 
-            CheckedRead(reader);
+            reader.ReadAndAssert();
 
             while (reader.TokenType == JsonToken.PropertyName)
             {
@@ -87,9 +92,11 @@ namespace Exceptionless.Json.Converters
                 dt = (DataTable)converter.ReadJson(reader, typeof(DataTable), dt, serializer);
 
                 if (!exists)
+                {
                     ds.Tables.Add(dt);
+                }
 
-                CheckedRead(reader);
+                reader.ReadAndAssert();
             }
 
             return ds;
@@ -105,12 +112,6 @@ namespace Exceptionless.Json.Converters
         public override bool CanConvert(Type valueType)
         {
             return typeof(DataSet).IsAssignableFrom(valueType);
-        }
-
-        private void CheckedRead(JsonReader reader)
-        {
-            if (!reader.Read())
-                throw JsonSerializationException.Create(reader, "Unexpected end when reading DataSet.");
         }
     }
 }

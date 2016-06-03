@@ -33,8 +33,14 @@ using System.Globalization;
 namespace Exceptionless.Json.Schema
 {
     /// <summary>
+    /// <para>
     /// An in-memory representation of a JSON Schema.
+    /// </para>
+    /// <note type="caution">
+    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
+    /// </note>
     /// </summary>
+    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
     public class JsonSchema
     {
         /// <summary>
@@ -274,8 +280,8 @@ namespace Exceptionless.Json.Schema
         /// <returns>The <see cref="JsonSchema"/> object representing the JSON Schema.</returns>
         public static JsonSchema Read(JsonReader reader, JsonSchemaResolver resolver)
         {
-            ValidationUtils.ArgumentNotNull(reader, "reader");
-            ValidationUtils.ArgumentNotNull(resolver, "resolver");
+            ValidationUtils.ArgumentNotNull(reader, nameof(reader));
+            ValidationUtils.ArgumentNotNull(resolver, nameof(resolver));
 
             JsonSchemaBuilder builder = new JsonSchemaBuilder(resolver);
             return builder.Read(reader);
@@ -299,7 +305,7 @@ namespace Exceptionless.Json.Schema
         /// <returns>A <see cref="JsonSchema"/> populated from the string that contains JSON.</returns>
         public static JsonSchema Parse(string json, JsonSchemaResolver resolver)
         {
-            ValidationUtils.ArgumentNotNull(json, "json");
+            ValidationUtils.ArgumentNotNull(json, nameof(json));
 
             using (JsonReader reader = new JsonTextReader(new StringReader(json)))
             {
@@ -323,8 +329,8 @@ namespace Exceptionless.Json.Schema
         /// <param name="resolver">The resolver used.</param>
         public void WriteTo(JsonWriter writer, JsonSchemaResolver resolver)
         {
-            ValidationUtils.ArgumentNotNull(writer, "writer");
-            ValidationUtils.ArgumentNotNull(resolver, "resolver");
+            ValidationUtils.ArgumentNotNull(writer, nameof(writer));
+            ValidationUtils.ArgumentNotNull(resolver, nameof(resolver));
 
             JsonSchemaWriter schemaWriter = new JsonSchemaWriter(writer, resolver);
             schemaWriter.WriteSchema(this);

@@ -22,24 +22,26 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\$(TargetFrameworkVersion)\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;EMBEDDED;</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\$(TargetFrameworkVersion)\</OutputPath>
-    <DefineConstants>TRACE;EMBEDDED;</DefineConstants>
+    <DefineConstants>TRACE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Release\$(TargetFrameworkVersion)\Exceptionless.Windows.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET40' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET45' ">
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -51,17 +53,11 @@
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'false' ">
-    <Reference Include="Exceptionless.Extras">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Extras\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.dll</HintPath>
-    </Reference>
     <Reference Include="Exceptionless.Portable">
       <HintPath>$(SolutionDir)\src\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'true' ">
-    <Reference Include="Exceptionless.Extras">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Extras.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Extras.Signed.dll</HintPath>
-    </Reference>
     <Reference Include="Exceptionless.Portable">
       <HintPath>$(SolutionDir)\src\Exceptionless.Portable.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.Signed.dll</HintPath>
     </Reference>
@@ -109,7 +105,7 @@
     <None Include="NuGet\tools\uninstall.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NuGet\readme.txt" />
+    <Content Include="readme.txt" />
     <Content Include="Resources\ErrorFeedback.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -32,7 +32,7 @@ before_build:
           $content = $content.Replace("99.99.99-dev", "$($env:APPVEYOR_BUILD_VERSION)$($env:VERSION_SUFFIX)")
           Set-Content "$_" $content -Encoding UTF8
       }
-  - appveyor-retry nuget restore -verbosity quiet
+  - nuget restore -verbosity quiet
   - dotnet restore -v Minimal
 
 build_script:

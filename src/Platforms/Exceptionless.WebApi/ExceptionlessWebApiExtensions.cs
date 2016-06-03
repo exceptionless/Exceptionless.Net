@@ -67,11 +67,15 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="ev">The event model.</param>
         /// <param name="context">The http action context to gather information from.</param>
-        public static Event AddHttpRequestInfo(this Event ev, HttpActionContext context) {
+        /// <param name="config">The config.</param>
+        public static Event AddHttpRequestInfo(this Event ev, HttpActionContext context, ExceptionlessConfiguration config = null) {
             if (context == null)
                 return ev;
 
-            ev.AddRequestInfo(context.GetRequestInfo(ExceptionlessClient.Default.Configuration));
+            if (config == null)
+                config = ExceptionlessClient.Default.Configuration;
+
+            ev.AddRequestInfo(context.GetRequestInfo(config));
 
             return ev;
         }
@@ -82,7 +86,7 @@ namespace Exceptionless {
         /// <param name="builder">The event builder.</param>
         /// <param name="context">The http action context to gather information from.</param>
         public static EventBuilder AddHttpRequestInfo(this EventBuilder builder, HttpActionContext context) {
-            builder.Target.AddHttpRequestInfo(context);
+            builder.Target.AddHttpRequestInfo(context, builder.Client.Configuration);
             return builder;
         }
 

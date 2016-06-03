@@ -1,4 +1,4 @@
-﻿{
+{
     "version": "99.99.99-dev",
     "title": "Log4net appender that sends log entries to Exceptionless.",
     "authors": [ "Exceptionless" ],
@@ -16,11 +16,11 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         },
         "files": {
-            "include": [ "NuGet/readme.txt" ]
+            "include": [ "readme.txt" ]
         }
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless.Portable": {
             "target": "project"
         },
         "log4net": "2.0.5"
@@ -35,17 +35,9 @@
         "xmlDoc": true
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "System.Configuration": ""
-            }
-        },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": ""

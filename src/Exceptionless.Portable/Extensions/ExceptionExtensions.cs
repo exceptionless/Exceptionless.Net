@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using Exceptionless.Plugins;
 
 namespace Exceptionless {
@@ -63,7 +64,7 @@ namespace Exceptionless.Extensions {
             try {
                 if (exception.Data != null) {
                     var genericTypes = exception.Data.GetType().GetGenericArguments();
-                    if (genericTypes.Length == 0 || genericTypes[0].IsAssignableFrom(typeof(string)))
+                    if (genericTypes.Length == 0 || genericTypes[0].GetTypeInfo().IsAssignableFrom(typeof(string).GetTypeInfo()))
                         exception.Data[_marker] = genericTypes.Length > 0 ? genericTypes[1].GetDefaultValue() : null;
                 }
             } catch (Exception) {}

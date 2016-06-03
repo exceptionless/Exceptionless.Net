@@ -2,7 +2,7 @@
 if (Test-Path json.zip) {
 	del json.zip
 }
-Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/6.0.8.zip -OutFile json.zip
+Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/8.0.3.zip -OutFile json.zip
 if (Test-Path json-temp) {
 	rmdir '.\json-temp' -Recurse -Force
 }
@@ -28,8 +28,7 @@ Get-ChildItem '.\Newtonsoft.Json' *.cs -recurse |
     }
 
 del '.\Newtonsoft.Json\*.csproj' -Force
+del '.\Newtonsoft.Json\*.xproj' -Force
+del '.\Newtonsoft.Json\*project.json' -Force
+del '.\Newtonsoft.Json\Newtonsoft.Json.ruleset' -Force
 del '.\Newtonsoft.Json\Properties' -Force -Recurse
-del '.\Newtonsoft.Json\Converters\JsonValueConverter.cs'
-del '.\Newtonsoft.Json\Utilities\LinqBridge.cs'
-del '.\Newtonsoft.Json\Newtonsoft.Json.ruleset'
-del '.\Newtonsoft.Json\Dynamic.snk'

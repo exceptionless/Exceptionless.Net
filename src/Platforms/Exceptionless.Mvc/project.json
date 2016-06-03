@@ -1,4 +1,4 @@
-﻿{
+{
     "version": "99.99.99-dev",
     "title": "Exceptionless client for ASP.NET MVC 3+ applications.",
     "authors": [ "Exceptionless" ],
@@ -20,7 +20,7 @@
                 "tools/": "NuGet/tools/*",
                 "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
             },
-            "include": [ "NuGet/readme.txt" ]
+            "include": [ "readme.txt" ]
         }
     },
     "buildOptions": {
@@ -41,27 +41,15 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Extras": {
-            "target": "project"
-        },
         "Exceptionless.Portable": {
             "target": "project"
         },
         "Microsoft.AspNet.Mvc": "3.0.20105.1"
     },
     "frameworks": {
-        "net40": {
-            "buildOptions": {
-                "define": [ "EMBEDDED", "NET40" ]
-            },
-            "frameworkAssemblies": {
-                "System.Configuration": "",
-                "System.Web": ""
-            }
-        },
         "net45": {
             "buildOptions": {
-                "define": [ "EMBEDDED", "NET45" ]
+                "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
                 "System.Configuration": "",

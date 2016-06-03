@@ -17,8 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Libraries\Settings.ps1 = Libraries\Settings.ps1
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.Extras", "src\Exceptionless.Extras\Exceptionless.Extras.xproj", "{37F873D7-2F66-4A61-9807-43D3327075F6}"
-EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.Portable", "src\Exceptionless.Portable\Exceptionless.Portable.xproj", "{C3664CAF-6DE9-4049-951F-516C10FBA012}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.Tests", "src\Exceptionless.Tests\Exceptionless.Tests.xproj", "{7961053F-A83D-48AE-9ABC-7EA134973223}"
@@ -42,13 +40,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Windows", "src\Platforms\Exceptionless.Windows\Exceptionless.Windows.csproj", "{159FB9D1-E226-4828-B2A5-FEDD994F3525}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Wpf", "src\Platforms\Exceptionless.Wpf\Exceptionless.Wpf.csproj", "{0F4730E7-953F-4F20-A337-9FB43A9AFBEA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{2CEE12C6-3840-4C01-A952-D3026B0A662A}"
@@ -58,13 +54,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleWindows", "src\Samples\Exceptionless.SampleWindows\Exceptionless.SampleWindows.csproj", "{34FE8E6E-247B-46DD-967E-46E45D1CAE6D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleWpf", "src\Samples\Exceptionless.SampleWpf\Exceptionless.SampleWpf.csproj", "{C54027FA-B334-49C7-A58B-94B57677556C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 	EndProjectSection
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.SampleWebApi", "src\Samples\Exceptionless.SampleWebApi\Exceptionless.SampleWebApi.xproj", "{02EBBB5A-0F11-461E-9778-010F69C36545}"
@@ -73,20 +67,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleNancy",
 	ProjectSection(ProjectDependencies) = postProject
 		{76CC2F27-1B94-4375-A082-A167CFC5E6CB} = {76CC2F27-1B94-4375-A082-A167CFC5E6CB}
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleWcf", "src\Samples\Exceptionless.SampleWcf\Exceptionless.SampleWcf.csproj", "{D03FB8BA-EE59-42DD-840F-E7791B4609F0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 		{D4265DE5-6AA5-4566-8B51-4FC2158C8539} = {D4265DE5-6AA5-4566-8B51-4FC2158C8539}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleWeb", "src\Samples\Exceptionless.SampleWeb\Exceptionless.SampleWeb.csproj", "{DAE5248F-75FC-42CC-96A7-34C470F28641}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 		{D4265DE5-6AA5-4566-8B51-4FC2158C8539} = {D4265DE5-6AA5-4566-8B51-4FC2158C8539}
 	EndProjectSection
 EndProject
@@ -95,8 +86,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleMvc", "
 		{A3139129-3FB8-451D-90D6-4BF6A5C8B479} = {A3139129-3FB8-451D-90D6-4BF6A5C8B479}
 		{E29380A2-85E5-468E-8D09-4E1CFDF5E90E} = {E29380A2-85E5-468E-8D09-4E1CFDF5E90E}
 		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-		{37F873D7-2F66-4A61-9807-43D3327075F6} = {37F873D7-2F66-4A61-9807-43D3327075F6}
 	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.AspNetCore", "src\Platforms\Exceptionless.AspNetCore\Exceptionless.AspNetCore.xproj", "{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.SampleAspNetCore", "src\Samples\Exceptionless.SampleAspNetCore\Exceptionless.SampleAspNetCore.xproj", "{D7039656-8587-49CC-8657-5C9BDCFC1C80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,10 +98,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{37F873D7-2F66-4A61-9807-43D3327075F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{37F873D7-2F66-4A61-9807-43D3327075F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{37F873D7-2F66-4A61-9807-43D3327075F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{37F873D7-2F66-4A61-9807-43D3327075F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3664CAF-6DE9-4049-951F-516C10FBA012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3664CAF-6DE9-4049-951F-516C10FBA012}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3664CAF-6DE9-4049-951F-516C10FBA012}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -184,6 +174,14 @@ Global
 		{B7075822-FBB6-4B3A-A639-37C39DC27BB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7075822-FBB6-4B3A-A639-37C39DC27BB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7075822-FBB6-4B3A-A639-37C39DC27BB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7039656-8587-49CC-8657-5C9BDCFC1C80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7039656-8587-49CC-8657-5C9BDCFC1C80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7039656-8587-49CC-8657-5C9BDCFC1C80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7039656-8587-49CC-8657-5C9BDCFC1C80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -206,5 +204,7 @@ Global
 		{D03FB8BA-EE59-42DD-840F-E7791B4609F0} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{DAE5248F-75FC-42CC-96A7-34C470F28641} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{B7075822-FBB6-4B3A-A639-37C39DC27BB6} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
+		{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
+		{D7039656-8587-49CC-8657-5C9BDCFC1C80} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 	EndGlobalSection
 EndGlobal
