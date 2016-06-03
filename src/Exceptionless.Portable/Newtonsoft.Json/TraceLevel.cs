@@ -1,5 +1,5 @@
 
-#if (DOTNET || PORTABLE40 || PORTABLE)
+#if (DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
 using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Json

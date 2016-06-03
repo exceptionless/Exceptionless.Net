@@ -39,7 +39,7 @@
             "CS1591"
         ],
         "optimize": true,
-        "warningsAsErrors": true,
+        "warningsAsErrors": true, 
         "xmlDoc": true
     },
     "frameworks": {
@@ -47,11 +47,14 @@
         "netstandard1.2": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "SIGNED", "PORTABLE", "NETSTANDARD", "NETSTANDARD1_2" ]
+                "define": [ "SIGNED", "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_2" ]
             },
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
                 "System.Collections": "4.0.11-rc2-24027",
+                "System.Collections.Concurrent": "4.0.12-rc2-24027",
+                "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",
+                "System.Data.Common": "4.0.1-rc2-24027",
                 "System.Diagnostics.Debug": "4.0.11-rc2-24027",
                 "System.Dynamic.Runtime": "4.0.11-rc2-24027",
                 "System.Globalization": "4.0.11-rc2-24027",
@@ -63,10 +66,13 @@
                 "System.Net.Requests": "4.0.11-rc2-24027",
                 "System.ObjectModel": "4.0.12-rc2-24027",
                 "System.Reflection": "4.1.0-rc2-24027",
+                "System.Reflection.Emit.ILGeneration": "4.0.1-rc2-24027",
+                "System.Reflection.Emit.Lightweight": "4.0.1-rc2-24027",
                 "System.Reflection.Extensions": "4.0.1-rc2-24027",
                 "System.Resources.ResourceManager": "4.0.1-rc2-24027",
                 "System.Runtime": "4.1.0-rc2-24027",
                 "System.Runtime.Extensions": "4.1.0-rc2-24027",
+                "System.Runtime.Numerics": "4.0.1-rc2-24027",
                 "System.Runtime.Serialization.Primitives": "4.1.1-rc2-24027",
                 "System.Text.Encoding": "4.0.11-rc2-24027",
                 "System.Text.Encoding.Extensions": "4.0.11-rc2-24027",
@@ -82,13 +88,15 @@
         "netstandard1.3": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "SIGNED", "PORTABLE", "NETSTANDARD", "NETSTANDARD1_3" ]
+                "define": [ "SIGNED", "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_3" ]
             },
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final",
                 "System.Collections": "4.0.11-rc2-24027",
                 "System.Collections.Concurrent": "4.0.12-rc2-24027",
+                "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",
+                "System.Data.Common": "4.0.1-rc2-24027",
                 "System.Diagnostics.Debug": "4.0.11-rc2-24027",
                 "System.Diagnostics.Process": "4.1.0-rc2-24027",
                 "System.Diagnostics.StackTrace": "4.0.1-rc2-24027",
@@ -104,7 +112,10 @@
                 "System.Net.Requests": "4.0.11-rc2-24027",
                 "System.ObjectModel": "4.0.12-rc2-24027",
                 "System.Reflection": "4.1.0-rc2-24027",
+                "System.Reflection.Emit.ILGeneration": "4.0.1-rc2-24027",
+                "System.Reflection.Emit.Lightweight": "4.0.1-rc2-24027",
                 "System.Reflection.Extensions": "4.0.1-rc2-24027",
+                "System.Reflection.TypeExtensions": "4.1.0-rc2-24027",
                 "System.Resources.ResourceManager": "4.0.1-rc2-24027",
                 "System.Runtime": "4.1.0-rc2-24027",
                 "System.Runtime.Extensions": "4.1.0-rc2-24027",
@@ -121,19 +132,22 @@
                 "System.Threading.Thread": "4.0.0-rc2-24027",
                 "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
                 "System.Xml.XDocument": "4.0.11-rc2-24027",
+                "System.Xml.XmlDocument": "4.0.1-rc2-24027",
                 "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
             }
         },
         "netstandard1.4": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "SIGNED", "PORTABLE", "NETSTANDARD", "NETSTANDARD1_4" ]
+                "define": [ "SIGNED", "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_4" ]
             },
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final",
                 "System.Collections": "4.0.11-rc2-24027",
                 "System.Collections.Concurrent": "4.0.12-rc2-24027",
+                "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",
+                "System.Data.Common": "4.0.1-rc2-24027",
                 "System.Diagnostics.Debug": "4.0.11-rc2-24027",
                 "System.Diagnostics.Process": "4.1.0-rc2-24027",
                 "System.Diagnostics.StackTrace": "4.0.1-rc2-24027",
@@ -150,7 +164,10 @@
                 "System.Net.Requests": "4.0.11-rc2-24027",
                 "System.ObjectModel": "4.0.12-rc2-24027",
                 "System.Reflection": "4.1.0-rc2-24027",
+                "System.Reflection.Emit.ILGeneration": "4.0.1-rc2-24027",
+                "System.Reflection.Emit.Lightweight": "4.0.1-rc2-24027",
                 "System.Reflection.Extensions": "4.0.1-rc2-24027",
+                "System.Reflection.TypeExtensions": "4.1.0-rc2-24027",
                 "System.Resources.ResourceManager": "4.0.1-rc2-24027",
                 "System.Runtime": "4.1.0-rc2-24027",
                 "System.Runtime.Extensions": "4.1.0-rc2-24027",
@@ -167,13 +184,14 @@
                 "System.Threading.Thread": "4.0.0-rc2-24027",
                 "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
                 "System.Xml.XDocument": "4.0.11-rc2-24027",
+                "System.Xml.XmlDocument": "4.0.1-rc2-24027",
                 "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
             }
         },
         "netstandard1.5": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "SIGNED", "PORTABLE", "NETSTANDARD", "NETSTANDARD1_5" ]
+                "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_5" ]
             },
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
@@ -181,6 +199,8 @@
                 "System.AppDomain": "2.0.8",
                 "System.Collections": "4.0.11-rc2-24027",
                 "System.Collections.Concurrent": "4.0.12-rc2-24027",
+                "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",
+                "System.Data.Common": "4.0.1-rc2-24027",
                 "System.Diagnostics.Debug": "4.0.11-rc2-24027",
                 "System.Diagnostics.Process": "4.1.0-rc2-24027",
                 "System.Diagnostics.StackTrace": "4.0.1-rc2-24027",
@@ -198,7 +218,10 @@
                 "System.Net.Requests": "4.0.11-rc2-24027",
                 "System.ObjectModel": "4.0.12-rc2-24027",
                 "System.Reflection": "4.1.0-rc2-24027",
+                "System.Reflection.Emit.ILGeneration": "4.0.1-rc2-24027",
+                "System.Reflection.Emit.Lightweight": "4.0.1-rc2-24027",
                 "System.Reflection.Extensions": "4.0.1-rc2-24027",
+                "System.Reflection.TypeExtensions": "4.1.0-rc2-24027",
                 "System.Resources.ResourceManager": "4.0.1-rc2-24027",
                 "System.Runtime": "4.1.0-rc2-24027",
                 "System.Runtime.Extensions": "4.1.0-rc2-24027",
@@ -215,13 +238,14 @@
                 "System.Threading.Thread": "4.0.0-rc2-24027",
                 "System.Xml.ReaderWriter": "4.0.11-rc2-24027",
                 "System.Xml.XDocument": "4.0.11-rc2-24027",
+                "System.Xml.XmlDocument": "4.0.1-rc2-24027",
                 "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
             }
         },
         ".NETPortable,Version=v4.6,Profile=Profile151": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "SIGNED", "NETPORTABLE", "PORTABLE", "NETSTANDARD1_2" ]
+                "define": [ "SIGNED", "PORTABLE" ]
             },
             "frameworkAssemblies": {
                 "Microsoft.CSharp": "",
