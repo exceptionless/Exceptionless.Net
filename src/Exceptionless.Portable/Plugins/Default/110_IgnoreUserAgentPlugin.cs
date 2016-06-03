@@ -2,7 +2,7 @@
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 
-namespace Exceptionless.Plugins {
+namespace Exceptionless.Plugins.Default {
     [Priority(110)]
     public class IgnoreUserAgentPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {

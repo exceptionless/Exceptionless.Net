@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Exceptionless;
 using Exceptionless.AspNetCore;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Plugins.Default;
 using Microsoft.Extensions.Configuration;
 
 namespace Exceptionless {
@@ -17,7 +16,7 @@ namespace Exceptionless {
 
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessAspNetCorePlugin>();
-            //client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
+            client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);

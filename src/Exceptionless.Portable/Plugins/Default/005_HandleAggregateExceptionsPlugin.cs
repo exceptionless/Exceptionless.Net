@@ -2,7 +2,7 @@
 using Exceptionless.Dependency;
 using Exceptionless.Models;
 
-namespace Exceptionless.Plugins {
+namespace Exceptionless.Plugins.Default {
     [Priority(5)]
     public class HandleAggregateExceptionsPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {

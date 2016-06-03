@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Exceptionless.Plugins {
+namespace Exceptionless.Plugins.Default {
     [Priority(25)]
     public class SessionIdManagementPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {

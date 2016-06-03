@@ -2,7 +2,7 @@
 using System;
 using Exceptionless.Dependency;
 
-namespace Exceptionless.Plugins {
+namespace Exceptionless.Plugins.Default {
     [Priority(15)]
     public class SetEnvironmentUserPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {

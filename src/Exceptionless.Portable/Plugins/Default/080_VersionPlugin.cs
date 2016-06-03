@@ -5,7 +5,7 @@ using System.Reflection;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 
-namespace Exceptionless.Plugins {
+namespace Exceptionless.Plugins.Default {
     [Priority(80)]
     public class VersionPlugin : IEventPlugin {
         private static bool _checkedForVersion;
