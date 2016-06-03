@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Exceptionless.Extensions {
     internal static class TypeExtensions {
-#if NETSTANDARD1_2
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
         [Flags]
         internal enum BindingFlags {
             Default = 0,

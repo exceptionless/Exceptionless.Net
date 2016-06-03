@@ -54,7 +54,7 @@
 #undef APPDOMAIN_GETASSEMBLIES
 #endif
 
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6
 #undef SERIALIZABLE
 #endif
 
@@ -334,7 +334,7 @@ namespace TinyIoC
             Type[] assemblies;
 
             try {
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
                 assemblies = assembly.ExportedTypes.ToArray();
 #else
                 assemblies = assembly.GetTypes();
@@ -398,7 +398,7 @@ namespace TinyIoC
             _genericMethodCache = new SafeDictionary<GenericMethodCacheKey, MethodInfo>();
         }
 
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
         private static BindingFlags DefaultFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
         
         public static ConstructorInfo[] GetConstructors(this Type type)
@@ -3433,7 +3433,7 @@ namespace TinyIoC
                     {
                         RegisterInternal(type, string.Empty, GetDefaultObjectFactory(type, type));
                     }
-#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6
                     catch (MemberAccessException)
 #else
                     catch (MethodAccessException)
@@ -3472,7 +3472,7 @@ namespace TinyIoC
                         {
                             RegisterInternal(type, string.Empty, GetDefaultObjectFactory(type, firstImplementation));
                         }
-#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6
                         catch (MemberAccessException)
 #else
                         catch (MethodAccessException)
@@ -4154,7 +4154,7 @@ namespace TinyIoC
             {
                 if (registerType.IsInterface())
                 {
-#if (PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if (PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6)
                     if (!registerImplementation.GetInterfaces().Any(t => t.Name == registerType.Name))
                         return false;
 #else
@@ -4190,7 +4190,7 @@ namespace TinyIoC
 #endregion
     }
 
-#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6
     static class ReverseTypeExtender
     {
         public static bool IsClass(this Type type)
@@ -4245,7 +4245,7 @@ namespace TinyIoC
     }
 #endif
     // reverse shim for WinRT SR changes...
-#if (!NETFX_CORE && !PORTABLE && !NETSTANDARD1_0 && !NETSTANDARD1_1 && !NETSTANDARD1_2 && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5)
+#if (!NETFX_CORE && !PORTABLE && !NETSTANDARD1_0 && !NETSTANDARD1_1 && !NETSTANDARD1_2 && !NETSTANDARD1_3 && !NETSTANDARD1_4 && !NETSTANDARD1_5 || NETSTANDARD1_6)
     static class ReverseTypeExtender
     {
         public static bool IsClass(this Type type)
