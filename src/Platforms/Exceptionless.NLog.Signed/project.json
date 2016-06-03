@@ -16,7 +16,7 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         },
         "files": {
-            "include": [ "../Exceptionless.NLog/NuGet/readme.txt" ]
+            "include": [ "../Exceptionless.NLog/readme.txt" ]
         }
     },
     "buildOptions": {

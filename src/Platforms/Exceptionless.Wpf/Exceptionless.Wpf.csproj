@@ -106,7 +106,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="NuGet\readme.txt" />
+    <Resource Include="readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

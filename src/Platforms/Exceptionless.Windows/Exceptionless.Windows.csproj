@@ -105,7 +105,7 @@
     <None Include="NuGet\tools\uninstall.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NuGet\readme.txt" />
+    <Content Include="readme.txt" />
     <Content Include="Resources\ErrorFeedback.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

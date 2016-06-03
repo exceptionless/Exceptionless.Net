@@ -46,6 +46,7 @@ ForEach ($p in $client_projects) {
     Copy-Item "$base_dir\src\GlobalAssemblyInfo.cs" "$workingDirectory\src\src\GlobalAssemblyInfo.cs"
 
     If ((Test-Path -Path "$($p.SourceDir)\NuGet")) {
+        Copy-Item "$($p.SourceDir)\readme.txt" "$workingDirectory\readme.txt"
         Copy-Item "$($p.SourceDir)\NuGet\*" $workingDirectory -Recurse
     }
 

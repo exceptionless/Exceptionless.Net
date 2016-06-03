@@ -20,7 +20,7 @@
                 "tools/": "../Exceptionless/NuGet/tools/*",
                 "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
             },
-            "include": [ "../Exceptionless/NuGet/readme.txt" ]
+            "include": [ "../Exceptionless/readme.txt" ]
         }
     },
     "buildOptions": {
