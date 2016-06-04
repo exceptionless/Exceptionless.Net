@@ -14,7 +14,7 @@
     <RootNamespace>Exceptionless.SampleWcf</RootNamespace>
     <AssemblyName>Exceptionless.SampleWcf</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkVersionProperty Condition=" '$(TargetFrameworkVersionProperty)' == '' ">net40</TargetFrameworkVersionProperty>
+    <TargetFrameworkVersionProperty Condition=" '$(TargetFrameworkVersionProperty)' == '' ">net45</TargetFrameworkVersionProperty>
     <UseIISExpress>true</UseIISExpress>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -25,7 +25,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">C:\Code\Exceptionless\</SolutionDir>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <UseGlobalApplicationHostFile />
     <TargetFrameworkProfile />
@@ -67,11 +67,11 @@
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml" />
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Web">
-      <HintPath>..\..\Platforms\Exceptionless.Web\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Web.dll</HintPath>
+      <HintPath>$(SolutionDir)\src\Platforms\Exceptionless.Web\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Web.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>

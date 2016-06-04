@@ -17,13 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Libraries\Settings.ps1 = Libraries\Settings.ps1
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.Portable", "src\Exceptionless.Portable\Exceptionless.Portable.xproj", "{C3664CAF-6DE9-4049-951F-516C10FBA012}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless", "src\Exceptionless\Exceptionless.xproj", "{C3664CAF-6DE9-4049-951F-516C10FBA012}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.Tests", "src\Exceptionless.Tests\Exceptionless.Tests.xproj", "{7961053F-A83D-48AE-9ABC-7EA134973223}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{D363E15F-621D-40E4-8C96-DEE41A7070FF}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless", "src\Platforms\Exceptionless\Exceptionless.xproj", "{9D15AED5-DE27-46B9-A8DB-654F2DE3A36E}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.Log4net", "src\Platforms\Exceptionless.Log4net\Exceptionless.Log4net.xproj", "{40447BEF-BE34-46C2-B05B-2DF671586AD7}"
 EndProject
@@ -106,10 +104,6 @@ Global
 		{7961053F-A83D-48AE-9ABC-7EA134973223}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7961053F-A83D-48AE-9ABC-7EA134973223}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7961053F-A83D-48AE-9ABC-7EA134973223}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9D15AED5-DE27-46B9-A8DB-654F2DE3A36E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D15AED5-DE27-46B9-A8DB-654F2DE3A36E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D15AED5-DE27-46B9-A8DB-654F2DE3A36E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D15AED5-DE27-46B9-A8DB-654F2DE3A36E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{40447BEF-BE34-46C2-B05B-2DF671586AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40447BEF-BE34-46C2-B05B-2DF671586AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40447BEF-BE34-46C2-B05B-2DF671586AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -187,7 +181,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{9D15AED5-DE27-46B9-A8DB-654F2DE3A36E} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{40447BEF-BE34-46C2-B05B-2DF671586AD7} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{A210FAF7-885E-44F4-85D4-F6D279EAFE82} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{A3139129-3FB8-451D-90D6-4BF6A5C8B479} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}

@@ -1,11 +1,11 @@
-{
+﻿{
     "version": "99.99.99-dev",
-    "title": "NLog target that sends log entries to Exceptionless.",
+    "title": "[DEPRECATED] Exceptionless Portable Class Library",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
-    "description": "NLog target that sends log entries to Exceptionless. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
+    "description": "[DEPRECATED] Please install the Exceptionless package instead.",
     "packOptions": {
-        "tags": [ "NLog", "Target", "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH" ],
+        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH", "pcl" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -20,25 +20,23 @@
         }
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ], 
-        "nowarn": [
-            "CS1591"
-        ],
-        "optimize": true,
-        "warningsAsErrors": true,
-        "xmlDoc": true
+        "compile": {
+            "include": [
+                "../GlobalAssemblyInfo.cs"
+            ]
+        }
     },
     "dependencies": {
-        "Exceptionless": {
+        "Exceptionless":{
             "target": "project"
-        },
-        "NLog": "4.3.3"
+        }
     },
     "frameworks": {
-        "net45": {
-            "buildOptions": {
-                "define": [ "NET45" ]
-            }
-        }
+        "netstandard1.2": {},
+        "netstandard1.3": {},
+        "netstandard1.4": {},
+        "netstandard1.5": {},
+        ".NETPortable,Version=v4.6,Profile=Profile151": {},
+        "net45":  {}
     }
 }

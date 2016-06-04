@@ -18,7 +18,7 @@
         "files": {
             "mappings": {
                 "tools/": "../Exceptionless.Mvc/NuGet/tools/*",
-                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+                "tools/exceptionless.psm1":"../../Exceptionless/NuGet/tools/exceptionless.psm1"
             },
             "include": [ "../Exceptionless.Mvc/readme.txt" ]
         }
@@ -47,7 +47,7 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless.Signed": {
             "target": "project"
         },
         "Microsoft.AspNet.Mvc": "3.0.20105.1"

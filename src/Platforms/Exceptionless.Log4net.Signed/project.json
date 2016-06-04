@@ -20,7 +20,7 @@
         }
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless.Signed": {
             "target": "project"
         },
         "log4net": "2.0.5"

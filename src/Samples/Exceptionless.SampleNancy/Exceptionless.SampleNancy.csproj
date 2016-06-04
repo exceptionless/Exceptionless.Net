@@ -20,7 +20,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <UseGlobalApplicationHostFile />
   </PropertyGroup>
@@ -50,11 +50,11 @@
       <HintPath>..\..\..\packages\Nancy.Hosting.Aspnet.1.4.1\lib\net40\Nancy.Hosting.Aspnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Nancy">
-      <HintPath>..\..\Platforms\Exceptionless.Nancy\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Nancy.dll</HintPath>
+      <HintPath>$(SolutionDir)\src\Platforms\Exceptionless.Nancy\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Nancy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

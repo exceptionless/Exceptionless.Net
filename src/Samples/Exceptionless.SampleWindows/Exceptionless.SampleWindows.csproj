@@ -122,10 +122,10 @@
     <Compile Include="SampleLoader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.dll</HintPath>
     </Reference>
-    <ProjectReference Include="..\..\Platforms\Exceptionless.Windows\Exceptionless.Windows.csproj">
+    <ProjectReference Include="$(SolutionDir)\src\Platforms\Exceptionless.Windows\Exceptionless.Windows.csproj">
       <Project>{159fb9d1-e226-4828-b2a5-fedd994f3525}</Project>
       <Name>Exceptionless.Windows</Name>
     </ProjectReference>

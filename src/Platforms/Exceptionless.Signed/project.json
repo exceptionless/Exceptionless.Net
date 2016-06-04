@@ -18,7 +18,7 @@
         "files": {
             "mappings": {
                 "tools/": "../Exceptionless/NuGet/tools/*",
-                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+                "tools/exceptionless.psm1":"../../Exceptionless/NuGet/tools/exceptionless.psm1"
             },
             "include": [ "../Exceptionless/readme.txt" ]
         }
@@ -42,7 +42,7 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless": {
             "target": "project"
         }
     },

@@ -51,7 +51,7 @@ ForEach ($p in $client_projects) {
     }
 
     Copy-Item "$($base_dir)\LICENSE.txt" "$workingDirectory"
-    Copy-Item "$($source_dir)\Exceptionless.Portable\NuGet\tools\exceptionless.psm1" "$workingDirectory\tools"
+    Copy-Item "$($source_dir)\Exceptionless\NuGet\tools\exceptionless.psm1" "$workingDirectory\tools"
 
     $nuspecFile = "$workingDirectory\$($p.Name).nuspec"
     If ($isSignedProject) {

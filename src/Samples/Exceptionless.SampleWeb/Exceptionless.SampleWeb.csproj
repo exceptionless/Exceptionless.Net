@@ -25,7 +25,7 @@
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <UseGlobalApplicationHostFile />
   </PropertyGroup>
@@ -72,11 +72,11 @@
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Web.Mobile" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>..\..\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.dll</HintPath>
     </Reference>
     <Reference Include="Exceptionless.Web">
-      <HintPath>..\..\Platforms\Exceptionless.Web\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Web.dll</HintPath>
+      <HintPath>$(SolutionDir)\src\Platforms\Exceptionless.Web\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Web.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

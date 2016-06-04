@@ -1,11 +1,11 @@
 ﻿{
     "version": "99.99.99-dev",
-    "title": "Exceptionless Portable Class Library",
+    "title": "Exceptionless client for non visual (ie. Console and Services) applications.",
     "authors": [ "Exceptionless" ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
     "description": "Exceptionless client for portable applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
     "packOptions": {
-        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH", "pcl" ],
+        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH", "pcl", "NETSTANDARD", "Core" ],
         "owners": [ "Exceptionless" ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
@@ -16,22 +16,22 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         },
         "files": {
-            "include": [ "../Exceptionless.Portable/readme.txt" ]
+            "include": [ "../Exceptionless/readme.txt" ]
         }
     },
     "buildOptions": {
         "compile": {
             "include": [
-                "../Exceptionless.Portable/**/*.cs",
+                "../Exceptionless/**/*.cs",
                 "../GlobalAssemblyInfo.cs"
             ],
             "exclude": [
-                "../Exceptionless.Portable/obj/"
+                "../Exceptionless/obj/"
             ]
         },
         "embed": {
             "mappings": {
-                "Exceptionless.Json.Dynamic.snk": "../Exceptionless.Portable/Newtonsoft.Json/Dynamic.snk"
+                "Exceptionless.Json.Dynamic.snk": "../Exceptionless/Newtonsoft.Json/Dynamic.snk"
             }
         },
         "keyFile": "../Exceptionless.snk", 
@@ -43,7 +43,6 @@
         "xmlDoc": true
     },
     "frameworks": {
-        
         "netstandard1.2": {
             "buildOptions": {
                 "debugType": "portable",

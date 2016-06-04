@@ -7,6 +7,8 @@ $working_dir = "$build_dir\working"
 $sign_file = "$source_dir\Exceptionless.snk"
 
 $client_projects = @(
+    @{ Name = "Exceptionless"; 					SourceDir = "$source_dir\Exceptionless"; 	                ExternalNuGetDependencies = $null; },
+    @{ Name = "Exceptionless.Signed"; 			SourceDir = "$source_dir\Exceptionless.Signed"; 	        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Portable"; 		SourceDir = "$source_dir\Exceptionless.Portable";			        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Portable.Signed"; 	SourceDir = "$source_dir\Exceptionless.Portable.Signed";			ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.AspNetCore";  		SourceDir = "$source_dir\Platforms\Exceptionless.AspNetCore";       ExternalNuGetDependencies = $null; },
@@ -19,8 +21,6 @@ $client_projects = @(
     @{ Name = "Exceptionless.Web.Signed"; 		SourceDir = "$source_dir\Platforms\Exceptionless.Web.Signed"; 		ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Windows"; 			SourceDir = "$source_dir\Platforms\Exceptionless.Windows"; 	        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Windows.Signed"; 	SourceDir = "$source_dir\Platforms\Exceptionless.Windows"; 	        ExternalNuGetDependencies = $null; },
-    @{ Name = "Exceptionless"; 					SourceDir = "$source_dir\Platforms\Exceptionless"; 	                ExternalNuGetDependencies = $null; },
-    @{ Name = "Exceptionless.Signed"; 			SourceDir = "$source_dir\Platforms\Exceptionless.Signed"; 	        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Wpf"; 				SourceDir = "$source_dir\Platforms\Exceptionless.Wpf"; 		        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Wpf.Signed"; 		SourceDir = "$source_dir\Platforms\Exceptionless.Wpf"; 		        ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.NLog"; 			SourceDir = "$source_dir\Platforms\Exceptionless.NLog";		        ExternalNuGetDependencies = "NLog"; }

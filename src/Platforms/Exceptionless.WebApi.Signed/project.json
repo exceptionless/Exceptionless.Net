@@ -18,7 +18,7 @@
         "files": {
             "mappings": {
                 "tools/": "../Exceptionless.WebApi/NuGet/tools/*",
-                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+                "tools/exceptionless.psm1":"../../Exceptionless/NuGet/tools/exceptionless.psm1"
             },
             "include": [ "../Exceptionless.WebApi/readme.txt" ]
         }
@@ -42,7 +42,7 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless.Signed": {
             "target": "project"
         },
         "Microsoft.AspNet.WebApi.Core": "5.2.3"

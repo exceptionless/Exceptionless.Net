@@ -15,7 +15,7 @@ You can get your Exceptionless api key by logging into http://exceptionless.io
 and viewing your project configuration page.
 
 -------------------------------------
-		 Integration
+		 .NET Core && Portable Class Library (PCL) Integration
 -------------------------------------
 This library is platform agnostic and is compiled against different runtimes. Depending on the 
 referenced runtime, Exceptionless will attempt to wire up to available error handlers and attempt to
@@ -27,8 +27,30 @@ Configuration documentation on http://docs.exceptionless.io/contents/configurati
 On app startup, import the Exceptionless namespace and call the client.Startup() extension method
 to wire up to any runtime specific error handlers and read any available configuration.
 
-using Exceptionless;
-ExceptionlessClient.Default.Startup("API_KEY_HERE");
+Exceptionless.ExceptionlessClient.Default.Startup("API_KEY_HERE")
+
+Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
+for examples on sending events to Exceptionless.
+
+-------------------------------------
+		 .NET Framework (Legacy) Integration
+-------------------------------------
+If your project has an app.config file, the Exceptionless NuGet package 
+will automatically configure your app.config with the required config sections.
+All you need to do is open the app.config and add your Exceptionless api key to 
+the app.config Exceptionless section.
+
+<exceptionless apiKey="API_KEY_HERE" />
+
+If your project does not have an app.config file, then please add the following 
+assembly attribute and your own Exceptionless api key to your project (E.G., AssemblyInfo class).
+
+[assembly: Exceptionless.Configuration.Exceptionless("API_KEY_HERE")]
+
+Finally, you must import the Exceptionless namespace and call the following line
+of code to start reporting unhandled exceptions.
+
+Exceptionless.ExceptionlessClient.Default.Startup()
 
 Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
 for examples on sending events to Exceptionless.

@@ -33,7 +33,7 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Portable": {
+        "Exceptionless": {
             "target": "project"
         },
         "Nancy": "1.4.3"

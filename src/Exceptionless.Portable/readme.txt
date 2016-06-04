@@ -1,0 +1,1 @@
+﻿The Exceptionless.Portable package has been deprecated. Please install the Exceptionless package.

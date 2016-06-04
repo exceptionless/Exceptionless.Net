@@ -38,7 +38,7 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Portable.Signed": {
+        "Exceptionless.Signed": {
             "target": "project"
         },
         "NLog": "4.3.3"

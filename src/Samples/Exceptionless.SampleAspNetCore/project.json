@@ -3,7 +3,7 @@
         "Exceptionless.AspNetCore": {
             "target": "project"
         },
-        "Exceptionless.Portable": {
+        "Exceptionless": {
             "target": "project"
         },
         "Microsoft.NETCore.App": {

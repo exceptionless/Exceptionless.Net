@@ -50,13 +50,13 @@
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'false' ">
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'true' ">
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Portable.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.Signed.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Signed.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

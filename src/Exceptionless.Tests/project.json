@@ -6,7 +6,7 @@
     },
     "dependencies": {
         "BenchmarkDotNet": "0.9.6",
-        "Exceptionless.Portable": {
+        "Exceptionless": {
             "target": "project"
         },
         "Exceptionless.RandomData": "1.0.22.0",

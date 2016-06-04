@@ -41,7 +41,7 @@ namespace Exceptionless.SampleConsole {
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
             ExceptionlessClient.Default.Configuration.UseLogger(_log);
             //ExceptionlessClient.Default.Configuration.SubmissionBatchSize = 1;
-            ExceptionlessClient.Default.Register();
+            ExceptionlessClient.Default.Startup();
 
             // test NLog
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
