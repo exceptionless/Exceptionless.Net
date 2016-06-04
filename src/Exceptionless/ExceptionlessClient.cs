@@ -285,11 +285,6 @@ namespace Exceptionless {
 
         private static readonly Lazy<ExceptionlessClient> _defaultClient = new Lazy<ExceptionlessClient>(() => new ExceptionlessClient());
 
-        [Obsolete("Please use ExceptionlessClient.Default instead.")]
-        public static ExceptionlessClient Current {
-            get { return _defaultClient.Value; }
-        }
-
         public static ExceptionlessClient Default {
             get { return _defaultClient.Value; }
         }
