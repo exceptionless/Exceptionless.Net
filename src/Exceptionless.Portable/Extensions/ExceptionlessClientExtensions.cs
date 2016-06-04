@@ -14,8 +14,11 @@ namespace Exceptionless {
         /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
-        public static void Startup(this ExceptionlessClient client) {
+        /// <param name="apiKey">The API key that will be used when sending events to the server.</param>
+        public static void Startup(this ExceptionlessClient client, string apiKey = null) {
+            client.Configuration.ApiKey = apiKey;
             client.Configuration.ReadAllConfig();
+
 #if !PORTABLE && !NETSTANDARD1_2
             client.Configuration.UseTraceLogEntriesPlugin();
 #endif
