@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using System.Web.Http.Filters;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
-using TaskExtensions = Exceptionless.Threading.Tasks.TaskExtensions;
-
 namespace Exceptionless.WebApi {
     public class ExceptionlessHandleErrorAttribute : IExceptionFilter {
         private readonly ExceptionlessClient _client;
@@ -38,7 +36,7 @@ namespace Exceptionless.WebApi {
                 throw new ArgumentNullException("actionExecutedContext");
 
             OnHttpException(actionExecutedContext, cancellationToken);
-            return TaskExtensions.Completed();
+            return Task.FromResult(0);
         }
     }
 }
