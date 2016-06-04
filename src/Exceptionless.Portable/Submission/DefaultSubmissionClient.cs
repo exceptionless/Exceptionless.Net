@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -11,60 +14,67 @@ using Exceptionless.Models.Data;
 using Exceptionless.Submission.Net;
 
 namespace Exceptionless.Submission {
-    public class DefaultSubmissionClient : ISubmissionClient {
-        static DefaultSubmissionClient() {
-            ConfigureServicePointManagerSettings();
+    public class DefaultSubmissionClient : ISubmissionClient, IDisposable {
+        private readonly HttpClient _client;
+
+        public DefaultSubmissionClient(ExceptionlessConfiguration config) {
+            _client = CreateHttpClient(config);
         }
 
         public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-            var data = serializer.Serialize(events);
+            string data = serializer.Serialize(events);
+            string url = String.Format("{0}/events", GetServiceEndPoint(config));
 
-            HttpWebResponse response;
+            HttpResponseMessage response;
             try {
-                var request = CreateHttpWebRequest(config, String.Format("{0}/events", config.GetServiceEndPoint()));
-                response = request.PostJsonAsyncWithCompression(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
-            } catch (WebException ex) {
-                response = (HttpWebResponse)ex.Response;
-                if (response == null)
-                    return new SubmissionResponse(500, message: ex.Message);
+                HttpContent content = new StringContent(data, Encoding.UTF8, "application/json");
+
+                // don't compress data smaller than 4kb
+                if (data.Length > 1024 * 4)
+                    content = new GzipContent(content);
+
+                response = _client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
             }
-
+            
             int settingsVersion;
-            if (Int32.TryParse(response.Headers[ExceptionlessHeaders.ConfigurationVersion], out settingsVersion))
+            if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out settingsVersion))
                 SettingsManager.CheckVersion(settingsVersion, config);
 
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
-
+        
         public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-            var data = serializer.Serialize(description);
+            string data = serializer.Serialize(description);
+            string url = String.Format("{0}/events/by-ref/{1}/user-description", GetServiceEndPoint(config), referenceId);
 
-            HttpWebResponse response;
+            HttpResponseMessage response;
             try {
-                var request = CreateHttpWebRequest(config, String.Format("{0}/events/by-ref/{1}/user-description", config.GetServiceEndPoint(), referenceId));
-                response = request.PostJsonAsyncWithCompression(data).ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
-            } catch (WebException ex) {
-                response = (HttpWebResponse)ex.Response;
-                if (response == null)
-                    return new SubmissionResponse(500, message: ex.Message);
+                HttpContent content = new StringContent(data, Encoding.UTF8, "application/json");
+
+                // don't compress data smaller than 4kb
+                if (data.Length > 1024 * 4)
+                    content = new GzipContent(content);
+
+                response = _client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
             }
 
             int settingsVersion;
-            if (Int32.TryParse(response.Headers[ExceptionlessHeaders.ConfigurationVersion], out settingsVersion))
+            if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out settingsVersion))
                 SettingsManager.CheckVersion(settingsVersion, config);
 
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
 
         public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version,  IJsonSerializer serializer) {
-            HttpWebResponse response;
+            string url = String.Format("{0}/projects/config?v={1}", GetServiceEndPoint(config), version);
+
+            HttpResponseMessage response;
             try {
-                var request = CreateHttpWebRequest(config, String.Format("{0}/projects/config?v={1}", config.GetServiceEndPoint(), version));
-                response = request.GetJsonAsync().ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse;
+                response = _client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
                 return new SettingsResponse(false, message: message);
@@ -76,7 +86,7 @@ namespace Exceptionless.Submission {
             if (response == null || response.StatusCode != HttpStatusCode.OK)
                 return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", GetResponseMessage(response)));
 
-            var json = response.GetResponseText();
+            var json = GetResponseText(response);
             if (String.IsNullOrWhiteSpace(json))
                 return new SettingsResponse(false, message: "Invalid configuration settings.");
 
@@ -85,22 +95,51 @@ namespace Exceptionless.Submission {
         }
         
         public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
+            string url = String.Format("{0}/events/session/heartbeat?id={1}&close={2}", GetHeartbeatServiceEndPoint(config), sessionIdOrUserId, closeSession);
             try {
-                var request = CreateHttpWebRequest(config, String.Format("{0}/events/session/heartbeat?id={1}&close={2}", config.GetHeartbeatServiceEndPoint(), sessionIdOrUserId, closeSession));
-                var response = request.GetResponseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                _client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();
                 log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()));
             }
         }
 
-        private static string GetResponseMessage(HttpWebResponse response) {
-            if (response.IsSuccessful())
+        private HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
+#if !NET45
+            var handler = new HttpClientHandler { UseDefaultCredentials = true };
+
+            // TODO: This will be supported in the next update for all platforms: https://github.com/dotnet/corefx/commit/97c940eec1f6afe3e4af31e72d79c3a11e7b1ff1
+            //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
+#else
+            var handler = new WebRequestHandler { UseDefaultCredentials = true };
+            handler.ServerCertificateValidationCallback = delegate { return true; };
+#endif
+
+            if (handler.SupportsAutomaticDecompression)
+                handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
+
+            if (handler.SupportsRedirectConfiguration)
+                handler.AllowAutoRedirect = true;
+            
+            var client = new HttpClient(handler, true);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ExceptionlessHeaders.Bearer, config.ApiKey);
+            client.DefaultRequestHeaders.ExpectContinue = false;
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(config.UserAgent);
+
+            return client;
+        }
+
+        private string GetResponseMessage(HttpResponseMessage response) {
+            if (response.IsSuccessStatusCode)
                 return null;
 
             int statusCode = (int)response.StatusCode;
-            string responseText = response.GetResponseText();
-            string message = statusCode == 404 ? "404 Page not found." : responseText.Length < 500 ? responseText : "";
+            if (statusCode == 404)
+                return "404 Page not found.";
+
+            string responseText = GetResponseText(response);
+            string message = responseText.Length < 500 ? responseText : "";
 
             if (responseText.Trim().StartsWith("{")) {
                 try {
@@ -112,34 +151,46 @@ namespace Exceptionless.Submission {
             return message;
         }
 
-        protected virtual HttpWebRequest CreateHttpWebRequest(ExceptionlessConfiguration config, string url) {
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.AddAuthorizationHeader(config);
-            request.SetUserAgent(config);
-#if !PORTABLE && !NETSTANDARD
-            request.AllowAutoRedirect = true;
-            request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
-#endif
-
+        private string GetResponseText(HttpResponseMessage response) {
             try {
-                request.UseDefaultCredentials = true;
-                //    if (Credentials != null)
-                //        request.Credentials = Credentials;
-            } catch (Exception) {}
+                return response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            } catch {}
 
-            return request;
+            return null;
+        }
+        
+        private string GetSettingsVersionHeader(HttpResponseHeaders headers) {
+            IEnumerable<string> values;
+            if (headers != null && headers.TryGetValues(ExceptionlessHeaders.ConfigurationVersion, out values))
+                return values.FirstOrDefault();
+
+            return null;
+        }
+        
+        private Uri GetServiceEndPoint(ExceptionlessConfiguration config) {
+            var builder = new UriBuilder(config.ServerUrl);
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
+
+            // EnableSSL
+            if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
+                builder.Port = 443;
+
+            return builder.Uri;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ConfigureServicePointManagerSettings() {
-#if NET45
-            try {
-                ServicePointManager.Expect100Continue = false;
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            } catch (Exception ex) {
-                System.Diagnostics.Trace.WriteLine(String.Concat("An error occurred while configuring SSL certificate validation. Exception: ", ex));
-            }
-#endif
+        private Uri GetHeartbeatServiceEndPoint(ExceptionlessConfiguration config) {
+            var builder = new UriBuilder(config.HeartbeatServerUrl);
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
+
+            // EnableSSL
+            if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
+                builder.Port = 443;
+
+            return builder.Uri;
+        }
+
+        public void Dispose() {
+            _client.Dispose();
         }
     }
 }
