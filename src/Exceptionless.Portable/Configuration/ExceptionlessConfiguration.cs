@@ -297,6 +297,7 @@ namespace Exceptionless {
         /// <param name="plugin">The plugin instance to be added.</param>
         public void AddPlugin<T>(T plugin) where T : IEventPlugin {
             string key = typeof(T).FullName;
+            RemovePlugin(key);
             _plugins[key] = new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin));
         }
 
@@ -314,6 +315,7 @@ namespace Exceptionless {
         /// <param name="key">The key used to identify the plugin.</param>
         /// <param name="pluginType">The plugin type to be added.</param>
         public void AddPlugin(string key, Type pluginType) {
+            RemovePlugin(key);
             _plugins[key] = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));
         }
 
@@ -333,6 +335,7 @@ namespace Exceptionless {
         /// <param name="priority">Used to determine plugins priority.</param>
         /// <param name="factory">A factory method to create the plugin.</param>
         public void AddPlugin(string key, int priority, Func<ExceptionlessConfiguration, IEventPlugin> factory) {
+            RemovePlugin(key);
             _plugins[key] = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => factory(this)));
         }
 
@@ -360,6 +363,7 @@ namespace Exceptionless {
         /// <param name="priority">Used to determine plugins priority.</param>
         /// <param name="pluginAction">The plugin action to run.</param>
         public void AddPlugin(string key, int priority, Action<EventPluginContext> pluginAction) {
+            RemovePlugin(key);
             _plugins[key] = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => new ActionPlugin(pluginAction)));
         }
 
