@@ -117,19 +117,19 @@ namespace Exceptionless {
         public Task ProcessQueueAsync() {
             if (!Configuration.Enabled) {
                 _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The queue will not be processed.");
-                return Threading.Tasks.TaskExtensions.FromResult(0);
+                return Task.FromResult(0);
             }
 
             if (!Configuration.IsValid) {
                 _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Configuration is invalid: {0}. The queue will not be processed.", String.Join(", ", Configuration.Validate().Messages));
-                return Threading.Tasks.TaskExtensions.FromResult(0);
+                return Task.FromResult(0);
             }
 
             if (!Configuration.IsLocked) {
                 Configuration.LockConfig();
                 if (!Configuration.IsValid) {
                     _log.Value.FormattedError(typeof(ExceptionlessClient), "Disabling client due to invalid configuration: {0}", String.Join(", ", Configuration.Validate().Messages));
-                    return Threading.Tasks.TaskExtensions.FromResult(0);
+                    return Task.FromResult(0);
                 }
             }
 
@@ -140,7 +140,7 @@ namespace Exceptionless {
         /// Process the queue.
         /// </summary>
         public void ProcessQueue() {
-            ProcessQueueAsync().Wait();
+            ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
