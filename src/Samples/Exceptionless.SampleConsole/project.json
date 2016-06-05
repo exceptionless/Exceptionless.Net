@@ -1,33 +1,31 @@
-{
+﻿{
     "buildOptions": {
-        "emitEntryPoint": true,
-        "warningsAsErrors": true
+        "compile": [
+            "**/*.cs",
+            "../../GlobalAssemblyInfo.cs",
+            "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"
+        ],
+        "emitEntryPoint": true
     },
     "dependencies": {
         "Exceptionless": {
             "target": "project"
         },
-        "Exceptionless.DateTimeExtensions": "3.1.45",
-        "Exceptionless.Log4net": {
-            "target": "project"
-        },
+        "Exceptionless.DateTimeExtensions": "3.2.52",
         "Exceptionless.NLog": {
             "target": "project"
         },
-        "Exceptionless.RandomData": "1.0.22.0",
-        "log4net": "2.0.5",
-        "NLog": "4.3.3",
-        "NLog.Config": "4.3.3",
-        "NLog.Schema": "4.3.0"
+        "Exceptionless.RandomData": "1.1.23",
+        "Microsoft.NETCore.App": {
+            "type": "platform",
+            "version": "1.0.0-rc2-3002702"
+        }
     },
     "frameworks": {
-        "net45": {
+        "netcoreapp1.0": {
             "buildOptions": {
-                "define": [ "NET45" ],
-                "compile": [
-                    "**/*.cs",
-                    "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"
-                ]
+                "debugType": "portable",
+                "define": [ "NETSTANDARD", "NETSTANDARD1_5" ]
             }
         }
     }

@@ -2,7 +2,10 @@
     "testRunner": "xunit",
     "buildOptions": {
         "optimize": true,
-        "warningsAsErrors": true
+        "warningsAsErrors": true,
+        "copyToOutput": {
+            "include": [ "xunit.runner.json" ]
+        }
     },
     "dependencies": {
         "BenchmarkDotNet": "0.9.6",
