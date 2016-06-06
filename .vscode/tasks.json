@@ -1,0 +1,52 @@
+{
+    "version": "0.1.0",
+  	"linux": { "command": "sh", "args": ["-c"] },
+  	"osx": { "command": "sh", "args": ["-c"] },
+  	"windows": { "command": "cmd", "args": ["/C"] },
+    "isShellCommand": true,
+    "showOutput": "always",
+    "suppressTaskName": true,
+    "tasks": [
+        {
+			"taskName": "restore",
+			"args": [ "dotnet restore" ]
+		},
+		{
+			"taskName": "build",
+			"args": [ "dotnet build src/**/project.json -c Debug" ],
+			"isBuildCommand": true,
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"taskName": "test",
+			"args": [ "dotnet test src/Exceptionless.Tests" ],
+			"isBuildCommand": true,
+			"problemMatcher": "$msCompile"
+		},
+        
+		{
+			"taskName": "SampleConsole: Dotnet Build",
+			"args": [ "dotnet build ${workspaceRoot}/src/Samples/Exceptionless.SampleConsole -c Debug" ],
+			"isBuildCommand": true,
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"taskName": "SampleConsole: Dotnet Run",
+			"args": [ "dotnet run ${workspaceRoot}/src/Samples/Exceptionless.SampleConsole -c Debug" ],
+			"isBuildCommand": true,
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"taskName": "SampleAspNetCore: Dotnet Build",
+			"args": [ "run ${workspaceRoot}/src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
+			"isBuildCommand": true,
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"taskName": "SampleAspNetCore: Dotnet Run",
+			"args": [ "run ${workspaceRoot}/src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
+			"isBuildCommand": true,
+			"problemMatcher": "$msCompile"
+		}
+	]
+}

@@ -573,13 +573,13 @@ namespace Exceptionless.Tests.Plugins {
 
         private class ThrowIfInitializedTestPlugin : IEventPlugin, IDisposable {
             public ThrowIfInitializedTestPlugin() {
-                throw new ApplicationException("Plugin shouldn't be constructed");
+                throw new Exception("Plugin shouldn't be constructed");
             }
 
             public void Run(EventPluginContext context) {}
             
             public void Dispose() {
-                throw new ApplicationException("Plugin shouldn't be created or disposed");
+                throw new Exception("Plugin shouldn't be created or disposed");
             }
         }
 
@@ -786,7 +786,7 @@ namespace Exceptionless.Tests.Plugins {
             public int Id { get; set; }
         }
         
-        public class MyApplicationException : ApplicationException {
+        public class MyApplicationException : Exception {
             public MyApplicationException(string message) : base(message) {
                 SetsDataProperty = Data;
             }

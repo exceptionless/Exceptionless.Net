@@ -8,15 +8,15 @@
         }
     },
     "dependencies": {
-        "BenchmarkDotNet": "0.9.6",
+        "BenchmarkDotNet": "0.9.7",
         "Exceptionless": {
             "target": "project"
         },
-        "Exceptionless.RandomData": "1.0.22.0",
+        "Exceptionless.RandomData": "1.1.23",
         "Foundatio": "4.0.958",
-        "Moq": "4.2.1510.2205",
+        "Moq": "4.6.25-alpha",
         "Newtonsoft.Json": "8.0.3",
-        "NLog": "4.3.3",
+        "NLog": "4.4.0-beta11",
         "SimpleInjector": "3.1.4",
 
         "dotnet-test-xunit": "1.0.0-rc2-*",
