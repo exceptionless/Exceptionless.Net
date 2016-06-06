@@ -13,7 +13,7 @@
     <releaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</releaseNotes>
     <tags>Error Report Reporting Exception Logging Log ELMAH</tags>
     <dependencies>
-      <dependency id="Exceptionless.Portable" version="[$version$]" />
+      <dependency id="Exceptionless" version="[$version$]" />
     </dependencies>
   </metadata>
 </package>

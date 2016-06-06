@@ -8,7 +8,7 @@ using System.Web.Http.Filters;
 using Exceptionless.ExtendedData;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Plugins;
+using Exceptionless.Plugins.Default;
 using Exceptionless.WebApi;
 
 namespace Exceptionless {

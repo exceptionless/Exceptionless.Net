@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using Exceptionless.Dependency;
 using Exceptionless.Dialogs;
 using Exceptionless.Logging;
-using Exceptionless.Plugins;
+using Exceptionless.Plugins.Default;
 using Exceptionless.Windows.Extensions;
 
 namespace Exceptionless {

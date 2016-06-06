@@ -29,7 +29,7 @@
         "xmlDoc": true
     },
     "dependencies": {
-        "Exceptionless.Portable": {
+        "Exceptionless": {
             "target": "project"
         },
         "Microsoft.AspNetCore.Http": "1.0.0-rc2-final",

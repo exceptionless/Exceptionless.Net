@@ -3,7 +3,7 @@ using System.Web;
 using Exceptionless.Logging;
 
 namespace Exceptionless {
-    internal class WebLastReferenceIdManager : ILastReferenceIdManager {
+    internal sealed class WebLastReferenceIdManager : ILastReferenceIdManager {
         private const string LAST_REFERENCE_ID_KEY = "__LastReferenceId";
 
         public WebLastReferenceIdManager(IExceptionlessLog log) {

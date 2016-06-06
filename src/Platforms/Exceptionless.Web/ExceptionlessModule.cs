@@ -1,7 +1,7 @@
 using System;
 using System.Web;
 using Exceptionless.Dependency;
-using Exceptionless.Plugins;
+using Exceptionless.Plugins.Default;
 using Exceptionless.Web.Extensions;
 
 namespace Exceptionless.Web {

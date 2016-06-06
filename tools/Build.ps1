@@ -9,7 +9,7 @@ ForEach ($p in $client_projects) {
         dotnet build "$($p.SourceDir)" -c Release
         Write-Host "Finished building $($p.Name)" -ForegroundColor Yellow
         
-        If (-not $?) {
+        If ($LASTEXITCODE -ne 0) {
             $anyError = $True
         }
         
@@ -51,7 +51,7 @@ ForEach ($p in $client_projects) {
                         /p:TargetFrameworkVersionProperty="$($b.TargetFrameworkVersionProperty)" `
                         /t:"Rebuild"
         }
-		If (-not $?) {
+		If ($LASTEXITCODE -ne 0) {
             $anyError = $True
         }
 
@@ -62,5 +62,5 @@ ForEach ($p in $client_projects) {
 Pop-Location
 
 If ($anyError) {
-	exit 1
+    throw "One or more builds failed"
 }

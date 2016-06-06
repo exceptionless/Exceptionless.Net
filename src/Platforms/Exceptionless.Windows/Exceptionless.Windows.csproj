@@ -10,8 +10,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Exceptionless.Windows</RootNamespace>
     <AssemblyName>Exceptionless.Windows</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkVersionProperty Condition=" '$(TargetFrameworkVersionProperty)' == '' ">net40</TargetFrameworkVersionProperty>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersionProperty Condition=" '$(TargetFrameworkVersionProperty)' == '' ">net45</TargetFrameworkVersionProperty>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)\..\..\..\</SolutionDir>
@@ -40,9 +40,6 @@
     <NoWarn>1591</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET40' ">
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersionProperty)' == 'NET45' ">
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
@@ -53,13 +50,13 @@
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'false' ">
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Portable\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'true' ">
-    <Reference Include="Exceptionless.Portable">
-      <HintPath>$(SolutionDir)\src\Exceptionless.Portable.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Portable.Signed.dll</HintPath>
+    <Reference Include="Exceptionless">
+      <HintPath>$(SolutionDir)\src\Exceptionless.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Signed.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

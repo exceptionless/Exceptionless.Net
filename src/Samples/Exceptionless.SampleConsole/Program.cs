@@ -10,8 +10,10 @@ using Exceptionless.Helpers;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.SampleConsole.Plugins;
+#if NET45
 using log4net;
 using log4net.Config;
+#endif
 using NLog;
 using LogLevel = Exceptionless.Logging.LogLevel;
 
@@ -41,19 +43,21 @@ namespace Exceptionless.SampleConsole {
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
             ExceptionlessClient.Default.Configuration.UseLogger(_log);
             //ExceptionlessClient.Default.Configuration.SubmissionBatchSize = 1;
-            ExceptionlessClient.Default.Register();
+            ExceptionlessClient.Default.Startup();
 
             // test NLog
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
             //Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
-            //ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
+//ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
 
+#if NET45
             // test log4net
             XmlConfigurator.Configure();
             GlobalContext.Properties["GlobalProp"] = "GlobalValue";
             ThreadContext.Properties["LocalProp"] = "LocalValue";
             //_log4net.Info("Hi");
+#endif
 
             var tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
@@ -158,7 +162,7 @@ namespace Exceptionless.SampleConsole {
             ExceptionlessClient.Default.SubmitSessionStart();
 
             try {
-                throw new ApplicationException("Test");
+                throw new Exception("Test");
             } catch (Exception ex) {
                 ex.ToExceptionless().AddTags("SomeTag").Submit();
             }
