@@ -35,7 +35,8 @@ namespace Exceptionless.SampleConsole {
 
         public static void Main(string[] args) {
             Console.CursorVisible = false;
-            StartDisplayingLogMessages();
+            if (!Console.IsInputRedirected) 
+                StartDisplayingLogMessages();
 
             ExceptionlessClient.Default.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
             ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
@@ -49,7 +50,7 @@ namespace Exceptionless.SampleConsole {
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
             //Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
-//ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
+            //ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
 
 #if NET45
             // test log4net
@@ -79,7 +80,7 @@ namespace Exceptionless.SampleConsole {
 
             while (true) {
                 Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
-                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+                var keyInfo = Console.IsInputRedirected ? GetKeyFromRedirectedConsole() : Console.ReadKey(true);
 
                 if (keyInfo.Key == ConsoleKey.D1)
                     SendEvent();
@@ -133,6 +134,40 @@ namespace Exceptionless.SampleConsole {
             }
         }
 
+        private static ConsoleKeyInfo GetKeyFromRedirectedConsole() {
+            string input = Console.In.ReadLine();
+            switch (input?.ToLower()) {
+                case "1":
+                    return new ConsoleKeyInfo('1', ConsoleKey.D1, false, false, false);
+                case "2":
+                    return new ConsoleKeyInfo('2', ConsoleKey.D2, false, false, false);
+                case "3":
+                    return new ConsoleKeyInfo('3', ConsoleKey.D3, false, false, false);
+                case "4":
+                    return new ConsoleKeyInfo('4', ConsoleKey.D4, false, false, false);
+                case "5":
+                    return new ConsoleKeyInfo('5', ConsoleKey.D5, false, false, false);
+                case "6":
+                    return new ConsoleKeyInfo('6', ConsoleKey.D6, false, false, false);
+                case "7":
+                    return new ConsoleKeyInfo('7', ConsoleKey.D7, false, false, false);
+                case "8":
+                    return new ConsoleKeyInfo('8', ConsoleKey.D8, false, false, false);
+                case "p":
+                    return new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false);
+                case "f":
+                    return new ConsoleKeyInfo('f', ConsoleKey.F, false, false, false);
+                case "d":
+                    return new ConsoleKeyInfo('d', ConsoleKey.D, false, false, false);
+                case "t":
+                    return new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false);
+                case "q":
+                    return new ConsoleKeyInfo('q', ConsoleKey.Q, false, false, false);
+            }
+
+            return new ConsoleKeyInfo(' ', ConsoleKey.Escape, false, false, false);
+        }
+
         private static void SampleApiUsages() {
             ExceptionlessClient.Default.CreateLog("SampleConsole", "Has lots of extended data").AddObject(new {
                 myApplicationVersion = new Version(1, 0),
@@ -168,12 +203,13 @@ namespace Exceptionless.SampleConsole {
             }
         }
 
-        private const int OPTIONS_MENU_LINE_COUNT = 15;
+        private const int OPTIONS_MENU_LINE_COUNT = 14;
 
         private static void WriteOptionsMenu() {
             lock (_writeLock) {
                 Console.SetCursorPosition(0, 0);
-                ClearConsoleLines(0, OPTIONS_MENU_LINE_COUNT - 1);
+                ClearConsoleLines(0, OPTIONS_MENU_LINE_COUNT + LOG_LINE_COUNT);
+
                 Console.WriteLine("1: Send 1");
                 Console.WriteLine("2: Send 100");
                 Console.WriteLine("3: Send continuous");
@@ -194,19 +230,19 @@ namespace Exceptionless.SampleConsole {
         private static void ClearOutputLines(int delay = 1000) {
             Task.Run(() => {
                 Thread.Sleep(delay);
-                ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 4);
+                ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + LOG_LINE_COUNT);
             });
         }
 
         private const int LOG_LINE_COUNT = 10;
 
         private static void StartDisplayingLogMessages() {
-            Task.Factory.StartNew(() => {
+            Task.Factory.StartNew(async () => {
                 while (true) {
                     var logEntries = _log.GetLogEntries(LOG_LINE_COUNT);
                     lock (_writeLock) {
-                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT + 5, OPTIONS_MENU_LINE_COUNT + 6 + LOG_LINE_COUNT);
-                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 6);
+                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT + 4, OPTIONS_MENU_LINE_COUNT + LOG_LINE_COUNT);
+                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 4);
                         foreach (var logEntry in logEntries) {
                             var originalColor = Console.ForegroundColor;
                             Console.ForegroundColor = GetColor(logEntry);
@@ -214,7 +250,9 @@ namespace Exceptionless.SampleConsole {
                             Console.ForegroundColor = originalColor;
                         }
                     }
-                    Thread.Sleep(250);
+
+                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
+                    await Task.Delay(250);
                 }
             });
         }
@@ -268,7 +306,8 @@ namespace Exceptionless.SampleConsole {
                     SendEvent(ev, false);
                     eventCount++;
                     lock (_writeLock) {
-                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 4);
+                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 3);
+                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                         Console.WriteLine("Submitted {0} events.", eventCount);
                     }
 
@@ -289,7 +328,8 @@ namespace Exceptionless.SampleConsole {
 
             if (writeToConsole) {
                 lock (_writeLock) {
-                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
+                    ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 3);
+                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
                     Console.WriteLine("Submitted 1 event.");
                     Trace.WriteLine("Submitted 1 event.");
                 }
@@ -300,7 +340,8 @@ namespace Exceptionless.SampleConsole {
 
         private static void SendAllCapturedEventsFromDisk() {
             lock (_writeLock) {
-                Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
+                ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 3);
+                Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
                 Console.WriteLine("Sending captured events...");
             }
 
@@ -316,7 +357,7 @@ namespace Exceptionless.SampleConsole {
 
                 eventCount++;
                 lock (_writeLock) {
-                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 3);
+                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                     Console.WriteLine("Sent {0} events.", eventCount);
                 }
             }

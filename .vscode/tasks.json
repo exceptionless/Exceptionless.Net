@@ -26,25 +26,25 @@
         
 		{
 			"taskName": "SampleConsole: Dotnet Build",
-			"args": [ "dotnet build ${workspaceRoot}/src/Samples/Exceptionless.SampleConsole -c Debug" ],
+			"args": [ "dotnet build src/Samples/Exceptionless.SampleConsole -c Debug" ],
 			"isBuildCommand": true,
 			"problemMatcher": "$msCompile"
 		},
 		{
 			"taskName": "SampleConsole: Dotnet Run",
-			"args": [ "dotnet run ${workspaceRoot}/src/Samples/Exceptionless.SampleConsole -c Debug" ],
+			"args": [ "dotnet run src/Samples/Exceptionless.SampleConsole -c Debug" ],
 			"isBuildCommand": true,
 			"problemMatcher": "$msCompile"
 		},
 		{
 			"taskName": "SampleAspNetCore: Dotnet Build",
-			"args": [ "run ${workspaceRoot}/src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
+			"args": [ "dotnet run src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
 			"isBuildCommand": true,
 			"problemMatcher": "$msCompile"
 		},
 		{
 			"taskName": "SampleAspNetCore: Dotnet Run",
-			"args": [ "run ${workspaceRoot}/src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
+			"args": [ "dotnet run src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
 			"isBuildCommand": true,
 			"problemMatcher": "$msCompile"
 		}
