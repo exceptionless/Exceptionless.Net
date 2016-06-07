@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Exceptionless.Configuration;
 using Exceptionless.DateTimeExtensions;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -16,6 +18,10 @@ using log4net.Config;
 #endif
 using NLog;
 using LogLevel = Exceptionless.Logging.LogLevel;
+
+// example of setting an attribute value in config.
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:50000")]
+[assembly: ExceptionlessSetting("EnableWelcomeMessage", "True")]
 
 namespace Exceptionless.SampleConsole {
     public class Program {
@@ -39,21 +45,22 @@ namespace Exceptionless.SampleConsole {
                 StartDisplayingLogMessages();
 
             ExceptionlessClient.Default.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
-            ExceptionlessClient.Default.Configuration.UseTraceLogEntriesPlugin();
             ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
             ExceptionlessClient.Default.Configuration.UseLogger(_log);
-            //ExceptionlessClient.Default.Configuration.SubmissionBatchSize = 1;
             ExceptionlessClient.Default.Startup();
 
-            // test NLog
+            if (ExceptionlessClient.Default.Configuration.Settings.GetBoolean("EnableWelcomeMessage", false))
+                Console.WriteLine($"Hello {Environment.MachineName}!");
+            
+            // Test NLog
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
             //Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
 
             //ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
 
 #if NET45
-            // test log4net
+            // Test log4net
             XmlConfigurator.Configure();
             GlobalContext.Properties["GlobalProp"] = "GlobalValue";
             ThreadContext.Properties["LocalProp"] = "LocalValue";
@@ -63,7 +70,6 @@ namespace Exceptionless.SampleConsole {
             var tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
 
-            ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => {
                 // use server settings to see if we should include this data

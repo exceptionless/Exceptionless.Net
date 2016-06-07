@@ -4,7 +4,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission;
 
-namespace Exceptionless.SampleConsole {
+namespace Exceptionless.SampleWeb {
     public class InMemorySubmissionClient : ISubmissionClient {
         private readonly Dictionary<string, object> _eventContainer = new Dictionary<string, object>();
         private readonly Dictionary<string, object> _userDescriptionContainer = new Dictionary<string, object>();
