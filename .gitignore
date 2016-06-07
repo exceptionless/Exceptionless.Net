@@ -18,6 +18,7 @@ x64/
 build/
 [Bb]in/
 [Oo]bj/
+src/Samples/Exceptionless.SampleConsole/store
 
 !Libraries/Redis/bin/
 !Libraries/Mongo/bin/
