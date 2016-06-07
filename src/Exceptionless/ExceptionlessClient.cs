@@ -49,7 +49,7 @@ namespace Exceptionless {
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
-            _updateSettingsTimer = new Timer(state => SettingsManager.UpdateSettings(Configuration), null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
+            _updateSettingsTimer = new Timer(OnUpdateSettings, null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
         }
 
         private TimeSpan GetInitialSettingsDelay() {
@@ -64,6 +64,16 @@ namespace Exceptionless {
         private void OnConfigurationChanged(object sender, EventArgs e) {
             var interval = Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1);
             _updateSettingsTimer.Change(!_queue.IsValueCreated ? GetInitialSettingsDelay() : interval, interval);
+        }
+
+        private bool _isUpdatingSettings;
+        private void OnUpdateSettings(object state) {
+            if (_isUpdatingSettings || !Configuration.IsValid)
+                return;
+
+            _isUpdatingSettings = true;
+            SettingsManager.UpdateSettings(Configuration);
+            _isUpdatingSettings = false;
         }
 
         public ExceptionlessConfiguration Configuration { get; private set; }
