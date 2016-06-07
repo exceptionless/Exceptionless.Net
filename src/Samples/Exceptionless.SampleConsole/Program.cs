@@ -27,7 +27,6 @@ using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.SampleConsole {
     public class Program {
-
         private static readonly int[] _delays = { 0, 50, 100, 1000 };
         private static int _delayIndex = 2;
 
@@ -306,7 +305,7 @@ namespace Exceptionless.SampleConsole {
         }
 
         private static void SendContinuousEvents(int delay, CancellationToken token, int maxEvents = Int32.MaxValue, int maxDaysOld = 90, Event ev = null) {
-            Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
+            Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT);
             Console.WriteLine("Press 's' to stop sending.");
             int eventCount = 0;
 
@@ -323,7 +322,7 @@ namespace Exceptionless.SampleConsole {
                     SendEvent(ev, false);
                     eventCount++;
                     lock (_writeLock) {
-                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 3);
+                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT + 1, OPTIONS_MENU_LINE_COUNT + 3);
                         Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                         Console.WriteLine("Submitted {0} events.", eventCount);
                     }
