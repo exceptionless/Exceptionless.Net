@@ -11,12 +11,14 @@ using Exceptionless.Extensions;
 using Exceptionless.Helpers;
 using Exceptionless.Logging;
 using Exceptionless.Models;
+using Exceptionless.NLog;
 using Exceptionless.SampleConsole.Plugins;
 #if NET45
 using log4net;
 using log4net.Config;
 #endif
 using NLog;
+using NLog.Fluent;
 using LogLevel = Exceptionless.Logging.LogLevel;
 
 // example of setting an attribute value in config.
@@ -55,10 +57,19 @@ namespace Exceptionless.SampleConsole {
             
             // Test NLog
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
-            //Log.Info().Message("Hi").Tag("Tag1", "Tag2").Property("LocalProp", "LocalValue").MarkUnhandled("SomeMethod").ContextProperty("Blah", new Event()).Write();
+            Log.Info()
+                .Message("App Starting...")
+                .Tag("Tag1", "Tag2")
+                .Property("LocalProp", "LocalValue")
+                .ContextProperty("Order", new { Total = 15 })
+                .Write();
 
-            //ExceptionlessClient.Default.SubmitLog(typeof(Program).Name, "Trace Message", LogLevel.Trace);
-
+            // This is how you could log the same message using the fluent api directly.
+            //ExceptionlessClient.Default.CreateLog(typeof(Program).Name, "App Starting...", LogLevel.Info)
+            //    .AddTags("Tag1", "Tag2")
+            //    .SetProperty("LocalProp", "LocalValue")
+            //    .SetProperty("Order", new { Total = 15 })
+            //    .Submit();
 #if NET45
             // Test log4net
             XmlConfigurator.Configure();

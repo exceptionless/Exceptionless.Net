@@ -1,10 +1,13 @@
 ﻿{
     "buildOptions": {
-        "compile": [
-            "**/*.cs",
-            "../../GlobalAssemblyInfo.cs",
-            "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"
-        ],
+        "compile": {
+            "include": [
+                "**/*.cs",
+                "../../GlobalAssemblyInfo.cs",
+                "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"
+            ],
+            "exclude": "store" 
+        },
         "emitEntryPoint": true
     },
     "dependencies": {
