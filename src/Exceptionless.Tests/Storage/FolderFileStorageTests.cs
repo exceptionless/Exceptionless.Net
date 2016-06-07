@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Xunit;
 using Exceptionless.Dependency;
 using Exceptionless.Serializer;
@@ -22,7 +23,7 @@ namespace Exceptionless.Tests.Storage {
             var storage = new FolderObjectStorage(resolver, DATA_DIRECTORY_QUEUE_FOLDER);
             Assert.NotNull(storage.Folder);
             Assert.NotEqual(DATA_DIRECTORY_QUEUE_FOLDER, storage.Folder);
-            Assert.True(storage.Folder.EndsWith("Queue\\"), storage.Folder);
+            Assert.True(storage.Folder.EndsWith("Queue" + Path.DirectorySeparatorChar) || storage.Folder.EndsWith("Queue" + Path.AltDirectorySeparatorChar), storage.Folder);
         }
     }
 }

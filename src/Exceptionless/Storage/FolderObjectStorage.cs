@@ -18,8 +18,8 @@ namespace Exceptionless.Storage {
 
             if (!Path.IsPathRooted(folder))
                 folder = Path.GetFullPath(folder);
-            if (!folder.EndsWith("\\"))
-                folder += "\\";
+            if (!folder.EndsWith(Path.DirectorySeparatorChar.ToString()) && !folder.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+                folder += Path.DirectorySeparatorChar;
 
             Folder = folder;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Models;
@@ -86,8 +87,9 @@ namespace Exceptionless.Tests.Configuration {
             Assert.Equal(3, client.Configuration.Settings.Count);
 
             var storage = config.Resolver.GetFileStorage() as InMemoryObjectStorage;
+            Assert.NotNull(storage);
             Assert.NotNull(config.GetQueueName());
-            Assert.True(storage.Exists(config.GetQueueName() + "\\server-settings.json"));
+            Assert.True(storage.Exists(Path.Combine(config.GetQueueName(), "server-settings.json")));
 
             config.Settings.Clear();
             config.ApplySavedServerSettings();

@@ -26,7 +26,10 @@
         "xunit.runner.visualstudio": "2.1.0"
     },
     "frameworks": {
-        "net46": {
+        "NET46": {
+            "buildOptions": {
+                "define": [ "NET46" ]
+            },
             "frameworkAssemblies": {
                 "System.Threading.Tasks": "",
                 "System.Runtime": ""

@@ -94,7 +94,12 @@ namespace Exceptionless.Storage {
             if (!maxCreatedDate.HasValue)
                 maxCreatedDate = DateTime.MaxValue;
 
-            var regex = new Regex("^" + Regex.Escape(searchPattern).Replace("\\*", ".*?") + "$");
+
+#if PORTABLE || NETSTANDARD1_2
+            var regex = new Regex("^" + Regex.Escape(searchPattern).Replace("\\*", ".*?").Replace("/*", ".*?") + "$");
+#else
+            var regex = new Regex("^" + Regex.Escape(searchPattern).Replace(Path.DirectorySeparatorChar + "*", ".*?").Replace(Path.AltDirectorySeparatorChar + "*", ".*?") + "$");
+#endif
             lock (_lock)
                 return _storage.Keys.Where(k => regex.IsMatch(k)).Select(k => _storage[k].Item1).Where(f => f.Created <= maxCreatedDate).Take(limit ?? Int32.MaxValue).ToList();
         }

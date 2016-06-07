@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Exceptionless.Models;
 using Exceptionless.Storage;
@@ -9,14 +10,14 @@ namespace Exceptionless.Extensions {
         private static readonly object _lockObject = new object();
 
         public static void Enqueue(this IObjectStorage storage, string queueName, Event ev) {
-            storage.SaveObject(String.Concat(queueName, "\\q\\", Guid.NewGuid().ToString("N"), ".0.json"), ev);
+            storage.SaveObject(Path.Combine(queueName, "q", Guid.NewGuid().ToString("N") + ".0.json"), ev);
         }
 
         public static void CleanupQueueFiles(this IObjectStorage storage, string queueName, TimeSpan? maxAge = null, int? maxAttempts = null) {
             maxAge = maxAge ?? TimeSpan.FromDays(7);
             maxAttempts = maxAttempts ?? 3;
 
-            foreach (var file in storage.GetObjectList(queueName + "\\q\\*", 500).ToList()) {
+            foreach (var file in storage.GetObjectList(Path.Combine(queueName, "q", "*"), 500).ToList()) {
                 if (DateTime.Now.Subtract(file.Created) > maxAge.Value)
                     storage.DeleteObject(file.Path);
                 if (GetAttempts(file) >= maxAttempts.Value)
@@ -25,7 +26,7 @@ namespace Exceptionless.Extensions {
         }
 
         public static ICollection<ObjectInfo> GetQueueFiles(this IObjectStorage storage, string queueName, int? limit = null, DateTime? maxCreatedDate = null) {
-            return storage.GetObjectList(queueName + "\\q\\*.json", limit, maxCreatedDate).OrderByDescending(f => f.Created).ToList();
+            return storage.GetObjectList(Path.Combine(queueName, "q", "*.json"), limit, maxCreatedDate).OrderByDescending(f => f.Created).ToList();
         }
 
         public static bool IncrementAttempts(this IObjectStorage storage, ObjectInfo info) {
@@ -89,7 +90,7 @@ namespace Exceptionless.Extensions {
             if (!maxLockAge.HasValue)
                 maxLockAge = TimeSpan.FromMinutes(60);
 
-            foreach (var file in storage.GetObjectList(queueName + "\\q\\*.x", 500).ToList().Where(f => f.Modified < DateTime.Now.Subtract(maxLockAge.Value)))
+            foreach (var file in storage.GetObjectList(Path.Combine(queueName, "q", "*.x"), 500).ToList().Where(f => f.Modified < DateTime.Now.Subtract(maxLockAge.Value)))
                 storage.ReleaseFile(file);
         }
 

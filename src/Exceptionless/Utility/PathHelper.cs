@@ -21,7 +21,7 @@ namespace Exceptionless.Utility {
             if (!sourceFile.StartsWith(DATA_DIRECTORY, StringComparison.OrdinalIgnoreCase))
                 return Path.GetFullPath(sourceFile);
 
-#if NET45 || NETSTANDARD1_5
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4)
             string dataDirectory = GetDataDirectory();
             int length = DATA_DIRECTORY.Length;
 
@@ -43,7 +43,7 @@ namespace Exceptionless.Utility {
 #endif
         }
 
-#if NET45 || NETSTANDARD1_5
+#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4)
         /// <summary>
         /// Gets the data directory for the |DataDirectory| macro.
         /// </summary>

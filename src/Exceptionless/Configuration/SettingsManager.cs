@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
@@ -103,7 +104,8 @@ namespace Exceptionless.Configuration {
         }
 
         private static string GetConfigPath(ExceptionlessConfiguration config) {
-            return (config != null ? config.GetQueueName() : String.Empty) + "\\server-settings.json";
+            string queueName = config != null ? config.GetQueueName() : String.Empty;
+            return Path.Combine(queueName ?? String.Empty, "server-settings.json");
         }
     }
 }

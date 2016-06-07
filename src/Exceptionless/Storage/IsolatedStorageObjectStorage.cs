@@ -37,7 +37,7 @@ namespace Exceptionless.Storage {
             stack.Push(initialDirectory);
             Regex searchPatternRegex = null;
             if (!String.IsNullOrEmpty(searchPattern))
-                searchPatternRegex = new Regex("^" + Regex.Escape(searchPattern).Replace("\\*", ".*?") + "$");
+                searchPatternRegex = new Regex("^" + Regex.Escape(searchPattern).Replace(Path.DirectorySeparatorChar + "*", ".*?").Replace(Path.AltDirectorySeparatorChar + "*", ".*?") + "$");
 
             while (stack.Count > 0) {
                 string dir = stack.Pop();
