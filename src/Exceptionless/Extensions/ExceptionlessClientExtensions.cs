@@ -16,7 +16,9 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="apiKey">The API key that will be used when sending events to the server.</param>
         public static void Startup(this ExceptionlessClient client, string apiKey = null) {
-            client.Configuration.ApiKey = apiKey;
+            if (!String.IsNullOrEmpty(apiKey))
+                client.Configuration.ApiKey = apiKey;
+            
             client.Configuration.ReadAllConfig();
 
 #if !PORTABLE && !NETSTANDARD1_2

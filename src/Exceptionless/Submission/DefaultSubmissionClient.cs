@@ -18,10 +18,13 @@ namespace Exceptionless.Submission {
         private readonly HttpClient _client;
 
         public DefaultSubmissionClient(ExceptionlessConfiguration config) {
-            _client = CreateHttpClient(config);
+            _client = CreateHttpClient(config.UserAgent);
         }
 
         public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+            if (!config.IsValid)
+                return new SubmissionResponse(500, message: "Invalid client configuration settings");
+
             string data = serializer.Serialize(events);
             string url = String.Format("{0}/events", GetServiceEndPoint(config));
 
@@ -33,6 +36,7 @@ namespace Exceptionless.Submission {
                 if (data.Length > 1024 * 4)
                     content = new GzipContent(content);
 
+                _client.AddAuthorizationHeader(config.ApiKey);
                 response = _client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
@@ -46,6 +50,9 @@ namespace Exceptionless.Submission {
         }
         
         public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+            if (!config.IsValid)
+                return new SubmissionResponse(500, message: "Invalid client configuration settings.");
+
             string data = serializer.Serialize(description);
             string url = String.Format("{0}/events/by-ref/{1}/user-description", GetServiceEndPoint(config), referenceId);
 
@@ -57,6 +64,7 @@ namespace Exceptionless.Submission {
                 if (data.Length > 1024 * 4)
                     content = new GzipContent(content);
 
+                _client.AddAuthorizationHeader(config.ApiKey);
                 response = _client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
@@ -69,11 +77,15 @@ namespace Exceptionless.Submission {
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version,  IJsonSerializer serializer) {
+        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+            if (!config.IsValid)
+                return new SettingsResponse(false, message: "Invalid client configuration settings.");
+
             string url = String.Format("{0}/projects/config?v={1}", GetServiceEndPoint(config), version);
 
             HttpResponseMessage response;
             try {
+                _client.AddAuthorizationHeader(config.ApiKey);
                 response = _client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
@@ -95,8 +107,12 @@ namespace Exceptionless.Submission {
         }
         
         public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
+            if (!config.IsValid)
+                return;
+
             string url = String.Format("{0}/events/session/heartbeat?id={1}&close={2}", GetHeartbeatServiceEndPoint(config), sessionIdOrUserId, closeSession);
             try {
+                _client.AddAuthorizationHeader(config.ApiKey);
                 _client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();
@@ -104,7 +120,7 @@ namespace Exceptionless.Submission {
             }
         }
 
-        private HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
+        private HttpClient CreateHttpClient(string userAgent) {
 #if !NET45
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
 
@@ -123,9 +139,8 @@ namespace Exceptionless.Submission {
             
             var client = new HttpClient(handler, true);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ExceptionlessHeaders.Bearer, config.ApiKey);
             client.DefaultRequestHeaders.ExpectContinue = false;
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(config.UserAgent);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
 
             return client;
         }
