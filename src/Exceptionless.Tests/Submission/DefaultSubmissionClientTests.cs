@@ -28,7 +28,6 @@
 //            return new ExceptionlessClient(c => {
 //                c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
 //                c.ServerUrl = Settings.Current.BaseURL;
-//                c.EnableSSL = false;
 //                c.UseDebugLogger();
 //            });
 //        }

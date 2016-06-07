@@ -125,13 +125,7 @@ namespace Exceptionless {
         /// Whether the client is currently enabled or not. If it is disabled, submitted errors will be discarded and no data will be sent to the server.
         /// </summary>
         public bool Enabled { get; set; }
-
-        /// <summary>
-        /// Whether or not the client should use SSL when communicating with the server.
-        /// </summary>
-        [ObsoleteAttribute("This property will be removed in a future release.")]
-        public bool EnableSSL { get; set; }
-
+        
         /// <summary>
         /// Maximum time (provided in days) that the queue will persist events
         /// </summary>

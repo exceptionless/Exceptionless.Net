@@ -26,15 +26,7 @@ namespace Exceptionless.Configuration {
         /// </summary>
         /// <value>The API key.</value>
         public string ApiKey { get; set; }
-
-        /// <summary>
-        /// Gets or sets if SSL should be used.
-        /// </summary>
-        /// ///
-        /// <value><c>true</c> to enable SSL; otherwise, <c>false</c>.</value>
-        [ObsoleteAttribute("This property will be removed in a future release.")]
-        public bool EnableSSL { get; set; }
-
+        
         /// <summary>
         /// Gets or sets if reporting is enabled.
         /// </summary>
