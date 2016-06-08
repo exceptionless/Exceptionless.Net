@@ -29,15 +29,18 @@ namespace Exceptionless.SampleConsole {
     public class Program {
         private static readonly int[] _delays = { 0, 50, 100, 1000 };
         private static int _delayIndex = 2;
-
-        private static readonly InMemoryExceptionlessLog _log = new InMemoryExceptionlessLog {
-            MinimumLogLevel = LogLevel.Info
-        };
-
+        private static readonly InMemoryExceptionlessLog _log = new InMemoryExceptionlessLog { MinimumLogLevel = LogLevel.Info };
         private static readonly object _writeLock = new object();
 
-        private static readonly TimeSpan[] _dateSpans = { TimeSpan.Zero, TimeSpan.FromMinutes(5), TimeSpan.FromHours(1), TimeSpan.FromDays(1), TimeSpan.FromDays(7), TimeSpan.FromDays(TimeSpanExtensions.AvgDaysInAMonth), TimeSpan.FromDays(TimeSpanExtensions.AvgDaysInAMonth * 3) };
-
+        private static readonly TimeSpan[] _dateSpans = {
+            TimeSpan.Zero,
+            TimeSpan.FromMinutes(5),
+            TimeSpan.FromHours(1),
+            TimeSpan.FromDays(1),
+            TimeSpan.FromDays(7),
+            TimeSpan.FromDays(TimeSpanExtensions.AvgDaysInAMonth),
+            TimeSpan.FromDays(TimeSpanExtensions.AvgDaysInAMonth * 3)
+        };
         private static int _dateSpanIndex = 3;
 
         public static void Main(string[] args) {
@@ -84,11 +87,7 @@ namespace Exceptionless.SampleConsole {
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => {
                 // use server settings to see if we should include this data
                 if (ctx.Client.Configuration.Settings.GetBoolean("IncludeConditionalData", true))
-                    ctx.Event.AddObject(new {
-                        Total = 32.34,
-                        ItemCount = 2,
-                        Email = "someone@somewhere.com"
-                    }, "ConditionalData");
+                    ctx.Event.AddObject(new { Total = 32.34, ItemCount = 2, Email = "someone@somewhere.com" }, "ConditionalData");
             });
             ExceptionlessClient.Default.Configuration.Settings.Changed += (sender, changedArgs) => Trace.WriteLine($"Action: {changedArgs.Action} Key: {changedArgs.Item.Key} Value: {changedArgs.Item.Value}");
 
@@ -110,11 +109,7 @@ namespace Exceptionless.SampleConsole {
                     ExceptionlessClient.Default.Configuration.UseSessions(false, null, true);
                     ExceptionlessClient.Default.SubmitSessionStart();
                 } else if (keyInfo.Key == ConsoleKey.D6)
-                    SendContinuousEvents(250, token, ev: new Event {
-                        Type = Event.KnownTypes.Log,
-                        Source = "SampleConsole.Program.Main",
-                        Message = "Sample console application event"
-                    });
+                    SendContinuousEvents(250, token, ev: new Event { Type = Event.KnownTypes.Log, Source = "SampleConsole.Program.Main", Message = "Sample console application event" });
                 else if (keyInfo.Key == ConsoleKey.D7)
                     ExceptionlessClient.Default.SubmitSessionEnd();
                 else if (keyInfo.Key == ConsoleKey.D8)
@@ -185,28 +180,13 @@ namespace Exceptionless.SampleConsole {
         }
 
         private static void SampleApiUsages() {
-            ExceptionlessClient.Default.CreateLog("SampleConsole", "Has lots of extended data").AddObject(new {
-                myApplicationVersion = new Version(1, 0),
-                Date = DateTime.Now,
-                __sessionId = "9C72E4E8-20A2-469B-AFB9-492B6E349B23",
-                SomeField10 = "testing"
-            }, "Object From Code").AddObject(new {
-                Blah = "Test"
-            }, name: "Test Object").AddObject("Exceptionless is awesome", "String Content").AddObject(new int[] { 1, 2, 3, 4, 5 }, "Array Content").AddObject(new object[] { new {
-                This = "This"
-            },
-                new {
-                    Is = "Is"
-                },
-                new {
-                    A = "A"
-                },
-                new {
-                    Test = "Test",
-                    Data = new {
-                        Punctuation = "!!!!"
-                    }
-                } }, "Array With Nested Content").Submit();
+            ExceptionlessClient.Default.CreateLog("SampleConsole", "Has lots of extended data")
+                .AddObject(new { myApplicationVersion = new Version(1, 0), Date = DateTime.Now, __sessionId = "9C72E4E8-20A2-469B-AFB9-492B6E349B23", SomeField10 = "testing" }, "Object From Code")
+                .AddObject(new { Blah = "Test" }, name: "Test Object")
+                .AddObject("Exceptionless is awesome", "String Content")
+                .AddObject(new int[] { 1, 2, 3, 4, 5 }, "Array Content")
+                .AddObject(new object[] { new { This = "This" }, new { Is = "Is" }, new { A = "A" }, new { Test = "Test", Data = new { Punctuation = "!!!!" } } }, "Array With Nested Content")
+                .Submit();
 
             ExceptionlessClient.Default.SubmitFeatureUsage("MyFeature");
             ExceptionlessClient.Default.SubmitNotFound("/somepage");
@@ -219,13 +199,11 @@ namespace Exceptionless.SampleConsole {
             }
         }
 
-        private const int OPTIONS_MENU_LINE_COUNT = 14;
-
+        private const int OPTIONS_MENU_LINE_COUNT = 15;
         private static void WriteOptionsMenu() {
             lock (_writeLock) {
                 Console.SetCursorPosition(0, 0);
-                ClearConsoleLines(0, OPTIONS_MENU_LINE_COUNT + LOG_LINE_COUNT);
-
+                ClearConsoleLines(0, OPTIONS_MENU_LINE_COUNT - 1);
                 Console.WriteLine("1: Send 1");
                 Console.WriteLine("2: Send 100");
                 Console.WriteLine("3: Send continuous");
@@ -246,19 +224,18 @@ namespace Exceptionless.SampleConsole {
         private static void ClearOutputLines(int delay = 1000) {
             Task.Run(() => {
                 Thread.Sleep(delay);
-                ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + LOG_LINE_COUNT);
+                ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 4);
             });
         }
 
         private const int LOG_LINE_COUNT = 10;
-
         private static void StartDisplayingLogMessages() {
             Task.Factory.StartNew(async () => {
                 while (true) {
                     var logEntries = _log.GetLogEntries(LOG_LINE_COUNT);
                     lock (_writeLock) {
-                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT + 4, OPTIONS_MENU_LINE_COUNT + LOG_LINE_COUNT);
-                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 4);
+                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT + 5, OPTIONS_MENU_LINE_COUNT + 6 + LOG_LINE_COUNT);
+                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 6);
                         foreach (var logEntry in logEntries) {
                             var originalColor = Console.ForegroundColor;
                             Console.ForegroundColor = GetColor(logEntry);
@@ -267,7 +244,6 @@ namespace Exceptionless.SampleConsole {
                         }
                     }
 
-                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
                     await Task.Delay(250);
                 }
             });
@@ -305,7 +281,7 @@ namespace Exceptionless.SampleConsole {
         }
 
         private static void SendContinuousEvents(int delay, CancellationToken token, int maxEvents = Int32.MaxValue, int maxDaysOld = 90, Event ev = null) {
-            Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT);
+            Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
             Console.WriteLine("Press 's' to stop sending.");
             int eventCount = 0;
 
@@ -322,8 +298,7 @@ namespace Exceptionless.SampleConsole {
                     SendEvent(ev, false);
                     eventCount++;
                     lock (_writeLock) {
-                        ClearConsoleLines(OPTIONS_MENU_LINE_COUNT + 1, OPTIONS_MENU_LINE_COUNT + 3);
-                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
+                        Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 4);
                         Console.WriteLine("Submitted {0} events.", eventCount);
                     }
 
@@ -335,7 +310,6 @@ namespace Exceptionless.SampleConsole {
         }
 
         private static readonly RandomEventGenerator _rnd = new RandomEventGenerator();
-
         private static void SendEvent(Event ev = null, bool writeToConsole = true) {
             _rnd.MinDate = DateTime.Now.Subtract(_dateSpans[_dateSpanIndex]);
             _rnd.MaxDate = DateTime.Now;
@@ -344,8 +318,7 @@ namespace Exceptionless.SampleConsole {
 
             if (writeToConsole) {
                 lock (_writeLock) {
-                    ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 3);
-                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
+                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                     Console.WriteLine("Submitted 1 event.");
                     Trace.WriteLine("Submitted 1 event.");
                 }
@@ -356,8 +329,7 @@ namespace Exceptionless.SampleConsole {
 
         private static void SendAllCapturedEventsFromDisk() {
             lock (_writeLock) {
-                ClearConsoleLines(OPTIONS_MENU_LINE_COUNT, OPTIONS_MENU_LINE_COUNT + 3);
-                Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 1);
+                Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                 Console.WriteLine("Sending captured events...");
             }
 
@@ -373,7 +345,7 @@ namespace Exceptionless.SampleConsole {
 
                 eventCount++;
                 lock (_writeLock) {
-                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
+                    Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 3);
                     Console.WriteLine("Sent {0} events.", eventCount);
                 }
             }
