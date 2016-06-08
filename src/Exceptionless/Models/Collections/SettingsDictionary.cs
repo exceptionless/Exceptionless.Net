@@ -229,10 +229,12 @@ namespace Exceptionless.Models {
             Dictionary<string, bool> sourceDictionary;
             string sourcePrefix;
             if (!_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
-                sourcePrefix = "@@" + type + ":";
-                _eventTypes.Add(type, sourcePrefix);
                 sourceDictionary = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 _typeSourceEnabled.Add(type, sourceDictionary);
+
+                sourcePrefix = "@@" + type + ":";
+                if (!_eventTypes.ContainsKey(type))
+                    _eventTypes.Add(type, sourcePrefix);
             } else {
                 sourcePrefix = _eventTypes[type];
             }
