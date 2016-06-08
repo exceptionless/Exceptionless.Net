@@ -384,15 +384,15 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
         public static void ReadFromEnvironmentalVariables(this ExceptionlessConfiguration config) {
-            string apiKey = GetEnvironmentalVariable("Exceptionless:ApiKey");
+            string apiKey = GetEnvironmentalVariable("Exceptionless:ApiKey") ?? GetEnvironmentalVariable("Exceptionless__ApiKey");
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;
 
             bool enabled;
-            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled"), out enabled) && !enabled)
+            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out enabled) && !enabled)
                 config.Enabled = false;
             
-            string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl");
+            string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl") ?? GetEnvironmentalVariable("Exceptionless__ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
         }
