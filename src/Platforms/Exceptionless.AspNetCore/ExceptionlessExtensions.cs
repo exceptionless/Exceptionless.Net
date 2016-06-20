@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Exceptionless.AspNetCore;
@@ -7,6 +8,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
@@ -18,6 +20,9 @@ namespace Exceptionless {
             client.Configuration.AddPlugin<ExceptionlessAspNetCorePlugin>();
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
+            
+            var diagnosticListener = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
+            diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }
