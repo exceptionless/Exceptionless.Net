@@ -30,8 +30,7 @@ namespace Exceptionless {
 
 #if NETSTANDARD1_5 || NET45
             client.RegisterAppDomainUnhandledExceptionHandler();
-#endif
-#if NET45
+
             // make sure that queued events are sent when the app exits
             client.RegisterOnProcessExitHandler();
 #endif
@@ -48,8 +47,6 @@ namespace Exceptionless {
         public static void Shutdown(this ExceptionlessClient client) {
 #if NETSTANDARD1_5 || NET45
             client.UnregisterAppDomainUnhandledExceptionHandler();
-#endif
-#if NET45
             client.UnregisterOnProcessExitHandler();
 #endif
             client.UnregisterTaskSchedulerUnobservedTaskExceptionHandler();
@@ -318,9 +315,7 @@ namespace Exceptionless.Extensions {
             AppDomain.CurrentDomain.UnhandledException -= _onAppDomainUnhandledException;
             _onAppDomainUnhandledException = null;
         }
-#endif
 
-#if NET45
         private static EventHandler _onProcessExit;
         public static void RegisterOnProcessExitHandler(this ExceptionlessClient client) {
             if (_onProcessExit == null) {
