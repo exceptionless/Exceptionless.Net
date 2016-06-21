@@ -22,7 +22,7 @@ referenced runtime, Exceptionless will attempt to wire up to available error han
 discover configuration settings available to that runtime. For these reasons if you are on a known 
 platform then use the platform specific package to save you time configuring while giving you more 
 contextual information. For more information and configuration examples please read the Exceptionless 
-Configuration documentation on http://docs.exceptionless.io/contents/configuration/
+Configuration documentation on https://github.com/exceptionless/Exceptionless.Net/wiki/Configuration
 
 On app startup, import the Exceptionless namespace and call the client.Startup() extension method
 to wire up to any runtime specific error handlers and read any available configuration.
