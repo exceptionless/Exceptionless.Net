@@ -26,7 +26,7 @@ namespace Exceptionless.Plugins.Default {
             _checkedForVersion = true;
 
             string version = GetVersionFromRuntimeInfo(context.Log);
-#if NET45 || NETSTANDARD1_5
+#if !PORTABLE && !NETSTANDARD1_2
             if (String.IsNullOrEmpty(version))
                 version = GetVersionFromLoadedAssemblies(context.Log);
 #endif
@@ -48,7 +48,7 @@ namespace Exceptionless.Plugins.Default {
             return null;
         }
 
-#if NET45 || NETSTANDARD1_5
+#if !PORTABLE && !NETSTANDARD1_2
         private string GetVersionFromLoadedAssemblies(IExceptionlessLog log) {
             try {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).GetTypeInfo().Assembly && a != GetType().GetTypeInfo().Assembly && a != typeof(object).GetTypeInfo().Assembly)) {
@@ -58,9 +58,11 @@ namespace Exceptionless.Plugins.Default {
                     string company = assembly.GetCompany();
                     if (!String.IsNullOrEmpty(company) && (String.Equals(company, "Exceptionless", StringComparison.OrdinalIgnoreCase) || String.Equals(company, "Microsoft Corporation", StringComparison.OrdinalIgnoreCase)))
                         continue;
-            
+
+#if !NETSTANDARD1_3 && !NETSTANDARD1_4
                     if (!assembly.GetReferencedAssemblies().Any(an => String.Equals(an.FullName, typeof(ExceptionlessClient).GetTypeInfo().Assembly.FullName)))
                         continue;
+#endif
 
                     string version = GetVersionFromAssembly(assembly);
                     if (!String.IsNullOrEmpty(version))
@@ -92,6 +94,6 @@ namespace Exceptionless.Plugins.Default {
             return !String.IsNullOrEmpty(version) && !String.Equals(version, "0.0.0.0") ? version : null;
         }
 #endif
-    }
-}
+                }
+            }
 #endif

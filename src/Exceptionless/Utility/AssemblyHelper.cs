@@ -35,7 +35,7 @@ namespace Exceptionless.Utility {
         public static List<Type> GetTypes(IExceptionlessLog log) {
             var types = new List<Type>();
 
-#if NET45 || NETSTANDARD1_5
+#if !PORTABLE && !NETSTANDARD1_2
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies) {
                 try {

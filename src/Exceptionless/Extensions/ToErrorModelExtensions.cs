@@ -138,13 +138,14 @@ namespace Exceptionless {
 
         private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
             var modules = new ModuleCollection();
-#if NET45 || NETSTANDARD1_5
+#if !PORTABLE && !NETSTANDARD1_2
             try {
                 int id = 1;
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                     if (!includeDynamic && assembly.IsDynamic)
                         continue;
 
+#if !NETSTANDARD1_3 && !NETSTANDARD1_4
                     try {
                         if (!includeDynamic && String.IsNullOrEmpty(assembly.Location))
                             continue;
@@ -152,6 +153,7 @@ namespace Exceptionless {
                         const string message = "An error occurred while getting the Assembly.Location value. This error will occur when when you are not running under full trust.";
                         log.Error(typeof(ExceptionlessClient), ex, message);
                     }
+#endif
 
                     if (!includeSystem) {
                         try {

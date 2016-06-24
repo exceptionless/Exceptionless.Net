@@ -92,6 +92,7 @@
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final",
+                "System.AppDomain": "2.0.10",
                 "System.Collections": "4.0.11-rc2-24027",
                 "System.Collections.Concurrent": "4.0.12-rc2-24027",
                 "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",
@@ -99,6 +100,7 @@
                 "System.Diagnostics.Debug": "4.0.11-rc2-24027",
                 "System.Diagnostics.Process": "4.1.0-rc2-24027",
                 "System.Diagnostics.StackTrace": "4.0.1-rc2-24027",
+                "System.Diagnostics.Tools": "4.0.1-rc2-24027",
                 "System.Diagnostics.TraceSource": "4.0.0-rc2-24027",
                 "System.Dynamic.Runtime": "4.0.11-rc2-24027",
                 "System.Globalization": "4.0.11-rc2-24027",
@@ -143,6 +145,7 @@
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final",
+                "System.AppDomain": "2.0.10",
                 "System.Collections": "4.0.11-rc2-24027",
                 "System.Collections.Concurrent": "4.0.12-rc2-24027",
                 "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",
@@ -150,6 +153,7 @@
                 "System.Diagnostics.Debug": "4.0.11-rc2-24027",
                 "System.Diagnostics.Process": "4.1.0-rc2-24027",
                 "System.Diagnostics.StackTrace": "4.0.1-rc2-24027",
+                "System.Diagnostics.Tools": "4.0.1-rc2-24027",
                 "System.Diagnostics.TraceSource": "4.0.0-rc2-24027",
                 "System.Dynamic.Runtime": "4.0.11-rc2-24027",
                 "System.Globalization": "4.0.11-rc2-24027",
@@ -195,7 +199,7 @@
             "dependencies": {
                 "Microsoft.CSharp": "4.0.1-rc2-24027",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final",
-                "System.AppDomain": "2.0.9",
+                "System.AppDomain": "2.0.10",
                 "System.Collections": "4.0.11-rc2-24027",
                 "System.Collections.Concurrent": "4.0.12-rc2-24027",
                 "System.ComponentModel.TypeConverter": "4.0.1-rc2-24027",

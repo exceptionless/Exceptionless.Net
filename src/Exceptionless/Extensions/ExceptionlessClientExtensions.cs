@@ -28,7 +28,7 @@ namespace Exceptionless {
             if (client.Configuration.UpdateSettingsWhenIdleInterval == null)
                 client.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromMinutes(2);
 
-#if NETSTANDARD1_5 || NET45
+#if !PORTABLE && !NETSTANDARD1_2
             client.RegisterAppDomainUnhandledExceptionHandler();
 
             // make sure that queued events are sent when the app exits
@@ -45,7 +45,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void Shutdown(this ExceptionlessClient client) {
-#if NETSTANDARD1_5 || NET45
+#if !PORTABLE && !NETSTANDARD1_2
             client.UnregisterAppDomainUnhandledExceptionHandler();
             client.UnregisterOnProcessExitHandler();
 #endif
@@ -280,7 +280,7 @@ namespace Exceptionless {
 
 namespace Exceptionless.Extensions {
     public static class ExceptionlessClientExtensions {
-#if NETSTANDARD1_5 || NET45
+#if !PORTABLE && !NETSTANDARD1_2
         private static UnhandledExceptionEventHandler _onAppDomainUnhandledException;
         public static void RegisterAppDomainUnhandledExceptionHandler(this ExceptionlessClient client) {
             if (_onAppDomainUnhandledException == null) {

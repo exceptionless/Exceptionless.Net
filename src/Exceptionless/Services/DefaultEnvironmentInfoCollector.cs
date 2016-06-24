@@ -39,7 +39,7 @@ namespace Exceptionless.Services {
         }
 
         private void PopulateApplicationInfo(EnvironmentInfo info) {
-#if NET45 || NETSTANDARD1_5
+#if !PORTABLE && !NETSTANDARD1_2
             try {
                 info.Data.Add("AppDomainName", AppDomain.CurrentDomain.FriendlyName);
             } catch (Exception ex) {
