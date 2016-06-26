@@ -21,7 +21,7 @@
         "Exceptionless.RandomData": "1.1.23",
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0-rc2-3002702"
+            "version": "1.0.0"
         }
     },
     "frameworks": {
