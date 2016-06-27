@@ -121,14 +121,14 @@ namespace Exceptionless.Submission {
         }
 
         private HttpClient CreateHttpClient(string userAgent) {
-#if !NET45
-            var handler = new HttpClientHandler { UseDefaultCredentials = true };
-
-            // TODO: This will be supported in the next update for all platforms: https://github.com/dotnet/corefx/commit/97c940eec1f6afe3e4af31e72d79c3a11e7b1ff1
-            //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
-#else
+#if NET45
             var handler = new WebRequestHandler { UseDefaultCredentials = true };
             handler.ServerCertificateValidationCallback = delegate { return true; };
+#else
+            var handler = new HttpClientHandler { UseDefaultCredentials = true };
+#if !PORTABLE && !NETSTANDARD1_2
+            handler.ServerCertificateCustomValidationCallback = delegate { return true; };
+#endif
 #endif
 
             if (handler.SupportsAutomaticDecompression)
