@@ -146,6 +146,15 @@ namespace Exceptionless.Services {
 #endif
 
         private void PopulateRuntimeInfo(EnvironmentInfo info) {
+#if NETSTANDARD
+            info.OSName = GetOSName(RuntimeInformation.OSDescription);
+            info.OSVersion = GetVersion(RuntimeInformation.OSDescription)?.ToString();
+            info.Architecture = RuntimeInformation.OSArchitecture.ToString();
+            info.RuntimeVersion = GetVersion(RuntimeInformation.FrameworkDescription)?.ToString();
+            info.Data["FrameworkDescription"] = RuntimeInformation.FrameworkDescription;
+            info.Data["ProcessArchitecture"] = RuntimeInformation.ProcessArchitecture;
+#endif
+
             try {
 #if NET45 || NETSTANDARD1_5
                 info.MachineName = Environment.MachineName;
@@ -186,12 +195,6 @@ namespace Exceptionless.Services {
                 info.Data["ApplicationBasePath"] = computerInfo.Application.ApplicationBasePath;
                 info.Data["ApplicationName"] = computerInfo.Application.ApplicationName;
                 info.Data["RuntimeFramework"] = computerInfo.Application.RuntimeFramework.FullName;
-
-                info.OSName = computerInfo.Runtime.OperatingSystem;
-                info.OSVersion = computerInfo.Runtime.OperatingSystemVersion;
-                info.Architecture = computerInfo.Runtime.RuntimeArchitecture;
-                info.RuntimeVersion = computerInfo.Runtime.RuntimeVersion;
-                info.Data["RuntimeType"] = computerInfo.Runtime.RuntimeType; // Mono, CLR, CoreCLR
 #elif NET45
                 info.OSName = computerInfo.OSFullName;
                 info.OSVersion = computerInfo.OSVersion;
@@ -202,7 +205,34 @@ namespace Exceptionless.Services {
                 _log.FormattedInfo(typeof(DefaultEnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
             }
 #endif
+        }
+        
+#if NETSTANDARD
+        private string GetOSName(string osDescription) {
+            if (String.IsNullOrEmpty(osDescription))
+                return null;
+
+            var version = GetVersion(osDescription);
+            if (version != null)
+                return osDescription.Replace(version.ToString(), version.ToString(version.Minor == 0 ? 1 : 2));
+
+            return osDescription;
+        }
+
+        private Version GetVersion(string description) {
+            if (String.IsNullOrEmpty(description))
+                return null;
+
+            var parts = description.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 0) {
+                Version version;
+                if (Version.TryParse(parts[parts.Length - 1], out version))
+                    return version;
             }
+
+            return null;
+        }
+#endif
 
 #if NET45
         private bool Is64BitOperatingSystem() {
@@ -223,7 +253,7 @@ namespace Exceptionless.Services {
         }
 
         private static class KernelNativeMethods {
-#region Kernel32
+        #region Kernel32
 
             [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
             public static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procName);
@@ -248,7 +278,7 @@ namespace Exceptionless.Services {
             [DllImport("kernel32.dll")]
             public static extern int GetCurrentThreadId();
 
-#endregion
+        #endregion
 
             public static bool MethodExists(string moduleName, string methodName) {
                 IntPtr moduleHandle = GetModuleHandle(moduleName);
