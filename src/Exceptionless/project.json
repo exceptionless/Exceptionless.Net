@@ -40,7 +40,6 @@
                 "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_2" ]
             },
             "dependencies": {
-                "Microsoft.CSharp": "4.0.1",
                 "System.Collections": "4.0.11",
                 "System.Collections.Concurrent": "4.0.12",
                 "System.ComponentModel.TypeConverter": "4.1.0",
@@ -82,7 +81,6 @@
                 "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_3" ]
             },
             "dependencies": {
-                "Microsoft.CSharp": "4.0.1",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
                 "System.AppDomain": "2.0.10",
                 "System.Collections": "4.0.11",
@@ -137,7 +135,6 @@
                 "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_4" ]
             },
             "dependencies": {
-                "Microsoft.CSharp": "4.0.1",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
                 "System.AppDomain": "2.0.10",
                 "System.Collections": "4.0.11",
@@ -193,7 +190,6 @@
                 "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_5" ]
             },
             "dependencies": {
-                "Microsoft.CSharp": "4.0.1",
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
                 "System.AppDomain": "2.0.10",
                 "System.Collections": "4.0.11",
