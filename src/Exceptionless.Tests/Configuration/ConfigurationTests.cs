@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Models;
@@ -43,7 +44,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.Equal("https://collector.exceptionless.io", config.ServerUrl);
             Assert.Equal(0, config.Settings.Count);
 
-            config.ReadFromAttributes(typeof(ConfigurationTests).Assembly);
+            config.ReadFromAttributes(typeof(ConfigurationTests).GetTypeInfo().Assembly);
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", config.ApiKey);
             Assert.Equal("http://localhost:45000", config.ServerUrl);
             Assert.Equal(1, config.Settings.Count);

@@ -21,6 +21,7 @@
     },
     "buildOptions": {
         "compile": [ "**/*.cs", "../../GlobalAssemblyInfo.cs" ],
+        "debugType": "portable",
         "nowarn": [
             "CS1591"
         ],
@@ -37,19 +38,12 @@
     "frameworks": {
         "netstandard1.3": {
             "buildOptions": {
-                "debugType": "portable",
                 "define": [ "NETSTANDARD", "NETSTANDARD1_3" ]
-            },
-            "dependencies": {
-                "NLog": "4.4.0-beta11"
             }
         },
         "net45": {
             "buildOptions": {
                 "define": [ "NET45" ]
-            },
-            "dependencies": {
-                "NLog": "4.3.4"
             }
         }
     }

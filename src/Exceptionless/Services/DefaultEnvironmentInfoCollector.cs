@@ -150,7 +150,6 @@ namespace Exceptionless.Services {
             info.OSName = GetOSName(RuntimeInformation.OSDescription);
             info.OSVersion = GetVersion(RuntimeInformation.OSDescription)?.ToString();
             info.Architecture = RuntimeInformation.OSArchitecture.ToString();
-            info.RuntimeVersion = GetVersion(RuntimeInformation.FrameworkDescription)?.ToString();
             info.Data["FrameworkDescription"] = RuntimeInformation.FrameworkDescription;
             info.Data["ProcessArchitecture"] = RuntimeInformation.ProcessArchitecture;
 #endif
@@ -192,6 +191,7 @@ namespace Exceptionless.Services {
 
             try {
 #if NETSTANDARD
+                info.RuntimeVersion = computerInfo.Application.RuntimeFramework.Version.ToString();
                 info.Data["ApplicationBasePath"] = computerInfo.Application.ApplicationBasePath;
                 info.Data["ApplicationName"] = computerInfo.Application.ApplicationName;
                 info.Data["RuntimeFramework"] = computerInfo.Application.RuntimeFramework.FullName;
