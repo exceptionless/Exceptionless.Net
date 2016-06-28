@@ -18,7 +18,7 @@
         "files": {
             "mappings": {
                 "tools/": "NuGet/tools/*",
-                "tools/exceptionless.psm1":"../../Exceptionless.Portable/NuGet/tools/exceptionless.psm1"
+                "tools/exceptionless.psm1":"../../Exceptionless/NuGet/tools/exceptionless.psm1"
             },
             "include": [ "readme.txt" ]
         }
