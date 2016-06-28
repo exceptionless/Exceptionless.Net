@@ -127,7 +127,7 @@ namespace Exceptionless.Submission {
 #else
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
 #if !PORTABLE && !NETSTANDARD1_2
-            handler.ServerCertificateCustomValidationCallback = delegate { return true; };
+            //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
 #endif
 #endif
 
