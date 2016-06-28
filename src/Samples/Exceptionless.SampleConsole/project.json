@@ -1,4 +1,4 @@
-﻿{
+{
     "buildOptions": {
         "compile": {
             "include": [
@@ -14,11 +14,11 @@
         "Exceptionless": {
             "target": "project"
         },
-        "Exceptionless.DateTimeExtensions": "3.2.52",
+        "Exceptionless.DateTimeExtensions": "3.2.53",
         "Exceptionless.NLog": {
             "target": "project"
         },
-        "Exceptionless.RandomData": "1.1.23",
+        "Exceptionless.RandomData": "1.1.24",
         "Microsoft.NETCore.App": {
             "type": "platform",
             "version": "1.0.0"

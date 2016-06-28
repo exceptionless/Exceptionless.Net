@@ -31,7 +31,8 @@
     "dependencies": {
         "Exceptionless": {
             "target": "project"
-        }
+        },
+        "NLog": "4.4.0-beta12"
     },
     "frameworks": {
         "netstandard1.3": {
