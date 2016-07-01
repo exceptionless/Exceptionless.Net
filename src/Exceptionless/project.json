@@ -284,15 +284,33 @@
                 "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
-                "Microsoft.VisualBasic": "",
-                "System.Configuration": "",
-                "System.Data": "",
-                "System.Net.Http": "",
-                "System.Net.Http.WebRequest": "",
-                "System.Numerics": "",
-                "System.Runtime.Serialization": "",
-                "System.Xml": "",
-                "System.Xml.Linq": ""
+                "Microsoft.VisualBasic": {
+                    "type": "build"
+                },
+                "System.Configuration": {
+                    "type": "build"
+                },
+                "System.Data": {
+                    "type": "build"
+                },
+                "System.Net.Http": {
+                    "type": "build"
+                },
+                "System.Net.Http.WebRequest": {
+                    "type": "build"
+                },
+                "System.Numerics": {
+                    "type": "build"
+                },
+                "System.Runtime.Serialization": {
+                    "type": "build"
+                },
+                "System.Xml": {
+                    "type": "build"
+                },
+                "System.Xml.Linq": {
+                    "type": "build"
+                }
             }
         }
     }

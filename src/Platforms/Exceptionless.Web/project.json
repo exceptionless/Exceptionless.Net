@@ -43,9 +43,15 @@
                 "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
-                "System.Configuration": "",
-                "System.ServiceModel": "",
-                "System.Web": ""
+                "System.Configuration": {
+                    "type": "build"
+                },
+                "System.ServiceModel": {
+                    "type": "build"
+                },
+                "System.Web": {
+                    "type": "build"
+                }
             }
         }
     }

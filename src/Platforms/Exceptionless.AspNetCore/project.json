@@ -54,7 +54,9 @@
                 "define": [ "NET45" ]
             },
             "frameworkAssemblies": {
-                "System.Net.Primitives": ""
+                "System.Net.Primitives": {
+                    "type": "build"
+                }
             }
         }
     }
