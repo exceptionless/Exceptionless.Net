@@ -58,8 +58,12 @@
                 "define": [ "SIGNED", "NET45" ]
             },
             "frameworkAssemblies": {
-                "System.Configuration": "",
-                "System.Web": ""
+                "System.Configuration": {
+                    "type": "build"
+                },
+                "System.Web": {
+                    "type": "build"
+                }
             }
         }
     }

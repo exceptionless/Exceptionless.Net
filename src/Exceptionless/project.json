@@ -1,12 +1,28 @@
 {
     "version": "99.99.99-dev",
     "title": "Exceptionless client for non visual (ie. Console and Services) applications.",
-    "authors": [ "Exceptionless" ],
+    "authors": [
+        "Exceptionless"
+    ],
     "copyright": "Copyright (c) 2016 Exceptionless.  All rights reserved.",
     "description": "Exceptionless client for portable applications. Exceptionless is a cloud based error reporting service that sends your exceptions to http://exceptionless.io and provides aggregated views and analytics.",
     "packOptions": {
-        "tags": [ "Exceptionless", "Error", "Report", "Reporting", "Exception", "Logging", "Log", "ELMAH", "pcl", "NETSTANDARD", "Core" ],
-        "owners": [ "Exceptionless" ],
+        "tags": [
+            "Exceptionless",
+            "Error",
+            "Report",
+            "Reporting",
+            "Exception",
+            "Logging",
+            "Log",
+            "ELMAH",
+            "pcl",
+            "NETSTANDARD",
+            "Core"
+        ],
+        "owners": [
+            "Exceptionless"
+        ],
         "projectUrl": "http://exceptionless.io",
         "releaseNotes": "https://github.com/exceptionless/Exceptionless.Net/releases",
         "iconUrl": "https://be.exceptionless.io/img/exceptionless-32.png",
@@ -16,11 +32,16 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         },
         "files": {
-            "include": [ "readme.txt" ]
+            "include": [
+                "readme.txt"
+            ]
         }
     },
     "buildOptions": {
-        "compile": [ "**/*.cs", "../GlobalAssemblyInfo.cs" ],
+        "compile": [
+            "**/*.cs",
+            "../GlobalAssemblyInfo.cs"
+        ],
         "embed": {
             "mappings": {
                 "Exceptionless.Json.Dynamic.snk": "Newtonsoft.Json/Dynamic.snk"
@@ -37,7 +58,11 @@
         "netstandard1.2": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_2" ]
+                "define": [
+                    "NO_SQL_CLIENT",
+                    "NETSTANDARD",
+                    "NETSTANDARD1_2"
+                ]
             },
             "dependencies": {
                 "System.Collections": "4.0.11",
@@ -78,7 +103,11 @@
         "netstandard1.3": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_3" ]
+                "define": [
+                    "NO_SQL_CLIENT",
+                    "NETSTANDARD",
+                    "NETSTANDARD1_3"
+                ]
             },
             "dependencies": {
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
@@ -132,7 +161,11 @@
         "netstandard1.4": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_4" ]
+                "define": [
+                    "NO_SQL_CLIENT",
+                    "NETSTANDARD",
+                    "NETSTANDARD1_4"
+                ]
             },
             "dependencies": {
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
@@ -187,7 +220,11 @@
         "netstandard1.5": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "NO_SQL_CLIENT", "NETSTANDARD", "NETSTANDARD1_5" ]
+                "define": [
+                    "NO_SQL_CLIENT",
+                    "NETSTANDARD",
+                    "NETSTANDARD1_5"
+                ]
             },
             "dependencies": {
                 "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
@@ -242,46 +279,114 @@
         ".NETPortable,Version=v4.6,Profile=Profile151": {
             "buildOptions": {
                 "debugType": "portable",
-                "define": [ "PORTABLE" ]
+                "define": [
+                    "PORTABLE"
+                ]
             },
             "frameworkAssemblies": {
-                "Microsoft.CSharp": "",
-                "System": "",
-                "System.Collections": "",
-                "System.Core": "",
-                "System.Diagnostics.Debug": "",
-                "System.Dynamic.Runtime": "",
-                "System.Globalization": "",
-                "System.IO": "",
-                "System.IO.Compression": "",
-                "System.Linq": "",
-                "System.Linq.Expressions": "",
-                "System.Net.Http": "",
-                "System.Net.Primitives": "",
-                "System.ObjectModel": "",
-                "System.Reflection": "",
-                "System.Reflection.Extensions": "",
-                "System.Reflection.Primitives": "",
-                "System.Resources.ResourceManager": "",
-                "System.Runtime": "",
-                "System.Runtime.Extensions": "",
-                "System.Runtime.Serialization": "",
-                "System.Runtime.Serialization.Primitives": "",
-                "System.Text.Encoding": "",
-                "System.Text.Encoding.Extensions": "",
-                "System.Text.RegularExpressions": "",
-                "System.Threading": "",
-                "System.Threading.Tasks": "",
-                "System.Threading.Timer": "",
-                "System.Xml": "",
-                "System.Xml.Linq": "",
-                "System.Xml.ReaderWriter": "",
-                "System.Xml.XDocument": ""
+                "Microsoft.CSharp": {
+                    "type": "build"
+                },
+                "System": {
+                    "type": "build"
+                },
+                "System.Collections": {
+                    "type": "build"
+                },
+                "System.Core": {
+                    "type": "build"
+                },
+                "System.Diagnostics.Debug": {
+                    "type": "build"
+                },
+                "System.Dynamic.Runtime": {
+                    "type": "build"
+                },
+                "System.Globalization": {
+                    "type": "build"
+                },
+                "System.IO": {
+                    "type": "build"
+                },
+                "System.IO.Compression": {
+                    "type": "build"
+                },
+                "System.Linq": {
+                    "type": "build"
+                },
+                "System.Linq.Expressions": {
+                    "type": "build"
+                },
+                "System.Net.Http": {
+                    "type": "build"
+                },
+                "System.Net.Primitives": {
+                    "type": "build"
+                },
+                "System.ObjectModel": {
+                    "type": "build"
+                },
+                "System.Reflection": {
+                    "type": "build"
+                },
+                "System.Reflection.Extensions": {
+                    "type": "build"
+                },
+                "System.Reflection.Primitives": {
+                    "type": "build"
+                },
+                "System.Resources.ResourceManager": {
+                    "type": "build"
+                },
+                "System.Runtime": {
+                    "type": "build"
+                },
+                "System.Runtime.Extensions": {
+                    "type": "build"
+                },
+                "System.Runtime.Serialization": {
+                    "type": "build"
+                },
+                "System.Runtime.Serialization.Primitives": {
+                    "type": "build"
+                },
+                "System.Text.Encoding": {
+                    "type": "build"
+                },
+                "System.Text.Encoding.Extensions": {
+                    "type": "build"
+                },
+                "System.Text.RegularExpressions": {
+                    "type": "build"
+                },
+                "System.Threading": {
+                    "type": "build"
+                },
+                "System.Threading.Tasks": {
+                    "type": "build"
+                },
+                "System.Threading.Timer": {
+                    "type": "build"
+                },
+                "System.Xml": {
+                    "type": "build"
+                },
+                "System.Xml.Linq": {
+                    "type": "build"
+                },
+                "System.Xml.ReaderWriter": {
+                    "type": "build"
+                },
+                "System.Xml.XDocument": {
+                    "type": "build"
+                }
             }
         },
         "net45": {
             "buildOptions": {
-                "define": [ "NET45" ]
+                "define": [
+                    "NET45"
+                ]
             },
             "frameworkAssemblies": {
                 "Microsoft.VisualBasic": {
