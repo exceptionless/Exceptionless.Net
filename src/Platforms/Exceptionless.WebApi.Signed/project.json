@@ -18,9 +18,9 @@
         "files": {
             "mappings": {
                 "tools/": "../Exceptionless.WebApi/NuGet/tools/*",
-                "tools/exceptionless.psm1":"../../Exceptionless/NuGet/tools/exceptionless.psm1"
-            },
-            "include": [ "../Exceptionless.WebApi/readme.txt" ]
+                "tools/exceptionless.psm1":"../../Exceptionless.Signed/NuGet/tools/exceptionless.psm1",
+                "readme.txt": "../Exceptionless.WebApi/readme.txt"
+            }
         }
     },
     "buildOptions": {

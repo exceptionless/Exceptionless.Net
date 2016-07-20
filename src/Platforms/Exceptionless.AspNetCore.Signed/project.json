@@ -30,9 +30,9 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         },
         "files": {
-            "include": [
-                "../Exceptionless.AspNetCore/readme.txt"
-            ]
+            "mappings": {
+                "readme.txt": "../Exceptionless.AspNetCore/readme.txt"
+            }
         }
     },
     "buildOptions": {
