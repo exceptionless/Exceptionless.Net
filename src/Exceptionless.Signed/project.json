@@ -32,9 +32,10 @@
             "url": "https://github.com/exceptionless/Exceptionless.Net"
         },
         "files": {
-            "include": [
-                "../Exceptionless/readme.txt"
-            ]
+            "mappings": {
+                "tools/": "NuGet/tools/*",
+                "readme.txt": "../Exceptionless/readme.txt"
+            }
         }
     },
     "buildOptions": {

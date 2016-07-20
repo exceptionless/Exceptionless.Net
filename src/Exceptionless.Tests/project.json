@@ -8,7 +8,7 @@
         }
     },
     "dependencies": {
-        "BenchmarkDotNet": "0.9.7",
+        "BenchmarkDotNet": "0.9.8",
         "Exceptionless": {
             "target": "project"
         },
@@ -22,6 +22,17 @@
         "Exceptionless.RandomData": "1.1.24"
     },
     "frameworks": {
+        //"netcoreapp1.0": {
+        //    "buildOptions": {
+        //        "define": [ "NETSTANDARD", "NETSTANDARD1_5" ]
+        //    },
+        //    "dependencies": {
+        //        "Microsoft.NETCore.App": {
+        //            "type": "platform",
+        //            "version": "1.0.0"
+        //        }
+        //    }
+        //},
         "NET46": {
             "buildOptions": {
                 "define": [ "NET46" ]

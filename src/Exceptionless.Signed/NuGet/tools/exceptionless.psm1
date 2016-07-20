@@ -48,7 +48,7 @@ function update_config($configPath, $platform) {
 			}
 			$configSection = $configXml.CreateElement('section')
 			$configSection.SetAttribute('name', 'exceptionless')
-			$configSection.SetAttribute('type', 'Exceptionless.ExceptionlessSection, Exceptionless')
+			$configSection.SetAttribute('type', 'Exceptionless.ExceptionlessSection, Exceptionless.Signed')
 			
 			$parentNode.AppendChild($configSection)
 			$shouldSave = $true

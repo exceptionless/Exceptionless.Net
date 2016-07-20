@@ -32,18 +32,23 @@
     "dependencies": {
         "Exceptionless": {
             "target": "project"
-        },
-        "NLog": "4.4.0-beta12"
+        }
     },
     "frameworks": {
         "netstandard1.3": {
             "buildOptions": {
                 "define": [ "NETSTANDARD", "NETSTANDARD1_3" ]
+            },
+            "dependencies": {
+                "NLog": "4.4.0-betaV15"
             }
         },
         "net45": {
             "buildOptions": {
                 "define": [ "NET45" ]
+            },
+            "dependencies": {
+                "NLog": "4.3.5"
             }
         }
     }
