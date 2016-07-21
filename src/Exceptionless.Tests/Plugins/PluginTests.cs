@@ -226,6 +226,8 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("@@error:Exception", false)]
         [InlineData("@@error:System.Exception", true)]
         [InlineData("@@error:*Exception", true)]
+        [InlineData("@@error:*Exception*", true)]
+        [InlineData("@@error:*exception", true)]
         [InlineData("@@error:*", true)]
         public void EventExclusionPlugin_ExceptionType(string settingKey, bool cancelled) {
             var client = CreateClient();
