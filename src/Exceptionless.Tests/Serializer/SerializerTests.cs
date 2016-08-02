@@ -67,6 +67,26 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
+        public void CanExcludeMultiwordProperties() {
+            var user = new User {
+                FirstName = "John",
+                LastName = "Doe",
+                PasswordHash = "1234567890",
+                Billing = new BillingInfo {
+                    ExpirationMonth = 10,
+                    ExpirationYear = 2020,
+                    CardNumberRedacted = "1xxxxxxxx89",
+                    EncryptedCardNumber = "9876543210"
+                }
+            };
+
+            var exclusions = new[] { nameof(user.PasswordHash), nameof(user.Billing.CardNumberRedacted), nameof(user.Billing.EncryptedCardNumber) };
+            IJsonSerializer serializer = GetSerializer();
+            string json = serializer.Serialize(user, exclusions, maxDepth: 2);
+            Assert.Equal(@"{""first_name"":""John"",""last_name"":""Doe"",""billing"":{""expiration_month"":10,""expiration_year"":2020}}", json);
+        }
+
+        [Fact]
         public void WillIgnoreDefaultValues() {
             var data = new SampleModel {
                 Number = 0,
@@ -182,5 +202,19 @@ namespace Exceptionless.Tests.Serializer {
         public IDictionary<string, string> Dictionary { get; set; }
         public ICollection<string> Collection { get; set; } 
         public SampleModel Nested { get; set; }
+    }
+
+    public class User {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string PasswordHash { get; set; }
+        public BillingInfo Billing { get; set; }
+    }
+
+    public class BillingInfo {
+        public string CardNumberRedacted { get; set; }
+        public string EncryptedCardNumber { get; set; }
+        public int ExpirationMonth { get; set; }
+        public int ExpirationYear { get; set; }
     }
 }

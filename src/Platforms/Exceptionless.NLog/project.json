@@ -48,7 +48,7 @@
                 "define": [ "NET45" ]
             },
             "dependencies": {
-                "NLog": "4.3.5"
+                "NLog": "4.3.6"
             }
         }
     }
