@@ -460,6 +460,23 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal("{\"RandomValue\":\"Test\"}", json);
             }
         }
+        
+        [Fact]
+        public void CanAddPluginConcurrently() {
+            var client = CreateClient();
+            foreach (var plugin in client.Configuration.Plugins)
+                client.Configuration.RemovePlugin(plugin.Key);
+
+            Assert.Equal(0, client.Configuration.Plugins.Count());
+
+            Parallel.For(0, 1000, i => {
+                client.Configuration.AddPlugin<EnvironmentInfoPlugin>();
+            });
+
+            Assert.Equal(1, client.Configuration.Plugins.Count());
+            client.Configuration.RemovePlugin<EnvironmentInfoPlugin>();
+            Assert.Equal(0, client.Configuration.Plugins.Count());
+        }
 
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {

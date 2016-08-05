@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -275,13 +276,17 @@ namespace Exceptionless {
 
         #region Plugins
 
+#if !PORTABLE
+        private readonly ConcurrentDictionary<string, PluginRegistration> _plugins = new ConcurrentDictionary<string, PluginRegistration>();
+#else
         private readonly Dictionary<string, PluginRegistration> _plugins = new Dictionary<string, PluginRegistration>();
+#endif
 
         /// <summary>
         /// The list of plugins that will be used in this configuration.
         /// </summary>
         public IEnumerable<PluginRegistration> Plugins {
-            get { return _plugins.Values.OrderBy(e => e.Priority).ToList(); }
+            get { return _plugins.Values.ToList().OrderBy(e => e.Priority); }
         }
 
         /// <summary>
@@ -292,7 +297,13 @@ namespace Exceptionless {
         public void AddPlugin<T>(T plugin) where T : IEventPlugin {
             string key = typeof(T).FullName;
             RemovePlugin(key);
+
+#if !PORTABLE
+            if (!_plugins.TryAdd(key, new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin))))
+                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+#else
             _plugins[key] = new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin));
+#endif
         }
 
         /// <summary>
@@ -310,7 +321,14 @@ namespace Exceptionless {
         /// <param name="pluginType">The plugin type to be added.</param>
         public void AddPlugin(string key, Type pluginType) {
             RemovePlugin(key);
-            _plugins[key] = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));
+
+            var plugin = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));
+#if !PORTABLE
+            if (!_plugins.TryAdd(key, plugin))
+                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+#else
+            _plugins[key] = plugin;
+#endif
         }
 
         /// <summary>
@@ -330,7 +348,14 @@ namespace Exceptionless {
         /// <param name="factory">A factory method to create the plugin.</param>
         public void AddPlugin(string key, int priority, Func<ExceptionlessConfiguration, IEventPlugin> factory) {
             RemovePlugin(key);
-            _plugins[key] = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => factory(this)));
+
+            var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => factory(this)));
+#if !PORTABLE
+            if (!_plugins.TryAdd(key, plugin))
+                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+#else
+            _plugins[key] = plugin;
+#endif
         }
 
         /// <summary>
@@ -358,7 +383,14 @@ namespace Exceptionless {
         /// <param name="pluginAction">The plugin action to run.</param>
         public void AddPlugin(string key, int priority, Action<EventPluginContext> pluginAction) {
             RemovePlugin(key);
-            _plugins[key] = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => new ActionPlugin(pluginAction)));
+            
+            var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => new ActionPlugin(pluginAction)));
+#if !PORTABLE
+            if (!_plugins.TryAdd(key, plugin))
+                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+#else
+            _plugins[key] = plugin;
+#endif
         }
 
         /// <summary>
@@ -374,10 +406,16 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key for the plugin to be removed.</param>
         public void RemovePlugin(string key) {
+#if !PORTABLE
+            PluginRegistration plugin;
+            if (_plugins.TryRemove(key, out plugin))
+                plugin.Dispose();
+#else
             if (_plugins.ContainsKey(key)) {
                 _plugins[key].Dispose();
                 _plugins.Remove(key);
             }
+#endif
         }
 
         private int GetPriority(Type type) {

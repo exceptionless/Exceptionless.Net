@@ -2,7 +2,7 @@
 if (Test-Path json.zip) {
 	del json.zip
 }
-Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/8.0.3.zip -OutFile json.zip
+Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/9.0.1.zip -OutFile json.zip
 if (Test-Path json-temp) {
 	rmdir '.\json-temp' -Recurse -Force
 }

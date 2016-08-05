@@ -10,7 +10,7 @@ namespace Exceptionless.Plugins {
         /// </summary>
         /// <param name="context">Context information.</param>
         public static void Run(EventPluginContext context) {
-            foreach (IEventPlugin plugin in context.Client.Configuration.Plugins.Select(e => e.Plugin).ToList()) {
+            foreach (IEventPlugin plugin in context.Client.Configuration.Plugins.Select(e => e.Plugin)) {
                 try {
                     plugin.Run(context);
                     if (context.Cancel) {
