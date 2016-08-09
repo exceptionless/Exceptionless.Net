@@ -49,7 +49,9 @@ namespace Exceptionless {
             client.SubmittingEvent -= OnSubmittingEvent;
 
             client.ProcessQueue();
-            client.SubmitSessionEnd();
+
+            if (client.Configuration.SessionsEnabled)
+                client.SubmitSessionEnd();
         }
 
         private static void OnSubmittingEvent(object sender, EventSubmittingEventArgs e) {
