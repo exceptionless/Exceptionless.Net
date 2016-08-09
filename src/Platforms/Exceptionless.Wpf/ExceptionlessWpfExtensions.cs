@@ -20,10 +20,7 @@ namespace Exceptionless {
 
             client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
             client.Startup();
-
-            if (client.Configuration.SessionsEnabled)
-                client.SubmitSessionStart();
-
+            
             client.RegisterApplicationThreadExceptionHandler();
             client.RegisterApplicationDispatcherUnhandledExceptionHandler();
 
@@ -47,11 +44,6 @@ namespace Exceptionless {
             client.UnregisterApplicationDispatcherUnhandledExceptionHandler();
         
             client.SubmittingEvent -= OnSubmittingEvent;
-
-            client.ProcessQueue();
-
-            if (client.Configuration.SessionsEnabled)
-                client.SubmitSessionEnd();
         }
 
         private static void OnSubmittingEvent(object sender, EventSubmittingEventArgs e) {
