@@ -57,7 +57,9 @@ namespace Exceptionless.Wpf.Extensions {
                     contextData.SetSubmissionMethod("DispatcherUnhandledException");
 
                     args.Exception.ToExceptionless(contextData, client).Submit();
-                    args.Handled = true;
+
+                    // process queue immediately since the app is about to exit.
+                    client.ProcessQueue();
                 };
 
             try {
