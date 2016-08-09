@@ -75,7 +75,7 @@ namespace Exceptionless {
                 var item = source[key];
                 unchecked {
                     var kvpHash = key.GetHashCode();
-                    kvpHash = (kvpHash * 397) ^ item.GetHashCode();
+                    kvpHash = (kvpHash * 397) ^ (item == null ? 0 : item.GetHashCode());
                     keyValuePairHashes.Add(kvpHash);
                 }
             }

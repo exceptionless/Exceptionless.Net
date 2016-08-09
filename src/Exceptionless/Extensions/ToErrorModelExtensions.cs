@@ -78,7 +78,11 @@ namespace Exceptionless {
                         if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(exclusions, true))
                             continue;
 
-                        error.Data[key] = exception.Data[k];
+                        var item = exception.Data[k];
+                        if (item == null)
+                            continue;
+
+                        error.Data[key] = item;
                     }
                 }
             } catch (Exception ex) {
