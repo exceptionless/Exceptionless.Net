@@ -10,6 +10,9 @@ namespace Exceptionless.Windows.Extensions {
         private static ThreadExceptionEventHandler _onApplicationThreadException;
 
         public static void RegisterApplicationThreadExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onApplicationThreadException == null)
                 _onApplicationThreadException = (sender, args) => {
                     var contextData = new ContextData();
@@ -28,6 +31,9 @@ namespace Exceptionless.Windows.Extensions {
         }
 
         public static void UnregisterApplicationThreadExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onApplicationThreadException == null)
                 return;
 

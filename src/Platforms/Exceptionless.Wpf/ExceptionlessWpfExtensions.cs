@@ -15,6 +15,9 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="showDialog">Controls whether a dialog is shown when an unhandled exception occurs.</param>
         public static void Register(this ExceptionlessClient client, bool showDialog = true) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
             client.Startup();
 
@@ -36,6 +39,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void Unregister(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.Shutdown();
             client.UnregisterApplicationThreadExceptionHandler();
             client.UnregisterApplicationDispatcherUnhandledExceptionHandler();

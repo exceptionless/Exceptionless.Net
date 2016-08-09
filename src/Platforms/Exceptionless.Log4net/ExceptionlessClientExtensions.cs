@@ -8,6 +8,9 @@ using log4net.Core;
 namespace Exceptionless.Log4net {
     public static class ExceptionlessClientExtensions {
         public static EventBuilder CreateFromLogEvent(this ExceptionlessClient client, LoggingEvent ev) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             var builder = ev.ExceptionObject != null ? client.CreateException(ev.ExceptionObject) : client.CreateLog(ev.LoggerName, ev.RenderedMessage, ev.Level.ToLogLevel());
             builder.Target.Date = ev.TimeStamp;
 
@@ -48,6 +51,9 @@ namespace Exceptionless.Log4net {
         }
 
         public static void SubmitFromLogEvent(this ExceptionlessClient client, LoggingEvent ev) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             CreateFromLogEvent(client, ev).Submit();
         }
 

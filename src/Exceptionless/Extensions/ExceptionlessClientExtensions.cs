@@ -344,6 +344,9 @@ namespace Exceptionless.Extensions {
 
         private static EventHandler<UnobservedTaskExceptionEventArgs> _onTaskSchedulerOnUnobservedTaskException;
         public static void RegisterTaskSchedulerUnobservedTaskExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onTaskSchedulerOnUnobservedTaskException == null) {
                 _onTaskSchedulerOnUnobservedTaskException = (sender, args) => {
                     var contextData = new ContextData();
@@ -363,6 +366,9 @@ namespace Exceptionless.Extensions {
         }
 
         public static void UnregisterTaskSchedulerUnobservedTaskExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onTaskSchedulerOnUnobservedTaskException == null)
                 return;
 
