@@ -4,6 +4,7 @@ using Exceptionless.Logging;
 using Exceptionless.Dependency;
 using System.Collections.Generic;
 using System.Linq;
+using Exceptionless.Models;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(1010)]
@@ -99,7 +100,27 @@ namespace Exceptionless.Plugins.Default {
 
             public void Resubmit() {
                 _context.Event.Count = _count;
+
+                // ensure all required data
+                if (String.IsNullOrEmpty(_context.Event.Type))
+                    _context.Event.Type = Event.KnownTypes.Log;
+                if (_context.Event.Date == DateTimeOffset.MinValue)
+                    _context.Event.Date = DateTimeOffset.Now;
+
+                if (!_context.Client.OnSubmittingEvent(_context.Event, _context.ContextData)) {
+                    _context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Event submission cancelled by event handler: id={0} type={1}", _context.Event.ReferenceId, _context.Event.Type);
+                    return;
+                }
+
+                _context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Submitting event: type={0}{1}", _context.Event.Type, !String.IsNullOrEmpty(_context.Event.ReferenceId) ? " refid=" + _context.Event.ReferenceId : String.Empty);
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
+
+                if (!String.IsNullOrEmpty(_context.Event.ReferenceId)) {
+                    _context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Setting last reference id '{0}'", _context.Event.ReferenceId);
+                    _context.Resolver.GetLastReferenceIdManager().SetLast(_context.Event.ReferenceId);
+                }
+
+                _context.Client.OnSubmittedEvent(new EventSubmittedEventArgs(_context.Client, _context.Event, _context.ContextData));
             }
 
             public void UpdateDate(DateTimeOffset date) {

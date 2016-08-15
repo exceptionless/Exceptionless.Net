@@ -233,7 +233,7 @@ namespace Exceptionless {
         /// </summary>
         public event EventHandler<EventSubmittingEventArgs> SubmittingEvent;
 
-        private bool OnSubmittingEvent(Event ev, ContextData pluginContextData) {
+        protected internal bool OnSubmittingEvent(Event ev, ContextData pluginContextData) {
             var args = new EventSubmittingEventArgs(this, ev, pluginContextData);
             OnSubmittingEvent(args);
             return !args.Cancel;
@@ -243,7 +243,7 @@ namespace Exceptionless {
         /// Raises the <see cref="SubmittingEvent" /> event.
         /// </summary>
         /// <param name="e">The <see cref="EventSubmittingEventArgs" /> instance containing the event data.</param>
-        protected void OnSubmittingEvent(EventSubmittingEventArgs e) {
+        protected internal void OnSubmittingEvent(EventSubmittingEventArgs e) {
             if (SubmittingEvent == null)
                 return;
 
@@ -268,7 +268,7 @@ namespace Exceptionless {
         /// Raises the <see cref="SubmittedEvent" /> event.
         /// </summary>
         /// <param name="e">The <see cref="EventSubmittedEventArgs" /> instance containing the event data.</param>
-        protected void OnSubmittedEvent(EventSubmittedEventArgs e) {
+        protected internal void OnSubmittedEvent(EventSubmittedEventArgs e) {
             if (SubmittedEvent == null)
                 return;
 

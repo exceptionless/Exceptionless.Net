@@ -724,6 +724,30 @@ namespace Exceptionless.Tests.Plugins {
             Thread.Sleep(50);
             Assert.Equal(9, mergedContext.Event.Count.GetValueOrDefault());
         }
+        
+        [Fact]
+        public void VerifyDeduplicationPluginWillCallSubmittingHandler() {
+            var client = CreateClient();
+            foreach (var plugin in client.Configuration.Plugins)
+                client.Configuration.RemovePlugin(plugin.Key);
+            client.Configuration.AddPlugin(new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(75)));
+
+            int submittingEventHandlerCalls = 0;
+            client.SubmittingEvent += (sender, args) => {
+                Interlocked.Increment(ref submittingEventHandlerCalls);
+            };
+
+            for (int index = 0; index < 3; index++) {
+                client.SubmitLog("test");
+                if (index > 0)
+                    continue;
+
+                Assert.Equal(1, submittingEventHandlerCalls);
+            }
+
+            Thread.Sleep(100);
+            Assert.Equal(2, submittingEventHandlerCalls);
+        }
 
         [Fact]
         public void VerifyDeduplicationMultithreaded() {
