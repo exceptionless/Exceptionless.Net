@@ -289,7 +289,28 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.True(context.Cancel);
         }
+        
+        [Fact (Skip = "There is a bug in the .NET Framework where non thrown exceptions with non custom stack traces cannot be computed #116")]
+        public void CanHandleExceptionWithOverriddenStackTrace() {
+            var client = CreateClient();
+            var plugin = new ErrorPlugin();
+            
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(GetExceptionWithOverriddenStackTrace());
+            plugin.Run(context);
+            Assert.False(context.Cancel);
 
+            var error = context.Event.GetError();
+            Assert.True(error.StackTrace.Count > 0);
+            
+            context.ContextData.SetException(new ExceptionWithOverriddenStackTrace("test"));
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+
+            error = context.Event.GetError();
+            Assert.True(error.StackTrace.Count > 0);
+        }
+        
         [Fact]
         public void HandleAggregateExceptionsPlugin_MultipleInnerException() {
             var submissionClient = new InMemorySubmissionClient();
@@ -758,6 +779,14 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
+        private ExceptionWithOverriddenStackTrace GetExceptionWithOverriddenStackTrace(string message = "Test") {
+            try {
+                throw new ExceptionWithOverriddenStackTrace(message);
+            } catch (ExceptionWithOverriddenStackTrace ex) {
+                return ex;
+            }
+        }
+
         private Exception GetException(string message = "Test") {
             try {
                 throw new Exception(message);
@@ -815,6 +844,13 @@ namespace Exceptionless.Tests.Plugins {
             public IDictionary SetsDataProperty { get; set; }
 
             public override IDictionary Data { get { return SetsDataProperty; }  }
+        }
+
+        [Serializable]
+        public class ExceptionWithOverriddenStackTrace : Exception {
+            private readonly string _stackTrace = Environment.StackTrace;
+            public ExceptionWithOverriddenStackTrace(string message) : base(message) { }
+            public override string StackTrace => _stackTrace;
         }
     }
 }
