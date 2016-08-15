@@ -19,6 +19,9 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="config">The HttpConfiguration instance.</param>        
         public static void RegisterWebApi(this ExceptionlessClient client, HttpConfiguration config) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessWebApiPlugin>();
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
@@ -33,6 +36,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void UnregisterWebApi(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.Shutdown();
             client.Configuration.RemovePlugin<ExceptionlessWebApiPlugin>();
         }

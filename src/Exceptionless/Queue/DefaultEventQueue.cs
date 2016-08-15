@@ -49,18 +49,18 @@ namespace Exceptionless.Queue {
         }
 
         public void Process() {
-            if (_processingQueue)
-                return;
-
             if (!_config.Enabled) {
                 _log.Info(typeof(DefaultEventQueue), "Configuration is disabled. The queue will not be processed.");
                 return;
             }
 
-            _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
+            if (_processingQueue)
+                return;
+
             _processingQueue = true;
             
             try {
+                _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
                 _storage.CleanupQueueFiles(_config.GetQueueName(), _config.QueueMaxAge, _config.QueueMaxAttempts);
                 _storage.ReleaseStaleLocks(_config.GetQueueName());
 

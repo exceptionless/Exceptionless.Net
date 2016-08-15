@@ -54,7 +54,7 @@ namespace Exceptionless.ExtendedData {
         private static Dictionary<string, string> ToDictionary(this IEnumerable<KeyValuePair<string, string>> cookies, IEnumerable<string> exclusions) {
             var d = new Dictionary<string, string>();
 
-            foreach (var kv in cookies.Where(pair => !String.IsNullOrEmpty(pair.Key) && !pair.Key.AnyWildcardMatches(_ignoredCookies, true) && !pair.Key.AnyWildcardMatches(exclusions, true))) {
+            foreach (var kv in cookies.Where(pair => !String.IsNullOrEmpty(pair.Key) && !pair.Key.AnyWildcardMatches(_ignoredCookies) && !pair.Key.AnyWildcardMatches(exclusions))) {
                 if (!d.ContainsKey(kv.Key))
                     d.Add(kv.Key, kv.Value);
             }
@@ -67,7 +67,7 @@ namespace Exceptionless.ExtendedData {
 
             var exclusionsArray = exclusions as string[] ?? exclusions.ToArray();
             foreach (string key in values.AllKeys) {
-                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields, true) || key.AnyWildcardMatches(exclusionsArray, true))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusionsArray))
                     continue;
 
                 try {

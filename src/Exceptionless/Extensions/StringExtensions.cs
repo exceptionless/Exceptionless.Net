@@ -22,7 +22,7 @@ namespace Exceptionless.Extensions {
             return builder.ToString();
         }
 
-        public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = false) {
+        public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = true) {
             if (patternsToMatch == null || value == null)
                 return false;
 

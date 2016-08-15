@@ -19,6 +19,9 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="pipelines">The IPipelines instance.</param>
         public static void RegisterNancy(this ExceptionlessClient client, IPipelines pipelines) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessNancyPlugin>();
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
@@ -32,6 +35,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void UnregisterNancy(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.Shutdown();
             client.Configuration.RemovePlugin<ExceptionlessNancyPlugin>();
         }

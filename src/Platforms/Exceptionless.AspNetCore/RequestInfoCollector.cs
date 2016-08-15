@@ -74,7 +74,7 @@ namespace Exceptionless.AspNetCore {
             var d = new Dictionary<string, string>();
 
             foreach (var kvp in cookies) {
-                if (String.IsNullOrEmpty(kvp.Key) || kvp.Key.AnyWildcardMatches(_ignoredCookies, true) || kvp.Key.AnyWildcardMatches(exclusions, true))
+                if (String.IsNullOrEmpty(kvp.Key) || kvp.Key.AnyWildcardMatches(_ignoredCookies) || kvp.Key.AnyWildcardMatches(exclusions))
                     continue;
 
                 d.Add(kvp.Key, kvp.Value);
@@ -87,7 +87,7 @@ namespace Exceptionless.AspNetCore {
             var d = new Dictionary<string, string>();
             
             foreach (var kvp in values) {
-                if (String.IsNullOrEmpty(kvp.Key) || kvp.Key.AnyWildcardMatches(_ignoredFormFields, true) || kvp.Key.AnyWildcardMatches(exclusions, true))
+                if (String.IsNullOrEmpty(kvp.Key) || kvp.Key.AnyWildcardMatches(_ignoredFormFields) || kvp.Key.AnyWildcardMatches(exclusions))
                     continue;
 
                 try {

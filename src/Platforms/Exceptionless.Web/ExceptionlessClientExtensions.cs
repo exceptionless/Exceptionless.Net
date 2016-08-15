@@ -9,6 +9,9 @@ namespace Exceptionless.Web.Extensions {
         private static EventHandler _onHttpApplicationError;
 
         public static void RegisterHttpApplicationErrorHandler(this ExceptionlessClient client, HttpApplication app) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onHttpApplicationError == null)
                 _onHttpApplicationError = (sender, args) => {
                     if (HttpContext.Current == null)
@@ -35,6 +38,9 @@ namespace Exceptionless.Web.Extensions {
         }
 
         public static void UnregisterHttpApplicationErrorExceptionHandler(this ExceptionlessClient client, HttpApplication app) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onHttpApplicationError == null)
                 return;
 

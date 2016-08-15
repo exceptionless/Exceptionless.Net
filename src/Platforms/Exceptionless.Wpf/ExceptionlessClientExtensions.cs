@@ -10,6 +10,9 @@ namespace Exceptionless.Wpf.Extensions {
         private static ThreadExceptionEventHandler _onApplicationThreadException;
 
         public static void RegisterApplicationThreadExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onApplicationThreadException == null)
                 _onApplicationThreadException = (sender, args) => {
                     var contextData = new ContextData();
@@ -28,6 +31,9 @@ namespace Exceptionless.Wpf.Extensions {
         }
 
         public static void UnregisterApplicationThreadExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onApplicationThreadException == null)
                 return;
 
@@ -38,6 +44,9 @@ namespace Exceptionless.Wpf.Extensions {
         private static DispatcherUnhandledExceptionEventHandler _onApplicationDispatcherUnhandledException;
 
         public static void RegisterApplicationDispatcherUnhandledExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (System.Windows.Application.Current == null)
                 return;
             
@@ -48,7 +57,9 @@ namespace Exceptionless.Wpf.Extensions {
                     contextData.SetSubmissionMethod("DispatcherUnhandledException");
 
                     args.Exception.ToExceptionless(contextData, client).Submit();
-                    args.Handled = true;
+
+                    // process queue immediately since the app is about to exit.
+                    client.ProcessQueue();
                 };
 
             try {
@@ -60,6 +71,9 @@ namespace Exceptionless.Wpf.Extensions {
         }
 
         public static void UnregisterApplicationDispatcherUnhandledExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onApplicationDispatcherUnhandledException == null)
                 return;
 

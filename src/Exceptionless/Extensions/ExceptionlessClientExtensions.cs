@@ -16,6 +16,9 @@ namespace Exceptionless {
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="apiKey">The API key that will be used when sending events to the server.</param>
         public static void Startup(this ExceptionlessClient client, string apiKey = null) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (!String.IsNullOrEmpty(apiKey))
                 client.Configuration.ApiKey = apiKey;
             
@@ -45,6 +48,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         public static void Shutdown(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
 #if !PORTABLE && !NETSTANDARD1_2
             client.UnregisterAppDomainUnhandledExceptionHandler();
             client.UnregisterOnProcessExitHandler();
@@ -64,6 +70,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="exception">The unhandled exception.</param>
         public static void SubmitUnhandledException(this ExceptionlessClient client, Exception exception) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             var builder = exception.ToExceptionless(client: client);
             builder.PluginContextData.MarkAsUnhandledError();
             builder.Submit();
@@ -75,6 +84,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="exception">The exception.</param>
         public static void SubmitException(this ExceptionlessClient client, Exception exception) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateException(exception).Submit();
         }
 
@@ -84,6 +96,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="exception">The exception.</param>
         public static EventBuilder CreateException(this ExceptionlessClient client, Exception exception) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return exception.ToExceptionless(client: client);
         }
 
@@ -93,6 +108,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="message">The log message.</param>
         public static void SubmitLog(this ExceptionlessClient client, string message) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateLog(message).Submit();
         }
 
@@ -103,6 +121,9 @@ namespace Exceptionless {
         /// <param name="source">The log source.</param>
         /// <param name="message">The log message.</param>
         public static void SubmitLog(this ExceptionlessClient client, string source, string message) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateLog(source, message).Submit();
         }
 
@@ -114,6 +135,9 @@ namespace Exceptionless {
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
         public static void SubmitLog(this ExceptionlessClient client, string source, string message, string level) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateLog(source, message, level).Submit();
         }
 
@@ -125,6 +149,9 @@ namespace Exceptionless {
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
         public static void SubmitLog(this ExceptionlessClient client, string source, string message, LogLevel level) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateLog(source, message, level.ToString()).Submit();
         }
 
@@ -135,6 +162,9 @@ namespace Exceptionless {
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
         public static void SubmitLog(this ExceptionlessClient client, string message, LogLevel level) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateLog(null, message, level.ToString()).Submit();
         }
 
@@ -144,6 +174,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="message">The log message.</param>
         public static EventBuilder CreateLog(this ExceptionlessClient client, string message) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return client.CreateEvent().SetType(Event.KnownTypes.Log).SetMessage(message);
         }
 
@@ -154,6 +187,9 @@ namespace Exceptionless {
         /// <param name="source">The log source.</param>
         /// <param name="message">The log message.</param>
         public static EventBuilder CreateLog(this ExceptionlessClient client, string source, string message) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return client.CreateLog(message).SetSource(source);
         }
 
@@ -165,6 +201,9 @@ namespace Exceptionless {
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
         public static EventBuilder CreateLog(this ExceptionlessClient client, string source, string message, string level) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             var builder = client.CreateLog(source, message);
 
             if (!String.IsNullOrWhiteSpace(level))
@@ -181,6 +220,9 @@ namespace Exceptionless {
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
         public static EventBuilder CreateLog(this ExceptionlessClient client, string source, string message, LogLevel level) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return CreateLog(client, source, message, level.ToString());
         }
 
@@ -191,6 +233,9 @@ namespace Exceptionless {
         /// <param name="message">The log message.</param>
         /// <param name="level">The log level.</param>
         public static EventBuilder CreateLog(this ExceptionlessClient client, string message, LogLevel level) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return CreateLog(client, null, message, level.ToString());
         }
 
@@ -200,6 +245,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="feature">The name of the feature that was used.</param>
         public static EventBuilder CreateFeatureUsage(this ExceptionlessClient client, string feature) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return client.CreateEvent().SetType(Event.KnownTypes.FeatureUsage).SetSource(feature);
         }
 
@@ -209,6 +257,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="feature">The name of the feature that was used.</param>
         public static void SubmitFeatureUsage(this ExceptionlessClient client, string feature) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateFeatureUsage(feature).Submit();
         }
 
@@ -218,6 +269,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="resource">The name of the resource that was not found.</param>
         public static EventBuilder CreateNotFound(this ExceptionlessClient client, string resource) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return client.CreateEvent().SetType(Event.KnownTypes.NotFound).SetSource(resource);
         }
 
@@ -227,6 +281,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="resource">The name of the resource that was not found.</param>
         public static void SubmitNotFound(this ExceptionlessClient client, string resource) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateNotFound(resource).Submit();
         }
 
@@ -235,6 +292,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         public static EventBuilder CreateSessionStart(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             return client.CreateEvent().SetType(Event.KnownTypes.Session);
         }
 
@@ -243,6 +303,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         public static void SubmitSessionStart(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             client.CreateSessionStart().Submit();
         }
 
@@ -252,6 +315,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="sessionIdOrUserId">The session id or user id.</param>
         public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
             if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
                 return;
@@ -266,6 +332,9 @@ namespace Exceptionless {
         /// <param name="client">The client instance.</param>
         /// <param name="sessionIdOrUserId">The session id or user id.</param>
         public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
             if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
                 return;
@@ -283,6 +352,9 @@ namespace Exceptionless.Extensions {
 #if !PORTABLE && !NETSTANDARD1_2
         private static UnhandledExceptionEventHandler _onAppDomainUnhandledException;
         public static void RegisterAppDomainUnhandledExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onAppDomainUnhandledException == null) {
                 _onAppDomainUnhandledException = (sender, args) => {
                     var exception = args.ExceptionObject as Exception;
@@ -297,6 +369,9 @@ namespace Exceptionless.Extensions {
 
                     // process queue immediately since the app is about to exit.
                     client.ProcessQueue();
+        
+                    if (client.Configuration.SessionsEnabled)
+                        client.SubmitSessionEnd();
                 };
             }
 
@@ -309,6 +384,9 @@ namespace Exceptionless.Extensions {
         }
 
         public static void UnregisterAppDomainUnhandledExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onAppDomainUnhandledException == null)
                 return;
             
@@ -318,10 +396,15 @@ namespace Exceptionless.Extensions {
 
         private static EventHandler _onProcessExit;
         public static void RegisterOnProcessExitHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onProcessExit == null) {
                 _onProcessExit = (sender, args) => {
                     client.ProcessQueue();
-                    client.SubmitSessionEnd();
+
+                    if (client.Configuration.SessionsEnabled)
+                        client.SubmitSessionEnd();
                 };
             }
 
@@ -334,6 +417,9 @@ namespace Exceptionless.Extensions {
         }
 
         public static void UnregisterOnProcessExitHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onProcessExit == null)
                 return;
 
@@ -344,6 +430,9 @@ namespace Exceptionless.Extensions {
 
         private static EventHandler<UnobservedTaskExceptionEventArgs> _onTaskSchedulerOnUnobservedTaskException;
         public static void RegisterTaskSchedulerUnobservedTaskExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onTaskSchedulerOnUnobservedTaskException == null) {
                 _onTaskSchedulerOnUnobservedTaskException = (sender, args) => {
                     var contextData = new ContextData();
@@ -363,6 +452,9 @@ namespace Exceptionless.Extensions {
         }
 
         public static void UnregisterTaskSchedulerUnobservedTaskExceptionHandler(this ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
             if (_onTaskSchedulerOnUnobservedTaskException == null)
                 return;
 

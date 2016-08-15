@@ -289,7 +289,28 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.True(context.Cancel);
         }
+        
+        [Fact (Skip = "There is a bug in the .NET Framework where non thrown exceptions with non custom stack traces cannot be computed #116")]
+        public void CanHandleExceptionWithOverriddenStackTrace() {
+            var client = CreateClient();
+            var plugin = new ErrorPlugin();
+            
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(GetExceptionWithOverriddenStackTrace());
+            plugin.Run(context);
+            Assert.False(context.Cancel);
 
+            var error = context.Event.GetError();
+            Assert.True(error.StackTrace.Count > 0);
+            
+            context.ContextData.SetException(new ExceptionWithOverriddenStackTrace("test"));
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+
+            error = context.Event.GetError();
+            Assert.True(error.StackTrace.Count > 0);
+        }
+        
         [Fact]
         public void HandleAggregateExceptionsPlugin_MultipleInnerException() {
             var submissionClient = new InMemorySubmissionClient();
@@ -703,6 +724,30 @@ namespace Exceptionless.Tests.Plugins {
             Thread.Sleep(50);
             Assert.Equal(9, mergedContext.Event.Count.GetValueOrDefault());
         }
+        
+        [Fact]
+        public void VerifyDeduplicationPluginWillCallSubmittingHandler() {
+            var client = CreateClient();
+            foreach (var plugin in client.Configuration.Plugins)
+                client.Configuration.RemovePlugin(plugin.Key);
+            client.Configuration.AddPlugin(new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(75)));
+
+            int submittingEventHandlerCalls = 0;
+            client.SubmittingEvent += (sender, args) => {
+                Interlocked.Increment(ref submittingEventHandlerCalls);
+            };
+
+            for (int index = 0; index < 3; index++) {
+                client.SubmitLog("test");
+                if (index > 0)
+                    continue;
+
+                Assert.Equal(1, submittingEventHandlerCalls);
+            }
+
+            Thread.Sleep(100);
+            Assert.Equal(2, submittingEventHandlerCalls);
+        }
 
         [Fact]
         public void VerifyDeduplicationMultithreaded() {
@@ -755,6 +800,14 @@ namespace Exceptionless.Tests.Plugins {
                         }
                     }
                 }
+            }
+        }
+
+        private ExceptionWithOverriddenStackTrace GetExceptionWithOverriddenStackTrace(string message = "Test") {
+            try {
+                throw new ExceptionWithOverriddenStackTrace(message);
+            } catch (ExceptionWithOverriddenStackTrace ex) {
+                return ex;
             }
         }
 
@@ -815,6 +868,13 @@ namespace Exceptionless.Tests.Plugins {
             public IDictionary SetsDataProperty { get; set; }
 
             public override IDictionary Data { get { return SetsDataProperty; }  }
+        }
+
+        [Serializable]
+        public class ExceptionWithOverriddenStackTrace : Exception {
+            private readonly string _stackTrace = Environment.StackTrace;
+            public ExceptionWithOverriddenStackTrace(string message) : base(message) { }
+            public override string StackTrace => _stackTrace;
         }
     }
 }

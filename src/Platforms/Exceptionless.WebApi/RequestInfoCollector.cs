@@ -56,7 +56,7 @@ namespace Exceptionless.ExtendedData {
             var d = new Dictionary<string, string>();
 
             foreach (CookieHeaderValue cookie in cookies) {
-                foreach (CookieState innerCookie in cookie.Cookies.Where(k => k != null && !String.IsNullOrEmpty(k.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies, true) && !k.Name.AnyWildcardMatches(exclusions, true))) {
+                foreach (CookieState innerCookie in cookie.Cookies.Where(k => k != null && !String.IsNullOrEmpty(k.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies) && !k.Name.AnyWildcardMatches(exclusions))) {
                     if (!d.ContainsKey(innerCookie.Name))
                         d.Add(innerCookie.Name, innerCookie.Value);
                 }
@@ -70,7 +70,7 @@ namespace Exceptionless.ExtendedData {
 
             var patternsToMatch = exclusions as string[] ?? exclusions.ToArray();
             foreach (string key in values.AllKeys) {
-                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields, true) || key.AnyWildcardMatches(patternsToMatch, true))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(patternsToMatch))
                     continue;
 
                 try {
