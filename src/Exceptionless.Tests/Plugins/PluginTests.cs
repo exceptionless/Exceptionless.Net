@@ -289,9 +289,52 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.True(context.Cancel);
         }
-        
+
+        [Fact]
+        public void HandleAggregateExceptionsPlugin_MultipleInnerException() {
+            var submissionClient = new InMemorySubmissionClient();
+            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
+            client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
+
+            var plugin = new HandleAggregateExceptionsPlugin();
+            var exceptionOne = new Exception("one");
+            var exceptionTwo = new Exception("two");
+
+            var context = new EventPluginContext(client, new Event());
+            context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
+            plugin.Run(context);
+            Assert.True(context.Cancel);
+
+            client.ProcessQueue();
+            Assert.Equal(2, submissionClient.Events.Count);
+        }
+
+        [Fact]
+        public void ErrorPlugin_WillPreserveLineBreaks() {
+            const string message = "Test\r\nLine\r\n\tBreaks";
+
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            var client = CreateClient();
+            foreach (var plugin in errorPlugins) {
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(new NotSupportedException(message));
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                var error = context.Event.GetError();
+                if (error != null)
+                    Assert.Equal(message, error.Message);
+                else
+                    Assert.Equal(message, context.Event.GetSimpleError().Message);
+            }
+        }
+
         [Fact (Skip = "There is a bug in the .NET Framework where non thrown exceptions with non custom stack traces cannot be computed #116")]
-        public void CanHandleExceptionWithOverriddenStackTrace() {
+        public void ErrorPlugin_CanHandleExceptionWithOverriddenStackTrace() {
             var client = CreateClient();
             var plugin = new ErrorPlugin();
             
@@ -311,25 +354,6 @@ namespace Exceptionless.Tests.Plugins {
             Assert.True(error.StackTrace.Count > 0);
         }
         
-        [Fact]
-        public void HandleAggregateExceptionsPlugin_MultipleInnerException() {
-            var submissionClient = new InMemorySubmissionClient();
-            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
-            client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
-            
-            var plugin = new HandleAggregateExceptionsPlugin();
-            var exceptionOne = new Exception("one");
-            var exceptionTwo = new Exception("two");
-            
-            var context = new EventPluginContext(client, new Event());
-            context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
-            plugin.Run(context);
-            Assert.True(context.Cancel);
-
-            client.ProcessQueue();
-            Assert.Equal(2, submissionClient.Events.Count);
-        }
-
         [Fact]
         public void ErrorPlugin_DiscardDuplicates() {
             var errorPlugins = new List<IEventPlugin> {

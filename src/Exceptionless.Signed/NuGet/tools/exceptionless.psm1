@@ -36,6 +36,12 @@ function update_config($configPath, $platform) {
 	$shouldSave = $false
 
 	if ($configXml -ne $null) {
+		$config = $configXml.SelectSingleNode('configuration')
+		if ($config -eq $null) {
+			$configXml.AppendChild($configXml.CreateElement('configuration'))
+			$shouldSave = $true
+		}
+
 		$configSection = $configXml.SelectSingleNode("configuration/configSections/section[@name='exceptionless']")
 		if ($configSection -eq $null) {
 			$parentNode = $configXml.SelectSingleNode("configuration/configSections")
@@ -46,6 +52,7 @@ function update_config($configPath, $platform) {
 					$parentNode = $configXml.SelectSingleNode("configuration").InsertBefore($configXml.CreateElement('configSections'), $configXml.SelectSingleNode("configuration").ChildNodes[0])
 				}
 			}
+
 			$configSection = $configXml.CreateElement('section')
 			$configSection.SetAttribute('name', 'exceptionless')
 			$configSection.SetAttribute('type', 'Exceptionless.ExceptionlessSection, Exceptionless.Signed')
