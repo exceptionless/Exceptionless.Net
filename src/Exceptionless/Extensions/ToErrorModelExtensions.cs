@@ -135,8 +135,7 @@ namespace Exceptionless {
 
         private static string GetMessage(this Exception exception) {
             string defaultMessage = String.Format("Exception of type '{0}' was thrown.", exception.GetType().FullName);
-            string message = !String.IsNullOrEmpty(exception.Message) ? String.Join(" ", exception.Message.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)).Trim() : null;
-
+            string message = !String.IsNullOrEmpty(exception.Message) ? exception.Message.Trim() : null;
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
         }
 
