@@ -7,6 +7,7 @@ using Exceptionless.AspNetCore;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +24,9 @@ namespace Exceptionless {
             
             var diagnosticListener = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
             diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
+
+            var lifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
+            lifetime.ApplicationStopping.Register(() => client.ProcessQueue());
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }
@@ -44,10 +48,10 @@ namespace Exceptionless {
         /// <param name="settings">The configuration settings</param>
         public static void ReadFromConfiguration(this ExceptionlessConfiguration config, IConfiguration settings) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             if (settings == null)
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException(nameof(settings));
 
             var section = settings.GetSection("Exceptionless");
 
