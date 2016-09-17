@@ -203,7 +203,7 @@ namespace Exceptionless {
             _queue.Value.Enqueue(ev);
 
             if (!String.IsNullOrEmpty(ev.ReferenceId)) {
-                _log.Value.FormattedTrace(typeof(ExceptionlessClient), "Setting last reference id '{0}'", ev.ReferenceId);
+                _log.Value.FormattedTrace(typeof(ExceptionlessClient), "Setting last reference id: {0}", ev.ReferenceId);
                 _lastReferenceIdManager.Value.SetLast(ev.ReferenceId);
             }
 

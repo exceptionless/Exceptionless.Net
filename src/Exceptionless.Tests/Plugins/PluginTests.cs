@@ -726,7 +726,7 @@ namespace Exceptionless.Tests.Plugins {
             var errorPlugin = new ErrorPlugin();
 
             EventPluginContext mergedContext = null;
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
                 for (int index = 0; index < 10; index++) {
                     var builder = GetException().ToExceptionless();
                     var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
@@ -745,7 +745,7 @@ namespace Exceptionless.Tests.Plugins {
                 }
             }
 
-            Thread.Sleep(50);
+            Thread.Sleep(100);
             Assert.Equal(9, mergedContext.Event.Count.GetValueOrDefault());
         }
         

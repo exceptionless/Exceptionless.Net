@@ -8,7 +8,7 @@
         }
     },
     "dependencies": {
-        "BenchmarkDotNet": "0.9.8",
+        "BenchmarkDotNet": "0.9.9",
         "Exceptionless": {
             "target": "project"
         },

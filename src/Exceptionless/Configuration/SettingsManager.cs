@@ -71,7 +71,7 @@ namespace Exceptionless.Configuration {
         public static void UpdateSettings(ExceptionlessConfiguration config, int? version = null) {
             if (config == null || !config.IsValid || !config.Enabled)
                 return;
-            
+
             try {
                 if (!version.HasValue || version < 0)
                     version = GetVersion(config);
