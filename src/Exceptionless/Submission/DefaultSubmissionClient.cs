@@ -15,10 +15,10 @@ using Exceptionless.Submission.Net;
 
 namespace Exceptionless.Submission {
     public class DefaultSubmissionClient : ISubmissionClient, IDisposable {
-        private readonly HttpClient _client;
+        private readonly Lazy<HttpClient> _client;
 
         public DefaultSubmissionClient(ExceptionlessConfiguration config) {
-            _client = CreateHttpClient(config.UserAgent);
+            _client = new Lazy<HttpClient>(() => CreateHttpClient(config));
         }
 
         public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
@@ -36,8 +36,8 @@ namespace Exceptionless.Submission {
                 if (data.Length > 1024 * 4)
                     content = new GzipContent(content);
 
-                _client.AddAuthorizationHeader(config.ApiKey);
-                response = _client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
+                _client.Value.AddAuthorizationHeader(config.ApiKey);
+                response = _client.Value.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
             }
@@ -48,7 +48,7 @@ namespace Exceptionless.Submission {
 
             return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
         }
-        
+
         public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             if (!config.IsValid)
                 return new SubmissionResponse(500, message: "Invalid client configuration settings.");
@@ -64,8 +64,8 @@ namespace Exceptionless.Submission {
                 if (data.Length > 1024 * 4)
                     content = new GzipContent(content);
 
-                _client.AddAuthorizationHeader(config.ApiKey);
-                response = _client.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
+                _client.Value.AddAuthorizationHeader(config.ApiKey);
+                response = _client.Value.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 return new SubmissionResponse(500, message: ex.Message);
             }
@@ -85,8 +85,8 @@ namespace Exceptionless.Submission {
 
             HttpResponseMessage response;
             try {
-                _client.AddAuthorizationHeader(config.ApiKey);
-                response = _client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                _client.Value.AddAuthorizationHeader(config.ApiKey);
+                response = _client.Value.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
                 return new SettingsResponse(false, message: message);
@@ -105,22 +105,22 @@ namespace Exceptionless.Submission {
             var settings = serializer.Deserialize<ClientConfiguration>(json);
             return new SettingsResponse(true, settings.Settings, settings.Version);
         }
-        
+
         public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
             if (!config.IsValid)
                 return;
 
             string url = String.Format("{0}/events/session/heartbeat?id={1}&close={2}", GetHeartbeatServiceEndPoint(config), sessionIdOrUserId, closeSession);
             try {
-                _client.AddAuthorizationHeader(config.ApiKey);
-                _client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                _client.Value.AddAuthorizationHeader(config.ApiKey);
+                _client.Value.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();
                 log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()));
             }
         }
 
-        private HttpClient CreateHttpClient(string userAgent) {
+        protected virtual HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
 #if NET45
             var handler = new WebRequestHandler { UseDefaultCredentials = true };
             handler.ServerCertificateValidationCallback = delegate { return true; };
@@ -130,17 +130,19 @@ namespace Exceptionless.Submission {
             //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
 #endif
 #endif
-
             if (handler.SupportsAutomaticDecompression)
                 handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
 
             if (handler.SupportsRedirectConfiguration)
                 handler.AllowAutoRedirect = true;
-            
+
+            if (handler.SupportsProxy && config.Proxy != null)
+                handler.Proxy = config.Proxy;
+
             var client = new HttpClient(handler, true);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.ExpectContinue = false;
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(config.UserAgent);
 
             return client;
         }
@@ -205,7 +207,8 @@ namespace Exceptionless.Submission {
         }
 
         public void Dispose() {
-            _client.Dispose();
+            if (_client.IsValueCreated)
+                _client.Value.Dispose();
         }
     }
 }
