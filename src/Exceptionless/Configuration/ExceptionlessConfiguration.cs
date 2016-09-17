@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
@@ -100,11 +101,6 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Used to identify the client that sent the events to the server.
-        /// </summary>
-        public string UserAgent { get; set; }
-
-        /// <summary>
         /// The API key that will be used when sending events to the server.
         /// </summary>
         public string ApiKey {
@@ -121,6 +117,16 @@ namespace Exceptionless {
                 OnChanged();
             }
         }
+
+        /// <summary>
+        /// Used to identify the client that sent the events to the server.
+        /// </summary>
+        public string UserAgent { get; set; }
+
+        /// <summary>
+        /// Ability to set a custom proxy. By default, .NET will use any system or configuration defined proxy settings.
+        /// </summary>
+        public IWebProxy Proxy { get; set; }
 
         /// <summary>
         /// Whether the client is currently enabled or not. If it is disabled, submitted errors will be discarded and no data will be sent to the server.

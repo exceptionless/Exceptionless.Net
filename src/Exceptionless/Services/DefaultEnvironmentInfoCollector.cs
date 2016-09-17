@@ -24,7 +24,7 @@ namespace Exceptionless.Services {
         public EnvironmentInfo GetEnvironmentInfo() {
             if (_environmentInfo != null) {
                 PopulateThreadInfo(_environmentInfo);
-                PopulateMemoryInfo(_environmentInfo);            
+                PopulateMemoryInfo(_environmentInfo);
                 return _environmentInfo;
             }
 
@@ -178,7 +178,7 @@ namespace Exceptionless.Services {
 #if NETSTANDARD
                 computerInfo = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
 #elif NET45
-                computerInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();                
+                computerInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();
 #endif
             } catch (Exception ex) {
                 _log.FormattedInfo(typeof(DefaultEnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);

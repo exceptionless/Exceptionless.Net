@@ -32,7 +32,7 @@ namespace Exceptionless.Plugins.Default {
         public void Run(EventPluginContext context) {
             int hashCode = context.Event.GetHashCode();
             int count = context.Event.Count ?? 1;
-            context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), String.Concat("Checking event: ", context.Event.Message, " with hash: ", hashCode));
+            context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Checking event: {0} with hash: {1}", context.Event.Message, hashCode);
 
             lock (_lock) {
                 // Increment the occurrence count if the event is already queued for submission.
@@ -40,21 +40,21 @@ namespace Exceptionless.Plugins.Default {
                 if (merged != null) {
                     merged.IncrementCount(count);
                     merged.UpdateDate(context.Event.Date);
-                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Ignoring duplicate event with hash:", hashCode));
+                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Ignoring duplicate event with hash: {0}", hashCode);
                     context.Cancel = true;
                     return;
                 }
 
                 DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
                 if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
-                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Adding event with hash:", hashCode, " to cache."));
+                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Adding event with hash: {0} to cache.", hashCode);
                     // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
                     _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
                     context.Cancel = true;
                     return;
                 }
 
-                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), String.Concat("Enqueueing event with hash:", hashCode, " to cache."));
+                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Enqueueing event with hash: {0} to cache.", hashCode);
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
                 
                 while (_processed.Count > 50)
@@ -116,7 +116,7 @@ namespace Exceptionless.Plugins.Default {
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
 
                 if (!String.IsNullOrEmpty(_context.Event.ReferenceId)) {
-                    _context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Setting last reference id '{0}'", _context.Event.ReferenceId);
+                    _context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Setting last reference id: {0}", _context.Event.ReferenceId);
                     _context.Resolver.GetLastReferenceIdManager().SetLast(_context.Event.ReferenceId);
                 }
 
