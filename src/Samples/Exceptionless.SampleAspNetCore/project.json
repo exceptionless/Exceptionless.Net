@@ -1,4 +1,4 @@
-﻿{
+{
     "buildOptions": {
         "debugType": "portable",
         "emitEntryPoint": true,
@@ -11,9 +11,9 @@
         "Exceptionless.AspNetCore": {
             "target": "project"
         },
-        "Microsoft.AspNetCore.Mvc": "1.0.0",
+        "Microsoft.AspNetCore.Mvc": "1.0.1",
         "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0",
-        "Microsoft.AspNetCore.Server.Kestrel": "1.0.0",
+        "Microsoft.AspNetCore.Server.Kestrel": "1.0.1",
         "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
         "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
         "Microsoft.Extensions.Configuration.Json": "1.0.0",
@@ -22,11 +22,15 @@
         "Microsoft.Extensions.Logging.Debug": "1.0.0",
         "Microsoft.NETCore.App": {
             "type": "platform",
-            "version": "1.0.0"
+            "version": "1.0.1"
         }
     },
     "frameworks": {
         "netcoreapp1.0": {
+            "buildOptions": {
+                "debugType": "portable",
+                "define": [ "NETSTANDARD", "NETSTANDARD1_5" ]
+            },
             "imports": [
                 "dotnet5.6",
                 "portable-net45+win8"
