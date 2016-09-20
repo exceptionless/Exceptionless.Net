@@ -237,7 +237,7 @@ namespace Exceptionless {
         }
 #endif
 
-#if NET45 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if NET45
         public static void UseIsolatedStorageLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
             var log = new SafeExceptionlessLog(new IsolatedStorageFileExceptionlessLog("exceptionless.log")) { MinimumLogLevel = minLogLevel ?? LogLevel.Info };
             config.Resolver.Register<IExceptionlessLog>(log);

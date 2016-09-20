@@ -1,4 +1,4 @@
-﻿#if NET45 || NETSTANDARD1_4 || NETSTANDARD1_5
+﻿#if NET45
 using System;
 using System.IO;
 using System.IO.IsolatedStorage;
