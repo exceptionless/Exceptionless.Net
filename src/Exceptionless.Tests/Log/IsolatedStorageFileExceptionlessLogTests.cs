@@ -3,9 +3,10 @@ using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
+using Xunit;
 
 namespace Exceptionless.Tests.Log {
-    public class IsolatedStorageFileExceptionlessLogTests : FileExceptionlessLogTests {
+    public class IsolatedStorageFileExceptionlessLogTests : FileExceptionlessLogTestBase, IDisposable {
         private readonly IsolatedStorageObjectStorage _storage;
 
         public IsolatedStorageFileExceptionlessLogTests() {
@@ -15,6 +16,31 @@ namespace Exceptionless.Tests.Log {
             _storage = new IsolatedStorageObjectStorage(resolver);
         }
 
+        [Fact]
+        public override void CanWriteToLogFile() {
+            base.CanWriteToLogFile();
+        }
+
+        [Fact]
+        public override void CheckSizeDoesNotFailIfLogIsMissing() {
+            base.CheckSizeDoesNotFailIfLogIsMissing();
+        }
+
+        [Fact]
+        public override void LogFlushTimerWorks() {
+            base.LogFlushTimerWorks();
+        }
+
+        [Fact]
+        public override void LogIsThreadSafe() {
+            base.LogIsThreadSafe();
+        }
+
+        [Fact]
+        public override void LogResetsAfter5mb() {
+            base.LogResetsAfter5mb();
+        }
+        
         protected override FileExceptionlessLog GetLog(string filePath) {
             return new IsolatedStorageFileExceptionlessLog(filePath);
         }
@@ -28,11 +54,8 @@ namespace Exceptionless.Tests.Log {
                 _storage.DeleteObject(path);
         }
 
-        public override void Dispose() {
-            base.Dispose();
-
-            if (_storage != null)
-                _storage.Dispose();
+        public void Dispose() {
+            _storage?.Dispose();
         }
     }
 }

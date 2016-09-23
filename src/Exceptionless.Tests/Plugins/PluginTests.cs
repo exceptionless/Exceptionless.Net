@@ -23,7 +23,7 @@ namespace Exceptionless.Tests.Plugins {
         public PluginTests(ITestOutputHelper output) {
             _writer = new TestOutputWriter(output);
         }
-        
+
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace   });

@@ -103,8 +103,6 @@
                 "System.Reflection.Emit.ILGeneration": "4.0.1",
                 "System.Reflection.Emit.Lightweight": "4.0.1",
                 "System.Runtime.Serialization.Primitives": "4.1.1",
-                "System.Security.AccessControl": "4.0.0",
-                "System.Threading.AccessControl": "4.0.0",
                 "System.Threading.Thread": "4.0.0",
                 "System.Xml.XmlDocument": "4.0.1",
                 "System.Xml.XmlSerializer": "4.0.11"
@@ -134,8 +132,6 @@
                 "System.Reflection.Emit.ILGeneration": "4.0.1",
                 "System.Reflection.Emit.Lightweight": "4.0.1",
                 "System.Runtime.Serialization.Primitives": "4.1.1",
-                "System.Security.AccessControl": "4.0.0",
-                "System.Threading.AccessControl": "4.0.0",
                 "System.Threading.Thread": "4.0.0",
                 "System.Xml.XmlDocument": "4.0.1",
                 "System.Xml.XmlSerializer": "4.0.11"
@@ -165,8 +161,6 @@
                 "System.Reflection.Emit.ILGeneration": "4.0.1",
                 "System.Reflection.Emit.Lightweight": "4.0.1",
                 "System.Runtime.Serialization.Primitives": "4.1.1",
-                "System.Security.AccessControl": "4.0.0",
-                "System.Threading.AccessControl": "4.0.0",
                 "System.Threading.Thread": "4.0.0",
                 "System.Xml.XmlDocument": "4.0.1",
                 "System.Xml.XmlSerializer": "4.0.11"

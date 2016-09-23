@@ -1,146 +1,46 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Exceptionless.Logging;
 using Xunit;
 
 namespace Exceptionless.Tests.Log {
-    public class FileExceptionlessLogTests : IDisposable {
-        protected const string LOG_FILE = "test.log";
-
+    public class FileExceptionlessLogTests : FileExceptionlessLogTestBase {
         [Fact]
-        public void CanWriteToLogFile() {
-            DeleteLog();
-
-            FileExceptionlessLog log = GetLog(LOG_FILE);
-            log.Info("Test");
-            log.Flush();
-
-            Assert.True(LogExists());
-            string contents = log.GetFileContents();
-
-            Assert.Equal("Test\r\n", contents);
-
-            log.Dispose();
+        public override void CanWriteToLogFile() {
+            base.CanWriteToLogFile();
         }
 
         [Fact]
-        public void LogFlushTimerWorks() {
-            DeleteLog();
-
-            FileExceptionlessLog log = GetLog(LOG_FILE);
-            log.Info("Test");
-
-            string contents = log.GetFileContents();
-            Assert.Equal("", contents);
-
-            Thread.Sleep(1010 * 3);
-
-            Assert.True(LogExists());
-            contents = log.GetFileContents();
-
-            Assert.Equal("Test\r\n", contents);
-
-            log.Dispose();
+        public override void CheckSizeDoesNotFailIfLogIsMissing() {
+            base.CheckSizeDoesNotFailIfLogIsMissing();
         }
 
         [Fact]
-        public void LogResetsAfter5mb() {
-            DeleteLog();
-
-            FileExceptionlessLog log = GetLog(LOG_FILE);
-
-            // write 3mb of content to the log
-            for (int i = 0; i < 1024 * 3; i++)
-                log.Info(new string('0', 1024));
-
-            log.Flush();
-            Assert.True(log.GetFileSize() > 1024 * 1024 * 3);
-
-            // force a check file size call
-            log.CheckFileSize();
-
-            // make sure it didn't clear the log
-            Assert.True(log.GetFileSize() > 1024 * 1024 * 3);
-
-            // write another 3mb of content to the log
-            for (int i = 0; i < 1024 * 3; i++)
-                log.Info(new string('0', 1024));
-
-            log.Flush();
-            // force a check file size call
-            log.CheckFileSize();
-
-            // make sure it cleared the log
-            long size = log.GetFileSize();
-
-            // should be 99 lines of text in the file
-            Assert.True(size > 1024 * 99);
-
-            log.Dispose();
+        public override void LogFlushTimerWorks() {
+            base.LogFlushTimerWorks();
         }
 
         [Fact]
-        public void CheckSizeDoesNotFailIfLogIsMissing() {
-            FileExceptionlessLog log = GetLog(LOG_FILE + ".doesnotexist");
-            log.CheckFileSize();
+        public override void LogIsThreadSafe() {
+            base.LogIsThreadSafe();
         }
 
         [Fact]
-        public void LogIsThreadSafe() {
-            DeleteLog();
-
-            FileExceptionlessLog log = GetLog(LOG_FILE);
-
-            // write 3mb of content to the log in multiple threads
-            Parallel.For(0, 1024 * 3, i => log.Info(new string('0', 1024)));
-
-            log.Flush();
-            Assert.True(log.GetFileSize() > 1024 * 1024 * 3);
-
-            // force a check file size call
-            log.CheckFileSize();
-
-            // make sure it didn't clear the log
-            Assert.True(log.GetFileSize() > 1024 * 1024 * 3);
-
-            // write another 3mb of content to the log
-            Parallel.For(0, 1024 * 3, i => log.Info(new string('0', 1024)));
-            log.Flush();
-
-            long size = log.GetFileSize();
-            Console.WriteLine("File: " + size);
-
-            // do the check size while writing to the log from multiple threads
-            Parallel.Invoke(
-                            () => Parallel.For(0, 1024 * 3, i => log.Info(new string('0', 1024))),
-                () => {
-                    Thread.Sleep(10);
-                    log.CheckFileSize();
-                });
-
-            // should be more than 99 lines of text in the file
-            size = log.GetFileSize();
-            Console.WriteLine("File: " + size);
-            Assert.True(size > 1024 * 99);
-
-            log.Dispose();
+        public override void LogResetsAfter5mb() {
+            base.LogResetsAfter5mb();
         }
 
-        protected virtual FileExceptionlessLog GetLog(string filePath) {
+        protected override FileExceptionlessLog GetLog(string filePath) {
             return new FileExceptionlessLog(filePath);
         }
 
-        protected virtual bool LogExists(string path = LOG_FILE) {
+        protected override bool LogExists(string path = LOG_FILE) {
             return File.Exists(path);
         }
 
-        protected virtual void DeleteLog(string path = LOG_FILE) {
+        protected override void DeleteLog(string path = LOG_FILE) {
             if (LogExists(path))
                 File.Delete(path);
         }
-
-        public virtual void Dispose() {}
     }
 }
