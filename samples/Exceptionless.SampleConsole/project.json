@@ -3,8 +3,8 @@
         "compile": {
             "include": [
                 "**/*.cs",
-                "../../GlobalAssemblyInfo.cs",
-                "../../Exceptionless.Tests/Utility/RandomEventGenerator.cs"
+                "../../src/GlobalAssemblyInfo.cs",
+                "../../tests/Exceptionless.Tests/Utility/RandomEventGenerator.cs"
             ],
             "exclude": "store" 
         },
