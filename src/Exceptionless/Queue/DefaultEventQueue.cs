@@ -82,11 +82,11 @@ namespace Exceptionless.Queue {
                             deleteBatch = false;
                         } else if (response.PaymentRequired) {
                             // If the organization over the rate limit then discard the event.
-                            _log.Info(typeof(DefaultEventQueue), "Too many events have been submitted, please upgrade your plan.");
+                            _log.Warn(typeof(DefaultEventQueue), "Too many events have been submitted, please upgrade your plan.");
                             SuspendProcessing(discardFutureQueuedItems: true, clearQueue: true);
                         } else if (response.UnableToAuthenticate) {
                             // The api key was suspended or could not be authorized.
-                            _log.Info(typeof(DefaultEventQueue), "Unable to authenticate, please check your configuration. The event will not be submitted.");
+                            _log.Error(typeof(DefaultEventQueue), "Unable to authenticate, please check your configuration. The event will not be submitted.");
                             SuspendProcessing(TimeSpan.FromMinutes(15));
                         } else if (response.NotFound || response.BadRequest) {
                             // The service end point could not be found.

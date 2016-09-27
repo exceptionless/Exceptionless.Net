@@ -2,7 +2,7 @@
 using Exceptionless.Dependency;
 using Xunit;
 
-namespace Pcl.Tests.Plugins {
+namespace Exceptionless.Tests {
     public class DefaultLastReferenceIdManagerTests {
         [Fact]
         public void VerfiyGetSetAndClear() {

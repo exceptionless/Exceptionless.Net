@@ -2,7 +2,7 @@ using System;
 using Exceptionless;
 using Xunit;
 
-namespace Client.Tests {
+namespace Exceptionless.Tests {
     public class EventBuilderTests {
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
