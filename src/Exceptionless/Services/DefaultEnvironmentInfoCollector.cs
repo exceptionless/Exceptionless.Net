@@ -43,7 +43,7 @@ namespace Exceptionless.Services {
             try {
                 info.Data.Add("AppDomainName", AppDomain.CurrentDomain.FriendlyName);
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
             }
 #endif
 
@@ -53,7 +53,7 @@ namespace Exceptionless.Services {
                 if (hostEntry != null && hostEntry.AddressList.Any())
                     info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get ip address. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
             }
 #endif
         }
@@ -62,7 +62,7 @@ namespace Exceptionless.Services {
             try {
                 info.ProcessorCount = Environment.ProcessorCount;
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get processor count. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get processor count. Error message: {0}", ex.Message);
             }
 
 #if !PORTABLE && !NETSTANDARD1_2
@@ -71,7 +71,7 @@ namespace Exceptionless.Services {
                 info.ProcessName = process.ProcessName;
                 info.ProcessId = process.Id.ToString(NumberFormatInfo.InvariantInfo);
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get process name or id. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process name or id. Error message: {0}", ex.Message);
             }
 
             try {
@@ -81,7 +81,7 @@ namespace Exceptionless.Services {
                 info.CommandLine = Environment.CommandLine;
 #endif
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get command line. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get command line. Error message: {0}", ex.Message);
             }
 #endif
         }
@@ -91,13 +91,13 @@ namespace Exceptionless.Services {
             try {
                 info.ThreadId = Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get thread id. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get thread id. Error message: {0}", ex.Message);
             }
 
             try {
                 info.ThreadName = Thread.CurrentThread.Name;
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get current thread name. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get current thread name. Error message: {0}", ex.Message);
             }
 #endif
         }
@@ -108,7 +108,7 @@ namespace Exceptionless.Services {
                 Process process = Process.GetCurrentProcess();
                 info.ProcessMemorySize = process.PrivateMemorySize64;
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get process memory size. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process memory size. Error message: {0}", ex.Message);
             }
 #endif
 
@@ -128,7 +128,7 @@ namespace Exceptionless.Services {
                     info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
                 }
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get physical memory. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
             }
 #endif
         }
@@ -164,7 +164,7 @@ namespace Exceptionless.Services {
                 info.MachineName = Guid.NewGuid().ToString("N");
 #endif
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get machine name. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
             }
 
 #if !PORTABLE && !NETSTANDARD1_2
@@ -181,7 +181,7 @@ namespace Exceptionless.Services {
                 computerInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();
 #endif
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get computer info. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);
             }
 
 #if NETSTANDARD || NET45
@@ -202,7 +202,7 @@ namespace Exceptionless.Services {
                 info.RuntimeVersion = Environment.Version.ToString();
 #endif
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get populate runtime info. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
             }
 #endif
         }
@@ -246,7 +246,7 @@ namespace Exceptionless.Services {
 
                 return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out is64)) && is64);
             } catch (Exception ex) {
-                _log.FormattedError(typeof(DefaultEnvironmentInfoCollector), ex, "Unable to get CPU architecture. Error message: {0}", ex.Message);
+                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get CPU architecture. Error message: {0}", ex.Message);
             }
 
             return false;

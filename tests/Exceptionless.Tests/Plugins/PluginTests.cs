@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -778,7 +779,7 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             var errorPlugin = new ErrorPlugin();
 
-            List<EventPluginContext> contexts = new List<EventPluginContext>();
+            var contexts = new ConcurrentBag<EventPluginContext>();
             using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(100))) {
                 var result = Parallel.For(0, 10, index => {
                     var builder = GetException().ToExceptionless();
