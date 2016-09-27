@@ -22,13 +22,13 @@ namespace Exceptionless.Tests.Storage {
             Assert.Throws<TimeoutException>(() => LockFile.Acquire("test.lock", TimeSpan.FromSeconds(1)));
         }
 
-        [Fact(Skip = "Test requires 20 seconds to run.")]
+        [Fact]
         public void Acquire() {
             var thread1 = new Thread(s => {
                 _writer.WriteLine("[Thread: {0}] Lock 1 Entry", Thread.CurrentThread.ManagedThreadId);
                 using (var lock1 = LockFile.Acquire("Acquire.lock")) {
                     _writer.WriteLine("[Thread: {0}] Lock 1", Thread.CurrentThread.ManagedThreadId);
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
                 }
             });
             thread1.Start();
@@ -41,7 +41,7 @@ namespace Exceptionless.Tests.Storage {
             });
 
             thread2.Start();
-            Thread.Sleep(TimeSpan.FromSeconds(20));
+            Thread.Sleep(TimeSpan.FromSeconds(5));
         }
     }
 }
