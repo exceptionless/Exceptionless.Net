@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Models;
@@ -10,11 +12,17 @@ using Exceptionless.Submission;
 using Exceptionless.Tests.Utility;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 [assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:45000")]
 [assembly: ExceptionlessSetting("testing", "configuration")]
 namespace Exceptionless.Tests.Configuration {
     public class ConfigurationTests {
+        private readonly TestOutputWriter _writer;
+        public ConfigurationTests(ITestOutputHelper output) {
+            _writer = new TestOutputWriter(output);
+        }
+
         [Fact]
         public void CanConfigureApiKeyFromClientConstructor() {
             var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
@@ -97,6 +105,41 @@ namespace Exceptionless.Tests.Configuration {
             Assert.True(client.Configuration.Settings.ContainsKey("Test"));
             Assert.Equal("2", client.Configuration.Settings["LocalSettingToOverride"]);
             Assert.Equal(2, client.Configuration.Settings.Count);
+        }
+
+        [Fact]
+        public void CanGetSettingsMultithreaded() {
+            var settings = new SettingsDictionary();
+            var result = Parallel.For(0, 20, index => {
+                for (int i = 0; i < 10; i++) {
+                    string key = $"setting-{i}";
+                    if (!settings.ContainsKey(key))
+                        settings.Add(key, (index * i).ToString());
+                    else
+                        settings[key] = (index * i).ToString();
+                }
+            });
+
+            while (!result.IsCompleted)
+                Thread.Sleep(1);
+        }
+
+        [Fact]
+        public void CanGetLogSettingsMultithreaded() {
+            var settings = new SettingsDictionary();
+            settings.Add("@@log:*", "Info");
+            settings.Add("@@log:Source1", "Trace");
+            settings.Add("@@log:Source2", "Debug");
+            settings.Add("@@log:Source3", "Info");
+            settings.Add("@@log:Source4", "Info");
+
+            var result = Parallel.For(0, 100, index => {
+                var level = settings.GetMinLogLevel("Source1");
+                _writer.WriteLine("Source1 log level: {0}", level);
+            });
+
+            while (!result.IsCompleted)
+                Thread.Sleep(1);
         }
     }
 }
