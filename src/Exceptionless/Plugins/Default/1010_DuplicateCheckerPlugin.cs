@@ -47,14 +47,14 @@ namespace Exceptionless.Plugins.Default {
 
                 DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
                 if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
-                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Adding event with hash: {0} to cache.", hashCode);
+                    context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Adding event with hash: {0} to cache.", hashCode);
                     // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
                     _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
                     context.Cancel = true;
                     return;
                 }
 
-                context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Enqueueing event with hash: {0} to cache.", hashCode);
+                context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Enqueueing event with hash: {0} to cache.", hashCode);
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
                 
                 while (_processed.Count > 50)

@@ -1,9 +1,10 @@
 ﻿#if !PORTABLE && !NETSTANDARD1_2
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Exceptionless.Storage;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Logging {
@@ -125,22 +126,24 @@ namespace Exceptionless.Logging {
                 _isFlushing = true;
 
                 Run.WithRetries(() => {
-                    using (new SingleGlobalInstance(FilePath.GetHashCode().ToString(), 500)) {
+                    using (var logFileLock = LockFile.Acquire(FilePath + ".lock", TimeSpan.FromMilliseconds(500))) {
                         bool append = _append || !_firstWrite;
                         _firstWrite = false;
 
                         try {
                             using (var writer = GetWriter(append)) {
-                                while (_buffer.Count > 0) {
-                                    var entry = _buffer.Dequeue();
+                                LogEntry entry;
+                                while (_buffer.TryDequeue(out entry)) {
                                     if (entry != null && entry.LogLevel >= MinimumLogLevel)
                                         writer.Value.WriteLine(entry.Message);
                                 }
                             }
                         } catch (Exception ex) {
                             System.Diagnostics.Trace.TraceError("Unable flush the logs. " + ex.Message);
-                            while (_buffer.Count > 0)
-                                System.Diagnostics.Trace.WriteLine(_buffer.Dequeue());
+                            LogEntry entry;
+                            while (_buffer.TryDequeue(out entry)) {
+                                System.Diagnostics.Trace.WriteLine(entry);
+                            }
                         }
                     }
                 });
@@ -151,17 +154,9 @@ namespace Exceptionless.Logging {
             }
         }
 
-        private readonly Queue<LogEntry> _buffer = new Queue<LogEntry>(1000);
-
+        private readonly ConcurrentQueue<LogEntry> _buffer = new ConcurrentQueue<LogEntry>();
         private void WriteEntry(LogLevel level, string entry) {
-            try {
-                Run.WithRetries(() => {
-                    using (new SingleGlobalInstance(FilePath.GetHashCode().ToString(), 500))
-                        _buffer.Enqueue(new LogEntry(level, entry));
-                });
-            } catch (Exception ex) {
-                System.Diagnostics.Trace.WriteLine("Exceptionless: Error enqueuing log message: {0}", ex.Message);
-            }
+            _buffer.Enqueue(new LogEntry(level, entry));
         }
 
         private DateTime _lastSizeCheck = DateTime.Now;
@@ -177,7 +172,7 @@ namespace Exceptionless.Logging {
             string lastLines = String.Empty;
             try {
                 Run.WithRetries(() => {
-                    using (new SingleGlobalInstance(FilePath.GetHashCode().ToString(), 500)) {
+                    using (var logFileLock = LockFile.Acquire(FilePath + ".lock", TimeSpan.FromMilliseconds(500))) {
                         try {
                             lastLines = GetLastLinesFromFile(FilePath);
                         } catch {}
@@ -193,7 +188,7 @@ namespace Exceptionless.Logging {
             // overwrite the log file and initialize it with the last X lines it had
             try {
                 Run.WithRetries(() => {
-                    using (new SingleGlobalInstance(FilePath.GetHashCode().ToString(), 500)) {
+                    using (var logFileLock = LockFile.Acquire(FilePath + ".lock", TimeSpan.FromMilliseconds(500))) {
                         using (var writer = GetWriter(true))
                             writer.Value.Write(lastLines);
                     }

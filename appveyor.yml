@@ -38,7 +38,7 @@ build_script:
   - ps: .\tools\Build.ps1
 
 test_script:
-  - dotnet test src\Exceptionless.Tests\
+  - dotnet test tests\Exceptionless.Tests\
 
 after_test:
   - ps: .\tools\Package.ps1

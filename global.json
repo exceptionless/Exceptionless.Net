@@ -2,9 +2,10 @@
     "projects": [
         "src",
         "src/Platforms",
-        "src/Samples"
+        "samples",
+        "tests"
     ],
     "sdk": {
-        "version": "1.0.0-preview2-003121"
+        "version": "1.0.0-preview2-003131"
     }
 }

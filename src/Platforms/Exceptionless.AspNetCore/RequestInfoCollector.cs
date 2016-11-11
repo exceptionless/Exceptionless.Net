@@ -43,11 +43,15 @@ namespace Exceptionless.AspNetCore {
             } else if (context.Request.ContentLength.HasValue && context.Request.ContentLength.Value > 0) {
                 if (context.Request.ContentLength.Value < 1024 * 50) {
                     try {
-                        if (context.Request.Body.Position > 0)
+                        if (context.Request.Body.CanSeek && context.Request.Body.Position > 0)
                             context.Request.Body.Position = 0;
 
-                        using (var inputStream = new StreamReader(context.Request.Body))
-                            info.PostData = inputStream.ReadToEnd();
+                        if (context.Request.Body.Position == 0) {
+                            using (var inputStream = new StreamReader(context.Request.Body))
+                                info.PostData = inputStream.ReadToEnd();
+                        } else {
+                            info.PostData = "Unable to get POST data: The stream could not be reset.";
+                        }
                     } catch (Exception ex) {
                         info.PostData = "Error retrieving POST data: " + ex.Message;
                     }

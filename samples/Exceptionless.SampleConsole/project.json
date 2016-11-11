@@ -1,0 +1,35 @@
+{
+    "buildOptions": {
+        "compile": {
+            "include": [
+                "**/*.cs",
+                "../../src/GlobalAssemblyInfo.cs",
+                "../../tests/Exceptionless.Tests/Utility/RandomEventGenerator.cs"
+            ],
+            "exclude": "store"
+        },
+        "emitEntryPoint": true
+    },
+    "dependencies": {
+        "Exceptionless": {
+            "target": "project"
+        },
+        "Exceptionless.DateTimeExtensions": "3.2.55",
+        "Exceptionless.NLog": {
+            "target": "project"
+        },
+        "Exceptionless.RandomData": "1.1.26",
+        "Microsoft.NETCore.App": {
+            "type": "platform",
+            "version": "1.0.1"
+        }
+    },
+    "frameworks": {
+        "netcoreapp1.0": {
+            "buildOptions": {
+                "debugType": "portable",
+                "define": [ "NETSTANDARD", "NETSTANDARD1_5" ]
+            }
+        }
+    }
+}

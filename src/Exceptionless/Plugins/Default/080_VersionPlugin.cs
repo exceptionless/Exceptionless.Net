@@ -42,7 +42,7 @@ namespace Exceptionless.Plugins.Default {
                 var platformService = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
                 return platformService.Application.ApplicationVersion;
             } catch (Exception ex) {
-                log.FormattedInfo(typeof(VersionPlugin), "Unable to get Platform Services instance. Error: {0}", ex.Message);
+                log.FormattedError(typeof(VersionPlugin), ex, "Unable to get Platform Services instance. Error: {0}", ex.Message);
             }
 #endif
             return null;
@@ -69,7 +69,7 @@ namespace Exceptionless.Plugins.Default {
                         return version;
                 }
             } catch (Exception ex) {
-                log.FormattedInfo(typeof(VersionPlugin), "Unable to get version from loaded assemblies. Error: {0}", ex.Message);
+                log.FormattedError(typeof(VersionPlugin), ex, "Unable to get version from loaded assemblies. Error: {0}", ex.Message);
             }
 
             return null;
