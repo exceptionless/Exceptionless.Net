@@ -88,9 +88,10 @@ namespace Exceptionless.Extensions {
 
         public static void ReleaseStaleLocks(this IObjectStorage storage, string queueName, TimeSpan? maxLockAge = null) {
             if (!maxLockAge.HasValue)
-                maxLockAge = TimeSpan.FromMinutes(60);
+                maxLockAge = TimeSpan.FromHours(1);
 
-            foreach (var file in storage.GetObjectList(Path.Combine(queueName, "q", "*.x"), 500).ToList().Where(f => f.Modified < DateTime.Now.Subtract(maxLockAge.Value)))
+            var files = storage.GetObjectList(Path.Combine(queueName, "q", "*.x"), 500).ToList();
+            foreach (var file in files.Where(f => f.Modified < DateTime.Now.Subtract(maxLockAge.Value)))
                 storage.ReleaseFile(file);
         }
 
