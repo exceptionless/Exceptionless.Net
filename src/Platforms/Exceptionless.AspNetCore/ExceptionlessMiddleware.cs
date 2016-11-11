@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Exceptionless;
 using Exceptionless.Plugins;
 
 namespace Exceptionless.AspNetCore {
@@ -13,7 +12,7 @@ namespace Exceptionless.AspNetCore {
             _client = client ?? ExceptionlessClient.Default;
             _next = next;
         }
-        
+
         public async Task Invoke(HttpContext context) {
             try {
                 await _next(context);
@@ -25,6 +24,11 @@ namespace Exceptionless.AspNetCore {
 
                 ex.ToExceptionless(contextData, _client).Submit();
                 throw;
+            }
+
+            if (context.Response?.StatusCode == 404) {
+                string path = context.Request.Path.HasValue ? context.Request.Path.Value : "/";
+                _client.CreateNotFound(path).AddRequestInfo(context).Submit();
             }
         }
     }

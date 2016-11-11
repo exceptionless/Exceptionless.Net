@@ -15,7 +15,7 @@ namespace Exceptionless.AspNetCore {
             var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
             if (context.Client.Configuration.IncludePrivateInformation)
                 AddUser(context, httpContext, serializer);
-            
+
             if (httpContext == null)
                 return;
 

@@ -14,7 +14,7 @@ namespace Exceptionless.AspNetCore {
         public static RequestInfo Collect(HttpContext context, IEnumerable<string> exclusions) {
             if (context == null)
                 return null;
-            
+
             var info = new RequestInfo {
                 ClientIpAddress = context.GetClientIpAddress(),
                 HttpMethod = context.Request.Method,
@@ -89,7 +89,7 @@ namespace Exceptionless.AspNetCore {
 
         private static Dictionary<string, string> ToDictionary(this IEnumerable<KeyValuePair<string, StringValues>> values, IEnumerable<string> exclusions) {
             var d = new Dictionary<string, string>();
-            
+
             foreach (var kvp in values) {
                 if (String.IsNullOrEmpty(kvp.Key) || kvp.Key.AnyWildcardMatches(_ignoredFormFields) || kvp.Key.AnyWildcardMatches(exclusions))
                     continue;

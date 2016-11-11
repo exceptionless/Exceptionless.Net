@@ -18,7 +18,7 @@ namespace Exceptionless {
         public ContextData PluginContextData { get; private set; }
 
         public ExceptionlessClient Client { get; set; }
-        
+
         public Event Target { get; private set; }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Exceptionless {
             Target.Source = source;
             return this;
         }
-        
+
         /// <summary>
         /// Sets the event reference id.
         /// </summary>
@@ -57,7 +57,7 @@ namespace Exceptionless {
             Target.SetEventReference(name, id);
             return this;
         }
-        
+
         /// <summary>
         /// Sets the event message.
         /// </summary>
@@ -132,7 +132,7 @@ namespace Exceptionless {
         public EventBuilder AddObject(object data, string name = null, int? maxDepth = null, ICollection<string> excludedPropertyNames = null, bool ignoreSerializationErrors = false) {
             if (data != null)
                 Target.AddObject(data, name, maxDepth, excludedPropertyNames, ignoreSerializationErrors);
-            
+
             return this;
         }
 

@@ -35,7 +35,7 @@ namespace Exceptionless.Plugins.Default {
                 context.Cancel = true;
                 return;
             }
-            
+
             try {
                 var exception = context.ContextData.GetException();
                 while (exception != null) {

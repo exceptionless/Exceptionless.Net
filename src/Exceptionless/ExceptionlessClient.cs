@@ -169,7 +169,7 @@ namespace Exceptionless {
                 _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The event will not be submitted.");
                 return;
             }
-            
+
             if (!Configuration.IsValid) {
                 _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Configuration is invalid: {0}. The event will not be submitted.", String.Join(", ", Configuration.Validate().Messages));
                 return;
