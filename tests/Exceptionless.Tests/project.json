@@ -8,7 +8,7 @@
         }
     },
     "dependencies": {
-        "BenchmarkDotNet": "0.9.9",
+        "BenchmarkDotNet": "0.10.0",
         "Exceptionless": {
             "target": "project"
         },
@@ -18,7 +18,7 @@
         "xunit.extensibility.core": "2.2.0-beta2-build3300",
         "xunit.extensibility.execution": "2.2.0-beta2-build3300",
         "xunit.runner.visualstudio": "2.2.0-beta2-build1149",
-        "Exceptionless.RandomData": "1.1.24"
+        "Exceptionless.RandomData": "1.1.26"
     },
     "frameworks": {
         //"netcoreapp1.0": {

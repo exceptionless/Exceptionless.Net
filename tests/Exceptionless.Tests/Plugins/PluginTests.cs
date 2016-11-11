@@ -68,7 +68,7 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.Equal(1, context.Event.Data.Count);
             Assert.Equal("Test", context.Event.Data["Message"]);
-            
+
             client.Configuration.AddDataExclusions("Ignore*");
             client.Configuration.DefaultData.Add("Ignored", "Test");
             plugin.Run(context);
@@ -119,12 +119,12 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal("blake", context.Event.GetUserIdentity().Identity);
             Assert.Equal("blake", context.Event.GetUserIdentity(serializer).Identity);
             Assert.Equal("1.0", context.Event.Data[Event.KnownDataKeys.Version]);
-            
+
             context.Event.SetUserIdentity(new UserInfo("blake"));
             Assert.Equal("blake", context.Event.GetUserIdentity().Identity);
             Assert.Equal("blake", context.Event.GetUserIdentity(serializer).Identity);
         }
-        
+
         [Fact]
         public void EventExclusionPlugin_EventExclusions() {
             var client = CreateClient();
@@ -132,12 +132,12 @@ namespace Exceptionless.Tests.Plugins {
 
             // ignore any event that has a value of 2
             client.Configuration.AddEventExclusion(e => e.Value.GetValueOrDefault() != 2);
-            
+
             var ev = new Event { Value = 1 };
             var context = new EventPluginContext(client, ev);
             plugin.Run(context);
             Assert.False(context.Cancel);
-            
+
             ev.Value = 2;
             context = new EventPluginContext(client, ev);
             plugin.Run(context);
@@ -165,7 +165,7 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             if (settingKey != null)
                 client.Configuration.Settings.Add(settingKey, settingValue);
-            
+
             var ev = new Event { Type = Event.KnownTypes.Log, Source = source };
             if (!String.IsNullOrEmpty(level))
                 ev.SetProperty(Event.KnownDataKeys.Level, level);
@@ -232,7 +232,7 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             if (settingKey != null)
                 client.Configuration.Settings.Add(settingKey, Boolean.FalseString);
-            
+
             var plugin = new EventExclusionPlugin();
             var context = new EventPluginContext(client, new Event());
             context.ContextData.SetException(GetException());
@@ -243,7 +243,7 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.Equal(cancelled, context.Cancel);
         }
-        
+
         [Fact]
         public void IgnoreUserAgentPlugin_DiscardBot() {
             var client = CreateClient();
@@ -270,7 +270,7 @@ namespace Exceptionless.Tests.Plugins {
         public void HandleAggregateExceptionsPlugin_SingleInnerException() {
             var client = CreateClient();
             var plugin = new HandleAggregateExceptionsPlugin();
-            
+
             var exceptionOne = new Exception("one");
             var exceptionTwo = new Exception("two");
 
@@ -278,7 +278,7 @@ namespace Exceptionless.Tests.Plugins {
             context.ContextData.SetException(exceptionOne);
             plugin.Run(context);
             Assert.False(context.Cancel);
-            
+
             context = new EventPluginContext(client, new Event());
             context.ContextData.SetException(new AggregateException(exceptionOne));
             plugin.Run(context);
@@ -338,7 +338,7 @@ namespace Exceptionless.Tests.Plugins {
         public void ErrorPlugin_CanHandleExceptionWithOverriddenStackTrace() {
             var client = CreateClient();
             var plugin = new ErrorPlugin();
-            
+
             var context = new EventPluginContext(client, new Event());
             context.ContextData.SetException(GetExceptionWithOverriddenStackTrace());
             plugin.Run(context);
@@ -346,7 +346,7 @@ namespace Exceptionless.Tests.Plugins {
 
             var error = context.Event.GetError();
             Assert.True(error.StackTrace.Count > 0);
-            
+
             context.ContextData.SetException(new ExceptionWithOverriddenStackTrace("test"));
             plugin.Run(context);
             Assert.False(context.Cancel);
@@ -354,7 +354,7 @@ namespace Exceptionless.Tests.Plugins {
             error = context.Event.GetError();
             Assert.True(error.StackTrace.Count > 0);
         }
-        
+
         [Fact]
         public void ErrorPlugin_DiscardDuplicates() {
             var errorPlugins = new List<IEventPlugin> {
@@ -381,7 +381,7 @@ namespace Exceptionless.Tests.Plugins {
                 context.ContextData.SetException(exception);
                 plugin.Run(context);
                 Assert.True(context.Cancel);
-                
+
                 error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
                 Assert.Null(error);
             }
@@ -439,7 +439,7 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal(processedDataItemCount, error.Data.Count);
             }
         }
-        
+
         [Fact]
         public void ErrorPlugin_CopyExceptionDataToRootErrorData() {
             var errorPlugins = new List<IEventPlugin> {
@@ -455,7 +455,7 @@ namespace Exceptionless.Tests.Plugins {
                         { "test", "test".GetType().Name },
                         { Guid.NewGuid(), typeof(Guid).Name },
                         { false, typeof(bool).Name }
-                    } 
+                    }
                 };
 
                 var client = CreateClient();
@@ -476,7 +476,7 @@ namespace Exceptionless.Tests.Plugins {
                 IgnoredProperty = "Test",
                 RandomValue = "Test"
             };
-            
+
             var errorPlugins = new List<IEventPlugin> {
                 new ErrorPlugin(),
                 new SimpleErrorPlugin()
@@ -506,7 +506,7 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal("{\"RandomValue\":\"Test\"}", json);
             }
         }
-        
+
         [Fact]
         public void CanAddPluginConcurrently() {
             var client = CreateClient();
@@ -542,7 +542,7 @@ namespace Exceptionless.Tests.Plugins {
         public void EnvironmentInfo_ShouldAddSessionStart() {
             var client = CreateClient();
             var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Session });
-         
+
             var plugin = new EnvironmentInfoPlugin();
             plugin.Run(context);
             Assert.Equal(1, context.Event.Data.Count);
@@ -591,7 +591,7 @@ namespace Exceptionless.Tests.Plugins {
             var user = context.Event.GetUserIdentity();
             Assert.Equal(Environment.UserName, user.Identity);
         }
-        
+
         [Fact]
         public void PrivateInformation_WillNotUpdateIdentity() {
             var client = CreateClient();
@@ -623,7 +623,7 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.Equal(cancelled, context.Cancel);
         }
-        
+
         [Fact]
         public void LazyLoadAndRemovePlugin() {
             var configuration = new ExceptionlessConfiguration(DependencyResolver.Default);
@@ -640,7 +640,7 @@ namespace Exceptionless.Tests.Plugins {
             }
 
             public void Run(EventPluginContext context) {}
-            
+
             public void Dispose() {
                 throw new Exception("Plugin shouldn't be created or disposed");
             }
@@ -685,7 +685,7 @@ namespace Exceptionless.Tests.Plugins {
             public void Run(EventPluginContext context) {
                 RunCount++;
             }
-            
+
             public void Dispose() {
                 DisposeCount++;
             }
@@ -749,7 +749,7 @@ namespace Exceptionless.Tests.Plugins {
             Thread.Sleep(100);
             Assert.Equal(9, mergedContext.Event.Count.GetValueOrDefault());
         }
-        
+
         [Fact]
         public void VerifyDeduplicationPluginWillCallSubmittingHandler() {
             var client = CreateClient();
@@ -860,7 +860,7 @@ namespace Exceptionless.Tests.Plugins {
                 _writer.WriteLine(report.ToString());
 
                 var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
-                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.Benchmark.ShortInfo, benchmarkMedianMilliseconds));
+                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.Benchmark.DisplayInfo, benchmarkMedianMilliseconds));
             }
         }
 
@@ -880,7 +880,7 @@ namespace Exceptionless.Tests.Plugins {
         private struct TestStruct {
             public int Id { get; set; }
         }
-        
+
         public class MyApplicationException : Exception {
             public MyApplicationException(string message) : base(message) {
                 SetsDataProperty = Data;
@@ -889,7 +889,7 @@ namespace Exceptionless.Tests.Plugins {
             public string IgnoredProperty { get; set; }
 
             public string RandomValue { get; set; }
-            
+
             public IDictionary SetsDataProperty { get; set; }
 
             public override IDictionary Data { get { return SetsDataProperty; }  }

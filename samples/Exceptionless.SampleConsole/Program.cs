@@ -44,7 +44,7 @@ namespace Exceptionless.SampleConsole {
 
         public static void Main(string[] args) {
             Console.CursorVisible = false;
-            if (!Console.IsInputRedirected) 
+            if (!Console.IsInputRedirected)
                 StartDisplayingLogMessages();
 
             ExceptionlessClient.Default.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
@@ -55,7 +55,7 @@ namespace Exceptionless.SampleConsole {
 
             if (ExceptionlessClient.Default.Configuration.Settings.GetBoolean("EnableWelcomeMessage", false))
                 Console.WriteLine($"Hello {Environment.MachineName}!");
-            
+
             // Test NLog
             GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
             Log.Info()

@@ -120,7 +120,7 @@ namespace Exceptionless {
         public static void ApplySavedServerSettings(this ExceptionlessConfiguration config) {
             SettingsManager.ApplySavedServerSettings(config);
         }
-        
+
         /// <summary>
         /// Automatically set a reference id for error events.
         /// </summary>
@@ -130,7 +130,7 @@ namespace Exceptionless {
 
 
         /// <summary>
-        /// Reads the <see cref="ExceptionlessAttribute" /> and <see cref="ExceptionlessSettingAttribute" /> 
+        /// Reads the <see cref="ExceptionlessAttribute" /> and <see cref="ExceptionlessSettingAttribute" />
         /// from the passed in assembly.
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
@@ -143,7 +143,7 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Reads the <see cref="ExceptionlessAttribute" /> and <see cref="ExceptionlessSettingAttribute" /> 
+        /// Reads the <see cref="ExceptionlessAttribute" /> and <see cref="ExceptionlessSettingAttribute" />
         /// from the passed in assemblies.
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
@@ -167,7 +167,7 @@ namespace Exceptionless {
                     var attr = assembly.GetCustomAttributes(typeof(ExceptionlessAttribute)).FirstOrDefault() as ExceptionlessAttribute;
                     if (attr == null)
                         continue;
-                    
+
                     if (!attr.Enabled)
                         config.Enabled = false;
 
@@ -223,7 +223,7 @@ namespace Exceptionless {
         public static void UseFolderStorage(this ExceptionlessConfiguration config, string folder) {
             config.Resolver.Register<IObjectStorage>(new FolderObjectStorage(config.Resolver, folder));
         }
-        
+
         public static void UseTraceLogEntriesPlugin(this ExceptionlessConfiguration config, int? defaultMaxEntriesToInclude = null) {
             int maxEntriesToInclude = config.Settings.GetInt32(TraceLogPlugin.MaxEntriesToIncludeKey, defaultMaxEntriesToInclude ?? 0);
 
@@ -289,10 +289,10 @@ namespace Exceptionless {
 
             if (!section.Enabled)
                 config.Enabled = false;
-            
+
             if (IsValidApiKey(section.ApiKey))
                 config.ApiKey = section.ApiKey;
-            
+
             if (!String.IsNullOrEmpty(section.ServerUrl))
                 config.ServerUrl = section.ServerUrl;
 
@@ -371,7 +371,7 @@ namespace Exceptionless {
             bool enabled;
             if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled) && !enabled)
                 config.Enabled = false;
-            
+
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
@@ -391,18 +391,18 @@ namespace Exceptionless {
             bool enabled;
             if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out enabled) && !enabled)
                 config.Enabled = false;
-            
+
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl") ?? GetEnvironmentalVariable("Exceptionless__ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
         }
-        
+
         private static Dictionary<string, string> _environmentVariables;
 
         private static string GetEnvironmentalVariable(string name) {
             if (String.IsNullOrEmpty(name))
                 return null;
-            
+
             if (_environmentVariables == null) {
                 try {
                     _environmentVariables = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().ToDictionary(e => e.Key.ToString(), e => e.Value.ToString());
@@ -411,7 +411,7 @@ namespace Exceptionless {
                     return null;
                 }
             }
-            
+
             if (!_environmentVariables.ContainsKey(name))
                 return null;
 

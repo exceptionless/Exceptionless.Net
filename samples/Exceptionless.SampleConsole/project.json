@@ -6,7 +6,7 @@
                 "../../src/GlobalAssemblyInfo.cs",
                 "../../tests/Exceptionless.Tests/Utility/RandomEventGenerator.cs"
             ],
-            "exclude": "store" 
+            "exclude": "store"
         },
         "emitEntryPoint": true
     },
@@ -14,11 +14,11 @@
         "Exceptionless": {
             "target": "project"
         },
-        "Exceptionless.DateTimeExtensions": "3.2.53",
+        "Exceptionless.DateTimeExtensions": "3.2.55",
         "Exceptionless.NLog": {
             "target": "project"
         },
-        "Exceptionless.RandomData": "1.1.24",
+        "Exceptionless.RandomData": "1.1.26",
         "Microsoft.NETCore.App": {
             "type": "platform",
             "version": "1.0.1"

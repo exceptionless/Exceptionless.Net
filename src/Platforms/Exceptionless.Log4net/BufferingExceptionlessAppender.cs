@@ -17,7 +17,7 @@ namespace Exceptionless.Log4net {
 
         public override void ActivateOptions() {
             base.ActivateOptions();
-            
+
             if (String.IsNullOrEmpty(ApiKey) && String.IsNullOrEmpty(ServerUrl))
                 return;
 
