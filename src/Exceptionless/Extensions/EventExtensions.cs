@@ -68,7 +68,7 @@ namespace Exceptionless {
         public static bool IsFeatureUsage(this Event ev) {
             return ev.Type == Event.KnownTypes.FeatureUsage;
         }
-        
+
         /// <summary>
         /// Returns true if the event type is session start.
         /// </summary>
@@ -85,7 +85,7 @@ namespace Exceptionless {
 
             ev.Data[Event.KnownDataKeys.RequestInfo] = request;
         }
-        
+
         /// <summary>
         /// Sets the version that the event happened on.
         /// </summary>
@@ -97,14 +97,14 @@ namespace Exceptionless {
 
             ev.Data[Event.KnownDataKeys.Version] = version.Trim();
         }
-        
+
         /// <summary>
         /// Gets the user info object from extended data.
         /// </summary>
         public static UserInfo GetUserIdentity(this Event ev, IJsonSerializer serializer = null) {
             return ev.GetDataValue<UserInfo>(Event.KnownDataKeys.UserInfo, serializer);
         }
-        
+
         /// <summary>
         /// Sets the user's identity (ie. email address, username, user id) that the event happened to.
         /// </summary>
@@ -187,7 +187,7 @@ namespace Exceptionless {
             else
                 throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
         }
-        
+
         /// <summary>
         /// Sets the event geo coordinates.
         /// </summary>
@@ -312,7 +312,7 @@ namespace Exceptionless {
         public static void SetManualStackingKey(this Event ev, string title, string manualStackingKey) {
             if (String.IsNullOrWhiteSpace(title) || String.IsNullOrWhiteSpace(manualStackingKey))
                 return;
-            
+
             ev.Data[Event.KnownDataKeys.ManualStackingInfo] = new ManualStackingInfo(title, new Dictionary<string, string> { { "ManualStackingKey", manualStackingKey } });
         }
 

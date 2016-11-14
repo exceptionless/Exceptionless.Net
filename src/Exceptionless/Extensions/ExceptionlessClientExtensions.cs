@@ -11,7 +11,7 @@ using Exceptionless.Submission;
 namespace Exceptionless {
     public static class ExceptionlessClientExtensions {
         /// <summary>
-        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="apiKey">The API key that will be used when sending events to the server.</param>
@@ -21,7 +21,7 @@ namespace Exceptionless {
 
             if (!String.IsNullOrEmpty(apiKey))
                 client.Configuration.ApiKey = apiKey;
-            
+
             client.Configuration.ReadAllConfig();
 
 #if !PORTABLE && !NETSTANDARD1_2
@@ -38,7 +38,7 @@ namespace Exceptionless {
             client.RegisterOnProcessExitHandler();
 #endif
             client.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
-            
+
             if (client.Configuration.SessionsEnabled)
                 client.SubmitSessionStart();
         }
@@ -56,12 +56,12 @@ namespace Exceptionless {
             client.UnregisterOnProcessExitHandler();
 #endif
             client.UnregisterTaskSchedulerUnobservedTaskExceptionHandler();
-            
+
             client.ProcessQueue();
             if (client.Configuration.SessionsEnabled)
                 client.SubmitSessionEnd();
         }
-        
+
 #region Submission Extensions
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace Exceptionless.Extensions {
 
                     // process queue immediately since the app is about to exit.
                     client.ProcessQueue();
-        
+
                     if (client.Configuration.SessionsEnabled)
                         client.SubmitSessionEnd();
                 };
@@ -389,7 +389,7 @@ namespace Exceptionless.Extensions {
 
             if (_onAppDomainUnhandledException == null)
                 return;
-            
+
             AppDomain.CurrentDomain.UnhandledException -= _onAppDomainUnhandledException;
             _onAppDomainUnhandledException = null;
         }

@@ -18,7 +18,7 @@ namespace Exceptionless.Web {
             // if the context is not passed in, try and grab it
             if (httpContext == null && HttpContext.Current != null)
                 httpContext = HttpContext.Current.ToWrapped();
-            
+
             var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
             if (context.Client.Configuration.IncludePrivateInformation)
                 AddUser(context, httpContext, serializer);
@@ -29,7 +29,7 @@ namespace Exceptionless.Web {
             var tags = httpContext.Items[TAGS_HTTP_CONTEXT_NAME] as TagSet;
             if (tags != null)
                 context.Event.Tags.UnionWith(tags);
-            
+
             var ri = context.Event.GetRequestInfo(serializer);
             if (ri != null)
                 return;
@@ -43,16 +43,21 @@ namespace Exceptionless.Web {
             if (ri == null)
                 return;
 
-            var httpException = context.ContextData.GetException() as HttpException;
-            if (httpException != null) {
-                int httpCode = httpException.GetHttpCode();
-                if (httpCode == 404) {
-                    context.Event.Type = Event.KnownTypes.NotFound;
-                    context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-                }
-            }
-
             context.Event.AddRequestInfo(ri);
+            var httpException = context.ContextData.GetException() as HttpException;
+            if (httpException == null)
+                return;
+
+            int httpCode = httpException.GetHttpCode();
+            if (httpCode != 404)
+                return;
+
+            context.Event.Type = Event.KnownTypes.NotFound;
+            context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+            if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(context.Event.Type, context.Event.Source)) {
+                context.Log.Info(String.Format("Cancelling event from excluded type: {0} and source: {1}", context.Event.Type, context.Event.Source));
+                context.Cancel = true;
+            }
         }
 
         private static void AddUser(EventPluginContext context, HttpContextBase httpContext, IJsonSerializer serializer) {
