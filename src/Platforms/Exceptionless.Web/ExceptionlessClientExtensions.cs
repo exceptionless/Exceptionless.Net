@@ -37,7 +37,7 @@ namespace Exceptionless.Web.Extensions {
             }
         }
 
-        public static void UnregisterHttpApplicationErrorExceptionHandler(this ExceptionlessClient client, HttpApplication app) {
+        public static void UnregisterHttpApplicationErrorHandler(this ExceptionlessClient client, HttpApplication app) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 

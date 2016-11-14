@@ -17,7 +17,7 @@ namespace Exceptionless.Mvc {
             ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
             ExceptionlessClient.Default.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
-            
+
             _app = app;
 
             if (!GlobalFilters.Filters.Any(f => f.Instance is ExceptionlessSendErrorsAttribute))
@@ -26,7 +26,7 @@ namespace Exceptionless.Mvc {
 
         public void Dispose() {
             ExceptionlessClient.Default.Shutdown();
-            ExceptionlessClient.Default.RegisterHttpApplicationErrorHandler(_app);
+            ExceptionlessClient.Default.UnregisterHttpApplicationErrorHandler(_app);
         }
     }
 }
