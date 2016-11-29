@@ -37,13 +37,17 @@ namespace Exceptionless.WebApi {
             if (ri == null)
                 return;
 
-            var error = context.Event.GetError(serializer);
-            if (error != null && error.Code == "404") {
-                context.Event.Type = Event.KnownTypes.NotFound;
-                context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
-            }
-
             context.Event.AddRequestInfo(ri);
+            var error = context.Event.GetError(serializer);
+            if (error == null || error.Code != "404")
+                return;
+
+            context.Event.Type = Event.KnownTypes.NotFound;
+            context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+            if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(context.Event.Type, context.Event.Source)) {
+                context.Log.Info(String.Format("Cancelling event from excluded type: {0} and source: {1}", context.Event.Type, context.Event.Source));
+                context.Cancel = true;
+            }
         }
 
         private static void AddUser(EventPluginContext context, HttpActionContext actionContext, IJsonSerializer serializer) {

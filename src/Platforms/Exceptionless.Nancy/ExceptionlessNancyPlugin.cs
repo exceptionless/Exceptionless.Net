@@ -18,20 +18,25 @@ namespace Exceptionless.Nancy {
             if (nancyContext.CurrentUser != null && context.Client.Configuration.IncludePrivateInformation)
                 context.Event.SetUserIdentity(nancyContext.CurrentUser.UserName);
 
-            RequestInfo requestInfo = null;
+            RequestInfo ri = null;
             try {
-                requestInfo = nancyContext.GetRequestInfo(context.Client.Configuration);
+                ri = nancyContext.GetRequestInfo(context.Client.Configuration);
             } catch (Exception ex) {
                 context.Log.Error(typeof(ExceptionlessNancyPlugin), ex, "Error adding request info.");
             }
 
-            if (requestInfo == null)
+            if (ri == null)
                 return;
 
-            if (context.Event.Type == Event.KnownTypes.NotFound)
-                context.Event.Source = requestInfo.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+            context.Event.AddRequestInfo(ri);
+            if (context.Event.Type != Event.KnownTypes.NotFound)
+                return;
 
-            context.Event.AddRequestInfo(requestInfo);
+            context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
+            if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(context.Event.Type, context.Event.Source)) {
+                context.Log.Info(String.Format("Cancelling event from excluded type: {0} and source: {1}", context.Event.Type, context.Event.Source));
+                context.Cancel = true;
+            }
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Exceptionless {
             client.Configuration.AddPlugin<ExceptionlessAspNetCorePlugin>();
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
-            
+
             var diagnosticListener = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
             diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
 

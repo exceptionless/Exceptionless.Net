@@ -14,13 +14,13 @@ namespace Exceptionless.Web {
             ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
             ExceptionlessClient.Default.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
-            
+
             _app = app;
         }
 
         public void Dispose() {
             ExceptionlessClient.Default.Shutdown();
-            ExceptionlessClient.Default.UnregisterHttpApplicationErrorExceptionHandler(_app);
+            ExceptionlessClient.Default.UnregisterHttpApplicationErrorHandler(_app);
         }
     }
 }
