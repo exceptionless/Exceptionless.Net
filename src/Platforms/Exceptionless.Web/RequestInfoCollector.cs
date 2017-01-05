@@ -132,7 +132,7 @@ namespace Exceptionless.ExtendedData {
             string clientIp = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
             if (string.IsNullOrEmpty(clientIp))
             {
-                clientIp = context.Request.ServerVariables["REMOTE_ADDR"];
+                clientIp = context.Request.UserHostAddress;
             }
             return clientIp;
         }
