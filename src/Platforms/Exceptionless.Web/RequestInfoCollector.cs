@@ -24,7 +24,7 @@ namespace Exceptionless.ExtendedData {
             };
 
             try {
-                info.ClientIpAddress = context.Request.UserHostAddress;
+                info.ClientIpAddress = GetUserIPAddress(context);
             } catch (ArgumentException ex) {
                 config.Resolver.GetLog().Error(ex, "An error occurred while setting the Client Ip Address.");
             }
@@ -125,6 +125,16 @@ namespace Exceptionless.ExtendedData {
             }
 
             return d;
+        }
+
+        private static string GetUserIPAddress(HttpContextBase context)
+        {
+            string clientIp = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (string.IsNullOrEmpty(clientIp))
+            {
+                clientIp = context.Request.UserHostAddress;
+            }
+            return clientIp;
         }
     }
 }
