@@ -198,15 +198,15 @@ namespace Exceptionless.Services {
 #elif NET45
                 info.OSName = computerInfo.OSFullName;
                 info.OSVersion = computerInfo.OSVersion;
-                info.Architecture = Is64BitOperatingSystem() ? "x64" : "x86";
                 info.RuntimeVersion = Environment.Version.ToString();
+                info.Architecture = Is64BitOperatingSystem() ? "x64" : "x86";
 #endif
             } catch (Exception ex) {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
             }
 #endif
         }
-        
+
 #if NETSTANDARD
         private string GetOSName(string osDescription) {
             if (String.IsNullOrEmpty(osDescription))
