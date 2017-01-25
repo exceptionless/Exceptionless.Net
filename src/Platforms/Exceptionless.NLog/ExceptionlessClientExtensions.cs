@@ -12,7 +12,6 @@ namespace Exceptionless.NLog {
                 throw new ArgumentNullException(nameof(client));
 
             var contextData = new ContextData(ev.GetContextData());
-
             if (ev.Exception != null)
                 contextData.SetException(ev.Exception);
 
@@ -39,13 +38,17 @@ namespace Exceptionless.NLog {
                     properties.Remove(Event.KnownDataKeys.ManualStackingInfo);
                 } catch (Exception) { }
             }
-            
-            if (ev.Exception == null)
+
+            if (ev.Exception == null) {
+                builder.SetType(Event.KnownTypes.Log);
                 builder.SetProperty(Event.KnownDataKeys.Level, ev.Level.Name);
-            
+            } else {
+                builder.SetType(Event.KnownTypes.Error);
+            }
+
             if (!String.IsNullOrWhiteSpace(ev.FormattedMessage))
                 builder.SetMessage(ev.FormattedMessage);
-            
+
             var tagList = ev.GetTags();
             if (tagList.Count > 0)
                 builder.AddTags(tagList.ToArray());
