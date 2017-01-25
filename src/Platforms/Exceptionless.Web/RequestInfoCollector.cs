@@ -43,10 +43,10 @@ namespace Exceptionless.ExtendedData {
 
             if (context.Request.Url != null)
                 info.Port = context.Request.Url.Port;
-            
+
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
             info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
-            
+
             if (context.Request.Form.Count > 0) {
                 info.PostData = context.Request.Form.ToDictionary(exclusionList);
             } else if (context.Request.ContentLength > 0) {

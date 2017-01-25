@@ -14,7 +14,7 @@ namespace Exceptionless.Plugins {
                 try {
                     plugin.Run(context);
                     if (context.Cancel) {
-                        context.Log.FormattedInfo(plugin.GetType(), "Event submission cancelled by plugin: id={0} type={1}", context.Event.ReferenceId, context.Event.Type);
+                        context.Log.FormattedInfo(plugin.GetType(), "Event submission cancelled by plugin: refid={0} type={1} message={2}", context.Event.ReferenceId, context.Event.Type, context.Event.Message);
                         return;
                     }
                 } catch (Exception ex) {

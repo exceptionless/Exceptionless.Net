@@ -38,7 +38,7 @@ namespace Exceptionless.Plugins {
 
                 if (!(this[KnownKeys.IsUnhandledError] is bool))
                     return false;
-                
+
                 return (bool)this[KnownKeys.IsUnhandledError];
             }
         }

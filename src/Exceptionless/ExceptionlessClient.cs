@@ -185,10 +185,8 @@ namespace Exceptionless {
 
             var context = new EventPluginContext(this, ev, pluginContextData);
             EventPluginManager.Run(context);
-            if (context.Cancel) {
-                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Event submission cancelled by a plugin: id={0} type={1}", ev.ReferenceId, ev.Type);
+            if (context.Cancel)
                 return;
-            }
 
             // ensure all required data
             if (String.IsNullOrEmpty(ev.Type))
@@ -197,7 +195,7 @@ namespace Exceptionless {
                 ev.Date = DateTimeOffset.Now;
 
             if (!OnSubmittingEvent(ev, pluginContextData)) {
-                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Event submission cancelled by event handler: id={0} type={1}", ev.ReferenceId, ev.Type);
+                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Event submission cancelled by event handler: refid={0} type={1} message={2}", ev.ReferenceId, ev.Type, ev.Message);
                 return;
             }
 

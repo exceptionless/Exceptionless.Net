@@ -9,6 +9,8 @@ using Exceptionless.Models;
 namespace Exceptionless.Plugins.Default {
     [Priority(1010)]
     public class DuplicateCheckerPlugin : IEventPlugin, IDisposable {
+        private const string LOG_SOURCE = nameof(DuplicateCheckerPlugin);
+        private static readonly Type _logSourceType = typeof(DuplicateCheckerPlugin);
         private readonly Queue<Tuple<int, DateTimeOffset>> _processed = new Queue<Tuple<int, DateTimeOffset>>();
         private readonly Queue<MergedEvent> _mergedEvents = new Queue<MergedEvent>();
         private readonly object _lock = new object();
@@ -30,9 +32,12 @@ namespace Exceptionless.Plugins.Default {
         }
 
         public void Run(EventPluginContext context) {
+            if (LOG_SOURCE == context.Event.Source)
+                return;
+
             int hashCode = context.Event.GetHashCode();
             int count = context.Event.Count ?? 1;
-            context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Checking event: {0} with hash: {1}", context.Event.Message, hashCode);
+            context.Log.FormattedTrace(_logSourceType, "Checking event: {0} with hash: {1}", context.Event.Message, hashCode);
 
             lock (_lock) {
                 // Increment the occurrence count if the event is already queued for submission.
@@ -40,23 +45,23 @@ namespace Exceptionless.Plugins.Default {
                 if (merged != null) {
                     merged.IncrementCount(count);
                     merged.UpdateDate(context.Event.Date);
-                    context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Ignoring duplicate event with hash: {0}", hashCode);
+                    context.Log.FormattedInfo(_logSourceType, "Ignoring duplicate event: {0} with hash: {1}", context.Event.Message, hashCode);
                     context.Cancel = true;
                     return;
                 }
 
                 DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
                 if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
-                    context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Adding event with hash: {0} to cache.", hashCode);
+                    context.Log.FormattedTrace(_logSourceType, "Adding duplicate event: {0} with hash: {1} to cache for later submission.", context.Event.Message, hashCode);
                     // This event is a duplicate for the first time, lets save it so we can delay it while keeping count
                     _mergedEvents.Enqueue(new MergedEvent(hashCode, context, count));
                     context.Cancel = true;
                     return;
                 }
 
-                context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Enqueueing event with hash: {0} to cache.", hashCode);
+                context.Log.FormattedTrace(_logSourceType, "Enqueueing event with hash: {0} to cache.", hashCode);
                 _processed.Enqueue(Tuple.Create(hashCode, DateTimeOffset.UtcNow));
-                
+
                 while (_processed.Count > 50)
                     _processed.Dequeue();
             }
@@ -108,15 +113,15 @@ namespace Exceptionless.Plugins.Default {
                     _context.Event.Date = DateTimeOffset.Now;
 
                 if (!_context.Client.OnSubmittingEvent(_context.Event, _context.ContextData)) {
-                    _context.Log.FormattedInfo(typeof(DuplicateCheckerPlugin), "Event submission cancelled by event handler: id={0} type={1}", _context.Event.ReferenceId, _context.Event.Type);
+                    _context.Log.FormattedInfo(_logSourceType, "Event submission cancelled by event handler: id={0} type={1}", _context.Event.ReferenceId, _context.Event.Type);
                     return;
                 }
 
-                _context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Submitting event: type={0}{1}", _context.Event.Type, !String.IsNullOrEmpty(_context.Event.ReferenceId) ? " refid=" + _context.Event.ReferenceId : String.Empty);
+                _context.Log.FormattedTrace(_logSourceType, "Submitting event: type={0}{1}", _context.Event.Type, !String.IsNullOrEmpty(_context.Event.ReferenceId) ? " refid=" + _context.Event.ReferenceId : String.Empty);
                 _context.Resolver.GetEventQueue().Enqueue(_context.Event);
 
                 if (!String.IsNullOrEmpty(_context.Event.ReferenceId)) {
-                    _context.Log.FormattedTrace(typeof(DuplicateCheckerPlugin), "Setting last reference id: {0}", _context.Event.ReferenceId);
+                    _context.Log.FormattedTrace(_logSourceType, "Setting last reference id: {0}", _context.Event.ReferenceId);
                     _context.Resolver.GetLastReferenceIdManager().SetLast(_context.Event.ReferenceId);
                 }
 
