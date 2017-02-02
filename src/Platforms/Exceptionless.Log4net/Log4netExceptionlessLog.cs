@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Exceptionless.Logging;
 using log4net;
 
@@ -15,35 +16,43 @@ namespace Exceptionless.Log4net {
             if (LogLevel.Error < MinimumLogLevel)
                 return;
 
-            LogManager.GetLogger(source ?? "Exceptionless").Error(message, exception);
+            GetLogger(source).Error(message, exception);
         }
 
         public void Info(string message, string source = null) {
             if (LogLevel.Info < MinimumLogLevel)
                 return;
 
-            LogManager.GetLogger(source ?? "Exceptionless").Info(message);
+            GetLogger(source).Info(message);
         }
 
         public void Debug(string message, string source = null) {
             if (LogLevel.Debug < MinimumLogLevel)
                 return;
 
-            LogManager.GetLogger(source ?? "Exceptionless").Debug(message);
+            GetLogger(source).Debug(message);
         }
 
         public void Warn(string message, string source = null) {
             if (LogLevel.Warn < MinimumLogLevel)
                 return;
 
-            LogManager.GetLogger(source ?? "Exceptionless").Warn(message);
+            GetLogger(source).Warn(message);
         }
 
         public void Trace(string message, string source = null) {
             if (LogLevel.Trace < MinimumLogLevel)
                 return;
 
-            LogManager.GetLogger(source ?? "Exceptionless").Debug(message);
+            GetLogger(source).Debug(message);
+        }
+
+        private ILog GetLogger(string name) {
+#if NETSTANDARD1_3
+            return LogManager.GetLogger(typeof(Log4netExceptionlessLog).GetTypeInfo().Assembly, name ?? "Exceptionless");
+#else
+            return LogManager.GetLogger(name ?? "Exceptionless");
+#endif
         }
 
         public void Flush() { }

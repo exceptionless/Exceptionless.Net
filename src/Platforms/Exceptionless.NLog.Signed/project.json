@@ -50,7 +50,7 @@
                 "define": [ "SIGNED", "NETSTANDARD", "NETSTANDARD1_3" ]
             },
             "dependencies": {
-                "NLog": "4.4.0-betaV15"
+                "NLog": "5.0.0-beta05"
             }
         },
         "net45": {
@@ -58,7 +58,7 @@
                 "define": [ "SIGNED", "NET45" ]
             },
             "dependencies": {
-                "NLog": "4.3.5"
+                "NLog": "4.4.1"
             }
         }
     }

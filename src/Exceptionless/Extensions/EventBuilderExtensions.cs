@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Exceptionless.Models.Data;
+
+#if !PORTABLE && !NETSTANDARD1_2
 using Exceptionless.Plugins.Default;
+#endif
 
 namespace Exceptionless {
     public static class EventBuilderExtensions {

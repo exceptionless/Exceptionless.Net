@@ -14,11 +14,11 @@
         "Exceptionless": {
             "target": "project"
         },
-        "Exceptionless.DateTimeExtensions": "3.2.55",
+      "Exceptionless.DateTimeExtensions": "3.2.65",
         "Exceptionless.NLog": {
             "target": "project"
         },
-        "Exceptionless.RandomData": "1.1.26",
+      "Exceptionless.RandomData": "1.1.27",
         "Microsoft.NETCore.App": {
             "type": "platform",
             "version": "1.0.1"
