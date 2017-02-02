@@ -86,26 +86,17 @@ namespace Exceptionless {
             return ev;
         }
 
-        /// <summary>
-        /// Adds the current request info as extended data to the event.
-        /// </summary>
-        /// <param name="builder">The event builder.</param>
-        /// <param name="context">The http action context to gather information from.</param>
-        [Obsolete("Please call SetHttpActionContext instead.", true)]
-        public static EventBuilder AddHttpRequestInfo(this EventBuilder builder, HttpActionContext context) {
-            return builder.SetHttpActionContext(context);
+        internal static HttpActionContext GetHttpActionContext(this IDictionary<string, object> data) {
+            object context;
+            if (data.TryGetValue("HttpActionContext", out context))
+                return context as HttpActionContext;
+
+            return null;
         }
 
         public static EventBuilder SetHttpActionContext(this EventBuilder builder, HttpActionContext context) {
             builder.PluginContextData["HttpActionContext"] = context;
             return builder;
-        }
-
-        internal static HttpActionContext GetHttpActionContext(this IDictionary<string, object> data) {
-            if (!data.ContainsKey("HttpActionContext"))
-                return null;
-
-            return data["HttpActionContext"] as HttpActionContext;
         }
     }
 }

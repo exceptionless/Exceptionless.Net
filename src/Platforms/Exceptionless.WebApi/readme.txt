@@ -51,7 +51,7 @@ that you set the HttpActionContext when submitting events. Doing so will allow t
 user information to be populated. You can do this by calling the SetHttpActionContext EventBuilder
 extension method.
 
- exception.ToExceptionless().SetHttpActionContext(ActionContext).Submit()
+exception.ToExceptionless().SetHttpActionContext(ActionContext).Submit()
 
 -------------------------------------
       Documentation and Support

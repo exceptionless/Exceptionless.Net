@@ -20,15 +20,14 @@ namespace Exceptionless.AspNetCore {
                 var contextData = new ContextData();
                 contextData.MarkAsUnhandledError();
                 contextData.SetSubmissionMethod(nameof(ExceptionlessMiddleware));
-                contextData.Add(nameof(HttpContext), context);
 
-                ex.ToExceptionless(contextData, _client).Submit();
+                ex.ToExceptionless(contextData, _client).SetHttpContext(context).Submit();
                 throw;
             }
 
             if (context.Response?.StatusCode == 404) {
                 string path = context.Request.Path.HasValue ? context.Request.Path.Value : "/";
-                _client.CreateNotFound(path).AddRequestInfo(context).Submit();
+                _client.CreateNotFound(path).SetHttpContext(context).Submit();
             }
         }
     }

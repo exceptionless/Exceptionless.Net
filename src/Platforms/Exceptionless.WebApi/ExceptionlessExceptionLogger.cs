@@ -8,9 +8,11 @@ namespace Exceptionless.WebApi {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             contextData.SetSubmissionMethod("ExceptionLogger");
-            contextData.Add("HttpActionContext", context.ExceptionContext.ActionContext);
 
-            context.Exception.ToExceptionless(contextData).Submit();
+            context.Exception
+                .ToExceptionless(contextData)
+                .SetHttpActionContext(context.ExceptionContext.ActionContext)
+                .Submit();
         }
     }
 }

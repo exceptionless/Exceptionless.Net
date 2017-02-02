@@ -7,11 +7,11 @@ using Exceptionless.Plugins;
 namespace Exceptionless.WebApi {
     public class ExceptionlessHandleErrorAttribute : IExceptionFilter {
         private readonly ExceptionlessClient _client;
-        
+
         public bool HasWrappedFilter { get { return WrappedFilter != null; } }
 
         public IExceptionFilter WrappedFilter { get; set; }
-        
+
         public bool AllowMultiple { get { return HasWrappedFilter && WrappedFilter.AllowMultiple; } }
 
         public ExceptionlessHandleErrorAttribute(ExceptionlessClient client = null) {
@@ -25,9 +25,11 @@ namespace Exceptionless.WebApi {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             contextData.SetSubmissionMethod("ExceptionHttpFilter");
-            contextData.Add("HttpActionContext", actionExecutedContext.ActionContext);
 
-            actionExecutedContext.Exception.ToExceptionless(contextData, _client).Submit();
+            actionExecutedContext.Exception
+                .ToExceptionless(contextData, _client)
+                .SetHttpActionContext(actionExecutedContext.ActionContext)
+                .Submit();
         }
 
         public Task ExecuteExceptionFilterAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {

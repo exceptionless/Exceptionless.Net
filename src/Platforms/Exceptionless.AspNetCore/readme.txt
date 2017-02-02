@@ -1,21 +1,21 @@
 ﻿-------------------------------------
-		Exceptionless Readme
+        Exceptionless Readme
 -------------------------------------
-Exceptionless provides real-time error reporting for your apps. It organizes the 
-gathered information into simple actionable data that will help your app become 
+Exceptionless provides real-time error reporting for your apps. It organizes the
+gathered information into simple actionable data that will help your app become
 exceptionless!
 
 Learn more at http://exceptionless.io.
 
 -------------------------------------
-		How to get an api key
+        How to get an api key
 -------------------------------------
-The Exceptionless client requires an api key to use the Exceptionless service. 
-You can get your Exceptionless api key by logging into http://exceptionless.io 
+The Exceptionless client requires an api key to use the Exceptionless service.
+You can get your Exceptionless api key by logging into http://exceptionless.io
 and viewing your project configuration page.
 
 -------------------------------------
-		 ASP.NET Core Integration
+      ASP.NET Core Integration
 -------------------------------------
 You must import the "Exceptionless" namespace and call the following line
 of code to start reporting unhandled exceptions. The best place to call this
@@ -32,13 +32,20 @@ for examples on sending events to Exceptionless.
 -------------------------------------
    Manually reporting an exception
 -------------------------------------
-By default the Exceptionless Client will report all unhandled exceptions. You can 
-also manually send an exception by importing the Exceptionless namespace and calling 
+By default the Exceptionless Client will report all unhandled exceptions. You can
+also manually send an exception by importing the Exceptionless namespace and calling
 the following method.
 
 exception.ToExceptionless().Submit()
 
+Please note that ASP.NET Core doesn't have a static http context. If possible, it is recommended
+that you set the HttpContext when submitting events. Doing so will allow the request and
+user information to be populated. You can do this by calling the SetHttpContext EventBuilder
+extension method.
+
+exception.ToExceptionless().SetHttpContext(ActionContext).Submit()
+
 -------------------------------------
-	  Documentation and Support
+      Documentation and Support
 -------------------------------------
 Please visit http://exceptionless.io for documentation and support.

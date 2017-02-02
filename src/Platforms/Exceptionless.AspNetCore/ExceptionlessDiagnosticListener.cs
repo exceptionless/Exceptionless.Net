@@ -15,9 +15,8 @@ namespace Exceptionless.AspNetCore {
         public void OnDiagnosticHandledException(HttpContext httpContext, Exception exception) {
             var contextData = new ContextData();
             contextData.SetSubmissionMethod("Microsoft.AspNetCore.Diagnostics.UnhandledException");
-            contextData.Add(nameof(HttpContext), httpContext);
 
-            exception.ToExceptionless(contextData, _client).Submit();
+            exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
         }
 
         [DiagnosticName("Microsoft.AspNetCore.Diagnostics.UnhandledException")]
@@ -25,9 +24,8 @@ namespace Exceptionless.AspNetCore {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             contextData.SetSubmissionMethod("Microsoft.AspNetCore.Diagnostics.HandledException");
-            contextData.Add(nameof(HttpContext), httpContext);
 
-            exception.ToExceptionless(contextData, _client).Submit();
+            exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
         }
 
         [DiagnosticName("Microsoft.AspNetCore.Hosting.UnhandledException")]
@@ -35,9 +33,8 @@ namespace Exceptionless.AspNetCore {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             contextData.SetSubmissionMethod("Microsoft.AspNetCore.Hosting.UnhandledException");
-            contextData.Add(nameof(HttpContext), httpContext);
 
-            exception.ToExceptionless(contextData, _client).Submit();
+            exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
         }
 
         [DiagnosticName("Microsoft.AspNetCore.MiddlewareAnalysis.MiddlewareException")]
@@ -45,9 +42,8 @@ namespace Exceptionless.AspNetCore {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             contextData.SetSubmissionMethod(name ?? "Microsoft.AspNetCore.MiddlewareAnalysis.MiddlewareException");
-            contextData.Add(nameof(HttpContext), httpContext);
 
-            exception.ToExceptionless(contextData, _client).Submit();
+            exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
         }
     }
 }
