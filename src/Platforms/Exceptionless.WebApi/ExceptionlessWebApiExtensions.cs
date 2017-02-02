@@ -14,10 +14,10 @@ using Exceptionless.WebApi;
 namespace Exceptionless {
     public static class ExceptionlessWebApiExtensions {
         /// <summary>
-        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
-        /// <param name="config">The HttpConfiguration instance.</param>        
+        /// <param name="config">The HttpConfiguration instance.</param>
         public static void RegisterWebApi(this ExceptionlessClient client, HttpConfiguration config) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
@@ -25,7 +25,7 @@ namespace Exceptionless {
             client.Startup();
             client.Configuration.AddPlugin<ExceptionlessWebApiPlugin>();
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
-            
+
             config.Services.Add(typeof(IExceptionLogger), new ExceptionlessExceptionLogger());
 
             ReplaceHttpErrorHandler(config, client);
@@ -91,8 +91,13 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="builder">The event builder.</param>
         /// <param name="context">The http action context to gather information from.</param>
+        [Obsolete("Please call SetHttpActionContext instead.", true)]
         public static EventBuilder AddHttpRequestInfo(this EventBuilder builder, HttpActionContext context) {
-            builder.Target.AddHttpRequestInfo(context, builder.Client.Configuration);
+            return builder.SetHttpActionContext(context);
+        }
+
+        public static EventBuilder SetHttpActionContext(this EventBuilder builder, HttpActionContext context) {
+            builder.PluginContextData["HttpActionContext"] = context;
             return builder;
         }
 

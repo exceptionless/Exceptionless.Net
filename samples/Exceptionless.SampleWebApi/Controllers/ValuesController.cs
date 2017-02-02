@@ -7,7 +7,7 @@ namespace Exceptionless.SampleWebApi.Controllers {
     public class ValuesController : ApiController {
         // GET api/values
         public IEnumerable<string> Get() {
-            ExceptionlessClient.Default.SubmitLog("ValuesController", "Getting results", LogLevel.Info);
+            ExceptionlessClient.Default.CreateLog("ValuesController", "Getting results", LogLevel.Info).SetHttpActionContext(ActionContext).Submit();
             throw new ApplicationException("WebApi GET error");
         }
 

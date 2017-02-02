@@ -26,7 +26,7 @@ namespace Exceptionless.SampleWebApi {
                 Console.WriteLine("Press any key to send a request...");
                 ConsoleKeyInfo key = Console.ReadKey();
                 while (key.KeyChar != 27) {
-                    // Create HttpCient and make a request to api/values 
+                    // Create HttpCient and make a request to api/values
                     var client = new HttpClient();
                     HttpResponseMessage response = client.GetAsync(baseAddress + "api/values").GetAwaiter().GetResult();
 

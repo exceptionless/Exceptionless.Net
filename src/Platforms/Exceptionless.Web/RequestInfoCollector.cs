@@ -127,13 +127,11 @@ namespace Exceptionless.ExtendedData {
             return d;
         }
 
-        private static string GetUserIPAddress(HttpContextBase context)
-        {
+        private static string GetUserIPAddress(HttpContextBase context) {
             string clientIp = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (string.IsNullOrEmpty(clientIp))
-            {
+            if (String.IsNullOrEmpty(clientIp))
                 clientIp = context.Request.UserHostAddress;
-            }
+
             return clientIp;
         }
     }
