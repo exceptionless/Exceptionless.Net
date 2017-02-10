@@ -19,7 +19,10 @@ and viewing your project configuration page.
 -------------------------------------
 
 Here is an example NLog.config file that shows how to use the Exceptionless NLog target. The apiKey attribute
-is optional and will be picked up from your Exceptionless config section by default.
+is optional and will be picked up from your Exceptionless config section by default. It is recommended to set
+the minLevel on the Exceptionless target to Trace so that you can control log levels in the server side
+client configuration settings. Also, you can call Configuration.SetDefaultMinLogLevel to control the default
+minimum log level that will be used until the client retrieves settings from the server.
 
 <nlog>
   <extensions>
@@ -36,7 +39,7 @@ is optional and will be picked up from your Exceptionless config section by defa
   </targets>
   
   <rules>
-    <logger name="*" minlevel="Info" writeTo="exceptionless" />
+    <logger name="*" minlevel="Trace" writeTo="exceptionless" />
   </rules>
 </nlog>
 

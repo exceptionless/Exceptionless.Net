@@ -179,6 +179,15 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Set the default minimum log level that will be used until settings are loaded from the server.
+        /// </summary>
+        /// <param name="minLogLevel"></param>
+        public void SetDefaultMinLogLevel(LogLevel minLogLevel) {
+            if (!Settings.ContainsKey("@@log:*"))
+                Settings.Add("@@log:*", minLogLevel.ToString());
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether to include private information about the local machine.
         /// </summary>
         /// <value>
