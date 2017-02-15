@@ -225,15 +225,19 @@ namespace Exceptionless {
         }
 
         public static void UseTraceLogEntriesPlugin(this ExceptionlessConfiguration config, int? defaultMaxEntriesToInclude = null) {
-            int maxEntriesToInclude = config.Settings.GetInt32(TraceLogPlugin.MaxEntriesToIncludeKey, defaultMaxEntriesToInclude ?? 0);
+            try {
+                int maxEntriesToInclude = config.Settings.GetInt32(TraceLogPlugin.MaxEntriesToIncludeKey, defaultMaxEntriesToInclude ?? 0);
 
-            if (!Trace.Listeners.OfType<ExceptionlessTraceListener>().Any())
-                Trace.Listeners.Add(new ExceptionlessTraceListener(maxEntriesToInclude));
+                if (!Trace.Listeners.OfType<ExceptionlessTraceListener>().Any())
+                    Trace.Listeners.Add(new ExceptionlessTraceListener(maxEntriesToInclude));
 
-            if (!config.Settings.ContainsKey(TraceLogPlugin.MaxEntriesToIncludeKey) && defaultMaxEntriesToInclude.HasValue)
-                config.Settings.Add(TraceLogPlugin.MaxEntriesToIncludeKey, maxEntriesToInclude.ToString());
+                if (!config.Settings.ContainsKey(TraceLogPlugin.MaxEntriesToIncludeKey) && defaultMaxEntriesToInclude.HasValue)
+                    config.Settings.Add(TraceLogPlugin.MaxEntriesToIncludeKey, maxEntriesToInclude.ToString());
 
-            config.AddPlugin(typeof(TraceLogPlugin).Name, 70, c => new TraceLogPlugin(c));
+                config.AddPlugin(typeof(TraceLogPlugin).Name, 70, c => new TraceLogPlugin(c));
+            } catch (Exception ex) {
+                config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Concat("Error adding ExceptionlessTraceListener: ", ex.Message));
+            }
         }
 #endif
 
@@ -281,7 +285,7 @@ namespace Exceptionless {
             try {
                 section = ConfigurationManager.GetSection("exceptionless") as ExceptionlessSection;
             } catch (Exception ex) {
-                config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Concat("An error occurred while retrieving the configuration section. Exception: ", ex.Message));
+                config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Concat("Error retrieving configuration section: ", ex.Message));
             }
 
             if (section == null)
@@ -340,7 +344,7 @@ namespace Exceptionless {
 
                     Type resolverInterface = types.FirstOrDefault(t => t.Name.Equals(resolver.Service) || t.FullName.Equals(resolver.Service));
                     if (resolverInterface == null) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), String.Format("An error occurred while retrieving service type \"{0}\".", resolver.Service));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), String.Format("Error retrieving service type \"{0}\".", resolver.Service));
                         continue;
                     }
 
