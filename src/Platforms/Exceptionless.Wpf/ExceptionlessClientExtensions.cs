@@ -49,7 +49,7 @@ namespace Exceptionless.Wpf.Extensions {
 
             if (System.Windows.Application.Current == null)
                 return;
-            
+
             if (_onApplicationDispatcherUnhandledException == null)
                 _onApplicationDispatcherUnhandledException = (sender, args) => {
                     var contextData = new ContextData();
@@ -79,7 +79,7 @@ namespace Exceptionless.Wpf.Extensions {
 
             if (System.Windows.Application.Current != null)
                 System.Windows.Application.Current.DispatcherUnhandledException -= _onApplicationDispatcherUnhandledException;
-            
+
             _onApplicationDispatcherUnhandledException = null;
         }
     }
