@@ -327,6 +327,33 @@ namespace Exceptionless.Tests.Plugins {
                 plugin.Run(context);
                 Assert.False(context.Cancel);
 
+                Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
+                var error = context.Event.GetError();
+                if (error != null)
+                    Assert.Equal(message, error.Message);
+                else
+                    Assert.Equal(message, context.Event.GetSimpleError().Message);
+            }
+        }
+
+
+        [Fact]
+        public void ErrorPlugin_WillPreserveEventType() {
+            const string message = "Testing";
+
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            var client = CreateClient();
+            foreach (var plugin in errorPlugins) {
+                var context = new EventPluginContext(client, new Event { Type = Event.KnownTypes.Log });
+                context.ContextData.SetException(new NotSupportedException(message));
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                Assert.Equal(Event.KnownTypes.Log, context.Event.Type);
                 var error = context.Event.GetError();
                 if (error != null)
                     Assert.Equal(message, error.Message);

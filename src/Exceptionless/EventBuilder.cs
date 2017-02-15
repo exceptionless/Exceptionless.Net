@@ -68,6 +68,15 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Sets the event exception object.
+        /// </summary>
+        /// <param name="ex">The exception</param>
+        public EventBuilder SetException(Exception ex) {
+            PluginContextData.SetException(ex);
+            return this;
+        }
+
+        /// <summary>
         /// Sets the event geo coordinates. Can be either "lat,lon" or an IP address that will be used to auto detect the geo coordinates.
         /// </summary>
         /// <param name="coordinates">The event coordinates.</param>

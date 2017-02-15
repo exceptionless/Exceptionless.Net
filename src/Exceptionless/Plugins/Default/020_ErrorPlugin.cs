@@ -15,8 +15,10 @@ namespace Exceptionless.Plugins.Default {
                 context.Cancel = true;
                 return;
             }
-            
-            context.Event.Type = Event.KnownTypes.Error;
+
+            if (String.IsNullOrEmpty(context.Event.Type))
+                context.Event.Type = Event.KnownTypes.Error;
+
             context.Event.Data[Event.KnownDataKeys.Error] = exception.ToErrorModel(context.Client);
             exception.MarkProcessed();
         }

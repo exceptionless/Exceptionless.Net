@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Exceptionless.Models;
 using Exceptionless.Plugins;
 
 namespace Exceptionless {
@@ -26,8 +27,7 @@ namespace Exceptionless {
                 pluginContextData = new ContextData();
 
             pluginContextData.SetException(exception);
-
-            return client.CreateEvent(pluginContextData);
+            return client.CreateEvent(pluginContextData).SetType(Event.KnownTypes.Error);
         }
     }
 }
@@ -55,7 +55,7 @@ namespace Exceptionless.Extensions {
 
             return exception.GetInnermostException().Message;
         }
-        
+
         private static readonly string _marker = "@exceptionless";
         public static void MarkProcessed(this Exception exception) {
             if (exception == null)
