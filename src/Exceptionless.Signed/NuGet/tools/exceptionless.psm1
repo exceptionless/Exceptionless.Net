@@ -100,7 +100,7 @@ function update_config($configPath, $platform) {
 				}
 				$webServerModule = $configXml.CreateElement('add')
 				$webServerModule.SetAttribute('name', 'ExceptionlessModule')
-				$webServerModule.SetAttribute('type', 'Exceptionless.' + $platform + '.ExceptionlessModule, Exceptionless.' + $platform)
+				$webServerModule.SetAttribute('type', 'Exceptionless.' + $platform + '.ExceptionlessModule, Exceptionless.' + $platform + '.Signed')
 				
 				$parentNode.AppendChild($webServerModule)
 				$shouldSave = $true
