@@ -8,7 +8,7 @@ using Nancy;
 using Nancy.Helpers;
 
 namespace Exceptionless.ExtendedData {
-    internal static class NancyRequestInfoCollector {
+    internal static class RequestInfoCollector {
         public static RequestInfo Collect(NancyContext context, IEnumerable<string> exclusions) {
             if (context == null)
                 return null;

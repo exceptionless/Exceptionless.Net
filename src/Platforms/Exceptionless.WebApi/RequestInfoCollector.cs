@@ -37,7 +37,7 @@ namespace Exceptionless.ExtendedData {
             var exclusionList = exclusions as string[] ?? exclusions.ToArray();
             info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
             info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
-            
+
             // TODO Collect form data.
             return info;
         }

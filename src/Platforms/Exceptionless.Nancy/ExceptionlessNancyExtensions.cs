@@ -14,7 +14,7 @@ namespace Exceptionless {
         private const string NANCY_CONTEXT = "NancyContext";
 
         /// <summary>
-        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="pipelines">The IPipelines instance.</param>
@@ -65,7 +65,7 @@ namespace Exceptionless {
         /// <param name="context">The nancy context to gather information from.</param>
         /// <param name="config">The config.</param>
         public static RequestInfo GetRequestInfo(this NancyContext context, ExceptionlessConfiguration config) {
-            return NancyRequestInfoCollector.Collect(context, config.DataExclusions);
+            return RequestInfoCollector.Collect(context, config.DataExclusions);
         }
 
         public static Event AddRequestInfo(this Event ev, NancyContext context) {
