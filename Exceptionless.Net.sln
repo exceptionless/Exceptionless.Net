@@ -89,6 +89,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.SampleAspNetC
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Exceptionless.SampleConsole", "samples\\Exceptionless.SampleConsole\Exceptionless.SampleConsole.xproj", "{23645F73-57D8-4D70-BE1A-37903A8E4A18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.Xamarin.Android", "src\Platforms\Exceptionless.Xamarin.Android\Exceptionless.Xamarin.Android.csproj", "{05492791-BB35-4195-BCFA-AE205138B47C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,10 @@ Global
 		{23645F73-57D8-4D70-BE1A-37903A8E4A18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23645F73-57D8-4D70-BE1A-37903A8E4A18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23645F73-57D8-4D70-BE1A-37903A8E4A18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05492791-BB35-4195-BCFA-AE205138B47C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05492791-BB35-4195-BCFA-AE205138B47C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05492791-BB35-4195-BCFA-AE205138B47C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05492791-BB35-4195-BCFA-AE205138B47C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -198,5 +204,6 @@ Global
 		{F949CF8F-9D5F-454B-B20A-D8F9C22B70D9} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{D7039656-8587-49CC-8657-5C9BDCFC1C80} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{23645F73-57D8-4D70-BE1A-37903A8E4A18} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
+		{05492791-BB35-4195-BCFA-AE205138B47C} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 	EndGlobalSection
 EndGlobal
