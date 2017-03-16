@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup>
+    <PackageId>Exceptionless.Nancy</PackageId>
+    <AssemblyName>Exceptionless.Nancy</AssemblyName>
+    <AssemblyTitle>Exceptionless client for Nancy applications.</AssemblyTitle>
+    <Description>Exceptionless client for Nancy applications. $(Description);</Description>
+    <TargetFramework>net45</TargetFramework>
+    <PackageTags>Nancy;NancyFx;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(SignAssembly)' == 'true'">
+    <PackageId>$(PackageId).Signed</PackageId>
+    <AssemblyName>$(AssemblyName).Signed</AssemblyName>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <None Update="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
+      <PackagePath>tools</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Update="NuGet\tools\*">
+      <PackagePath>tools/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Update="readme.txt">
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nancy" Version="1.4.3" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>

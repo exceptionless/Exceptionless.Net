@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <AssemblyName>Exceptionless.SampleConsole</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="store\**\*" />
+    <Compile Include="..\..\tests\Exceptionless.Tests\Utility\RandomEventGenerator.cs" Exclude="store\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+    <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" />
+    <ProjectReference Include="..\..\src\Platforms\Exceptionless.NLog\Exceptionless.NLog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Exceptionless.DateTimeExtensions" Version="3.2.65" />
+    <PackageReference Include="Exceptionless.RandomData" Version="1.1.27" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_5</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+</Project>

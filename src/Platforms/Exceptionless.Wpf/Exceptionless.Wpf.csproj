@@ -73,9 +73,6 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\GlobalAssemblyInfo.cs">
-      <Link>Properties\GlobalAssemblyInfo.cs</Link>
-    </Compile>
     <Compile Include="Dialogs\CrashReportDialog.xaml.cs">
       <DependentUpon>CrashReportDialog.xaml</DependentUpon>
     </Compile>

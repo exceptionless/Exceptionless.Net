@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup>
+    <PackageId>Exceptionless.Mvc</PackageId>
+    <AssemblyName>Exceptionless.Mvc</AssemblyName>
+    <AssemblyTitle>Exceptionless client for ASP.NET MVC 3+ applications.</AssemblyTitle>
+    <Description>Exceptionless client for ASP.NET MVC 3+ applications. $(Description);</Description>
+    <TargetFramework>net45</TargetFramework>
+    <PackageTags>MVC;ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(SignAssembly)' == 'true'">
+    <PackageId>$(PackageId).Signed</PackageId>
+    <AssemblyName>$(AssemblyName).Signed</AssemblyName>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\Exceptionless.Web\ExceptionlessClientExtensions.cs;..\Exceptionless.Web\ExceptionlessWebExtensions.cs;..\Exceptionless.Web\ExceptionlessWebPlugin.cs;..\Exceptionless.Web\RequestInfoCollector.cs;..\Exceptionless.Web\WebLastReferenceIdManager.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+    <None Update="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
+      <PackagePath>tools</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Update="NuGet\tools\*">
+      <PackagePath>tools/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Update="readme.txt">
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.Mvc" Version="3.0.20105.1" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>

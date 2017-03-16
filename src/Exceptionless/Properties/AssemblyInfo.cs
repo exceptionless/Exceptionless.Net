@@ -4,8 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(true)]
-[assembly: AssemblyTitle("Exceptionless")]
-[assembly: AssemblyDescription("Exceptionless")]
 [assembly: ComVisible(false)]
 
 #if !PORTABLE && !NETSTANDARD1_2
