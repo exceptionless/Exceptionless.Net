@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: CLSCompliant(true)] // NOTE: This was commented out before.
 [assembly: ComVisible(false)]
 [assembly: AssemblyTitle("Exceptionless.Nancy")]
 [assembly: AssemblyDescription("Exceptionless Nancy")]

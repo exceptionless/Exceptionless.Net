@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: CLSCompliant(true)]
 [assembly: ComVisible(false)]
 [assembly: AssemblyTitle("Exceptionless.AspNetCore")]
 [assembly: AssemblyDescription("Exceptionless AspNetCore")]
