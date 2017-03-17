@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
@@ -46,9 +50,5 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>

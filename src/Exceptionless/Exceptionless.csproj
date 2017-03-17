@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Newtonsoft.Json\Dynamic.snk">
       <Link>Exceptionless.Json.Dynamic.snk</Link>
     </EmbeddedResource>

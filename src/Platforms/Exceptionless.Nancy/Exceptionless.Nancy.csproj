@@ -14,6 +14,10 @@
     <PackageId>$(PackageId).Signed</PackageId>
     <AssemblyName>$(AssemblyName).Signed</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
   
   <ItemGroup>
     <None Update="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
@@ -44,9 +48,5 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
