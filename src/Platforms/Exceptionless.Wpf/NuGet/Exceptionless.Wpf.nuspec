@@ -5,7 +5,7 @@
     <version>$version$</version>
     <authors>Exceptionless</authors>
     <owners>Exceptionless</owners>
-    <description>Exceptionless client for WPF applications. $(Description);</description>
+    <description>Exceptionless client for WPF applications. $(Description)</Description>
     <projectUrl>http://exceptionless.io</projectUrl>
     <iconUrl>https://be.exceptionless.io/img/exceptionless-32.png</iconUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>

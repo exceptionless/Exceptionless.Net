@@ -2,21 +2,37 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <PackageId>Exceptionless.Web</PackageId>
-    <AssemblyName>Exceptionless.Web</AssemblyName>
+    <PackageId>Exceptionless.Web.Signed</PackageId>
+    <AssemblyName>Exceptionless.Web.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET WebForms applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET WebForms applications. $(Description)</Description>
     <TargetFramework>net45</TargetFramework>
     <PackageTags>WebForms;Web Forms;Wcf;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="NuGet\tools\*">
+    <None Update="..\Exceptionless.Web\NuGet\tools\*">
       <PackagePath>tools\</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Update="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
-      <PackagePath>tools</PackagePath>
+    <None Update="..\..\Exceptionless.Signed\NuGet\tools\exceptionless.psm1">
+      <PackagePath>tools\exceptionless.psm1</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Update="..\Exceptionless.Web\readme.txt">
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.Signed.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="NuGet\tools\*">
+      <PackagePath>tools/</PackagePath>
       <Pack>true</Pack>
     </None>
     <None Update="readme.txt">
@@ -24,13 +40,8 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">

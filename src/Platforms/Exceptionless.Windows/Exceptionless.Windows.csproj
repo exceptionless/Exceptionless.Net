@@ -55,7 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Condition=" '$(SignAssembly)' == 'true' ">
-    <Reference Include="Exceptionless">
+    <Reference Include="Exceptionless.Signed">
       <HintPath>$(SolutionDir)\src\Exceptionless.Signed\bin\$(Configuration)\$(TargetFrameworkVersionProperty)\Exceptionless.Signed.dll</HintPath>
     </Reference>
   </ItemGroup>

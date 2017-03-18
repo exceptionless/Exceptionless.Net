@@ -2,23 +2,24 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <PackageId>Exceptionless.AspNetCore</PackageId>
-    <AssemblyName>Exceptionless.AspNetCore</AssemblyName>
+    <PackageId>Exceptionless.AspNetCore.Signed</PackageId>
+    <AssemblyName>Exceptionless.AspNetCore.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
     <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
     <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <None Update="readme.txt">
+    <None Update="..\Exceptionless.AspNetCore\readme.txt">
       <Pack>true</Pack>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.Signed.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +34,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
-    <DefineConstants>$(DefineConstants);NETSTANDARD1_5</DefineConstants>
+    <DefineConstants>$(DefineConstants);NETSTANDARD1_5;SIGNED;</DefineConstants>
   </PropertyGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
@@ -41,7 +42,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">

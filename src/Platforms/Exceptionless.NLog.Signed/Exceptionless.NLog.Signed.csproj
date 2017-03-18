@@ -2,33 +2,28 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <PackageId>Exceptionless.NLog</PackageId>
-    <AssemblyName>Exceptionless.NLog</AssemblyName>
+    <PackageId>Exceptionless.NLog.Signed</PackageId>
+    <AssemblyName>Exceptionless.NLog.Signed</AssemblyName>
     <AssemblyTitle>NLog target that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>NLog target that sends log entries to Exceptionless. $(Description)</Description>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="readme.txt">
+    <None Update="..\Exceptionless.NLog\readme.txt">
       <Pack>true</Pack>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="readme.txt">
-      <Pack>true</Pack>
-    </None>
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.Signed.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3</DefineConstants>
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
@@ -36,7 +31,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">

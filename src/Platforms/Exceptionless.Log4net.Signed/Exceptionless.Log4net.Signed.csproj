@@ -2,30 +2,24 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <PackageId>Exceptionless.Log4net</PackageId>
-    <AssemblyName>Exceptionless.Log4net</AssemblyName>
+    <PackageId>Exceptionless.Log4net.Signed</PackageId>
+    <AssemblyName>Exceptionless.Log4net.Signed</AssemblyName>
     <AssemblyTitle>Log4net appender that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>Log4net appender that sends log entries to Exceptionless. $(Description)</Description>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(SignAssembly)' == 'true'">
-    <PackageId>$(PackageId).Signed</PackageId>
-    <AssemblyName>$(AssemblyName).Signed</AssemblyName>
-    <DefineConstants>$(DefineConstants);SIGNED;</DefineConstants>
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="readme.txt">
+    <None Update="..\Exceptionless.Log4net\readme.txt">
       <Pack>true</Pack>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.Signed.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,11 +27,11 @@
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3</DefineConstants>
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
@@ -45,4 +39,5 @@
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
+
 </Project>

@@ -14,18 +14,10 @@ Function Create-Directory([string] $directory_name) {
 Create-Directory $artifacts_dir
 
 ForEach ($p in $client_projects) {
-    If (Test-Path "$($p.SourceDir)\project.json") {
-        Write-Host "Building Client NuGet Package: $($p.Name)" -ForegroundColor Yellow
-        dotnet pack "$($p.SourceDir)" -c Release -o $artifacts_dir
-        Write-Host "Building Client NuGet Package: $($p.Name)" -ForegroundColor Yellow
-        
-        If (-not $?) {
-            $anyError = $True
-        }
-        
+    If ($($p.UseMSBuild) -ne $True) {
         Continue;
     }
-    
+
     $isSignedProject = $($p.Name).EndsWith(".Signed")
     $workingDirectory = "$working_dir\$($p.Name)"
     Create-Directory $workingDirectory
@@ -90,7 +82,7 @@ ForEach ($p in $client_projects) {
 
     $nuspec.Save($nuspecFile);
 
-	$nuget_version = $env:APPVEYOR_BUILD_VERSION + $env:VERSION_SUFFIX
+    $nuget_version = $env:APPVEYOR_BUILD_VERSION + $env:VERSION_SUFFIX
     nuget pack $nuspecFile -OutputDirectory $artifacts_dir -Version $nuget_version -Symbols
 }
 
