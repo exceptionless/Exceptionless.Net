@@ -13,7 +13,8 @@
 x64/
 [Bb]in/
 [Oo]bj/
-src/Samples/Exceptionless.SampleConsole/store
+samples/Exceptionless.SampleConsole/store
+working
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

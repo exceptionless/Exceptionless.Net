@@ -82,7 +82,8 @@ ForEach ($p in $client_projects) {
 
     $nuspec.Save($nuspecFile);
 
-    $nuget_version = $env:APPVEYOR_BUILD_VERSION + $env:VERSION_SUFFIX
+    $nuget_version = $env:APPVEYOR_BUILD_VERSION
+    If ($env:VERSION_SUFFIX) { $nuget_version = $nuget_version + '-' + $env:VERSION_SUFFIX }
     nuget pack $nuspecFile -OutputDirectory $artifacts_dir -Version $nuget_version -Symbols
 }
 
