@@ -29,9 +29,10 @@ before_build:
 
 build_script:
   - ps: .\build\Build.ps1
+  - dotnet build test\Exceptionless.Tests -c Release
 
-test_script:
-  - dotnet test test\Exceptionless.Tests\
+#test_script:
+#  - dotnet test test\Exceptionless.Tests\
 
 after_test:
   - ps: .\build\Package.ps1
