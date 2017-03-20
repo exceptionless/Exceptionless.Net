@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Mvc.Signed</PackageId>
     <AssemblyName>Exceptionless.Mvc.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET MVC 3+ applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET MVC 3+ applications. $(Description)</Description>
     <TargetFramework>net45</TargetFramework>
     <PackageTags>MVC;ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package">
     <None Update="..\Exceptionless.Mvc\NuGet\tools\*">
       <PackagePath>tools\</PackagePath>
       <Pack>true</Pack>
@@ -25,22 +24,30 @@
     </None>
   </ItemGroup>
   
-  <ItemGroup>
-    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <Compile Include="..\Exceptionless.Web\ExceptionlessClientExtensions.cs;..\Exceptionless.Web\ExceptionlessWebExtensions.cs;..\Exceptionless.Web\ExceptionlessWebPlugin.cs;..\Exceptionless.Web\RequestInfoCollector.cs;..\Exceptionless.Web\WebLastReferenceIdManager.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
-
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.Signed.csproj" />
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.Mvc\obj\**\*" />
+    <Compile Include="..\Exceptionless.Mvc\**\*.cs;..\..\GlobalAssemblyInfo.cs;..\Exceptionless.Web\ExceptionlessClientExtensions.cs;..\Exceptionless.Web\ExceptionlessWebExtensions.cs;..\Exceptionless.Web\ExceptionlessWebPlugin.cs;..\Exceptionless.Web\RequestInfoCollector.cs;..\Exceptionless.Web\WebLastReferenceIdManager.cs" Exclude="..\Exceptionless.Mvc\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+  
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package References">
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="3.0.20105.1" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web" />
     <Reference Include="System" />

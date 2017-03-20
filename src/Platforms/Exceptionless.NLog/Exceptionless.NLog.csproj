@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.NLog</PackageId>
     <AssemblyName>Exceptionless.NLog</AssemblyName>
     <AssemblyTitle>NLog target that sends log entries to Exceptionless.</AssemblyTitle>
@@ -10,36 +10,33 @@
     <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package">
     <None Update="readme.txt">
       <Pack>true</Pack>
     </None>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Build">
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+  
+  <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="readme.txt">
-      <Pack>true</Pack>
-    </None>
-  </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Build">
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Package References">
     <PackageReference Include="NLog" Version="5.0.0-beta06" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
     <PackageReference Include="NLog" Version="4.4.4" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

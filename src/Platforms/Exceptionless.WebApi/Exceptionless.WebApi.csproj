@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.WebApi</PackageId>
     <AssemblyName>Exceptionless.WebApi</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Web API applications.</AssemblyTitle>
@@ -10,7 +10,7 @@
     <PackageTags>Web Api;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package">
     <None Update="NuGet\tools\*">
       <PackagePath>tools/</PackagePath>
       <Pack>true</Pack>
@@ -24,20 +24,23 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Build">
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+  
+  <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package References">
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceModel" />

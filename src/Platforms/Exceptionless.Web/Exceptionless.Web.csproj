@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Web</PackageId>
     <AssemblyName>Exceptionless.Web</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET WebForms applications.</AssemblyTitle>
@@ -10,7 +10,7 @@
     <PackageTags>WebForms;Web Forms;Wcf;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package">
     <None Update="NuGet\tools\*">
       <PackagePath>tools\</PackagePath>
       <Pack>true</Pack>
@@ -24,16 +24,19 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Build">
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+  
+  <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />

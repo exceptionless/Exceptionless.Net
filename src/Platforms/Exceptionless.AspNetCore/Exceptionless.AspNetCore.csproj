@@ -1,27 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.AspNetCore</PackageId>
     <AssemblyName>Exceptionless.AspNetCore</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
-    <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
     <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package">
     <None Update="readme.txt">
       <Pack>true</Pack>
     </None>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Build">
+    <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+  
+  <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package References">
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="1.1.1" />
@@ -32,19 +35,19 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.3.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' " Label="Build">
     <DefineConstants>$(DefineConstants);NETSTANDARD1_5</DefineConstants>
   </PropertyGroup>
   
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' " Label="Package References">
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' " Label="Framework References">
     <Reference Include="System.Net.Primitives" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

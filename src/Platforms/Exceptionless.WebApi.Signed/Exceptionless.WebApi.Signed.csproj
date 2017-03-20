@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.WebApi.Signed</PackageId>
     <AssemblyName>Exceptionless.WebApi.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Web API applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Web API applications. $(Description)</Description>
     <TargetFramework>net45</TargetFramework>
     <PackageTags>Web Api;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Package">
     <None Update="..\Exceptionless.WebApi\NuGet\tools\*">
       <PackagePath>tools\</PackagePath>
       <Pack>true</Pack>
@@ -25,20 +24,30 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.Signed.csproj" />
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.WebApi\obj\**\*" />
+    <Compile Include="..\Exceptionless.WebApi\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.WebApi\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
   </ItemGroup>
 
-  <ItemGroup>
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceModel" />

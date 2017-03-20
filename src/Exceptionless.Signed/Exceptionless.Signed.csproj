@@ -1,44 +1,46 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\common.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Signed</PackageId>
     <AssemblyName>Exceptionless.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for non visual (ie. Console and Services) applications.</AssemblyTitle>
     <Description>Exceptionless client for portable applications. $(Description)</Description>
-    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl;NETSTANDARD;Core</PackageTags>
-    <AssemblyOriginatorKeyFile>..\Exceptionless.snk</AssemblyOriginatorKeyFile>
-    <OutputPath>bin\$(Configuration)\signed</OutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-    <Compile Remove="Exceptionless.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Newtonsoft.Json\Dynamic.snk">
-      <Link>Exceptionless.Json.Dynamic.snk</Link>
-    </EmbeddedResource>
+    
+  <ItemGroup Label="Package">
+    <None Update="..\Exceptionless\readme.txt">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </None>
     <None Update="NuGet\tools\*">
       <PackagePath>tools/</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Update="NuGet\tools\exceptionless.signed.psm1">
-      <PackagePath>tools\exceptionless.psm1</PackagePath>
-      <Pack>true</Pack>
-    </None>
-    <None Update="readme.txt">
-      <Pack>true</Pack>
-    </None>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.2'">
+  <ItemGroup Label="Build">
+    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
+    <Compile Remove="..\Exceptionless\obj\**\*" />
+    <Compile Include="..\Exceptionless\**\*.cs;..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+
+    <EmbeddedResource Include="..\Exceptionless\Newtonsoft.Json\Dynamic.snk">
+      <Link>Exceptionless.Json.Dynamic.snk</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.2'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_2;SIGNED</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.2'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.2'" Label="Package References">
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
@@ -48,11 +50,11 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.3'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_3;SIGNED</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'" Label="Package References">
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="System.AppDomain" Version="2.0.11" />
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
@@ -70,11 +72,11 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.4'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_4;SIGNED</DefineConstants>
   </PropertyGroup>
   
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'" Label="Package References">
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="System.AppDomain" Version="2.0.11" />
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
@@ -92,11 +94,11 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.5'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.5'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_5;SIGNED</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.5'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.5'" Label="Package References">
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="System.AppDomain" Version="2.0.11" />
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
@@ -114,14 +116,14 @@
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'portable46-net451+win81+wpa81'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'portable46-net451+win81+wpa81'" Label="Build">
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile151</TargetFrameworkProfile>
     <DefineConstants>$(DefineConstants);PORTABLE;SIGNED</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'portable46-net451+win81+wpa81'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'portable46-net451+win81+wpa81'" Label="Framework References">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Collections" />
@@ -156,11 +158,11 @@
     <Reference Include="System.Xml.XDocument" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45'" Label="Build">
     <DefineConstants>$(DefineConstants);NET45;SIGNED</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'" Label="Framework References">
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />

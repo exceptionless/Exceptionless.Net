@@ -6,11 +6,7 @@ $anyError = $False
 ForEach ($p in $client_projects) {
     If ($($p.UseMSBuild) -ne $True) {
         Write-Host "Building $($p.Name)" -ForegroundColor Yellow
-        If ($($p.Name).EndsWith(".Signed")) {
-            dotnet pack $($p.SourceDir) -c Release -o $artifacts_dir /p:SignAssembly=true
-        } Else {
-            dotnet pack $($p.SourceDir) -c Release -o $artifacts_dir
-        }
+        dotnet pack $($p.SourceDir) -c Release -o $artifacts_dir
         Write-Host "Finished building $($p.Name)" -ForegroundColor Yellow
 
         If ($LASTEXITCODE -ne 0) {

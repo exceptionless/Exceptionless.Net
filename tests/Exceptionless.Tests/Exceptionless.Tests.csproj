@@ -4,9 +4,6 @@
     <TargetFramework>net46</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyName>Exceptionless.Tests</AssemblyName>
-    <PackageId>Exceptionless.Tests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
   </PropertyGroup>
 
   <ItemGroup>
