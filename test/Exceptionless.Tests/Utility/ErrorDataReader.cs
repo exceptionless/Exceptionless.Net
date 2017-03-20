@@ -24,7 +24,7 @@ namespace Exceptionless.Tests.Utility {
         }
         
         public static IEnumerable<Event> GetEvents() {
-            return Directory.EnumerateFiles(@"..\..\..\..\ErrorData", "*.json").Select(GetEvent);
+            return Directory.EnumerateFiles(@"..\..\..\ErrorData", "*.json").Select(GetEvent);
         }
     }
 }

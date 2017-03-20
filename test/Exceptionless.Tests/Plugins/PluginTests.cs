@@ -880,7 +880,7 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Fact]
+        [Fact (Skip = "Skip until https://github.com/dotnet/BenchmarkDotNet/issues/395 is fixed")]
         public void RunBenchmark() {
             var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
 

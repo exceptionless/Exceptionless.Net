@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Compile Remove="store\**\*" />
-    <Compile Include="..\..\tests\Exceptionless.Tests\Utility\RandomEventGenerator.cs" Exclude="store\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+    <Compile Include="..\..\test\Exceptionless.Tests\Utility\RandomEventGenerator.cs" Exclude="store\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
     <None Include="App.config" />
   </ItemGroup>
 
