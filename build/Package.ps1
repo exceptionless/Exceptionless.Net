@@ -15,6 +15,14 @@ Create-Directory $artifacts_dir
 
 ForEach ($p in $client_projects) {
     If ($($p.UseMSBuild) -ne $True) {
+        Write-Host "Building Client NuGet Package: $($p.Name)" -ForegroundColor Yellow
+        dotnet pack "$($p.SourceDir)" -c Release -o $artifacts_dir
+        Write-Host "Building Client NuGet Package: $($p.Name)" -ForegroundColor Yellow
+        
+        If (-not $?) {
+            $anyError = $True
+        }
+        
         Continue;
     }
 

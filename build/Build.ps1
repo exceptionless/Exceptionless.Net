@@ -6,7 +6,7 @@ $anyError = $False
 ForEach ($p in $client_projects) {
     If ($($p.UseMSBuild) -ne $True) {
         Write-Host "Building $($p.Name)" -ForegroundColor Yellow
-        dotnet pack $($p.SourceDir) -c Release -o $artifacts_dir
+        dotnet build $($p.SourceDir) -c Release
         Write-Host "Finished building $($p.Name)" -ForegroundColor Yellow
 
         If ($LASTEXITCODE -ne 0) {
