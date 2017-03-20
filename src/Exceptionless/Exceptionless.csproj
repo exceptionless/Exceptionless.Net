@@ -8,15 +8,12 @@
     <Description>Exceptionless client for portable applications. $(Description)</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl;NETSTANDARD;Core</PackageTags>
     <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
-</PropertyGroup>
+  </PropertyGroup>
     
   <ItemGroup Label="Package">
     <None Update="NuGet\tools\*">
-      <PackagePath>tools/</PackagePath>
+      <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
-    </None>
-    <None Update="NuGet\tools\exceptionless.signed.psm1">
-      <Pack>false</Pack>
     </None>
     <None Update="readme.txt">
       <Pack>true</Pack>

@@ -8,16 +8,12 @@
 *.ide
 
 # Build results
-
 [Dd]ebug/
 [Rr]elease/
 x64/
 [Bb]in/
 [Oo]bj/
 src/Samples/Exceptionless.SampleConsole/store
-
-!Libraries/Redis/bin/
-!Libraries/Mongo/bin/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

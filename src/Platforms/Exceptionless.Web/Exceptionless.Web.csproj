@@ -12,7 +12,7 @@
 
   <ItemGroup Label="Package">
     <None Update="NuGet\tools\*">
-      <PackagePath>tools\</PackagePath>
+      <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
     <None Update="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">

@@ -42,13 +42,16 @@ artifacts:
 
 deploy:
   - provider: Environment
+    name: MyGet
+  - provider: Environment
     name: NuGet
+    on:
+      appveyor_repo_tag: true
   - provider: GitHub
     auth_token:
       secure: 0s81q7bweVLTFSOKxnIhan7el6bIFiN8HJ1kYJzOkeFXX7wgGSq9bs/rV53X9qpf
     draft: true
     on:
-      branch: master
       appveyor_repo_tag: true
     
 notifications:
