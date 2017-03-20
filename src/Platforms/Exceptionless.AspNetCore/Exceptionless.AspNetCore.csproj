@@ -7,6 +7,7 @@
     <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
     <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Package">
@@ -16,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Build">
-    <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
   </ItemGroup>
   

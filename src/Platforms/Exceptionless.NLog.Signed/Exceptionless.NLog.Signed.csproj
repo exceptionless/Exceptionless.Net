@@ -6,8 +6,8 @@
     <AssemblyName>Exceptionless.NLog.Signed</AssemblyName>
     <AssemblyTitle>NLog target that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>NLog target that sends log entries to Exceptionless. $(Description)</Description>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

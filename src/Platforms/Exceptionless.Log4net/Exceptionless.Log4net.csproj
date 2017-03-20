@@ -6,8 +6,8 @@
     <AssemblyName>Exceptionless.Log4net</AssemblyName>
     <AssemblyTitle>Log4net appender that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>Log4net appender that sends log entries to Exceptionless. $(Description)</Description>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

@@ -6,8 +6,8 @@
     <AssemblyName>Exceptionless.Web.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET WebForms applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET WebForms applications. $(Description)</Description>
-    <TargetFramework>net45</TargetFramework>
     <PackageTags>WebForms;Web Forms;Wcf;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFramework>net45</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

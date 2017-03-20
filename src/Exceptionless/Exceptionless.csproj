@@ -7,7 +7,8 @@
     <AssemblyTitle>Exceptionless client for non visual (ie. Console and Services) applications.</AssemblyTitle>
     <Description>Exceptionless client for portable applications. $(Description)</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl;NETSTANDARD;Core</PackageTags>
-  </PropertyGroup>
+    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
+</PropertyGroup>
     
   <ItemGroup Label="Package">
     <None Update="NuGet\tools\*">
@@ -23,8 +24,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Build">
-    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
-
     <Compile Include="..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
 
     <EmbeddedResource Include="Newtonsoft.Json\Dynamic.snk">
