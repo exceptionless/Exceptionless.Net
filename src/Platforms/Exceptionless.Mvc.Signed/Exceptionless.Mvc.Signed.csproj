@@ -11,15 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup Label="Package">
-    <None Update="..\Exceptionless.Mvc\NuGet\tools\*">
+    <None Include="..\Exceptionless.Mvc\NuGet\tools\*">
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Update="..\..\Exceptionless.Signed\NuGet\tools\exceptionless.psm1">
+    <None Include="..\..\Exceptionless.Signed\NuGet\tools\exceptionless.psm1">
       <PackagePath>tools\exceptionless.psm1</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Update="..\Exceptionless.Mvc\readme.txt">
+    <None Include="..\Exceptionless.Mvc\readme.txt">
+      <PackagePath></PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>

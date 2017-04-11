@@ -11,7 +11,8 @@
   </PropertyGroup>
     
   <ItemGroup Label="Package">
-    <None Update="..\Exceptionless.AspNetCore\readme.txt">
+    <None Include="..\Exceptionless.AspNetCore\readme.txt">
+      <PackagePath></PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>

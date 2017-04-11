@@ -11,11 +11,12 @@
   </PropertyGroup>
     
   <ItemGroup Label="Package">
-    <None Update="NuGet\tools\*">
+    <None Include="NuGet\tools\*">
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Update="readme.txt">
+    <None Include="readme.txt">
+      <PackagePath></PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>
