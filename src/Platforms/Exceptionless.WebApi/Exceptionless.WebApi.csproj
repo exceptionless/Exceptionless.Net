@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup Label="Package">
+    <PackageId>Exceptionless.WebApi</PackageId>
+    <AssemblyName>Exceptionless.WebApi</AssemblyName>
+    <AssemblyTitle>Exceptionless client for ASP.NET Web API applications.</AssemblyTitle>
+    <Description>Exceptionless client for ASP.NET Web API applications. $(Description)</Description>
+    <TargetFramework>net45</TargetFramework>
+    <PackageTags>Web Api;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup Label="Package">
+    <None Include="NuGet\tools\*">
+      <PackagePath>tools</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
+      <PackagePath>tools</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="readme.txt">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Label="Build">
+    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
+  </ItemGroup>
+  
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
+    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+</Project>

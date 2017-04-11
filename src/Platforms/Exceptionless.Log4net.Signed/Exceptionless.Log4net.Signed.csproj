@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup Label="Package">
+    <PackageId>Exceptionless.Log4net.Signed</PackageId>
+    <AssemblyName>Exceptionless.Log4net.Signed</AssemblyName>
+    <AssemblyTitle>Log4net appender that sends log entries to Exceptionless.</AssemblyTitle>
+    <Description>Log4net appender that sends log entries to Exceptionless. $(Description)</Description>
+    <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup Label="Package">
+    <None Include="..\Exceptionless.Log4net\readme.txt">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.Log4net\obj\**\*" />
+    <Compile Include="..\Exceptionless.Log4net\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.Log4net\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="log4net" Version="2.0.8" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Build">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3;SIGNED;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
+    <Reference Include="System.Configuration" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+</Project>

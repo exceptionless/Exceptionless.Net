@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup Label="Package">
+    <PackageId>Exceptionless.AspNetCore.Signed</PackageId>
+    <AssemblyName>Exceptionless.AspNetCore.Signed</AssemblyName>
+    <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
+    <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
+    <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFrameworks>netstandard1.5;net451</TargetFrameworks>
+  </PropertyGroup>
+    
+  <ItemGroup Label="Package">
+    <None Include="..\Exceptionless.AspNetCore\readme.txt">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.AspNetCore\obj\**\*" />
+    <Compile Include="..\Exceptionless.AspNetCore\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.AspNetCore\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Net.Http.Headers" Version="1.1.1" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.3.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.1" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' " Label="Build">
+    <DefineConstants>$(DefineConstants);NETSTANDARD1_5;SIGNED;</DefineConstants>
+  </PropertyGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' " Label="Package References">
+    <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' " Label="Build">
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' " Label="Framework References">
+    <Reference Include="System.Net.Primitives" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+</Project>
