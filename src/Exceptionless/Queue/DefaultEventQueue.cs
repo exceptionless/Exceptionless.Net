@@ -46,10 +46,7 @@ namespace Exceptionless.Queue {
         }
 
         public Task ProcessAsync() {
-            return Task.Factory.StartNew(
-                () => {
-                    Process().ConfigureAwait(false).GetAwaiter().GetResult();
-                });
+            return Task.Run(() => Process());
         }
 
         public Task Process() {
