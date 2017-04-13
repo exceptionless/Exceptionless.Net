@@ -46,7 +46,7 @@ namespace Exceptionless.Queue {
         }
 
         public Task ProcessAsync() {
-            return Task.Run(() => Process());
+            return Task.Run(Process);
         }
 
         public Task Process() {
