@@ -17,7 +17,7 @@ namespace Exceptionless.Queue {
         private readonly IJsonSerializer _serializer;
         private Timer _queueTimer;
         private Task _processingQueueTask;
-        private readonly object sync = new object();
+        private readonly object _sync = new object();
         private readonly TimeSpan _processQueueInterval = TimeSpan.FromSeconds(10);
         private DateTime? _suspendProcessingUntil;
         private DateTime? _discardQueuedItemsUntil;
@@ -59,11 +59,10 @@ namespace Exceptionless.Queue {
             }
 
             TaskCompletionSource<bool> tcs;
-            lock (sync) {
+            lock (_sync) {
                 if (_processingQueueTask != null) {
                     return _processingQueueTask;
-                }
-                else {
+                } else {
                     tcs = new TaskCompletionSource<bool>();
                     _processingQueueTask = tcs.Task;
                 }
@@ -143,7 +142,7 @@ namespace Exceptionless.Queue {
                 SuspendProcessing();
             } finally {
                 tcs.SetResult(true);
-                lock (sync) {
+                lock (_sync) {
                     _processingQueueTask = null;
                     resultTask = tcs.Task;
                 }
