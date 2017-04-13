@@ -16,12 +16,13 @@ namespace Exceptionless.Queue {
         private readonly IObjectStorage _storage;
         private readonly IJsonSerializer _serializer;
         private Timer _queueTimer;
-        private bool _processingQueue;
+        private Task _processingQueueTask;
+        private readonly object sync = new object();
         private readonly TimeSpan _processQueueInterval = TimeSpan.FromSeconds(10);
         private DateTime? _suspendProcessingUntil;
         private DateTime? _discardQueuedItemsUntil;
 
-        public DefaultEventQueue(ExceptionlessConfiguration config, IExceptionlessLog log, ISubmissionClient client, IObjectStorage objectStorage, IJsonSerializer serializer): this(config, log, client, objectStorage, serializer, null, null) {}
+        public DefaultEventQueue(ExceptionlessConfiguration config, IExceptionlessLog log, ISubmissionClient client, IObjectStorage objectStorage, IJsonSerializer serializer) : this(config, log, client, objectStorage, serializer, null, null) { }
 
         public DefaultEventQueue(ExceptionlessConfiguration config, IExceptionlessLog log, ISubmissionClient client, IObjectStorage objectStorage, IJsonSerializer serializer, TimeSpan? processQueueInterval, TimeSpan? queueStartDelay) {
             _log = log;
@@ -45,20 +46,30 @@ namespace Exceptionless.Queue {
         }
 
         public Task ProcessAsync() {
-            return Task.Factory.StartNew(Process);
+            return Task.Factory.StartNew(
+                () => {
+                    Process().ConfigureAwait(false).GetAwaiter().GetResult();
+                });
         }
 
-        public void Process() {
+        public Task Process() {
             if (!_config.Enabled) {
                 _log.Info(typeof(DefaultEventQueue), "Configuration is disabled. The queue will not be processed.");
-                return;
+                return Task.FromResult(false);
             }
 
-            if (_processingQueue)
-                return;
+            TaskCompletionSource<bool> tcs;
+            lock (sync) {
+                if (_processingQueueTask != null) {
+                    return _processingQueueTask;
+                }
+                else {
+                    tcs = new TaskCompletionSource<bool>();
+                    _processingQueueTask = tcs.Task;
+                }
+            }
 
-            _processingQueue = true;
-            
+            Task resultTask;
             try {
                 _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
                 _storage.CleanupQueueFiles(_config.GetQueueName(), _config.QueueMaxAge, _config.QueueMaxAttempts);
@@ -75,43 +86,52 @@ namespace Exceptionless.Queue {
                         var response = _client.PostEvents(events, _config, _serializer);
                         if (response.Success) {
                             _log.FormattedInfo(typeof(DefaultEventQueue), "Sent {0} events to \"{1}\".", batch.Count, _config.ServerUrl);
-                        } else if (response.ServiceUnavailable) {
+                        }
+                        else if (response.ServiceUnavailable) {
                             // You are currently over your rate limit or the servers are under stress.
                             _log.Error(typeof(DefaultEventQueue), "Server returned service unavailable.");
                             SuspendProcessing();
                             deleteBatch = false;
-                        } else if (response.PaymentRequired) {
+                        }
+                        else if (response.PaymentRequired) {
                             // If the organization over the rate limit then discard the event.
                             _log.Warn(typeof(DefaultEventQueue), "Too many events have been submitted, please upgrade your plan.");
                             SuspendProcessing(discardFutureQueuedItems: true, clearQueue: true);
-                        } else if (response.UnableToAuthenticate) {
+                        }
+                        else if (response.UnableToAuthenticate) {
                             // The api key was suspended or could not be authorized.
                             _log.Error(typeof(DefaultEventQueue), "Unable to authenticate, please check your configuration. The event will not be submitted.");
                             SuspendProcessing(TimeSpan.FromMinutes(15));
-                        } else if (response.NotFound || response.BadRequest) {
+                        }
+                        else if (response.NotFound || response.BadRequest) {
                             // The service end point could not be found.
                             _log.FormattedError(typeof(DefaultEventQueue), "Error while trying to submit data: {0}", response.Message);
                             SuspendProcessing(TimeSpan.FromHours(4));
-                        } else if (response.RequestEntityTooLarge) {
+                        }
+                        else if (response.RequestEntityTooLarge) {
                             if (batchSize > 1) {
                                 _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will be retried with a smaller batch size.");
                                 batchSize = Math.Max(1, (int)Math.Round(batchSize / 1.5d, 0));
                                 deleteBatch = false;
-                            } else {
+                            }
+                            else {
                                 _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
                             }
-                        } else if (!response.Success) {
+                        }
+                        else if (!response.Success) {
                             _log.Error(typeof(DefaultEventQueue), String.Concat("An error occurred while submitting events: ", response.Message));
                             SuspendProcessing();
                             deleteBatch = false;
                         }
 
                         OnEventsPosted(new EventsPostedEventArgs { Events = events, Response = response });
-                    } catch (AggregateException ex) {
+                    }
+                    catch (AggregateException ex) {
                         _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while submitting events: ", ex.Flatten().Message));
                         SuspendProcessing();
                         deleteBatch = false;
-                    } catch (Exception ex) {
+                    }
+                    catch (Exception ex) {
                         _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while submitting events: ", ex.Message));
                         SuspendProcessing();
                         deleteBatch = false;
@@ -127,20 +147,26 @@ namespace Exceptionless.Queue {
 
                     batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, batchSize, maxCreatedDate);
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while processing the queue: ", ex.Message));
                 SuspendProcessing();
-            } finally {
-                _processingQueue = false;
             }
+            finally {
+                tcs.SetResult(true);
+                lock (sync) {
+                    _processingQueueTask = null;
+                    resultTask = tcs.Task;
+                }
+            }
+            return resultTask;
         }
 
         private void OnProcessQueue(object state) {
             if (IsQueueProcessingSuspended)
                 return;
-            
-            if (!_processingQueue)
-                Process();
+
+            Process();
         }
 
         public void SuspendProcessing(TimeSpan? duration = null, bool discardFutureQueuedItems = false, bool clearQueue = false) {
@@ -162,7 +188,8 @@ namespace Exceptionless.Queue {
 #pragma warning disable 4014
                 _storage.CleanupQueueFiles(_config.GetQueueName(), TimeSpan.Zero);
 #pragma warning restore 4014
-            } catch (Exception) { }
+            }
+            catch (Exception) { }
         }
 
         public event EventHandler<EventsPostedEventArgs> EventsPosted;
@@ -171,7 +198,8 @@ namespace Exceptionless.Queue {
             try {
                 if (EventsPosted != null)
                     EventsPosted.Invoke(this, e);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 _log.Error(typeof(DefaultEventQueue), ex, "Error while calling OnEventsPosted event handlers.");
             }
         }
