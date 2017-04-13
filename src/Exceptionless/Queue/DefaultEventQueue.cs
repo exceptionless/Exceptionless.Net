@@ -16,7 +16,8 @@ namespace Exceptionless.Queue {
         private readonly IObjectStorage _storage;
         private readonly IJsonSerializer _serializer;
         private Timer _queueTimer;
-        private bool _processingQueue;
+        private Task _processingQueueTask;
+        private readonly object _sync = new object();
         private readonly TimeSpan _processQueueInterval = TimeSpan.FromSeconds(10);
         private DateTime? _suspendProcessingUntil;
         private DateTime? _discardQueuedItemsUntil;
@@ -45,20 +46,26 @@ namespace Exceptionless.Queue {
         }
 
         public Task ProcessAsync() {
-            return Task.Factory.StartNew(Process);
+            return Task.Run(Process);
         }
 
-        public void Process() {
+        public Task Process() {
             if (!_config.Enabled) {
                 _log.Info(typeof(DefaultEventQueue), "Configuration is disabled. The queue will not be processed.");
-                return;
+                return Task.FromResult(false);
             }
 
-            if (_processingQueue)
-                return;
+            TaskCompletionSource<bool> tcs;
+            lock (_sync) {
+                if (_processingQueueTask != null) {
+                    return _processingQueueTask;
+                } else {
+                    tcs = new TaskCompletionSource<bool>();
+                    _processingQueueTask = tcs.Task;
+                }
+            }
 
-            _processingQueue = true;
-            
+            Task resultTask;
             try {
                 _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
                 _storage.CleanupQueueFiles(_config.GetQueueName(), _config.QueueMaxAge, _config.QueueMaxAttempts);
@@ -131,16 +138,20 @@ namespace Exceptionless.Queue {
                 _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while processing the queue: ", ex.Message));
                 SuspendProcessing();
             } finally {
-                _processingQueue = false;
+                tcs.SetResult(true);
+                lock (_sync) {
+                    _processingQueueTask = null;
+                    resultTask = tcs.Task;
+                }
             }
+            return resultTask;
         }
 
         private void OnProcessQueue(object state) {
             if (IsQueueProcessingSuspended)
                 return;
-            
-            if (!_processingQueue)
-                Process();
+
+            Process();
         }
 
         public void SuspendProcessing(TimeSpan? duration = null, bool discardFutureQueuedItems = false, bool clearQueue = false) {
