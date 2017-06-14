@@ -40,10 +40,10 @@ namespace Exceptionless.Logging {
         protected virtual WrappedDisposable<StreamWriter> GetWriter(bool append = false) {
 #if NETSTANDARD
             return new WrappedDisposable<StreamWriter>(new StreamWriter(
-                new FileStream(FilePath, append ? FileMode.Append : FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite), Encoding.ASCII)
+                new FileStream(FilePath, append ? FileMode.Append : FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite), Encoding.UTF8)
             );
 #else
-            return new WrappedDisposable<StreamWriter>(new StreamWriter(FilePath, append, Encoding.ASCII));
+            return new WrappedDisposable<StreamWriter>(new StreamWriter(FilePath, append, Encoding.UTF8));
 #endif
         }
 
