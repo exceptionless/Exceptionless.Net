@@ -16,8 +16,6 @@ namespace Exceptionless.Serializer {
         public DefaultJsonSerializer() {
             _serializerSettings = new JsonSerializerSettings {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
                 PreserveReferencesHandling = PreserveReferencesHandling.None,
                 ContractResolver = new ExceptionlessContractResolver()
             };
@@ -73,7 +71,7 @@ namespace Exceptionless.Serializer {
 
                 object value = property.ValueProvider.GetValue(obj);
                 if (value == null)
-                    return false;
+                    return true;
 
                 if (typeof(ICollection).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo())) {
                     var collection = value as ICollection;
