@@ -38,7 +38,7 @@ namespace Exceptionless.Tests.Plugins {
         private EventBuilder _randomEventBuilder;
         private EventBuilder _fixedEventBuilder;
 
-        [Setup]
+        [GlobalSetup]
         public void Setup() {
             _randomEventBuilder = GetException(Guid.NewGuid().ToString()).ToExceptionless();
             _fixedEventBuilder = GetException().ToExceptionless();

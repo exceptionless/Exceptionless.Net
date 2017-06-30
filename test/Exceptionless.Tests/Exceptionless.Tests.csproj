@@ -16,13 +16,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.3.91" />
-    <PackageReference Include="Moq" Version="4.7.1" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.8" />
+    <PackageReference Include="Moq" Version="4.7.63" />
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.extensibility.core" Version="2.2.0" />
     <PackageReference Include="xunit.extensibility.execution" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
-    <PackageReference Include="Exceptionless.RandomData" Version="1.1.27" />
+    <PackageReference Include="Exceptionless.RandomData" Version="1.1.35" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">

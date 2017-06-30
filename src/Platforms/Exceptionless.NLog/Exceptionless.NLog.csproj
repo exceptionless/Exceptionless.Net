@@ -30,7 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Package References">
-    <PackageReference Include="NLog" Version="5.0.0-beta06" />
+    <PackageReference Include="NLog" Version="5.0.0-beta09" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
@@ -38,7 +38,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
-    <PackageReference Include="NLog" Version="4.4.4" />
+    <PackageReference Include="NLog" Version="4.4.11" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
