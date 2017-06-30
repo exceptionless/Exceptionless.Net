@@ -887,7 +887,7 @@ namespace Exceptionless.Tests.Plugins {
             foreach (var report in summary.Reports) {
                 _writer.WriteLine(report.ToString());
 
-                var benchmarkMedianMilliseconds = report.ResultStatistics.Median / 1000000;
+                var benchmarkMedianMilliseconds = report.ResultStatistics != null ? report.ResultStatistics.Median / 1000000 : 0;
                 _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.Benchmark.DisplayInfo, benchmarkMedianMilliseconds));
             }
         }
