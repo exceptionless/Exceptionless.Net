@@ -15,6 +15,9 @@ namespace Exceptionless.Tests.Serializer {
             return new DefaultJsonSerializer();
         }
 
+        private string[] _sampleModelExcludes = { nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Bool), nameof(SampleModel.Number), nameof(SampleModel.Nested), "Date*" };
+        private string[] _eventModelExcludes = { nameof(Event.Type), nameof(Event.Source), "Date", nameof(Event.Geo), nameof(Event.Count), nameof(Event.ReferenceId), nameof(Event.Tags), nameof(Event.Value) };
+
         [Fact]
         public void CanSerialize() {
             var data = new SampleModel {
@@ -22,7 +25,7 @@ namespace Exceptionless.Tests.Serializer {
                 Message = "Testing"
             };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { "Date" });
+            string json = serializer.Serialize(data, _sampleModelExcludes);
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
@@ -35,7 +38,7 @@ namespace Exceptionless.Tests.Serializer {
             ev.Data["FirstName"] = "Blake";
 
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(ev, new[] { "Date" });
+            string json = serializer.Serialize(ev, _eventModelExcludes);
             Assert.Equal(@"{""message"":""Testing"",""data"":{""FirstName"":""Blake""}}", json);
         }
 
@@ -47,7 +50,7 @@ namespace Exceptionless.Tests.Serializer {
                 Message = "Testing"
             };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { "Date" });
+            string json = serializer.Serialize(data, _sampleModelExcludes);
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
@@ -61,9 +64,22 @@ namespace Exceptionless.Tests.Serializer {
                     Message = "Nested"
                 }
             };
+
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { "Date" });
-            Assert.Equal(@"{""message"":""Testing"",""nested"":{""message"":""Nested""}}", json);
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Bool), nameof(SampleModel.Number), "Date*" });
+            Assert.Equal(@"{""message"":""Testing"",""nested"":{""message"":""Nested"",""nested"":null}}", json);
+        }
+
+        [Fact]
+        public void ShouldIncludeNullObjects() {
+            var data = new SampleModel {
+                Date = DateTime.Now,
+                Message = "Testing",
+                Nested = null
+            };
+            IJsonSerializer serializer = GetSerializer();
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Bool), nameof(SampleModel.Number), "Date*" });
+            Assert.Equal(@"{""message"":""Testing"",""nested"":null}", json);
         }
 
         [Fact]
@@ -87,14 +103,14 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
-        public void WillIgnoreDefaultValues() {
+        public void ShouldIncludeDefaultValues() {
             var data = new SampleModel {
                 Number = 0,
                 Bool = false
             };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data);
-            Assert.Equal(@"{}", json);
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested), "Date*" });
+            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -112,7 +128,7 @@ namespace Exceptionless.Tests.Serializer {
                 }
             };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, maxDepth: 2);
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Bool), nameof(SampleModel.Number), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), "Date*" }, maxDepth: 2);
             Assert.Equal(@"{""message"":""Level 1"",""nested"":{""message"":""Level 2""}}", json);
         }
 
@@ -124,8 +140,8 @@ namespace Exceptionless.Tests.Serializer {
                 Collection = new Collection<string>()
             };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { "Date" });
-            Assert.Equal(@"{""message"":""Testing""}", json);
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Nested), nameof(SampleModel.Bool), nameof(SampleModel.Number), "Date*" });
+            Assert.Equal(@"{""message"":""Testing"",""dictionary"":null}", json);
         }
 
         // TODO: Ability to deserialize objects without underscores
