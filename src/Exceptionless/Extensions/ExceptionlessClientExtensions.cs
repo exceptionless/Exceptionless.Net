@@ -207,7 +207,7 @@ namespace Exceptionless {
             var builder = client.CreateLog(source, message);
 
             if (!String.IsNullOrWhiteSpace(level))
-                builder.AddObject(level.Trim(), Event.KnownDataKeys.Level);
+                builder.SetProperty(Event.KnownDataKeys.Level, level.Trim());
 
             return builder;
         }
