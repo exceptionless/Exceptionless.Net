@@ -794,7 +794,7 @@ namespace Exceptionless.Json.Utilities
             if (provider is MemberInfo)
             {
                 MemberInfo m = (MemberInfo)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 && !NETSTANDARD2_0
                 return ((attributeType != null) ? m.GetCustomAttributes(attributeType, inherit) : m.GetCustomAttributes(inherit)).ToArray();
 #else
                 return (attributeType != null) ? Attribute.GetCustomAttributes(m, attributeType, inherit) : Attribute.GetCustomAttributes(m, inherit);
@@ -816,7 +816,7 @@ namespace Exceptionless.Json.Utilities
             if (provider is ParameterInfo)
             {
                 ParameterInfo p = (ParameterInfo)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 && !NETSTANDARD2_0
                 return ((attributeType != null) ? p.GetCustomAttributes(attributeType, inherit) : p.GetCustomAttributes(inherit)).ToArray();
 #else
                 return (attributeType != null) ? Attribute.GetCustomAttributes(p, attributeType, inherit) : Attribute.GetCustomAttributes(p, inherit);
