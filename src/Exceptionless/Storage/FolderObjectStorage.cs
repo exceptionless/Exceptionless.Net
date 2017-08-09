@@ -121,7 +121,7 @@ namespace Exceptionless.Storage {
 
             var list = new List<ObjectInfo>();
 
-            foreach (var path in Directory.GetFiles(Folder, searchPattern, SearchOption.AllDirectories)) {
+            foreach (var path in Directory.EnumerateFiles(Folder, searchPattern, SearchOption.AllDirectories)) {
                 var info = new System.IO.FileInfo(path);
                 if (!info.Exists || info.CreationTime > maxCreatedDate)
                     continue;
