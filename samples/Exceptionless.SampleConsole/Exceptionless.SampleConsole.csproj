@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Exceptionless.SampleConsole</AssemblyName>
     <OutputType>Exe</OutputType>
-    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,17 +19,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Exceptionless.DateTimeExtensions" Version="3.2.75" />
-    <PackageReference Include="Exceptionless.RandomData" Version="1.1.35" />
+    <PackageReference Include="Exceptionless.DateTimeExtensions" Version="3.2.86" />
+    <PackageReference Include="Exceptionless.RandomData" Version="1.1.47" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_5</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
     <DebugType>portable</DebugType>
   </PropertyGroup>
-
 </Project>

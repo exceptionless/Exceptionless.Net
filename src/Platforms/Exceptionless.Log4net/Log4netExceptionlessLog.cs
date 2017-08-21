@@ -48,7 +48,7 @@ namespace Exceptionless.Log4net {
         }
 
         private ILog GetLogger(string name) {
-#if NETSTANDARD1_3
+#if NETSTANDARD2_0
             return LogManager.GetLogger(typeof(Log4netExceptionlessLog).GetTypeInfo().Assembly, name ?? "Exceptionless");
 #else
             return LogManager.GetLogger(name ?? "Exceptionless");

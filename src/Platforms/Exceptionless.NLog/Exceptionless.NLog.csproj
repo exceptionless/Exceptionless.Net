@@ -7,7 +7,7 @@
     <AssemblyTitle>NLog target that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>NLog target that sends log entries to Exceptionless. $(Description)</Description>
     <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Package">
@@ -20,16 +20,16 @@
   <ItemGroup Label="Build">
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
   </ItemGroup>
-  
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Build">
-    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Build">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Package References">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Package References">
     <PackageReference Include="NLog" Version="5.0.0-beta09" />
   </ItemGroup>
 
@@ -38,7 +38,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
-    <PackageReference Include="NLog" Version="4.4.11" />
+    <PackageReference Include="NLog" Version="4.4.12" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>

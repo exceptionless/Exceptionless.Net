@@ -7,7 +7,7 @@
     <AssemblyTitle>Log4net appender that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>Log4net appender that sends log entries to Exceptionless. $(Description)</Description>
     <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Package">
@@ -20,7 +20,7 @@
   <ItemGroup Label="Build">
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
   </ItemGroup>
-  
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
@@ -29,8 +29,8 @@
     <PackageReference Include="log4net" Version="2.0.8" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' " Label="Build">
-    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD1_3</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Build">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
