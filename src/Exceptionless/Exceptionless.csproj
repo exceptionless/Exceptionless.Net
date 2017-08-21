@@ -7,7 +7,7 @@
     <AssemblyTitle>Exceptionless client for non visual (ie. Console and Services) applications.</AssemblyTitle>
     <Description>Exceptionless client for portable applications. $(Description)</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl;NETSTANDARD;Core</PackageTags>
-    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
   </PropertyGroup>
     
   <ItemGroup Label="Package">
@@ -107,6 +107,15 @@
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'" Label="Build">
+    <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'" Label="Package References">
+    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'portable46-net451+win81+wpa81'" Label="Build">
