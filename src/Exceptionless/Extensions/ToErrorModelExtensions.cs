@@ -226,7 +226,7 @@ namespace Exceptionless {
             method.Name = methodBase.Name;
             if (methodBase.DeclaringType != null) {
                 method.DeclaringNamespace = methodBase.DeclaringType.Namespace;
-#if NET45 || NETSTANDARD1_5
+#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
                 if (methodBase.DeclaringType.GetTypeInfo().MemberType == MemberTypes.NestedType && methodBase.DeclaringType.DeclaringType != null)
                     method.DeclaringType = methodBase.DeclaringType.DeclaringType.Name + "+" + methodBase.DeclaringType.Name;
                 else
@@ -306,7 +306,7 @@ namespace Exceptionless {
                 if (lastWriteTime.HasValue)
                     mod.ModifiedDate = lastWriteTime.Value;
 
-#if NET45 || NETSTANDARD1_5
+#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
                 if (assembly == Assembly.GetEntryAssembly())
                     mod.IsEntry = true;
 #endif

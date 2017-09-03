@@ -10,7 +10,7 @@ namespace Exceptionless.Utility {
         public static Assembly GetRootAssembly() {
 #if NETSTANDARD1_5
             return Assembly.GetEntryAssembly();
-#elif NET45
+#elif NET45 || NETSTANDARD2_0
             return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 #else
             return null;

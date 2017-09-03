@@ -37,7 +37,7 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private string GetVersionFromRuntimeInfo(IExceptionlessLog log) {
-#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD2_0
             try {
                 var platformService = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
                 return platformService.Application.ApplicationVersion;

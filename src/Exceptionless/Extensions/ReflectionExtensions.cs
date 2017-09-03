@@ -14,7 +14,7 @@ namespace Exceptionless {
         }
 
         public static DateTime? GetCreationTime(this Assembly assembly) {
-#if NET45 || NETSTANDARD1_5
+#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
             try {
                 return File.GetCreationTime(assembly.Location);
             } catch {}
@@ -24,7 +24,7 @@ namespace Exceptionless {
         }
 
         public static DateTime? GetLastWriteTime(this Assembly assembly) {
-#if NET45 || NETSTANDARD1_5
+#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
             try {
                 return File.GetLastWriteTime(assembly.Location);
             } catch {}

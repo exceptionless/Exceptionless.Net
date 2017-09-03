@@ -77,7 +77,7 @@ namespace Exceptionless.Services {
             try {
 #if NETSTANDARD1_5
                 info.CommandLine = String.Join(" ", Environment.GetCommandLineArgs());
-#elif NET45
+#elif NET45 || NETSTANDARD2_0
                 info.CommandLine = Environment.CommandLine;
 #endif
             } catch (Exception ex) {
@@ -155,7 +155,7 @@ namespace Exceptionless.Services {
 #endif
 
             try {
-#if NET45 || NETSTANDARD1_5
+#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
                 info.MachineName = Environment.MachineName;
 #elif !PORTABLE && !NETSTANDARD1_2
                 Process process = Process.GetCurrentProcess();

@@ -256,7 +256,7 @@ namespace Exceptionless {
             if (configAttributesAssemblies == null || configAttributesAssemblies.Length == 0) {
 #if NETSTANDARD1_5
                 config.ReadFromAttributes(Assembly.GetEntryAssembly());
-#elif NET45
+#elif NET45 || NETSTANDARD2_0
                 config.ReadFromAttributes(Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly());
 #endif
             } else {
