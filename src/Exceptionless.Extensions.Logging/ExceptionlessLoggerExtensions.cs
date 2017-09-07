@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Exceptionless.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 
-namespace Exceptionless.Extensions.Logging
+namespace Exceptionless
 {
     public static class ExceptionlessLoggerExtensions
     {
