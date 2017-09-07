@@ -17,7 +17,6 @@ namespace Exceptionless.Extensions.Logging
             {
                 _Current.Value = value;
             }
-
         }
 
         public static void Push(ExceptionlessLoggingScope scope)
