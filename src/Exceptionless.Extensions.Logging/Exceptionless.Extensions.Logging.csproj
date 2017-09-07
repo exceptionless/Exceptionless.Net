@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.3;netstandard2.0;net46;net461</TargetFrameworks>
+    <RootNamespace>Exceptionless.Extensions.Logging</RootNamespace>
+    <Version>4.0.0</Version>
+    <Copyright>Copyright (c) 2017 Exceptionless.  All rights reserved.</Copyright>
+    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/exceptionless/Exceptionless.Net</PackageProjectUrl>
+    <PackageIconUrl>https://be.exceptionless.io/img/exceptionless-32.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/exceptionless/Exceptionless.Net</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</PackageReleaseNotes>
+    <PackageTags>Exceptionless;Microsoft.Extensions.Logging;log;logging</PackageTags>
+    <Description>Exceptionless provider for Microsoft.Extensions.Logging.</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Exceptionless\Exceptionless.csproj" />
+  </ItemGroup>
+
+</Project>
