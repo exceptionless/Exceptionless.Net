@@ -29,7 +29,6 @@ namespace Exceptionless.Tests.Serializer {
             Assert.Equal(@"{""message"":""Testing"",""data"":{""FirstName"":""Blake""}}", json);
         }
 
-
         [Fact]
         public void CanExcludeProperties() {
             var data = new SampleModel {
