@@ -32,5 +32,17 @@ namespace Exceptionless
             factory.AddProvider(new ExceptionlessLoggerProvider(config));
             return factory;
         }
+
+        /// <summary>
+        /// Adds Exceptionless to the logging pipeline.
+        /// </summary>
+        /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
+        /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> that applies additional settings and plugins. The project api key must be specified.</param>
+        /// <returns>The <see cref="ILoggerFactory"/>.</returns>
+        public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, Action<ExceptionlessConfiguration> configure)
+        {
+            factory.AddProvider(new ExceptionlessLoggerProvider(configure));
+            return factory;
+        }
     }
 }

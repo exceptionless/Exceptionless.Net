@@ -21,6 +21,18 @@ namespace Exceptionless.Extensions.Logging
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ExceptionlessLoggerProvider"/> class.
+        /// </summary>
+        /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> which will be used to configure created loggers.</param>
+        public ExceptionlessLoggerProvider(Action<ExceptionlessConfiguration> configure) {
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+
+            _Client = new ExceptionlessClient(configure);
+            _Client.Startup();
+        }
+
+        /// <summary>
         /// Creates a new <see cref="ILogger"/> instance.
         /// </summary>
         /// <param name="categoryName">The category name for messages produced by the logger.</param>
@@ -33,6 +45,7 @@ namespace Exceptionless.Extensions.Logging
         public void Dispose()
         {
             _Client.Shutdown();
+            ((IDisposable)_Client).Dispose();
         }
     }
 }
