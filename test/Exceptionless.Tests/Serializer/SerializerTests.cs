@@ -16,18 +16,6 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
-        public void CanSerialize() {
-            var data = new SampleModel {
-                Date = DateTime.Now,
-                Message = "Testing"
-            };
-
-            IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date) });
-            Assert.Equal(@"{""message"":""Testing""}", json);
-        }
-
-        [Fact]
         public void CanSerializeEvent() {
             var ev = new Event {
                 Date = DateTime.Now,
