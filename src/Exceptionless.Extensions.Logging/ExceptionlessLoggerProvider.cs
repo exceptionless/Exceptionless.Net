@@ -6,18 +6,18 @@ namespace Exceptionless.Extensions.Logging
     public class ExceptionlessLoggerProvider : ILoggerProvider
     {
         ExceptionlessClient _Client;
+        bool _ShouldDisposeClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionlessLoggerProvider"/> class.
         /// </summary>
         /// <param name="config">An <see cref="ExceptionlessConfiguration"/> which will be provided to created loggers.</param>
-        public ExceptionlessLoggerProvider(ExceptionlessConfiguration config)
-        {
-            if (config == null)
-                throw new ArgumentNullException(nameof(config));
+        public ExceptionlessLoggerProvider(ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
 
-            _Client = new ExceptionlessClient(config);
-            _Client.Startup();
+            _Client = client;
+            _ShouldDisposeClient = false;
         }
 
         /// <summary>
@@ -30,6 +30,7 @@ namespace Exceptionless.Extensions.Logging
 
             _Client = new ExceptionlessClient(configure);
             _Client.Startup();
+            _ShouldDisposeClient = true;
         }
 
         /// <summary>
@@ -44,8 +45,12 @@ namespace Exceptionless.Extensions.Logging
 
         public void Dispose()
         {
-            _Client.Shutdown();
-            ((IDisposable)_Client).Dispose();
+            _Client.ProcessQueue();
+            if (_ShouldDisposeClient) 
+            {
+                _Client.Shutdown();
+                ((IDisposable)_Client).Dispose();
+            }
         }
     }
 }

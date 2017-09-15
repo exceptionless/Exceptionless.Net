@@ -7,34 +7,29 @@ namespace Exceptionless
     public static class ExceptionlessLoggerExtensions
     {
         /// <summary>
-        /// Adds Exceptionless to the logging pipeline.
+        /// Adds Exceptionless to the logging pipeline using the default client.
+        /// </summary>
+        /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
+        /// <returns>The <see cref="ILoggerFactory"/>.</returns>
+        public static ILoggerFactory AddExceptionless(this ILoggerFactory factory) {
+            factory.AddProvider(new ExceptionlessLoggerProvider(ExceptionlessClient.Default));
+            return factory;
+        }
+
+        /// <summary>
+        /// Adds Exceptionless to the logging pipeline using a new client with the provided api key.
         /// </summary>
         /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
         /// <param name="apiKey">The project api key.</param>
         /// <returns>The <see cref="ILoggerFactory"/>.</returns>
         public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, string apiKey)
         {
-            ExceptionlessConfiguration config = new ExceptionlessConfiguration(ExceptionlessClient.Default.Configuration.Resolver);
-            config.ApiKey = apiKey;
-
-            factory.AddProvider(new ExceptionlessLoggerProvider(config));
+            factory.AddProvider(new ExceptionlessLoggerProvider((config) => config.ApiKey = apiKey));
             return factory;
         }
 
         /// <summary>
-        /// Adds Exceptionless to the logging pipeline.
-        /// </summary>
-        /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
-        /// <param name="config">An <see cref="ExceptionlessConfiguration"/> containing additional settings and plugins. The project api key must be specified.</param>
-        /// <returns>The <see cref="ILoggerFactory"/>.</returns>
-        public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, ExceptionlessConfiguration config)
-        {
-            factory.AddProvider(new ExceptionlessLoggerProvider(config));
-            return factory;
-        }
-
-        /// <summary>
-        /// Adds Exceptionless to the logging pipeline.
+        /// Adds Exceptionless to the logging pipeline using a new client configured with the provided action.
         /// </summary>
         /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
         /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> that applies additional settings and plugins. The project api key must be specified.</param>
