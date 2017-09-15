@@ -36,7 +36,7 @@ namespace Exceptionless.Tests.Serializer {
                 Message = "Testing"
             };
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date) });
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
@@ -86,13 +86,17 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void ShouldIncludeDefaultValues() {
-            var data = new DefaultsModel();
+            var data = new SampleModel();
             IJsonSerializer serializer = GetSerializer();
-            string json = serializer.Serialize(data);
-            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""collection"":null}", json);
-            var model = serializer.Deserialize<DefaultsModel>(json);
+            string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
+            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""dictionary"":null,""collection"":null,""nested"":null}", json);
+            var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
+            Assert.Equal(data.Message, model.Message);
+            Assert.Equal(data.Collection, model.Collection);
+            Assert.Equal(data.Dictionary, model.Dictionary);
+            Assert.Equal(data.Nested, model.Nested);
         }
 
         [Fact]
@@ -197,8 +201,14 @@ namespace Exceptionless.Tests.Serializer {
     }
 
     public class SampleModel {
+        public int Number { get; set; }
+        public bool Bool { get; set; }
         public DateTime Date { get; set; }
         public string Message { get; set; }
+        public DateTimeOffset DateOffset { get; set; }
+        public IDictionary<string, string> Dictionary { get; set; }
+        public ICollection<string> Collection { get; set; }
+        public SampleModel Nested { get; set; }
     }
 
     public class DefaultsModel {
