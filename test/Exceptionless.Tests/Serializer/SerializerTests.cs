@@ -61,7 +61,7 @@ namespace Exceptionless.Tests.Serializer {
             var data = new DefaultsModel();
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data);
-            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""collection"":null}", json);
+            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""collection"":null,""dictionary"":null}", json);
         }
 
         [Fact]
@@ -119,7 +119,8 @@ namespace Exceptionless.Tests.Serializer {
         public void WillIgnoreEmptyCollections() {
             var data = new DefaultsModel {
                 Message = "Testing",
-                Collection = new Collection<string>()
+                Collection = new Collection<string>(),
+                Dictionary = new Dictionary<string, string>()
             };
             IJsonSerializer serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
@@ -216,6 +217,7 @@ namespace Exceptionless.Tests.Serializer {
         public bool Bool { get; set; }
         public string Message { get; set; }
         public ICollection<string> Collection { get; set; }
+        public IDictionary<string, string> Dictionary { get; set; }
     }
 
     public class User {
