@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Exceptionless;
 
 namespace Exceptionless.SampleAspNetCore {
     public class Startup {
@@ -24,10 +23,14 @@ namespace Exceptionless.SampleAspNetCore {
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {
             app.UseExceptionless(Configuration);
-            // OR
+            //OR
             //app.UseExceptionless(new ExceptionlessClient(c => c.ReadFromConfiguration(Configuration)));
-            // OR
+            //OR
             //app.UseExceptionless("API_KEY_HERE");
+            //OR
+            //loggerFactory.AddExceptionless("API_KEY_HERE");
+            //OR
+            //loggerFactory.AddExceptionless((c) => c.ReadFromConfiguration(Configuration));
 
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
