@@ -14,7 +14,7 @@ namespace Exceptionless.Log4net {
             var builder = ev.ExceptionObject != null ? client.CreateException(ev.ExceptionObject) : client.CreateLog(ev.LoggerName, ev.RenderedMessage, ev.Level.ToLogLevel());
             builder.Target.Date = ev.TimeStamp;
 
-            if (!String.IsNullOrWhiteSpace(ev.RenderedMessage))
+            if (!String.IsNullOrEmpty(ev.RenderedMessage))
                 builder.SetMessage(ev.RenderedMessage);
 
             if (ev.ExceptionObject != null)
