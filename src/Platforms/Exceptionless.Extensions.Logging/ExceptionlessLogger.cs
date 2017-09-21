@@ -33,12 +33,7 @@ namespace Exceptionless.Extensions.Logging {
             // a FormattedLogValues and ASP.NET provides multiple scope objects, so just use ToString()
             string description = state.ToString();
 
-            // If there's data other than a simple string, it'll be added to the event
-            object stateObj = state is string ? null : (object)state;
-
-            // Log scope creation as an event so that there is a parent to tie events together
             var scope = new ExceptionlessLoggingScope(description);
-            LogScope(scope, stateObj);
 
             // Add to stack to support nesting within execution context
             ExceptionlessLoggingScope.Push(scope);
@@ -103,42 +98,11 @@ namespace Exceptionless.Extensions.Logging {
                 foreach (KeyValuePair<string, object> prop in stateProps) {
                     // Logging the message template is superfluous
                     if (prop.Key != "{OriginalFormat}")
-                        builder.AddObject(prop.Value, prop.Key);
+                        builder.SetProperty(prop.Key, prop.Value);
                 }
             } else {
                 // Otherwise, attach the entire object, using its type as the name
                 builder.AddObject(state);
-            }
-
-            builder.Submit();
-        }
-
-        /// <summary>
-        /// Writes a scope creation entry.
-        /// </summary>
-        /// <param name="newScope">The <see cref="ExceptionlessLoggingScope"/> being created.</param>
-        /// <param name="state"></param>
-        private void LogScope(ExceptionlessLoggingScope newScope, object state) {
-            var builder = _client.CreateLog($"Creating scope: {newScope.Description}.", ExceptionlessLogLevel.Other);
-
-            // Set event reference id to that of scope object
-            builder.SetReferenceId(newScope.Id);
-
-            // If this is a nested scope, add parent's reference id
-            if (ExceptionlessLoggingScope.Current != null)
-                builder.SetEventReference("Parent", ExceptionlessLoggingScope.Current.Id);
-
-            if (state != null) {
-                IEnumerable<KeyValuePair<string, object>> stateProps = state as IEnumerable<KeyValuePair<string, object>>;
-                if (stateProps != null) {
-                    foreach (KeyValuePair<string, object> prop in stateProps) {
-                        // Logging the message template is superfluous
-                        if (prop.Key != "{OriginalFormat}")
-                            builder.AddObject(prop.Value, prop.Key);
-                    }
-                } else {
-                    builder.AddObject(state);
-                }
             }
 
             builder.Submit();

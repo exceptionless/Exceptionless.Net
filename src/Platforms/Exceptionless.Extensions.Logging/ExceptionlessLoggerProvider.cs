@@ -11,7 +11,6 @@ namespace Exceptionless.Extensions.Logging {
         /// </summary>
         public ExceptionlessLoggerProvider(ExceptionlessClient client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _shouldDispose = false;
         }
 
         /// <summary>
