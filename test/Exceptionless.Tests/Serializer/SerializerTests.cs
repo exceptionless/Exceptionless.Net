@@ -99,6 +99,31 @@ namespace Exceptionless.Tests.Serializer {
             Assert.Equal(data.Nested, model.Nested);
         }
 
+
+        [Fact]
+        public void ShouldSerializeValues() {
+            var data = new SampleModel {
+                Number = 1,
+                Bool = true,
+                Message = "test",
+                Collection = new List<string> { "one" },
+                Dictionary = new Dictionary<string, string> { { "key", "value" } },
+                Date = DateTime.MaxValue,
+                DateOffset = DateTimeOffset.MaxValue
+            };
+
+            IJsonSerializer serializer = GetSerializer();
+            string json = serializer.Serialize(data);
+            Assert.Equal(@"{""number"":1,""bool"":true,""date"":""9999-12-31T23:59:59.9999999"",""message"":""test"",""date_offset"":""9999-12-31T23:59:59.9999999+00:00"",""dictionary"":{""key"":""value""},""collection"":[""one""],""nested"":null}", json);
+            var model = serializer.Deserialize<SampleModel>(json);
+            Assert.Equal(data.Number, model.Number);
+            Assert.Equal(data.Bool, model.Bool);
+            Assert.Equal(data.Message, model.Message);
+            Assert.Equal(data.Collection, model.Collection);
+            Assert.Equal(data.Dictionary, model.Dictionary);
+            Assert.Equal(data.Nested, model.Nested);
+        }
+
         [Fact]
         public void CanSetMaxDepth() {
             var data = new NestedModel {
