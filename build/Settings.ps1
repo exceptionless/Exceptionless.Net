@@ -13,6 +13,7 @@ $client_projects = @(
     @{ Name = "Exceptionless.Portable.Signed";     SourceDir = "$source_dir\Exceptionless.Portable.Signed";              ExternalNuGetDependencies = $null;      UseMSBuild = $False; },
     @{ Name = "Exceptionless.AspNetCore";          SourceDir = "$source_dir\Platforms\Exceptionless.AspNetCore";         ExternalNuGetDependencies = $null;      UseMSBuild = $False; },
     @{ Name = "Exceptionless.AspNetCore.Signed";   SourceDir = "$source_dir\Platforms\Exceptionless.AspNetCore.Signed";  ExternalNuGetDependencies = $null;      UseMSBuild = $False; },
+    @{ Name = "Exceptionless.Extensions.Logging";  SourceDir = "$source_dir\Platforms\Exceptionless.Extensions.Logging"; ExternalNuGetDependencies = $null;      UseMSBuild = $False; },
     @{ Name = "Exceptionless.Mvc";                 SourceDir = "$source_dir\Platforms\Exceptionless.Mvc";                ExternalNuGetDependencies = $null;      UseMSBuild = $False; },
     @{ Name = "Exceptionless.Mvc.Signed";          SourceDir = "$source_dir\Platforms\Exceptionless.Mvc.Signed";         ExternalNuGetDependencies = $null;      UseMSBuild = $False; },
     @{ Name = "Exceptionless.Nancy";               SourceDir = "$source_dir\Platforms\Exceptionless.Nancy";              ExternalNuGetDependencies = $null;      UseMSBuild = $False; },

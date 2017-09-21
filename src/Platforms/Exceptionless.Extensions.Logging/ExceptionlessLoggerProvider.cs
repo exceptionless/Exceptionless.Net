@@ -1,23 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 
-namespace Exceptionless.Extensions.Logging
-{
-    public class ExceptionlessLoggerProvider : ILoggerProvider
-    {
-        ExceptionlessClient _Client;
-        bool _ShouldDisposeClient;
+namespace Exceptionless.Extensions.Logging {
+    public class ExceptionlessLoggerProvider : ILoggerProvider {
+        private readonly ExceptionlessClient _client;
+        private readonly bool _shouldDispose;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionlessLoggerProvider"/> class.
         /// </summary>
-        /// <param name="config">An <see cref="ExceptionlessConfiguration"/> which will be provided to created loggers.</param>
         public ExceptionlessLoggerProvider(ExceptionlessClient client) {
-            if (client == null)
-                throw new ArgumentNullException(nameof(client));
-
-            _Client = client;
-            _ShouldDisposeClient = false;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _shouldDispose = false;
         }
 
         /// <summary>
@@ -28,29 +22,24 @@ namespace Exceptionless.Extensions.Logging
             if (configure == null)
                 throw new ArgumentNullException(nameof(configure));
 
-            _Client = new ExceptionlessClient(configure);
-            _Client.Startup();
-            _ShouldDisposeClient = true;
+            _client = new ExceptionlessClient(configure);
+            _shouldDispose = true;
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Creates a new <see cref="ILogger"/> instance.
+        /// Creates a new <see cref="T:Microsoft.Extensions.Logging.ILogger" /> instance.
         /// </summary>
         /// <param name="categoryName">The category name for messages produced by the logger.</param>
-        /// <returns>An <see cref="ILogger"/></returns>
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new ExceptionlessLogger(_Client, categoryName);
+        /// <returns>An <see cref="T:Microsoft.Extensions.Logging.ILogger" /></returns>
+        public ILogger CreateLogger(string categoryName) {
+            return new ExceptionlessLogger(_client, categoryName);
         }
 
-        public void Dispose()
-        {
-            _Client.ProcessQueue();
-            if (_ShouldDisposeClient) 
-            {
-                _Client.Shutdown();
-                ((IDisposable)_Client).Dispose();
-            }
+        public void Dispose() {
+            _client.ProcessQueue();
+            if (_shouldDispose)
+                ((IDisposable)_client).Dispose();
         }
     }
 }
