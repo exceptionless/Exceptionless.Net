@@ -28,18 +28,18 @@ namespace Exceptionless.Tests {
             ev.AddObject(new Person { Name = "Blake" });
             ev.AddObject(new Person { Name = "Eric" });
             ev.AddObject(new Person { Name = "Ryan" });
-            Assert.Equal(ev.Target.Data.Count, 3);
+            Assert.Equal(3, ev.Target.Data.Count);
 
             ev.Target.Data.Clear();
-            Assert.Equal(ev.Target.Data.Count, 0);
+            Assert.Empty(ev.Target.Data);
 
             // The last one in wins.
             ev.AddObject(new Person { Name = "Eric" }, "Blake");
             ev.AddObject(new Person { Name = "Blake" }, "Blake");
-            Assert.Equal(ev.Target.Data.Count, 1);
+            Assert.Single(ev.Target.Data);
 
-            var person = ev.Target.Data["Blake"].ToString();
-            Assert.True(person.Contains("Blake"));
+            string person = ev.Target.Data["Blake"].ToString();
+            Assert.Contains("Blake", person);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Exceptionless.Tests {
             }; 
 
             new EventBuilder(ev, client).Submit();
-            Assert.Equal(1, submittingEventArgs.Count);
+            Assert.Single(submittingEventArgs);
 
             new EventBuilder(ev, client, new ContextData()).Submit();
             Assert.Equal(2, submittingEventArgs.Count);  
@@ -91,7 +91,7 @@ namespace Exceptionless.Tests {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
             new Exception("Test").ToExceptionless(contextData, client).Submit();
-            Assert.Equal(1, submittingEventArgs.Count);  
+            Assert.Single(submittingEventArgs);  
         }
         
         private class Person {

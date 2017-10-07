@@ -11,7 +11,7 @@ namespace Exceptionless.Tests.Log {
         public virtual void CanWriteToLogFile() {
             DeleteLog();
 
-            using (FileExceptionlessLog log = GetLog(LOG_FILE)) {
+            using (var log = GetLog(LOG_FILE)) {
                 log.Info("Test");
                 log.Flush();
 
@@ -25,7 +25,7 @@ namespace Exceptionless.Tests.Log {
         public virtual void LogFlushTimerWorks() {
             DeleteLog();
 
-            using (FileExceptionlessLog log = GetLog(LOG_FILE)) {
+            using (var log = GetLog(LOG_FILE)) {
                 log.Info("Test");
 
                 string contents = log.GetFileContents();
@@ -43,7 +43,7 @@ namespace Exceptionless.Tests.Log {
         public virtual void LogResetsAfter5mb() {
             DeleteLog();
 
-            using (FileExceptionlessLog log = GetLog(LOG_FILE)) {
+            using (var log = GetLog(LOG_FILE)) {
                 // write 3mb of content to the log
                 for (int i = 0; i < 1024 * 3; i++)
                     log.Info(new string('0', 1024));
@@ -74,7 +74,7 @@ namespace Exceptionless.Tests.Log {
         }
 
         public virtual void CheckSizeDoesNotFailIfLogIsMissing() {
-            using (FileExceptionlessLog log = GetLog(LOG_FILE + ".doesnotexist")) {
+            using (var log = GetLog(LOG_FILE + ".doesnotexist")) {
                 log.CheckFileSize();
             }
         }
@@ -82,7 +82,7 @@ namespace Exceptionless.Tests.Log {
         public virtual void LogIsThreadSafe() {
             DeleteLog();
 
-            using (FileExceptionlessLog log = GetLog(LOG_FILE)) {
+            using (var log = GetLog(LOG_FILE)) {
                 // write 3mb of content to the log in multiple threads
                 Parallel.For(0, 1024 * 3, i => log.Info(new string('0', 1024)));
 

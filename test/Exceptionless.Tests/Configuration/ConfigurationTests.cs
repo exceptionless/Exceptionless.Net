@@ -50,12 +50,12 @@ namespace Exceptionless.Tests.Configuration {
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
             Assert.Null(config.ApiKey);
             Assert.Equal("https://collector.exceptionless.io", config.ServerUrl);
-            Assert.Equal(0, config.Settings.Count);
+            Assert.Empty(config.Settings);
 
             config.ReadFromAttributes(typeof(ConfigurationTests).GetTypeInfo().Assembly);
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", config.ApiKey);
             Assert.Equal("http://localhost:45000", config.ServerUrl);
-            Assert.Equal(1, config.Settings.Count);
+            Assert.Single(config.Settings);
             Assert.Equal("configuration", config.Settings["testing"]);
         }
 
@@ -71,10 +71,13 @@ namespace Exceptionless.Tests.Configuration {
 
         [Fact]
         public void CanUpdateSettingsFromServer() {
-            var config = new ExceptionlessConfiguration(DependencyResolver.Default);
-            config.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
-            config.Settings["LocalSetting"] = "1";
-            config.Settings["LocalSettingToOverride"] = "1";
+            var config = new ExceptionlessConfiguration(DependencyResolver.Default) {
+                ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw",
+                Settings = {
+                    ["LocalSetting"] = "1",
+                    ["LocalSettingToOverride"] = "1"
+                }
+            };
 
             var submissionClient = new Mock<ISubmissionClient>();
             submissionClient.Setup(m => m.PostEvents(It.IsAny<IEnumerable<Event>>(), config, It.IsAny<IJsonSerializer>()))
@@ -126,12 +129,13 @@ namespace Exceptionless.Tests.Configuration {
 
         [Fact]
         public void CanGetLogSettingsMultithreaded() {
-            var settings = new SettingsDictionary();
-            settings.Add("@@log:*", "Info");
-            settings.Add("@@log:Source1", "Trace");
-            settings.Add("@@log:Source2", "Debug");
-            settings.Add("@@log:Source3", "Info");
-            settings.Add("@@log:Source4", "Info");
+            var settings = new SettingsDictionary {
+                { "@@log:*", "Info" },
+                { "@@log:Source1", "Trace" },
+                { "@@log:Source2", "Debug" },
+                { "@@log:Source3", "Info" },
+                { "@@log:Source4", "Info" }
+            };
 
             var result = Parallel.For(0, 100, index => {
                 var level = settings.GetMinLogLevel("Source1");

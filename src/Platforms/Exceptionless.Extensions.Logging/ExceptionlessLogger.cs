@@ -95,7 +95,7 @@ namespace Exceptionless.Extensions.Logging {
             // The logging framework passes in FormattedLogValues, which implements IEnumerable<KeyValuePair<string, object>>;
             // add each property and value as individual objects for proper visibility in Exceptionless
             if (state is IEnumerable<KeyValuePair<string, object>> stateProps) {
-                foreach (KeyValuePair<string, object> prop in stateProps) {
+                foreach (var prop in stateProps) {
                     // Logging the message template is superfluous
                     if (prop.Key != "{OriginalFormat}")
                         builder.SetProperty(prop.Key, prop.Value);

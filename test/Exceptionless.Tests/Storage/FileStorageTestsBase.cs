@@ -20,46 +20,46 @@ namespace Exceptionless.Tests.Storage {
         public void CanManageFiles() {
             Reset();
 
-            IObjectStorage storage = GetStorage();
+            var storage = GetStorage();
             storage.SaveObject("test.txt", "test");
-            Assert.Equal(1, storage.GetObjectList("test.txt").Count());
-            Assert.Equal(1, storage.GetObjectList().Count());
+            Assert.Single(storage.GetObjectList("test.txt"));
+            Assert.Single(storage.GetObjectList());
             var file = storage.GetObjectList().FirstOrDefault();
             Assert.NotNull(file);
             Assert.Equal("test.txt", file.Path);
             string content = storage.GetObject<string>("test.txt");
             Assert.Equal("test", content);
             storage.RenameObject("test.txt", "new.txt");
-            Assert.True(storage.GetObjectList().Any(f => f.Path == "new.txt"));
+            Assert.Contains(storage.GetObjectList(), f => f.Path == "new.txt");
             storage.DeleteObject("new.txt");
-            Assert.Equal(0, storage.GetObjectList().Count());
+            Assert.Empty(storage.GetObjectList());
             storage.SaveObject(Path.Combine("test", "q", Guid.NewGuid().ToString("N") + ".txt"), "test");
-            Assert.Equal(1, storage.GetObjectList(Path.Combine("test","q", "*.txt")).Count());
-            Assert.Equal(1, storage.GetObjectList("*", null, DateTime.Now).Count());
-            List<ObjectInfo> files = storage.GetObjectList("*", null, DateTime.Now.Subtract(TimeSpan.FromMinutes(5))).ToList();
+            Assert.Single(storage.GetObjectList(Path.Combine("test","q", "*.txt")));
+            Assert.Single(storage.GetObjectList("*", null, DateTime.Now));
+            var files = storage.GetObjectList("*", null, DateTime.Now.Subtract(TimeSpan.FromMinutes(5))).ToList();
             Debug.WriteLine(String.Join(",", files.Select(f => f.Path + " " + f.Created)));
-            Assert.Equal(0, files.Count);
+            Assert.Empty(files);
         }
 
         [Fact]
         public void CanManageQueue() {
             Reset();
 
-            IObjectStorage storage = GetStorage();
+            var storage = GetStorage();
             const string queueName = "test";
 
             IJsonSerializer serializer = new DefaultJsonSerializer();
             var ev = new Event { Type = Event.KnownTypes.Log, Message = "test" };
             storage.Enqueue(queueName, ev);
             storage.SaveObject("test.txt", "test");
-            Assert.True(storage.GetObjectList().Any(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("0.json")));
+            Assert.Contains(storage.GetObjectList(), f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("0.json"));
             Assert.Equal(2, storage.GetObjectList().Count());
 
             Assert.True(storage.GetQueueFiles(queueName).All(f => f.Path.EndsWith("0.json")));
-            Assert.Equal(1, storage.GetQueueFiles(queueName).Count());
+            Assert.Single(storage.GetQueueFiles(queueName));
 
             storage.DeleteObject("test.txt");
-            Assert.Equal(1, storage.GetObjectList().Count());
+            Assert.Single(storage.GetObjectList());
 
             Assert.True(storage.LockFile(storage.GetObjectList().FirstOrDefault()));
             Assert.True(storage.GetQueueFiles(queueName).All(f => f.Path.EndsWith("0.json.x")));
@@ -69,17 +69,17 @@ namespace Exceptionless.Tests.Storage {
             Assert.Equal(1, batch.Count);
 
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("1.json.x")));
-            Assert.Equal(1, storage.GetObjectList().Count());
+            Assert.Single(storage.GetObjectList());
 
-            Assert.Equal(0, storage.GetQueueFiles(queueName).Count());
-            Assert.Equal(0, storage.GetEventBatch(queueName, serializer).Count());
+            Assert.Empty(storage.GetQueueFiles(queueName));
+            Assert.Empty(storage.GetEventBatch(queueName, serializer));
 
             Assert.False(storage.LockFile(storage.GetObjectList().FirstOrDefault()));
 
             storage.ReleaseBatch(batch);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("1.json")));
-            Assert.Equal(1, storage.GetObjectList().Count());
-            Assert.Equal(1, storage.GetQueueFiles(queueName).Count());
+            Assert.Single(storage.GetObjectList());
+            Assert.Single(storage.GetQueueFiles(queueName));
 
             var file = storage.GetObjectList().FirstOrDefault();
             storage.IncrementAttempts(file);
@@ -98,7 +98,7 @@ namespace Exceptionless.Tests.Storage {
             Assert.Equal(1, batch.Count);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("4.json.x")));
             storage.DeleteBatch(batch);
-            Assert.Equal(0, storage.GetQueueFiles(queueName).Count());
+            Assert.Empty(storage.GetQueueFiles(queueName));
 
             ev = new Event { Type = Event.KnownTypes.Log, Message = "test" };
             storage.Enqueue(queueName, ev);
@@ -106,7 +106,7 @@ namespace Exceptionless.Tests.Storage {
             Assert.NotNull(file);
             Thread.Sleep(TimeSpan.FromMilliseconds(1));
             storage.CleanupQueueFiles(queueName, TimeSpan.Zero);
-            Assert.Equal(0, storage.GetQueueFiles(queueName).Count());
+            Assert.Empty(storage.GetQueueFiles(queueName));
         }
 
         private void Reset() {
@@ -117,14 +117,14 @@ namespace Exceptionless.Tests.Storage {
             else
                 Debug.WriteLine("No files");
             storage.DeleteFiles(storage.GetObjectList());
-            Assert.Equal(0, storage.GetObjectList().Count());
+            Assert.Empty(storage.GetObjectList());
         }
 
         [Fact]
         public void CanConcurrentlyManageFiles() {
             Reset();
 
-            IObjectStorage storage = GetStorage();
+            var storage = GetStorage();
             IJsonSerializer serializer = new DefaultJsonSerializer();
             const string queueName = "test";
 
@@ -148,9 +148,8 @@ namespace Exceptionless.Tests.Storage {
                 }
 
                 if (RandomData.GetBool()) {
-                    object o;
                     foreach (var f in fileBatch)
-                        working.TryRemove(f.Item1.Path, out o);
+                        working.TryRemove(f.Item1.Path, out _);
                     storage.ReleaseBatch(fileBatch);
                 } else {
                     storage.DeleteBatch(fileBatch);

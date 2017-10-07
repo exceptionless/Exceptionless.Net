@@ -15,16 +15,16 @@ namespace Exceptionless.Tests {
         public void CanCreateEventWithNoDuplicateTags() {
             var client = CreateClient();
             var builder = client.CreateLog("Tag Example");
-            Assert.Equal(builder.Target.Tags.Count, 0);
+            Assert.Empty(builder.Target.Tags);
 
             builder.AddTags("Exceptionless", null, "");
-            Assert.Equal(builder.Target.Tags.Count, 1);
+            Assert.Single(builder.Target.Tags);
 
             builder.AddTags("Exceptionless");
-            Assert.Equal(builder.Target.Tags.Count, 1);
+            Assert.Single(builder.Target.Tags);
 
             builder.AddTags("test", "Exceptionless", "exceptionless");
-            Assert.Equal(builder.Target.Tags.Count, 2);
+            Assert.Equal(2, builder.Target.Tags.Count);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Exceptionless.Tests.Serializer {
             ev.Data["FirstName"] = "Blake";
 
             var exclusions = new[] { nameof(Event.Type), nameof(Event.Source), "Date", nameof(Event.Geo), nameof(Event.Count), nameof(Event.ReferenceId), nameof(Event.Tags), nameof(Event.Value) };
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(ev, exclusions);
             Assert.Equal(@"{""message"":""Testing"",""data"":{""FirstName"":""Blake""}}", json);
         }
@@ -35,7 +35,7 @@ namespace Exceptionless.Tests.Serializer {
                 Date = DateTime.Now,
                 Message = "Testing"
             };
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
@@ -51,7 +51,7 @@ namespace Exceptionless.Tests.Serializer {
                 }
             };
 
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { nameof(NestedModel.Number) });
             Assert.Equal(@"{""message"":""Testing"",""nested"":{""message"":""Nested"",""nested"":null}}", json);
         }
@@ -59,7 +59,7 @@ namespace Exceptionless.Tests.Serializer {
         [Fact]
         public void ShouldIncludeNullObjects() {
             var data = new DefaultsModel();
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data);
             Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""collection"":null,""dictionary"":null}", json);
         }
@@ -79,7 +79,7 @@ namespace Exceptionless.Tests.Serializer {
             };
 
             var exclusions = new[] { nameof(user.PasswordHash), nameof(user.Billing.CardNumberRedacted), nameof(user.Billing.EncryptedCardNumber) };
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(user, exclusions, maxDepth: 2);
             Assert.Equal(@"{""first_name"":""John"",""last_name"":""Doe"",""billing"":{""expiration_month"":10,""expiration_year"":2020}}", json);
         }
@@ -87,7 +87,7 @@ namespace Exceptionless.Tests.Serializer {
         [Fact]
         public void ShouldIncludeDefaultValues() {
             var data = new SampleModel();
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
             Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""dictionary"":null,""collection"":null,""nested"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
@@ -112,7 +112,7 @@ namespace Exceptionless.Tests.Serializer {
                 DateOffset = DateTimeOffset.MaxValue
             };
 
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data);
             Assert.Equal(@"{""number"":1,""bool"":true,""date"":""9999-12-31T23:59:59.9999999"",""message"":""test"",""date_offset"":""9999-12-31T23:59:59.9999999+00:00"",""dictionary"":{""key"":""value""},""collection"":[""one""],""nested"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
@@ -135,7 +135,7 @@ namespace Exceptionless.Tests.Serializer {
                     }
                 }
             };
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { nameof(NestedModel.Number) }, maxDepth: 2);
             Assert.Equal(@"{""message"":""Level 1"",""nested"":{""message"":""Level 2""}}", json);
         }
@@ -147,18 +147,18 @@ namespace Exceptionless.Tests.Serializer {
                 Collection = new Collection<string>(),
                 Dictionary = new Dictionary<string, string>()
             };
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
         // TODO: Ability to deserialize objects without underscores
         //[Fact]
-        public void CanDeserializeDataWithoutUnderscores() {
+        private void CanDeserializeDataWithoutUnderscores() {
             const string json = @"{""BlahId"":""Hello""}";
             const string jsonWithUnderScore = @"{""blah_id"":""Hello""}";
 
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             var value = serializer.Deserialize<Blah>(json);
             Assert.Equal("Hello", value.BlahId);
 
@@ -171,7 +171,7 @@ namespace Exceptionless.Tests.Serializer {
 
         [Fact]
         public void WillDeserializeReferenceIds() {
-            IJsonSerializer serializer = GetSerializer();
+            var serializer = GetSerializer();
             var ev = (Event)serializer.Deserialize(@"{""reference_id"": ""123"" }", typeof(Event));
             Assert.Equal("123", ev.ReferenceId);
         }
@@ -197,7 +197,7 @@ namespace Exceptionless.Tests.Serializer {
                 var ev = new Event();
                 ev.Data[Event.KnownDataKeys.Error] = error;
 
-                IJsonSerializer serializer = GetSerializer();
+                var serializer = GetSerializer();
                 string json = serializer.Serialize(ev);
 
                 Assert.Contains(String.Format("\"line_number\":{0}", error.Inner.Inner.StackTrace.Single().LineNumber), json);
