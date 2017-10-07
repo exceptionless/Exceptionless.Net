@@ -28,9 +28,10 @@ namespace Exceptionless {
         /// Adds Exceptionless to the logging pipeline using the default client.
         /// </summary>
         /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
+        /// <param name="client">If a client is not specified than the default instance will be used.</param>
         /// <returns>The <see cref="ILoggerFactory"/>.</returns>
-        public static ILoggerFactory AddExceptionless(this ILoggerFactory factory) {
-            factory.AddProvider(new ExceptionlessLoggerProvider(ExceptionlessClient.Default));
+        public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, ExceptionlessClient client = null) {
+            factory.AddProvider(new ExceptionlessLoggerProvider(client ?? ExceptionlessClient.Default));
             return factory;
         }
 
