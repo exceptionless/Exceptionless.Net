@@ -8,9 +8,10 @@ using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
 using Exceptionless.Json.Serialization;
+using Exceptionless.Models;
 
 namespace Exceptionless.Serializer {
-    public class DefaultJsonSerializer : IJsonSerializer {
+    public class DefaultJsonSerializer : IJsonSerializer, IEventSerializer {
         private readonly JsonSerializerSettings _serializerSettings;
 
         public DefaultJsonSerializer() {
@@ -23,6 +24,18 @@ namespace Exceptionless.Serializer {
             _serializerSettings.Converters.Add(new StringEnumConverter());
             _serializerSettings.Converters.Add(new DataDictionaryConverter());
             _serializerSettings.Converters.Add(new RequestInfoConverter());
+        }
+
+        public virtual void Serialize(Event model, Stream outputStream) {
+            using (var writer = new StreamWriter(outputStream)) {
+                writer.Write(Serialize(model));
+            }
+        }
+
+        public virtual Event Deserialize(Stream inputStream) {
+            using (var reader = new StreamReader(inputStream)) {
+                return (Event)Deserialize(reader.ReadToEnd(), typeof(Event));
+            }
         }
 
         public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 10, bool continueOnSerializationError = true) {

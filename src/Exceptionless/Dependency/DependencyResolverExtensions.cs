@@ -70,6 +70,10 @@ namespace Exceptionless.Dependency {
             return resolver.Resolve<IJsonSerializer>() ?? resolver.Resolve<DefaultJsonSerializer>();
         }
 
+        public static IEventSerializer GetEventSerializer(this IDependencyResolver resolver) {
+            return resolver.Resolve<IEventSerializer>() ?? resolver.Resolve<DefaultJsonSerializer>();
+        }
+
         public static IEventQueue GetEventQueue(this IDependencyResolver resolver) {
             return resolver.Resolve<IEventQueue>() ?? resolver.Resolve<DefaultEventQueue>();
         }
