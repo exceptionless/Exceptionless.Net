@@ -35,21 +35,11 @@ namespace Exceptionless.Storage {
                 throw new ArgumentNullException("path");
 
             try {
-                var fullPath = Path.Combine(Folder, path);
-                if (typeof(T) == typeof(Event)) {
-                    var serializer = _resolver.GetEventSerializer();
-                    using (var reader = File.OpenRead(fullPath)) {
-                        return (T)(object)serializer.Deserialize(reader);
-                    }
-                } else {
-                    var json = File.ReadAllText(Path.Combine(Folder, path));
-                    if (String.IsNullOrEmpty(json))
-                        return null;
-
-                    var serializer = _resolver.GetJsonSerializer();
-                    return serializer.Deserialize<T>(json);
+                using (var reader = File.OpenRead(Path.Combine(Folder, path))) {
+                    return _resolver.GetStorageSerializer().Deserialize<T>(reader);
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return null;
             }
@@ -80,18 +70,11 @@ namespace Exceptionless.Storage {
                 Directory.CreateDirectory(directory);
 
             try {
-                var fullPath = Path.Combine(Folder, path);
-                if(typeof(T) == typeof(Event)){
-                    var serializer = _resolver.GetEventSerializer();
-                    using (var writer = File.OpenWrite(fullPath)) {
-                        serializer.Serialize((Event)(object)value,writer);
-                    }
-                } else {
-                    var serializer = _resolver.GetJsonSerializer();
-                    string json = serializer.Serialize(value);
-                    File.WriteAllText(fullPath, json);
+                using (var writer = File.OpenWrite(Path.Combine(Folder, path))) {
+                    _resolver.GetStorageSerializer().Serialize(value, writer);
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return false;
             }

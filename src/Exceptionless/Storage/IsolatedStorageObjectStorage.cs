@@ -112,14 +112,8 @@ namespace Exceptionless.Storage {
                 });
 
                 if (buffer == null || buffer.Length == 0)
-                    return null;
-                if (typeof(T) == typeof(Event)) {
-                    var serializer = _resolver.GetEventSerializer();
-                    return (T)(object)serializer.Deserialize(new MemoryStream(buffer));
-                } else {
-                    var serializer = _resolver.GetJsonSerializer();
-                    return serializer.Deserialize<T>(_encodingUTF8NoBOM.GetString(buffer));
-                }
+                    return default(T);
+                return _resolver.GetStorageSerializer().Deserialize<T>(new MemoryStream(buffer));
             } catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return null;
@@ -133,15 +127,9 @@ namespace Exceptionless.Storage {
             EnsureDirectory(path);
             byte[] buffer;
             try {
-                if (typeof(T) == typeof(Event)) {
-                    var serializer = _resolver.GetEventSerializer();
-                    using (var memory = new MemoryStream()) {
-                        serializer.Serialize((Event)(object)value, memory);
-                        buffer = memory.ToArray();
-                    }
-                } else {
-                    var serializer = _resolver.GetJsonSerializer();
-                    buffer = _encodingUTF8NoBOM.GetBytes(serializer.Serialize(value));
+                using (var memory = new MemoryStream()) {
+                    _resolver.GetStorageSerializer().Serialize(value, memory);
+                    buffer = memory.ToArray();
                 }
             } catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);

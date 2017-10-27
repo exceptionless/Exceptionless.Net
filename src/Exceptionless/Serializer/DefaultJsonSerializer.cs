@@ -8,10 +8,9 @@ using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
 using Exceptionless.Json.Serialization;
-using Exceptionless.Models;
 
 namespace Exceptionless.Serializer {
-    public class DefaultJsonSerializer : IJsonSerializer, IEventSerializer {
+    public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
         private readonly JsonSerializerSettings _serializerSettings;
 
         public DefaultJsonSerializer() {
@@ -26,15 +25,19 @@ namespace Exceptionless.Serializer {
             _serializerSettings.Converters.Add(new RequestInfoConverter());
         }
 
-        public virtual void Serialize(Event model, Stream outputStream) {
+        public virtual void Serialize<T>(T data, Stream outputStream) {
             using (var writer = new StreamWriter(outputStream)) {
-                writer.Write(Serialize(model));
+                writer.Write(Serialize(data));
             }
         }
 
-        public virtual Event Deserialize(Stream inputStream) {
+        public virtual T Deserialize<T>(Stream inputStream) {
             using (var reader = new StreamReader(inputStream)) {
-                return (Event)Deserialize(reader.ReadToEnd(), typeof(Event));
+                var json = reader.ReadToEnd();
+                if (String.IsNullOrWhiteSpace(json))
+                    return default(T);
+
+                return JsonConvert.DeserializeObject<T>(json, _serializerSettings);
             }
         }
 
