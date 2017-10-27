@@ -6,9 +6,11 @@ using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
+using Exceptionless.Models;
 using Exceptionless.Storage;
 using Exceptionless.Utility;
 
@@ -16,6 +18,7 @@ namespace Exceptionless.Storage {
     public class IsolatedStorageObjectStorage : IObjectStorage {
         private readonly object _lockObject = new object();
         private readonly IDependencyResolver _resolver;
+        private static readonly Encoding _encodingUTF8NoBOM = new UTF8Encoding(false, true);
 
         public IsolatedStorageObjectStorage(IDependencyResolver resolver) {
             _resolver = resolver;
@@ -97,21 +100,20 @@ namespace Exceptionless.Storage {
                 throw new ArgumentNullException("path");
 
             try {
-                var json = Run.WithRetries(() => {
+                var buffer = Run.WithRetries(() => {
                     using (var store = GetIsolatedStorage()) {
                         using (var stream = new IsolatedStorageFileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, store)) {
-                            using (var reader = new StreamReader(stream)) {
-                                return reader.ReadToEnd();
+                            using (var memory = new MemoryStream()) {
+                                stream.CopyTo(memory);
+                                return memory.ToArray();
                             }
                         }
                     }
                 });
 
-                if (String.IsNullOrEmpty(json))
-                    return null;
-
-                var serializer = _resolver.GetJsonSerializer();
-                return serializer.Deserialize<T>(json);
+                if (buffer == null || buffer.Length == 0)
+                    return default(T);
+                return _resolver.GetStorageSerializer().Deserialize<T>(new MemoryStream(buffer));
             } catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return null;
@@ -123,11 +125,12 @@ namespace Exceptionless.Storage {
                 throw new ArgumentNullException("path");
 
             EnsureDirectory(path);
-
-            string json;
+            byte[] buffer;
             try {
-                var serializer = _resolver.GetJsonSerializer();
-                json = serializer.Serialize(value);
+                using (var memory = new MemoryStream()) {
+                    _resolver.GetStorageSerializer().Serialize(value, memory);
+                    buffer = memory.ToArray();
+                }
             } catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return false;
@@ -138,9 +141,7 @@ namespace Exceptionless.Storage {
                     Run.WithRetries(() => {
                         using (var store = GetIsolatedStorage()) {
                             using (var stream = new IsolatedStorageFileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, store)) {
-                                using (var streamWriter = new StreamWriter(stream)) {
-                                    streamWriter.Write(json);
-                                }
+                                stream.Write(buffer,0,buffer.Length);
                             }
                         }
                     });

@@ -10,7 +10,7 @@ using Exceptionless.Json.Converters;
 using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Serializer {
-    public class DefaultJsonSerializer : IJsonSerializer {
+    public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
         private readonly JsonSerializerSettings _serializerSettings;
 
         public DefaultJsonSerializer() {
@@ -23,6 +23,22 @@ namespace Exceptionless.Serializer {
             _serializerSettings.Converters.Add(new StringEnumConverter());
             _serializerSettings.Converters.Add(new DataDictionaryConverter());
             _serializerSettings.Converters.Add(new RequestInfoConverter());
+        }
+
+        public virtual void Serialize<T>(T data, Stream outputStream) {
+            using (var writer = new StreamWriter(outputStream)) {
+                writer.Write(Serialize(data));
+            }
+        }
+
+        public virtual T Deserialize<T>(Stream inputStream) {
+            using (var reader = new StreamReader(inputStream)) {
+                var json = reader.ReadToEnd();
+                if (String.IsNullOrWhiteSpace(json))
+                    return default(T);
+
+                return JsonConvert.DeserializeObject<T>(json, _serializerSettings);
+            }
         }
 
         public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 10, bool continueOnSerializationError = true) {

@@ -12,6 +12,7 @@ namespace Exceptionless.Tests.Storage {
         protected override IObjectStorage GetStorage() {
             var resolver = new DefaultDependencyResolver();
             resolver.Register<IJsonSerializer, DefaultJsonSerializer>();
+            resolver.Register<IStorageSerializer, DefaultJsonSerializer>();
             return new FolderObjectStorage(resolver, "temp");
         }
 

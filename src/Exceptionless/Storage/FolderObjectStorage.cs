@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
+using Exceptionless.Models;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Storage {
@@ -34,13 +35,11 @@ namespace Exceptionless.Storage {
                 throw new ArgumentNullException("path");
 
             try {
-                var json = File.ReadAllText(Path.Combine(Folder, path));
-                if (String.IsNullOrEmpty(json))
-                    return null;
-
-                var serializer = _resolver.GetJsonSerializer();
-                return serializer.Deserialize<T>(json);
-            } catch (Exception ex) {
+                using (var reader = File.OpenRead(Path.Combine(Folder, path))) {
+                    return _resolver.GetStorageSerializer().Deserialize<T>(reader);
+                }
+            }
+            catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return null;
             }
@@ -71,10 +70,11 @@ namespace Exceptionless.Storage {
                 Directory.CreateDirectory(directory);
 
             try {
-                var serializer = _resolver.GetJsonSerializer();
-                string json = serializer.Serialize(value);
-                File.WriteAllText(Path.Combine(Folder, path), json);
-            } catch (Exception ex) {
+                using (var writer = File.OpenWrite(Path.Combine(Folder, path))) {
+                    _resolver.GetStorageSerializer().Serialize(value, writer);
+                }
+            }
+            catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return false;
             }
