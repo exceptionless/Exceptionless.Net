@@ -39,6 +39,5 @@ namespace Exceptionless.WebApi {
                 .SetHttpActionContext(actionExecutedContext.ActionContext)
                 .Submit();
         }
-
     }
 }
