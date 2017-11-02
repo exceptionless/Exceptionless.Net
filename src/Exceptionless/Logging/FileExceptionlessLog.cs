@@ -135,7 +135,7 @@ namespace Exceptionless.Logging {
                                 LogEntry entry;
                                 while (_buffer.TryDequeue(out entry)) {
                                     if (entry != null && entry.LogLevel >= MinimumLogLevel)
-                                        writer.Value.WriteLine(entry.Message);
+                                        writer.Value.WriteLine($"{FormatLongDate(entry.Timestamp)} {entry.LogLevel.ToString().PadRight(5)} {entry.Message}");
                                 }
                             }
                         } catch (Exception ex) {
@@ -151,6 +151,36 @@ namespace Exceptionless.Logging {
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error flushing log contents to disk: {0}", ex.Message);
             } finally {
                 _isFlushing = false;
+            }
+        }
+
+        private string FormatLongDate(DateTime timestamp) {
+            var builder = new StringBuilder();
+            Append4DigitsZeroPadded(timestamp.Year);
+            builder.Append('-');
+            Append2DigitsZeroPadded(timestamp.Month);
+            builder.Append('-');
+            Append2DigitsZeroPadded(timestamp.Day);
+            builder.Append(' ');
+            Append2DigitsZeroPadded(timestamp.Hour);
+            builder.Append(':');
+            Append2DigitsZeroPadded(timestamp.Minute);
+            builder.Append(':');
+            Append2DigitsZeroPadded(timestamp.Second);
+            builder.Append('.');
+            Append4DigitsZeroPadded((int)(timestamp.Ticks % 10000000) / 1000);
+            return builder.ToString();
+
+            void Append4DigitsZeroPadded(int number) {
+                builder.Append((char)(number / 1000 % 10 + 0x30));
+                builder.Append((char)(number / 100 % 10 + 0x30));
+                builder.Append((char)(number / 10 % 10 + 0x30));
+                builder.Append((char)(number / 1 % 10 + 0x30));
+            }
+
+            void Append2DigitsZeroPadded(int number) {
+                builder.Append((char)(number / 10 + 0x30));
+                builder.Append((char)(number % 10 + 0x30));
             }
         }
 
@@ -249,8 +279,10 @@ namespace Exceptionless.Logging {
             public LogEntry(LogLevel level, string message) {
                 LogLevel = level;
                 Message = message;
+                Timestamp = DateTime.Now;
             }
 
+            public DateTime Timestamp { get; set; }
             public LogLevel LogLevel { get; set; }
             public string Message { get; set; }
         }
