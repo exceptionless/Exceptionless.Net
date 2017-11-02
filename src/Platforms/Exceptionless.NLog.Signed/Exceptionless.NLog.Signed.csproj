@@ -37,7 +37,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Package References">
-    <PackageReference Include="NLog" Version="5.0.0-beta09" />
+    <PackageReference Include="NLog" Version="5.0.0-beta11" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
