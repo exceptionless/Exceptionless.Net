@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+  <PropertyGroup Label="Package">
+    <PackageId>Exceptionless.Log4net.Signed</PackageId>
+    <AssemblyName>Exceptionless.Log4net.Signed</AssemblyName>
+    <AssemblyTitle>Serialize/deserialize log entries with MessagePack.</AssemblyTitle>
+    <Description>Serialize/deserialize log entries with MessagePack. $(Description)</Description>
+    <PackageTags>MessagePack;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.MessagePack\obj\**\*" />
+    <Compile Include="..\Exceptionless.MessagePack\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.MessagePack\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
+  </ItemGroup>
+  
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Build">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0;SIGNED;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="MessagePack" Version="1.7.2" />
+  </ItemGroup>
+</Project>
