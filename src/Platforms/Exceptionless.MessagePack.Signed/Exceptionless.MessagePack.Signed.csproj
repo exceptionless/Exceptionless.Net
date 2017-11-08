@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
   <PropertyGroup Label="Package">
-    <PackageId>Exceptionless.Log4net.Signed</PackageId>
-    <AssemblyName>Exceptionless.Log4net.Signed</AssemblyName>
+    <PackageId>Exceptionless.MessagePack.Signed</PackageId>
+    <AssemblyName>Exceptionless.MessagePack.Signed</AssemblyName>
     <AssemblyTitle>Serialize/deserialize log entries with MessagePack.</AssemblyTitle>
     <Description>Serialize/deserialize log entries with MessagePack. $(Description)</Description>
     <PackageTags>MessagePack;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
