@@ -70,7 +70,7 @@ namespace Exceptionless.Models.Data {
         public DataDictionary Data { get; set; }
 
         protected bool Equals(RequestInfo other) {
-            return string.Equals(UserAgent, other.UserAgent) && string.Equals(HttpMethod, other.HttpMethod) && IsSecure == other.IsSecure && string.Equals(Host, other.Host) && Port == other.Port && string.Equals(Path, other.Path) && string.Equals(Referrer, other.Referrer) && string.Equals(ClientIpAddress, other.ClientIpAddress) && Cookies.CollectionEquals(other.Cookies) && QueryString.CollectionEquals(other.QueryString) && Equals(Data, other.Data);
+            return string.Equals(UserAgent, other.UserAgent) && string.Equals(HttpMethod, other.HttpMethod) && IsSecure == other.IsSecure && string.Equals(Host, other.Host) && Port == other.Port && string.Equals(Path, other.Path) && string.Equals(Referrer, other.Referrer) && string.Equals(ClientIpAddress, other.ClientIpAddress) && Cookies.CollectionEquals(other.Cookies) && QueryString.CollectionEquals(other.QueryString) && Data.CollectionEquals(other.Data);
         }
 
         public override bool Equals(object obj) {

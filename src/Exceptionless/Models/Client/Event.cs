@@ -59,7 +59,7 @@ namespace Exceptionless.Models {
         public string ReferenceId { get; set; }
 
         protected bool Equals(Event other) {
-            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Equals(Data, other.Data);
+            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Date == other.Date && Count == other.Count && string.Equals(ReferenceId, other.ReferenceId) && Data.CollectionEquals(other.Data);
         }
 
         public override bool Equals(object obj) {
@@ -80,7 +80,10 @@ namespace Exceptionless.Models {
                 hashCode = (hashCode * 397) ^ (Tags == null ? 0 : Tags.GetCollectionHashCode());
                 hashCode = (hashCode * 397) ^ (Message == null ? 0 : Message.GetHashCode());
                 hashCode = (hashCode * 397) ^ (Geo == null ? 0 : Geo.GetHashCode());
+                hashCode = (hashCode * 397) ^ (ReferenceId == null ? 0 : ReferenceId.GetHashCode());
+                hashCode = (hashCode * 397) ^ Date.GetHashCode();
                 hashCode = (hashCode * 397) ^ Value.GetHashCode();
+                hashCode = (hashCode * 397) ^ Count.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode(_exclusions));
                 return hashCode;
             }

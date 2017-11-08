@@ -1,10 +1,46 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Exceptionless {
     internal static class CollectionEqualityExtensions {
+        private static bool ElementEquals(object source, object other) {
+            if (ReferenceEquals(null, source) && ReferenceEquals(null, other)) {
+                return true;
+            }
+
+            if (ReferenceEquals(null, source) || ReferenceEquals(null, other)) {
+                return false;
+            }
+
+            if (ReferenceEquals(source, other)) {
+                return true;
+            }
+
+            if (source is IDictionary sourceDictionary && other is IDictionary otherDictionary) {
+                return sourceDictionary.OfType<DictionaryEntry>().ToDictionary(entry => entry.Key, entry => entry.Value).CollectionEquals(otherDictionary.OfType<DictionaryEntry>().ToDictionary(entry => entry.Key, entry => entry.Value));
+            }
+
+            if (source is IEnumerable sourceEnumerable && other is IEnumerable otherEnumerable) {
+                return sourceEnumerable.OfType<object>().CollectionEquals(otherEnumerable.OfType<object>());
+            }
+
+            return source.Equals(other);
+        }
         public static bool CollectionEquals<T>(this IEnumerable<T> source, IEnumerable<T> other) {
+            if (ReferenceEquals(null, source) && ReferenceEquals(null, other)) {
+                return true;
+            }
+
+            if (ReferenceEquals(null, source) || ReferenceEquals(null, other)) {
+                return false;
+            }
+
+            if (ReferenceEquals(source, other)) {
+                return true;
+            }
+
             var sourceEnumerator = source.GetEnumerator();
             var otherEnumerator = other.GetEnumerator();
 
@@ -14,7 +50,7 @@ namespace Exceptionless {
                     return false;
                 }
 
-                if (sourceEnumerator.Current.Equals(otherEnumerator.Current)) {
+                if (!ElementEquals(sourceEnumerator.Current, otherEnumerator.Current)) {
                     // values aren't equal
                     return false;
                 }
@@ -27,7 +63,19 @@ namespace Exceptionless {
             return true;
         }
 
-        public static bool CollectionEquals<TValue>(this IDictionary<string, TValue> source, IDictionary<string, TValue> other) {
+        public static bool CollectionEquals<TKey,TValue>(this IDictionary<TKey, TValue> source, IDictionary<TKey, TValue> other) {
+            if (ReferenceEquals(null, source) && ReferenceEquals(null, other)) {
+                return true;
+            }
+
+            if (ReferenceEquals(null, source) || ReferenceEquals(null, other)) {
+                return false;
+            }
+
+            if (ReferenceEquals(source, other)) {
+                return true;
+            }
+
             if (source.Count != other.Count) {
                 return false;
             }
@@ -40,7 +88,7 @@ namespace Exceptionless {
                     return false;
                 }
 
-                if (sourceValue.Equals(otherValue)) {
+                if (!ElementEquals(sourceValue, otherValue)) {
                     return false;
                 }
             }

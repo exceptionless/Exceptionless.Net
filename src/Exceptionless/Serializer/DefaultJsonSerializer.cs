@@ -26,14 +26,14 @@ namespace Exceptionless.Serializer {
         }
 
         public virtual void Serialize<T>(T data, Stream outputStream) {
-            using (var writer = new StreamWriter(outputStream)) {
-                writer.Write(Serialize(data));
-            }
+            var buffer = System.Text.Encoding.UTF8.GetBytes(Serialize(data));
+            outputStream.Write(buffer,0, buffer.Length);
         }
 
         public virtual T Deserialize<T>(Stream inputStream) {
-            using (var reader = new StreamReader(inputStream)) {
-                var json = reader.ReadToEnd();
+            using (var memory = new MemoryStream()) {
+                inputStream.CopyTo(memory);
+                var json = System.Text.Encoding.UTF8.GetString(memory.ToArray());
                 if (String.IsNullOrWhiteSpace(json))
                     return default(T);
 
