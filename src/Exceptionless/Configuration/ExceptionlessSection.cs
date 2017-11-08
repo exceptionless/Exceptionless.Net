@@ -31,6 +31,9 @@ namespace Exceptionless {
         [ConfigurationProperty("storagePath")]
         public string StoragePath { get { return base["storagePath"] as string; } set { base["storagePath"] = value; } }
 
+        [ConfigurationProperty("storageSerializer", Options = ConfigurationPropertyOptions.IsTypeStringTransformationRequired)]
+        public Type StorageSerializer { get { return base["storageSerializer"] as Type; } set { base["storageSerializer"] = value; } }
+
         [ConfigurationProperty("tags")]
         public string Tags { get { return this["tags"] as string; } set { this["tags"] = value; } }
 

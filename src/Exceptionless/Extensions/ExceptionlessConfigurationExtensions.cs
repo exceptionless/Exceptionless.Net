@@ -10,6 +10,7 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Serializer;
 using Exceptionless.Storage;
 
 #if !PORTABLE && !NETSTANDARD1_2
@@ -308,6 +309,15 @@ namespace Exceptionless {
 
             if (!String.IsNullOrEmpty(section.StoragePath))
                 config.UseFolderStorage(section.StoragePath);
+
+            if (section.StorageSerializer != null) {
+                if (!typeof(IStorageSerializer).GetTypeInfo().IsAssignableFrom(section.StorageSerializer)) {
+                    config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"The storage serializer {section.StorageSerializer} does not implemented interface {typeof(IStorageSerializer)}.");
+                }
+                else {
+                    config.Resolver.Register(typeof(IStorageSerializer), section.StorageSerializer);
+                }
+            }
 
             if (section.EnableLogging.HasValue && section.EnableLogging.Value) {
                 if (!String.IsNullOrEmpty(section.LogPath))

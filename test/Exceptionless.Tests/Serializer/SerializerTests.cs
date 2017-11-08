@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit;
@@ -11,7 +12,7 @@ using Exceptionless.Serializer;
 
 namespace Exceptionless.Tests.Serializer {
     public class SerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
+        protected virtual DefaultJsonSerializer GetSerializer() {
             return new DefaultJsonSerializer();
         }
 
@@ -27,6 +28,13 @@ namespace Exceptionless.Tests.Serializer {
             var serializer = GetSerializer();
             string json = serializer.Serialize(ev, exclusions);
             Assert.Equal(@"{""message"":""Testing"",""data"":{""FirstName"":""Blake""}}", json);
+
+            using (var memory = new MemoryStream()) {
+                serializer.Serialize(ev, memory);
+                memory.Position = 0;
+
+                Assert.Equal(ev, serializer.Deserialize<Event>(memory));
+            }
         }
 
         [Fact]

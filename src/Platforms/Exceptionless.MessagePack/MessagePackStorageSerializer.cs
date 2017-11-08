@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Exceptionless.Dependency;
 using Exceptionless.Serializer;
 using MessagePack;
 
@@ -6,8 +7,8 @@ namespace Exceptionless.MessagePack {
     public class MessagePackStorageSerializer : IStorageSerializer {
         private readonly IFormatterResolver _formatterResolver;
 
-        public MessagePackStorageSerializer(IFormatterResolver formatterResolver) {
-            _formatterResolver = formatterResolver;
+        public MessagePackStorageSerializer(IDependencyResolver resolver) {
+            _formatterResolver = new ExceptionlessFormatterResolver(resolver);
         }
 
         public void Serialize<T>(T data, Stream output) {

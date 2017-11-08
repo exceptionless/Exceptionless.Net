@@ -33,11 +33,8 @@ namespace Exceptionless.Serializer {
         public virtual T Deserialize<T>(Stream inputStream) {
             using (var memory = new MemoryStream()) {
                 inputStream.CopyTo(memory);
-                var json = System.Text.Encoding.UTF8.GetString(memory.ToArray());
-                if (String.IsNullOrWhiteSpace(json))
-                    return default(T);
-
-                return JsonConvert.DeserializeObject<T>(json, _serializerSettings);
+                var buffer = memory.ToArray();
+                return (T)Deserialize(System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length), typeof(T));
             }
         }
 
