@@ -857,7 +857,7 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
-        public void VerifyDuduplicationWithSameHashCode() {
+        public void VerifyDeduplicationWithSameHashCode() {
             var client = CreateClient();
             using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
                 {
@@ -873,6 +873,27 @@ namespace Exceptionless.Tests.Plugins {
                     duplicateCheckerPlugin.Run(context);
                     Assert.False(context.Cancel);
                     Assert.Null(context.Event.Count);
+                }
+            }
+        }
+
+        [Fact]
+        public void VerifyDeduplicationWithSameListData() {
+            var client = CreateClient();
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
+                for (int index = 0; index < 3; index++) {
+                    var builder = client.CreateEvent().SetMessage("Test").SetProperty("Values",new List<int>(){1,2,3});
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+                    duplicateCheckerPlugin.Run(context);
+                    if (index == 0) {
+                        Assert.False(context.Cancel);
+                        Assert.Null(context.Event.Count);
+                    }
+                    else {
+                        Assert.True(context.Cancel);
+                        Thread.Sleep(50);
+                        Assert.Equal(1, context.Event.Count);
+                    }
                 }
             }
         }
