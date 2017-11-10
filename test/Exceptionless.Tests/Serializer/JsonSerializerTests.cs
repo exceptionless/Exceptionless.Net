@@ -11,8 +11,8 @@ using Exceptionless.Models;
 using Exceptionless.Serializer;
 
 namespace Exceptionless.Tests.Serializer {
-    public class SerializerTests {
-        protected virtual DefaultJsonSerializer GetSerializer() {
+    public class JsonSerializerTests {
+        protected virtual IJsonSerializer GetSerializer() {
             return new DefaultJsonSerializer();
         }
 
@@ -28,13 +28,6 @@ namespace Exceptionless.Tests.Serializer {
             var serializer = GetSerializer();
             string json = serializer.Serialize(ev, exclusions);
             Assert.Equal(@"{""message"":""Testing"",""data"":{""FirstName"":""Blake""}}", json);
-
-            using (var memory = new MemoryStream()) {
-                serializer.Serialize(ev, memory);
-                memory.Position = 0;
-
-                Assert.Equal(ev, serializer.Deserialize<Event>(memory));
-            }
         }
 
         [Fact]
