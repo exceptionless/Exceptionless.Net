@@ -856,6 +856,27 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
+        [Fact]
+        public void VerifyDuduplicationWithSameHashCode() {
+            var client = CreateClient();
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
+                {
+                    var builder = client.CreateEvent().SetMessage("Test123");
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+                    duplicateCheckerPlugin.Run(context);
+                    Assert.False(context.Cancel);
+                    Assert.Null(context.Event.Count);
+                }
+                {
+                    var builder = client.CreateEvent().SetMessage("Test").SetProperty("Value", 1855355943);
+                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+                    duplicateCheckerPlugin.Run(context);
+                    Assert.False(context.Cancel);
+                    Assert.Null(context.Event.Count);
+                }
+            }
+        }
+
         private ExceptionWithOverriddenStackTrace GetExceptionWithOverriddenStackTrace(string message = "Test") {
             try {
                 throw new ExceptionWithOverriddenStackTrace(message);
