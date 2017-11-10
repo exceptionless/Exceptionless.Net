@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
@@ -26,15 +27,14 @@ namespace Exceptionless.Serializer {
         }
 
         public virtual void Serialize<T>(T data, Stream outputStream) {
-            var buffer = System.Text.Encoding.UTF8.GetBytes(Serialize(data));
-            outputStream.Write(buffer,0, buffer.Length);
+            using (var writer = new StreamWriter(outputStream, new UTF8Encoding(false, true), 0x400, true)) {
+                writer.Write(Serialize(data));
+            }
         }
 
         public virtual T Deserialize<T>(Stream inputStream) {
-            using (var memory = new MemoryStream()) {
-                inputStream.CopyTo(memory);
-                var buffer = memory.ToArray();
-                return (T)Deserialize(System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length), typeof(T));
+            using (var reader = new StreamReader(inputStream, Encoding.UTF8, true, 0x400, true)) {
+                return (T)Deserialize(reader.ReadToEnd(), typeof(T));
             }
         }
 
