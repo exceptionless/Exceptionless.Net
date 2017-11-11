@@ -58,10 +58,12 @@ namespace Exceptionless.Tests.Serializer
             Assert.Equal(evt, newEvent,new EventEqualityComparer());
         }
 
+        [Fact]
         public virtual void CanSerializeSimpleEvent() {
             AssertEventSerialize(CreateSimpleEvent());
         }
 
+        [Fact]
         public virtual void CanSerializeSimpleDataValues() {
             var evt = CreateSimpleEvent();
             evt.SetVersion("4.1.1972");
@@ -72,18 +74,21 @@ namespace Exceptionless.Tests.Serializer
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeTags() {
             var evt = CreateSimpleEvent();
             evt.AddTags("Critial", "Startup", "AspNetCore");
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeEnvironmentInfo() {
             var evt = CreateSimpleEvent();
             evt.Data[Event.KnownDataKeys.EnvironmentInfo] = _resolver.Resolve<IEnvironmentInfoCollector>().GetEnvironmentInfo();
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeRequestInfo() {
             var evt = CreateSimpleEvent();
             evt.AddRequestInfo(new RequestInfo {
@@ -107,6 +112,7 @@ namespace Exceptionless.Tests.Serializer
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeTraceLogEntries() {
             var evt = CreateSimpleEvent();
             evt.Data[Event.KnownDataKeys.TraceLog] = new List<string> {
@@ -116,18 +122,21 @@ namespace Exceptionless.Tests.Serializer
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeUserInfo() {
             var evt = CreateSimpleEvent();
             evt.SetUserIdentity("Asp.Net Identity", "exceptionless");
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeUserDescription() {
             var evt = CreateSimpleEvent();
             evt.SetUserDescription("noreply@exceptionless.com","system account");
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeManualStackingInfo() {
             var evt = CreateSimpleEvent();
             evt.SetManualStackingInfo("test", new Dictionary<string, string> {
@@ -137,12 +146,14 @@ namespace Exceptionless.Tests.Serializer
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeSimpleError() {
             var evt = CreateSimpleEvent();
             evt.Data[Event.KnownDataKeys.SimpleError] = new ArgumentException("The argument cannot be null or empty", "value").ToSimpleErrorModel(new ExceptionlessClient(new ExceptionlessConfiguration(_resolver)));
             AssertEventSerialize(evt);
         }
 
+        [Fact]
         public virtual void CanSerializeError() {
             var evt = CreateSimpleEvent();
             evt.Data[Event.KnownDataKeys.Error] = new ArgumentException("The argument cannot be null or empty", "value").ToErrorModel(new ExceptionlessClient(new ExceptionlessConfiguration(_resolver)));

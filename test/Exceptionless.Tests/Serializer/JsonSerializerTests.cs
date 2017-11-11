@@ -100,7 +100,6 @@ namespace Exceptionless.Tests.Serializer {
             Assert.Equal(data.Nested, model.Nested);
         }
 
-
         [Fact]
         public void ShouldSerializeValues() {
             var data = new SampleModel {

@@ -13,21 +13,6 @@ namespace Exceptionless.Tests.Serializer {
             return resolver.Resolve<IStorageSerializer>();
         }
 
-        [Fact]
-        public override void CanSerializeSimpleEvent() {
-            base.CanSerializeSimpleEvent();
-        }
-
-        [Fact]
-        public override void CanSerializeSimpleDataValues() {
-            base.CanSerializeSimpleDataValues();
-        }
-
-        [Fact]
-        public override void CanSerializeTags() {
-            base.CanSerializeTags();
-        }
-
         [Fact(Skip = "The json serializer deserialize anonymous(object) types as dictionary.")]
         public override void CanSerializeEnvironmentInfo() {
             base.CanSerializeEnvironmentInfo();
