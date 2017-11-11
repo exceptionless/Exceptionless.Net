@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Exceptionless.Tests</RootNamespace>
+    <TargetFramework>net462</TargetFramework>
+    <RootNamespace>Exceptionless.TestHarness</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
