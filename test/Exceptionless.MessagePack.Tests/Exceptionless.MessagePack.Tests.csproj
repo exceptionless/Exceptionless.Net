@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblyName>Exceptionless.Tests</AssemblyName>
+    <AssemblyName>Exceptionless.MessagePack.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
