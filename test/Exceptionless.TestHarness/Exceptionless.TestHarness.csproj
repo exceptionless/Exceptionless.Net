@@ -9,6 +9,7 @@
     <PackageReference Include="Exceptionless.RandomData" Version="1.1.47" />
     <PackageReference Include="xunit.assert" Version="2.3.1" />
     <PackageReference Include="xunit.extensibility.core" Version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
