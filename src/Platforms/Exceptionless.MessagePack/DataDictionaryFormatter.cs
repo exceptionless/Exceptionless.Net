@@ -145,6 +145,14 @@ namespace Exceptionless.MessagePack {
                             dic.Add(key, value);
                             break;
                         }
+#if NETSTANDARD
+                    case "ProcessArchitecture": {
+                        var value = MessagePackBinary.ReadInt32(bytes, offset, out readSize);
+                        offset += readSize;
+                        dic.Add(key, (System.Runtime.InteropServices.Architecture)value);
+                        break;
+                    }
+#endif
                     default: {
                             var value = formatterResolver.GetFormatter<object>().Deserialize(bytes, offset, formatterResolver, out readSize);
                             offset += readSize;
