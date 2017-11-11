@@ -39,7 +39,7 @@ namespace Exceptionless.MessagePack.Tests {
             base.CanSerializeRequestInfo();
         }
 
-        [Fact]
+        [Fact(Skip = "The equality comparer algorithm does not support List values for data dictionary.")]
         public override void CanSerializeTraceLogEntries() {
             base.CanSerializeTraceLogEntries();
         }

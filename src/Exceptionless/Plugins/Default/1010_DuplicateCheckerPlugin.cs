@@ -35,7 +35,7 @@ namespace Exceptionless.Plugins.Default {
             if (LOG_SOURCE == context.Event.Source)
                 return;
 
-            int hashCode = EventDuplicateComparer.Instance.GetHashCode(context.Event);
+            int hashCode = context.Event.GetHashCode();
             int count = context.Event.Count ?? 1;
             context.Log.FormattedTrace(_logSourceType, "Checking event: {0} with hash: {1}", context.Event.Message, hashCode);
 
@@ -84,39 +84,6 @@ namespace Exceptionless.Plugins.Default {
             if (_timer != null) {
                 _timer.Dispose();
                 _timer = null;
-            }
-        }
-
-        private class EventDuplicateComparer : IEqualityComparer<Event> {
-            public static readonly EventDuplicateComparer Instance = new EventDuplicateComparer();
-
-            public bool Equals(Event x, Event y) {
-                if (ReferenceEquals(null, x) && ReferenceEquals(null, y)) {
-                    return true;
-                }
-
-                if (ReferenceEquals(null, x) || ReferenceEquals(null, y)) {
-                    return false;
-                }
-
-                if (ReferenceEquals(x, y)) {
-                    return true;
-                }
-
-                return string.Equals(x.Type, y.Type) && string.Equals(x.Source, y.Source) && x.Tags.CollectionEquals(y.Tags) && string.Equals(x.Message, y.Message) && string.Equals(x.Geo, y.Geo) && x.Value == y.Value && x.Data.CollectionEquals(y.Data);
-            }
-
-            public int GetHashCode(Event obj) {
-                unchecked {
-                    var hashCode = obj.Type == null ? 0 : obj.Type.GetHashCode();
-                    hashCode = (hashCode * 397) ^ (obj.Source == null ? 0 : obj.Source.GetHashCode());
-                    hashCode = (hashCode * 397) ^ (obj.Tags == null ? 0 : obj.Tags.GetCollectionHashCode());
-                    hashCode = (hashCode * 397) ^ (obj.Message?.GetHashCode() ?? 0);
-                    hashCode = (hashCode * 397) ^ (obj.Geo?.GetHashCode() ?? 0);
-                    hashCode = (hashCode * 397) ^ obj.Value.GetHashCode();
-                    hashCode = (hashCode * 397) ^ (obj.Data?.GetCollectionHashCode(new List<string> { Event.KnownDataKeys.TraceLog }) ?? 0);
-                    return hashCode;
-                }
             }
         }
 

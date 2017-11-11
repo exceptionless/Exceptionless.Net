@@ -55,7 +55,7 @@ namespace Exceptionless.Tests.Serializer
                 newEvent = serializer.Deserialize<Event>(memory);
             }
 
-            Assert.Equal(evt, newEvent);
+            Assert.Equal(evt, newEvent,new EventEqualityComparer());
         }
 
         public virtual void CanSerializeSimpleEvent() {
