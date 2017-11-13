@@ -5,18 +5,6 @@ using System.Linq;
 namespace Exceptionless {
     internal static class CollectionEqualityExtensions {
         public static bool CollectionEquals<T>(this IEnumerable<T> source, IEnumerable<T> other) {
-            if (ReferenceEquals(null, source) && ReferenceEquals(null, other)) {
-                return true;
-            }
-
-            if (ReferenceEquals(null, source) || ReferenceEquals(null, other)) {
-                return false;
-            }
-
-            if (ReferenceEquals(source, other)) {
-                return true;
-            }
-
             var sourceEnumerator = source.GetEnumerator();
             var otherEnumerator = other.GetEnumerator();
 
