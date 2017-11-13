@@ -32,7 +32,7 @@ namespace Exceptionless.Models.Data {
         public SimpleError Inner { get; set; }
 
         protected bool Equals(SimpleError other) {
-            return string.Equals(Message, other.Message) && string.Equals(Type, other.Type) && string.Equals(StackTrace, other.StackTrace) && Data.CollectionEquals(other.Data) && Equals(Inner, other.Inner);
+            return string.Equals(Message, other.Message) && string.Equals(Type, other.Type) && string.Equals(StackTrace, other.StackTrace) && Equals(Data, other.Data) && Equals(Inner, other.Inner);
         }
 
         public override bool Equals(object obj) {

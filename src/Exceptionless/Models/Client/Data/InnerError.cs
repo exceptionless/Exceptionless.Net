@@ -43,7 +43,7 @@ namespace Exceptionless.Models.Data {
         public Method TargetMethod { get; set; }
 
         protected bool Equals(InnerError other) {
-            return string.Equals(Message, other.Message) && string.Equals(Type, other.Type) && string.Equals(Code, other.Code) && Data.CollectionEquals(other.Data) && Equals(Inner, other.Inner) && StackTrace.CollectionEquals(other.StackTrace) && Equals(TargetMethod, other.TargetMethod);
+            return string.Equals(Message, other.Message) && string.Equals(Type, other.Type) && string.Equals(Code, other.Code) && Equals(Data, other.Data) && Equals(Inner, other.Inner) && StackTrace.CollectionEquals(other.StackTrace) && Equals(TargetMethod, other.TargetMethod);
         }
 
         public override bool Equals(object obj) {

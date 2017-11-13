@@ -59,7 +59,7 @@ namespace Exceptionless.Models {
         public string ReferenceId { get; set; }
 
         protected bool Equals(Event other) {
-            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Data.CollectionEquals(other.Data);
+            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Equals(Data, other.Data);
         }
 
         public override bool Equals(object obj) {

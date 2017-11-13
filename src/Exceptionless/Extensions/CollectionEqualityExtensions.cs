@@ -40,18 +40,6 @@ namespace Exceptionless {
         }
 
         public static bool CollectionEquals<TKey,TValue>(this IDictionary<TKey, TValue> source, IDictionary<TKey, TValue> other) {
-            if (ReferenceEquals(null, source) && ReferenceEquals(null, other)) {
-                return true;
-            }
-
-            if (ReferenceEquals(null, source) || ReferenceEquals(null, other)) {
-                return false;
-            }
-
-            if (ReferenceEquals(source, other)) {
-                return true;
-            }
-
             if (source.Count != other.Count) {
                 return false;
             }

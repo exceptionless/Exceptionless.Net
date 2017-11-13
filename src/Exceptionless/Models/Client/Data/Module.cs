@@ -27,7 +27,7 @@ namespace Exceptionless.Models.Data {
         }
 
         protected bool Equals(Module other) {
-            return ModuleId == other.ModuleId && string.Equals(Name, other.Name) && string.Equals(Version, other.Version) && IsEntry == other.IsEntry && CreatedDate.Equals(other.CreatedDate) && ModifiedDate.Equals(other.ModifiedDate) && Data.CollectionEquals(other.Data);
+            return ModuleId == other.ModuleId && string.Equals(Name, other.Name) && string.Equals(Version, other.Version) && IsEntry == other.IsEntry && CreatedDate.Equals(other.CreatedDate) && ModifiedDate.Equals(other.ModifiedDate) && Equals(Data, other.Data);
         }
 
         public override bool Equals(object obj) {

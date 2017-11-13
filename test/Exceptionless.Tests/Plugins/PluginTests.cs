@@ -856,69 +856,6 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Fact(Skip = "The duplicate checker verify events with hash code is not accurate.")]
-        public void VerifyDeduplicationWithSameHashCode() {
-            var client = CreateClient();
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
-                int firstEventHashCode;
-                {
-                    var builder = client.CreateEvent().SetMessage("Test123");
-                    firstEventHashCode = builder.Target.GetHashCode();
-                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
-                    duplicateCheckerPlugin.Run(context);
-                    Assert.False(context.Cancel);
-                    Assert.Null(context.Event.Count);
-                }
-                {
-                    var builder = client.CreateEvent().SetMessage("Test");
-                    // Calculate the property value for event that will generate the same hashcode.
-                    int propertyValue;
-                    unchecked {
-                        var secondEventHashCode = builder.Target.Type?.GetHashCode() ?? 0;
-                        secondEventHashCode = (secondEventHashCode * 397) ^ (builder.Target.Source?.GetHashCode() ?? 0);
-                        secondEventHashCode = (secondEventHashCode * 397) ^ (builder.Target.Tags?.GetCollectionHashCode() ?? 0);
-                        secondEventHashCode = (secondEventHashCode * 397) ^ (builder.Target.Message?.GetHashCode() ?? 0);
-                        secondEventHashCode = (secondEventHashCode * 397) ^ (builder.Target.Geo?.GetHashCode() ?? 0);
-                        secondEventHashCode = (secondEventHashCode * 397) ^ builder.Target.Value.GetHashCode();
-
-                        var hashCode = firstEventHashCode ^ (secondEventHashCode * 397);
-                        var assemblyQualifiedName = typeof(object).AssemblyQualifiedName;
-                        var assemblyHashCode = assemblyQualifiedName?.GetHashCode() ?? 0;
-                        var kvpHash = hashCode ^ (assemblyHashCode * 397);
-                        var keyHash = "Value".GetHashCode();
-                        propertyValue = kvpHash ^ (keyHash * 397);
-                    }
-
-                    builder.SetProperty("Value", propertyValue);
-                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
-                    duplicateCheckerPlugin.Run(context);
-                    Assert.False(context.Cancel);
-                    Assert.Null(context.Event.Count);
-                }
-            }
-        }
-
-        [Fact(Skip = "The duplicate checker does not support List value of data dictionary.")]
-        public void VerifyDeduplicationWithSameListData() {
-            var client = CreateClient();
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
-                for (int index = 0; index < 3; index++) {
-                    var builder = client.CreateEvent().SetMessage("Test").SetProperty("Values",new List<int>(){1,2,3});
-                    var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
-                    duplicateCheckerPlugin.Run(context);
-                    if (index == 0) {
-                        Assert.False(context.Cancel);
-                        Assert.Null(context.Event.Count);
-                    }
-                    else {
-                        Assert.True(context.Cancel);
-                        Thread.Sleep(50);
-                        Assert.Equal(1, context.Event.Count);
-                    }
-                }
-            }
-        }
-
         private ExceptionWithOverriddenStackTrace GetExceptionWithOverriddenStackTrace(string message = "Test") {
             try {
                 throw new ExceptionWithOverriddenStackTrace(message);

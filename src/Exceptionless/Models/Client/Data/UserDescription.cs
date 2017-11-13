@@ -23,7 +23,7 @@ namespace Exceptionless.Models.Data {
         public DataDictionary Data { get; set; }
 
         protected bool Equals(UserDescription other) {
-            return string.Equals(EmailAddress, other.EmailAddress) && string.Equals(Description, other.Description) && Data.CollectionEquals(other.Data);
+            return string.Equals(EmailAddress, other.EmailAddress) && string.Equals(Description, other.Description) && Equals(Data, other.Data);
         }
 
         public override bool Equals(object obj) {

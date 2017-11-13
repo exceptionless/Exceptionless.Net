@@ -20,7 +20,7 @@ namespace Exceptionless.Models.Data {
         public ParameterCollection Parameters { get; set; }
 
         protected bool Equals(Method other) {
-            return IsSignatureTarget == other.IsSignatureTarget && string.Equals(DeclaringNamespace, other.DeclaringNamespace) && string.Equals(DeclaringType, other.DeclaringType) && string.Equals(Name, other.Name) && Data.CollectionEquals(other.Data) && GenericArguments.CollectionEquals(other.GenericArguments) && Parameters.CollectionEquals(other.Parameters);
+            return IsSignatureTarget == other.IsSignatureTarget && string.Equals(DeclaringNamespace, other.DeclaringNamespace) && string.Equals(DeclaringType, other.DeclaringType) && string.Equals(Name, other.Name) && Equals(Data, other.Data) && GenericArguments.CollectionEquals(other.GenericArguments) && Parameters.CollectionEquals(other.Parameters);
         }
 
         public override bool Equals(object obj) {

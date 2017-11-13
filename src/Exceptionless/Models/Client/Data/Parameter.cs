@@ -15,7 +15,7 @@ namespace Exceptionless.Models.Data {
         public GenericArguments GenericArguments { get; set; }
 
         protected bool Equals(Parameter other) {
-            return string.Equals(Name, other.Name) && string.Equals(Type, other.Type) && string.Equals(TypeNamespace, other.TypeNamespace) && Data.CollectionEquals(other.Data) && GenericArguments.CollectionEquals(other.GenericArguments);
+            return string.Equals(Name, other.Name) && string.Equals(Type, other.Type) && string.Equals(TypeNamespace, other.TypeNamespace) && Equals(Data, other.Data) && GenericArguments.CollectionEquals(other.GenericArguments);
         }
 
         public override bool Equals(object obj) {

@@ -32,7 +32,7 @@ namespace Exceptionless.Models.Data {
         public DataDictionary Data { get; set; }
 
         protected bool Equals(UserInfo other) {
-            return string.Equals(Identity, other.Identity) && string.Equals(Name, other.Name) && Data.CollectionEquals(other.Data);
+            return string.Equals(Identity, other.Identity) && string.Equals(Name, other.Name) && Equals(Data, other.Data);
         }
 
         public override bool Equals(object obj) {
