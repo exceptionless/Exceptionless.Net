@@ -14,7 +14,7 @@ namespace Exceptionless {
                     return false;
                 }
 
-                if (!Equals(sourceEnumerator.Current, otherEnumerator.Current)) {
+                if (sourceEnumerator.Current.Equals(otherEnumerator.Current)) {
                     // values aren't equal
                     return false;
                 }
@@ -27,7 +27,7 @@ namespace Exceptionless {
             return true;
         }
 
-        public static bool CollectionEquals<TKey,TValue>(this IDictionary<TKey, TValue> source, IDictionary<TKey, TValue> other) {
+        public static bool CollectionEquals<TValue>(this IDictionary<string, TValue> source, IDictionary<string, TValue> other) {
             if (source.Count != other.Count) {
                 return false;
             }
@@ -40,7 +40,7 @@ namespace Exceptionless {
                     return false;
                 }
 
-                if (!Equals(sourceValue, otherValue)) {
+                if (sourceValue.Equals(otherValue)) {
                     return false;
                 }
             }
