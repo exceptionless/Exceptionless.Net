@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" />
+    <ProjectReference Include="..\Exceptionless.TestHarness\Exceptionless.TestHarness.csproj" />
   </ItemGroup>
 
   <ItemGroup>

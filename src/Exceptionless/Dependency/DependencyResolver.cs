@@ -24,6 +24,8 @@ namespace Exceptionless.Dependency {
         }
 
         public static void RegisterDefaultServices(IDependencyResolver resolver) {
+            resolver.Register(resolver);
+
             var fileStorage = new Lazy<IObjectStorage>(() => resolver.Resolve<InMemoryObjectStorage>());
             resolver.Register(typeof(IObjectStorage), () => fileStorage.Value);
 
