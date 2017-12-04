@@ -12,14 +12,16 @@ using Exceptionless.Models.Data;
 
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
-        public static RequestInfo Collect(HttpActionContext context, IEnumerable<string> exclusions) {
+        public static RequestInfo Collect(HttpActionContext context, ExceptionlessConfiguration config) {
             if (context == null)
                 return null;
 
             var info = new RequestInfo {
-                ClientIpAddress = context.Request.GetClientIpAddress(),
                 HttpMethod = context.Request.Method.Method
             };
+
+            if (config.IncludePrivateInformation)
+                info.ClientIpAddress = context.Request.GetClientIpAddress();
 
             if (context.Request.Headers.UserAgent != null)
                 info.UserAgent = context.Request.Headers.UserAgent.ToString();
@@ -34,7 +36,7 @@ namespace Exceptionless.ExtendedData {
             if (context.Request.Headers.Referrer != null)
                 info.Referrer = context.Request.Headers.Referrer.ToString();
 
-            var exclusionList = exclusions as string[] ?? exclusions.ToArray();
+            var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
             info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
             info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
 

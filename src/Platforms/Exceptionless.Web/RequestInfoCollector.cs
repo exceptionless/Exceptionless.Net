@@ -23,10 +23,12 @@ namespace Exceptionless.ExtendedData {
                 Path = String.IsNullOrEmpty(context.Request.Path) ? "/" : context.Request.Path
             };
 
-            try {
-                info.ClientIpAddress = GetUserIPAddress(context);
-            } catch (ArgumentException ex) {
-                config.Resolver.GetLog().Error(ex, "An error occurred while setting the Client Ip Address.");
+            if (config.IncludePrivateInformation) {
+                try {
+                    info.ClientIpAddress = GetUserIPAddress(context);
+                } catch (ArgumentException ex) {
+                    config.Resolver.GetLog().Error(ex, "An error occurred while setting the Client Ip Address.");
+                }
             }
 
             try {
