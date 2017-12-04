@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit;
@@ -10,7 +11,7 @@ using Exceptionless.Models;
 using Exceptionless.Serializer;
 
 namespace Exceptionless.Tests.Serializer {
-    public class SerializerTests {
+    public class JsonSerializerTests {
         protected virtual IJsonSerializer GetSerializer() {
             return new DefaultJsonSerializer();
         }
@@ -98,7 +99,6 @@ namespace Exceptionless.Tests.Serializer {
             Assert.Equal(data.Dictionary, model.Dictionary);
             Assert.Equal(data.Nested, model.Nested);
         }
-
 
         [Fact]
         public void ShouldSerializeValues() {

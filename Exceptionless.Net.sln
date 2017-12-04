@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{728C18BC-4085-4492-B0B2-8211CA209A50}"
 	ProjectSection(SolutionItems) = preProject
@@ -89,6 +89,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleConsole", "samples\Exceptionless.SampleConsole\Exceptionless.SampleConsole.csproj", "{23645F73-57D8-4D70-BE1A-37903A8E4A18}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Extensions.Logging", "src\Platforms\Exceptionless.Extensions.Logging\Exceptionless.Extensions.Logging.csproj", "{9A8BB712-01DE-491C-8E33-E381DDEDDC19}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.MessagePack", "src\Platforms\Exceptionless.MessagePack\Exceptionless.MessagePack.csproj", "{F7ABD87A-2D84-4962-9A97-EC2F864CFA21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.MessagePack.Tests", "test\Exceptionless.MessagePack.Tests\Exceptionless.MessagePack.Tests.csproj", "{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{847AAE03-9F4A-4920-9E56-8AECB915E2B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.TestHarness", "test\Exceptionless.TestHarness\Exceptionless.TestHarness.csproj", "{485643BC-C33E-485A-80CC-DBD2E3C3E44A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -180,11 +188,24 @@ Global
 		{9A8BB712-01DE-491C-8E33-E381DDEDDC19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A8BB712-01DE-491C-8E33-E381DDEDDC19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A8BB712-01DE-491C-8E33-E381DDEDDC19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7ABD87A-2D84-4962-9A97-EC2F864CFA21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7ABD87A-2D84-4962-9A97-EC2F864CFA21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7ABD87A-2D84-4962-9A97-EC2F864CFA21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7ABD87A-2D84-4962-9A97-EC2F864CFA21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{7961053F-A83D-48AE-9ABC-7EA134973223} = {847AAE03-9F4A-4920-9E56-8AECB915E2B6}
 		{40447BEF-BE34-46C2-B05B-2DF671586AD7} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{A210FAF7-885E-44F4-85D4-F6D279EAFE82} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{A3139129-3FB8-451D-90D6-4BF6A5C8B479} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
@@ -204,6 +225,9 @@ Global
 		{D7039656-8587-49CC-8657-5C9BDCFC1C80} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{23645F73-57D8-4D70-BE1A-37903A8E4A18} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{9A8BB712-01DE-491C-8E33-E381DDEDDC19} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
+		{F7ABD87A-2D84-4962-9A97-EC2F864CFA21} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
+		{8DB42DED-86AE-4FC9-AE98-2884A0D607AC} = {847AAE03-9F4A-4920-9E56-8AECB915E2B6}
+		{485643BC-C33E-485A-80CC-DBD2E3C3E44A} = {847AAE03-9F4A-4920-9E56-8AECB915E2B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EBB2CC85-FF87-431B-865F-2F110B2A10E6}
