@@ -50,19 +50,25 @@ namespace Exceptionless.SampleConsole {
             ExceptionlessClient.Default.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
             ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
-            ExceptionlessClient.Default.Configuration.UseLogger(_log);
+            ExceptionlessClient.Default.Configuration.UseLogger(_log); 
             ExceptionlessClient.Default.Startup();
 
             if (ExceptionlessClient.Default.Configuration.Settings.GetBoolean("EnableWelcomeMessage", false))
                 Console.WriteLine($"Hello {Environment.MachineName}!");
 
             // Test NLog
-            GlobalDiagnosticsContext.Set("GlobalProp", "GlobalValue");
-            Log.Info()
+            var config = new LoggingConfiguration();
+            var exceptionlessTarget = new ExceptionlessTarget();
+            config.AddTarget("exceptionless", exceptionlessTarget);
+            config.LoggingRules.Add(new LoggingRule("*", global::NLog.LogLevel.Debug, exceptionlessTarget));
+            LogManager.Configuration = config;
+
+            var logger = LogManager.GetCurrentClassLogger();
+            logger.Warn()
                 .Message("App Starting...")
                 .Tag("Tag1", "Tag2")
                 .Property("LocalProp", "LocalValue")
-                .ContextProperty("Order", new { Total = 15 })
+                .Property("Order", new { Total = 15 })
                 .Write();
 
             // This is how you could log the same message using the fluent api directly.

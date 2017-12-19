@@ -20,9 +20,7 @@ namespace Exceptionless.NLog {
         /// <param name="builder">The log builder object.</param>
         /// <param name="tags">The tags to be added to the event.</param>
         public static LogBuilder Tag(this LogBuilder builder, params string[] tags) {
-            var tagList = builder.LogEventInfo.GetTags();
-            tagList.AddRange(tags);
-
+            builder.LogEventInfo.AddTags(tags);
             return builder;
         }
 
@@ -49,8 +47,7 @@ namespace Exceptionless.NLog {
         }
 
         public static LogBuilder ContextProperty(this LogBuilder builder, string key, object value) {
-            var contextData = builder.LogEventInfo.GetContextData();
-            contextData[key] = value;
+            builder.LogEventInfo.SetContextDataProperty(key, value);
 
             return builder;
         }
@@ -61,50 +58,46 @@ namespace Exceptionless.NLog {
         /// <param name="builder">The log builder object.</param>
         /// <param name="submissionMethod">The submission method.</param>
         public static LogBuilder MarkUnhandled(this LogBuilder builder, string submissionMethod = null) {
-            var contextData = builder.LogEventInfo.GetContextData();
-            contextData.MarkAsUnhandledError();
+            builder.LogEventInfo.SetContextDataProperty(IsUnhandledError, true);
             if (!String.IsNullOrEmpty(submissionMethod))
-                contextData.SetSubmissionMethod(submissionMethod);
+                builder.LogEventInfo.SetContextDataProperty(SubmissionMethod, submissionMethod);
 
             return builder;
         }
 
-        /// <summary>
-        /// Marks the event as being a unhandled error occurrence.
-        /// </summary>
-        public static void MarkAsUnhandledError(this IDictionary<string, object> contextData) {
-            contextData[IsUnhandledError] = true;
+        internal static HashSet<string> GetTags(this LogEventInfo ev) {
+            if (ev.Properties.ContainsKey(Tags) && ev.Properties[Tags] is HashSet<string>)
+                return (HashSet<string>)ev.Properties[Tags];
+
+            return null;
         }
 
-        /// <summary>
-        /// Sets the submission method that created the event (E.G., UnobservedTaskException)
-        /// </summary>
-        public static void SetSubmissionMethod(this IDictionary<string, object> contextData, string submissionMethod) {
-            contextData[SubmissionMethod] = submissionMethod;
+        private static void AddTags(this LogEventInfo ev, params string[] tags) {
+            if (tags == null || tags.Length == 0)
+                return;
+
+            var list = ev.GetTags() ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string tag in tags)
+                list.Add(tag);
+
+            ev.Properties[Tags] = list;
         }
 
-        public static List<string> GetTags(this LogEventInfo ev) {
-            var tagList = new List<string>();
-            if (!ev.Properties.ContainsKey(Tags))
-                ev.Properties[Tags] = tagList;
+        internal static IDictionary<string, object> GetContextData(this LogEventInfo ev) {
+            if (ev.Properties.ContainsKey(ContextData) && ev.Properties[ContextData] is IDictionary<string, object>)
+                 return (IDictionary<string, object>)ev.Properties[ContextData];
 
-            if (ev.Properties.ContainsKey(Tags)
-                && ev.Properties[Tags] is List<string>)
-                tagList = (List<string>)ev.Properties[Tags];
-
-            return tagList;
+            return null;
         }
 
-        public static IDictionary<string, object> GetContextData(this LogEventInfo ev) {
-            IDictionary<string, object> contextData = new Dictionary<string, object>();
-            if (!ev.Properties.ContainsKey(ContextData))
-                ev.Properties[ContextData] = contextData;
+        private static void SetContextDataProperty(this LogEventInfo ev, string key, object value) {
+            if (String.IsNullOrEmpty(key))
+                return;
 
-            if (ev.Properties.ContainsKey(ContextData)
-                && ev.Properties[ContextData] is IDictionary<string, object>)
-                contextData = (IDictionary<string, object>)ev.Properties[ContextData];
+            var contextData = ev.GetContextData() ?? new Dictionary<string, object>();
+            contextData[key] = value;
 
-            return contextData;
+            ev.Properties[ContextData] = contextData;
         }
 
         private const string IsUnhandledError = "@@_IsUnhandledError";
