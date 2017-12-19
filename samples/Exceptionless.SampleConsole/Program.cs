@@ -17,11 +17,12 @@ using log4net;
 using log4net.Config;
 #endif
 using NLog;
+using NLog.Config;
 using NLog.Fluent;
 using LogLevel = Exceptionless.Logging.LogLevel;
 
 // example of setting an attribute value in config.
-[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:50000")]
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:50000")] 
 [assembly: ExceptionlessSetting("EnableWelcomeMessage", "True")]
 
 namespace Exceptionless.SampleConsole {
@@ -47,7 +48,6 @@ namespace Exceptionless.SampleConsole {
             if (!Console.IsInputRedirected)
                 StartDisplayingLogMessages();
 
-            ExceptionlessClient.Default.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
             ExceptionlessClient.Default.Configuration.AddPlugin<SystemUptimePlugin>();
             ExceptionlessClient.Default.Configuration.UseFolderStorage("store");
             ExceptionlessClient.Default.Configuration.UseLogger(_log); 

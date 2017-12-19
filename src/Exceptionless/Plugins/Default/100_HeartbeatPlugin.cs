@@ -13,7 +13,7 @@ namespace Exceptionless.Plugins.Default {
         /// </summary>
         /// <param name="interval">The interval at which heartbeats are sent after the last sent event. The default is 1 minutes.</param>
         public HeartbeatPlugin(TimeSpan? interval = null) {
-            _interval = interval.HasValue && interval.Value.Ticks > 0 ? interval.Value : TimeSpan.FromMinutes(1);
+            _interval = interval.HasValue && interval.Value.Seconds >= 30 ? interval.Value : TimeSpan.FromMinutes(1);
         }
 
         public void Run(EventPluginContext context) {
