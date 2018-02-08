@@ -1,17 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit;
-using Exceptionless;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
 using Exceptionless.Serializer;
+using Exceptionless.Tests.Log;
+using Exceptionless.Tests.Utility;
+using Xunit.Abstractions;
+using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.Tests.Serializer {
     public class JsonSerializerTests {
+        private readonly TestOutputWriter _writer;
+        public JsonSerializerTests(ITestOutputHelper output) {
+            _writer = new TestOutputWriter(output);
+        }
+
         protected virtual IJsonSerializer GetSerializer() {
             return new DefaultJsonSerializer();
         }
@@ -206,7 +213,7 @@ namespace Exceptionless.Tests.Serializer {
 
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
-                c.UseTraceLogger();
+                c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.ReadFromAttributes();
                 c.UserAgent = "testclient/1.0.0.0";
 

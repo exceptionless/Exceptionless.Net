@@ -1,13 +1,24 @@
 using System;
-using Exceptionless;
+using Exceptionless.Tests.Log;
+using Exceptionless.Tests.Utility;
 using Xunit;
+using Xunit.Abstractions;
+using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.Tests {
     public class EventBuilderTests {
+        private readonly TestOutputWriter _writer;
+        public EventBuilderTests(ITestOutputHelper output) {
+            _writer = new TestOutputWriter(output);
+        }
+
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
-                c.UseTraceLogger();
+                c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.UserAgent = "testclient/1.0.0.0";
+
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
 
