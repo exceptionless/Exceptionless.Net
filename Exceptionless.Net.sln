@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2006
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{728C18BC-4085-4492-B0B2-8211CA209A50}"
 	ProjectSection(SolutionItems) = preProject
@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		build\Package.ps1 = build\Package.ps1
 		README.md = README.md
 		build\Settings.ps1 = build\Settings.ps1
+		build\sourcelink.props = build\sourcelink.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{D363E15F-621D-40E4-8C96-DEE41A7070FF}"
@@ -92,11 +93,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Extensions.Lo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.MessagePack", "src\Platforms\Exceptionless.MessagePack\Exceptionless.MessagePack.csproj", "{F7ABD87A-2D84-4962-9A97-EC2F864CFA21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.MessagePack.Tests", "test\Exceptionless.MessagePack.Tests\Exceptionless.MessagePack.Tests.csproj", "{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.MessagePack.Tests", "test\Exceptionless.MessagePack.Tests\Exceptionless.MessagePack.Tests.csproj", "{8DB42DED-86AE-4FC9-AE98-2884A0D607AC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{847AAE03-9F4A-4920-9E56-8AECB915E2B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.TestHarness", "test\Exceptionless.TestHarness\Exceptionless.TestHarness.csproj", "{485643BC-C33E-485A-80CC-DBD2E3C3E44A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.TestHarness", "test\Exceptionless.TestHarness\Exceptionless.TestHarness.csproj", "{485643BC-C33E-485A-80CC-DBD2E3C3E44A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
