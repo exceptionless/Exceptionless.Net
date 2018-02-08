@@ -73,8 +73,7 @@ namespace Exceptionless.Storage {
                 using (var writer = File.OpenWrite(Path.Combine(Folder, path))) {
                     _resolver.GetStorageSerializer().Serialize(value, writer);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
                 return false;
             }

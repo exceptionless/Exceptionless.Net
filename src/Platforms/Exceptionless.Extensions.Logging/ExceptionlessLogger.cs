@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using ExceptionlessLogLevel = Exceptionless.Logging.LogLevel;
 using Microsoft.Extensions.Logging;
 
 namespace Exceptionless.Extensions.Logging {
