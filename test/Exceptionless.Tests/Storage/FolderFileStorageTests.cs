@@ -4,10 +4,13 @@ using Xunit;
 using Exceptionless.Dependency;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
+using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Storage {
     public class FolderFileStorageTests : FileStorageTestsBase {
         private const string DATA_DIRECTORY_QUEUE_FOLDER = @"|DataDirectory|\Queue";
+
+        public FolderFileStorageTests(ITestOutputHelper output) : base(output) { }
 
         protected override IObjectStorage GetStorage() {
             var resolver = new DefaultDependencyResolver();

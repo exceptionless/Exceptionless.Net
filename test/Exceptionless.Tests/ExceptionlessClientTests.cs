@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;

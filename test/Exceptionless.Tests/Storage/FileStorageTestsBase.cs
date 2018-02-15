@@ -5,15 +5,47 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions;
+using Exceptionless.Logging;
 using Exceptionless.Models;
+using Exceptionless.Queue;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
+using Exceptionless.Tests.Log;
+using Exceptionless.Tests.Utility;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Storage {
     public abstract class FileStorageTestsBase {
+        private readonly TestOutputWriter _writer;
+        public FileStorageTestsBase(ITestOutputHelper output) {
+            _writer = new TestOutputWriter(output);
+        }
+
         protected abstract IObjectStorage GetStorage();
+
+        [Fact]
+        public void CanProcessQueueWithUninitializedStorage() {
+            var client = new ExceptionlessClient(c => {
+                c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
+                c.ReadFromAttributes();
+                c.Resolver.Register(typeof(IObjectStorage), GetStorage);
+                c.UserAgent = "testclient/1.0.0.0";
+
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
+            });
+            
+            client.Startup();
+            client.ProcessQueue();
+            var queue = client.Configuration.Resolver.GetEventQueue() as DefaultEventQueue;
+            Assert.NotNull(queue);
+            Assert.False(queue.IsQueueProcessingSuspended);
+            Assert.False(queue.AreQueuedItemsDiscarded);
+            client.Shutdown();
+        }
 
         [Fact]
         public void CanManageFiles() {

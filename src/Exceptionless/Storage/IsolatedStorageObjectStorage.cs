@@ -96,7 +96,7 @@ namespace Exceptionless.Storage {
         }
 
         public T GetObject<T>(string path) where T : class {
-            if (String.IsNullOrWhiteSpace(path))
+            if (String.IsNullOrEmpty(path))
                 throw new ArgumentNullException("path");
 
             try {
@@ -121,7 +121,7 @@ namespace Exceptionless.Storage {
         }
 
         public bool SaveObject<T>(string path, T value) where T : class {
-            if (String.IsNullOrWhiteSpace(path))
+            if (String.IsNullOrEmpty(path))
                 throw new ArgumentNullException("path");
 
             EnsureDirectory(path);
@@ -155,9 +155,9 @@ namespace Exceptionless.Storage {
         }
 
         public bool RenameObject(string oldpath, string newpath) {
-            if (String.IsNullOrWhiteSpace(oldpath))
+            if (String.IsNullOrEmpty(oldpath))
                 throw new ArgumentNullException("oldpath");
-            if (String.IsNullOrWhiteSpace(newpath))
+            if (String.IsNullOrEmpty(newpath))
                 throw new ArgumentNullException("newpath");
 
             try {
@@ -175,7 +175,7 @@ namespace Exceptionless.Storage {
         }
 
         public bool DeleteObject(string path) {
-            if (String.IsNullOrWhiteSpace(path))
+            if (String.IsNullOrEmpty(path))
                 throw new ArgumentNullException("path");
 
             try {
