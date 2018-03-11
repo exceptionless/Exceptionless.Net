@@ -50,13 +50,14 @@ namespace Exceptionless.SampleWindows
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.ignoredExceptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.randomExceptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.attemptDeadlockToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importantExceptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.multipleExceptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importDemoReportsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.showFilterFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.processQueueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.processQueueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip.SuspendLayout();
             this.mainMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -202,6 +203,7 @@ namespace Exceptionless.SampleWindows
             this.toolStripMenuItem1,
             this.ignoredExceptionToolStripMenuItem,
             this.randomExceptionToolStripMenuItem,
+            this.attemptDeadlockToolStripMenuItem,
             this.importantExceptionToolStripMenuItem,
             this.multipleExceptionsToolStripMenuItem,
             this.importDemoReportsToolStripMenuItem,
@@ -210,12 +212,13 @@ namespace Exceptionless.SampleWindows
             this.toolStripSeparator2,
             this.processQueueToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
             this.toolsToolStripMenuItem.Text = "&Tools";
             // 
             // generateExceptionToolStripMenuItem
             // 
             this.generateExceptionToolStripMenuItem.Name = "generateExceptionToolStripMenuItem";
+            this.generateExceptionToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F10;
             this.generateExceptionToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
             this.generateExceptionToolStripMenuItem.Text = "Generate Exception";
             this.generateExceptionToolStripMenuItem.Click += new System.EventHandler(this.generateExceptionToolStripMenuItem_Click);
@@ -239,7 +242,14 @@ namespace Exceptionless.SampleWindows
             this.randomExceptionToolStripMenuItem.Name = "randomExceptionToolStripMenuItem";
             this.randomExceptionToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
             this.randomExceptionToolStripMenuItem.Text = "Random Exception";
-            this.randomExceptionToolStripMenuItem.Click += new System.EventHandler(this.randomExceptionToolStripMenuItem_Click);
+            this.randomExceptionToolStripMenuItem.Click += new System.EventHandler(this.OnRandomExceptionMenuItemClick);
+            // 
+            // attemptDeadlockToolStripMenuItem
+            // 
+            this.attemptDeadlockToolStripMenuItem.Name = "attemptDeadlockToolStripMenuItem";
+            this.attemptDeadlockToolStripMenuItem.Size = new System.Drawing.Size(345, 22);
+            this.attemptDeadlockToolStripMenuItem.Text = "Attempt Deadlock with many submitted exceptions";
+            this.attemptDeadlockToolStripMenuItem.Click += new System.EventHandler(this.OnAttemptDeadlockMenuItemClick);
             // 
             // importantExceptionToolStripMenuItem
             // 
@@ -274,17 +284,17 @@ namespace Exceptionless.SampleWindows
             this.showFilterFormToolStripMenuItem.Text = "Show Filter Form";
             this.showFilterFormToolStripMenuItem.Click += new System.EventHandler(this.showFilterFormToolStripMenuItem_Click);
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(212, 6);
+            // 
             // processQueueToolStripMenuItem
             // 
             this.processQueueToolStripMenuItem.Name = "processQueueToolStripMenuItem";
             this.processQueueToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
             this.processQueueToolStripMenuItem.Text = "Process Queue";
             this.processQueueToolStripMenuItem.Click += new System.EventHandler(this.processQueueToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(212, 6);
             // 
             // MainForm
             // 
@@ -328,7 +338,7 @@ namespace Exceptionless.SampleWindows
         private System.Windows.Forms.ToolStripMenuItem generateExceptionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem processQueueToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripMenuItem randomExceptionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem attemptDeadlockToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem ignoredExceptionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importantExceptionToolStripMenuItem;
@@ -336,6 +346,7 @@ namespace Exceptionless.SampleWindows
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem showFilterFormToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importDemoReportsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem randomExceptionToolStripMenuItem;
     }
 }
 
