@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using Exceptionless.Models.Collections;
+using Exceptionless.Plugins;
 using Tester;
 
 namespace Exceptionless.SampleWindows {
@@ -10,6 +11,7 @@ namespace Exceptionless.SampleWindows {
         public MainForm() {
             InitializeComponent();
             ExceptionlessClient.Default.SubmittingEvent += OnSubmittingEvent;
+            ExceptionlessClient.Default.SubmittedEvent += OnSubmittedEvent;
             ExceptionlessClient.Default.Configuration.Settings.Changed += SettingsOnChanged;
         }
 
@@ -19,7 +21,7 @@ namespace Exceptionless.SampleWindows {
                 return;
             }
 
-            logTextBox.AppendText("Configuration Updated.");
+            logTextBox.AppendText("\r\nConfiguration Updated.");
         }
 
         private void OnSubmittingEvent(object sender, EventSubmittingEventArgs e) {
@@ -33,11 +35,15 @@ namespace Exceptionless.SampleWindows {
                 e.Event.Tags.Add("Important");
 
             if (!String.IsNullOrEmpty(e.Event.ReferenceId))
-                logTextBox.AppendText($"Submitting Event: {e.Event.ReferenceId}{Environment.NewLine}");
+                logTextBox.AppendText($"\r\nSubmitting Event: {e.Event.ReferenceId}{Environment.NewLine}");
             else
-                logTextBox.AppendText("Submitting Event");
+                logTextBox.AppendText("\r\nSubmitting Event");
 
             statusLabel.Text = "Submitting Message";
+        }
+
+        private void OnSubmittedEvent(object sender, EventSubmittedEventArgs e) {
+            statusLabel.Text = String.Empty;
         }
 
         private void generateExceptionToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -49,23 +55,29 @@ namespace Exceptionless.SampleWindows {
             ExceptionlessClient.Default.ProcessQueueAsync();
         }
 
-        private void randomExceptionToolStripMenuItem_Click(object sender, EventArgs e) {
-            string path = Path.GetRandomFileName();
+        private void OnRandomExceptionMenuItemClick(object sender, EventArgs e) {
+            File.ReadAllText(Path.GetRandomFileName());
+        }
 
-            //try to open a file
-            //simulate filenotfound exception
-            string buffer = File.ReadAllText(path);
+        private void OnAttemptDeadlockMenuItemClick(object sender, EventArgs e) {
+            for (int i = 0; i < 10; i++) {
+                for (int i2 = 0; i2 < 5; i2++) {
+                    new Exception("test for deadlock").ToExceptionless().Submit();
+                }
+
+                var contextData = new ContextData();
+                contextData.MarkAsUnhandledError();
+                contextData.SetSubmissionMethod("OnAttemptDeadlockMenuItemClick");
+
+                new ApplicationException("Attempt to deadlock:" + i).ToExceptionless(contextData).SetManualStackingInfo(new Dictionary<string, string> {{ "iteration", i.ToString() }}).Submit();
+            }
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e) {
             try {
-                //try to open a file
-                string buffer = File.ReadAllText("somefile.txt");
-                //simulate filenotfound exception
-                //throw new System.IO.FileNotFoundException("The file could not be found.", "SomeFile.txt");
+                File.ReadAllText("somefile.txt");
             } catch (Exception ex) {
-                throw new ApplicationException(
-                    "An ev has occurred and I have wrapped it inside of this ApplicationException.", ex);
+                throw new ApplicationException("An ev has occurred and I have wrapped it inside of this ApplicationException.", ex);
             }
         }
 
@@ -86,11 +98,8 @@ namespace Exceptionless.SampleWindows {
 
             decimal count = multiple.NumericUpDown.Value;
 
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < count; i++)
                 new ApplicationException("Multiple Crash Test.").ToExceptionless().SetUserDescription("some@email.com", "Testing multiple crash reports. " + i).Submit();
-                //r.Description = "Testing multiple crash reports.";
-                //r.EmailAddress = "my@email.com";
-            }
         }
 
         private void showFilterFormToolStripMenuItem_Click(object sender, EventArgs e) {
