@@ -26,27 +26,23 @@ minimum log level that will be used until the client retrieves settings from the
 
 <?xml version="1.0" encoding="utf-8" ?>
 <nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      autoReload="true"
-      internalLogLevel="Warn"
-      internalLogFile="Logs/internal-nlog.txt">
-
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <extensions>
-    <add assembly="Exceptionless.NLog"/>
-  </extensions>
-
-  <targets async="true">
-    <target xsi:type="Exceptionless" name="exceptionless" apiKey="API_KEY_HERE">
-      <field name="host" layout="${machinename}" />
-      <field name="identity" layout="${identity}" />
-      <field name="windows-identity" layout="${windows-identity:userName=True:domain=False}" />
-      <field name="process" layout="${processname}" />   
-    </target>
-  </targets>
-
-  <rules>
-    <logger name="*" minlevel="Trace" writeTo="exceptionless" />
-  </rules>
+    <add assembly="Exceptionless.NLog"/>
+  </extensions>
+  
+  <targets async="true">
+    <target xsi:type="Exceptionless" name="exceptionless" apiKey="API_KEY_HERE">
+      <field name="host" layout="${machinename}" />
+      <field name="identity" layout="${identity}" />
+      <field name="windows-identity" layout="${windows-identity:userName=True:domain=False}" />
+      <field name="process" layout="${processname}" />
+    </target>
+  </targets>
+  
+  <rules>
+    <logger name="*" minlevel="Trace" writeTo="exceptionless" />
+  </rules>
 </nlog>
 
 -------------------------------------
