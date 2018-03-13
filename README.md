@@ -3,6 +3,7 @@
 [![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.svg?style=flat)](https://www.nuget.org/packages/Exceptionless/)
 [![Slack Status](https://slack.exceptionless.com/badge.svg)](https://slack.exceptionless.com)
 [![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless) 
+[![Help Contribute to Open Source](https://www.codetriage.com/exceptionless/exceptionless.net/badges/users.svg)](https://www.codetriage.com/exceptionless/exceptionless.net)
 
 The definition of the word exceptionless is: to be without exception. [Exceptionless](http://exceptionless.io) provides real-time .NET error reporting for your ASP.NET, Web API, WebForms, WPF, Console, and MVC apps. It organizes the gathered information into simple actionable data that will help your app become exceptionless!
 
