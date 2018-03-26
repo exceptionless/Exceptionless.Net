@@ -555,10 +555,10 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {
             var client = CreateClient();
-            var ev = new Event { Type = Event.KnownTypes.Session };
             var plugin = new EnvironmentInfoPlugin();
 
             Parallel.For(0, 10000, i => {
+                var ev = new Event { Type = Event.KnownTypes.Session };
                 var context = new EventPluginContext(client, ev);
                 plugin.Run(context);
                 Assert.Single(context.Event.Data);
