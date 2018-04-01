@@ -16,6 +16,9 @@ namespace Exceptionless.Plugins.Default {
                     return;
 
                 var info = collector.GetEnvironmentInfo();
+                if (!context.Client.Configuration.IncludePrivateInformation)
+                    info.IpAddress = null;
+
                 info.InstallId = context.Client.Configuration.GetInstallId();
                 context.Event.Data[Event.KnownDataKeys.EnvironmentInfo] = info;
             } catch (Exception ex) {

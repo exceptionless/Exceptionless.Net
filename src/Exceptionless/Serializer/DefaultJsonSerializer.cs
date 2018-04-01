@@ -4,20 +4,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
 using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Serializer {
-    public class DefaultJsonSerializer : IJsonSerializer {
+    public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
         private readonly JsonSerializerSettings _serializerSettings;
 
         public DefaultJsonSerializer() {
             _serializerSettings = new JsonSerializerSettings {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
                 PreserveReferencesHandling = PreserveReferencesHandling.None,
                 ContractResolver = new ExceptionlessContractResolver()
             };
@@ -25,6 +24,18 @@ namespace Exceptionless.Serializer {
             _serializerSettings.Converters.Add(new StringEnumConverter());
             _serializerSettings.Converters.Add(new DataDictionaryConverter());
             _serializerSettings.Converters.Add(new RequestInfoConverter());
+        }
+
+        public virtual void Serialize<T>(T data, Stream outputStream) {
+            using (var writer = new StreamWriter(outputStream, new UTF8Encoding(false, true), 0x400, true)) {
+                writer.Write(Serialize(data));
+            }
+        }
+
+        public virtual T Deserialize<T>(Stream inputStream) {
+            using (var reader = new StreamReader(inputStream, Encoding.UTF8, true, 0x400, true)) {
+                return (T)Deserialize(reader.ReadToEnd(), typeof(T));
+            }
         }
 
         public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 10, bool continueOnSerializationError = true) {
@@ -73,7 +84,7 @@ namespace Exceptionless.Serializer {
 
                 object value = property.ValueProvider.GetValue(obj);
                 if (value == null)
-                    return false;
+                    return true;
 
                 if (typeof(ICollection).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo())) {
                     var collection = value as ICollection;

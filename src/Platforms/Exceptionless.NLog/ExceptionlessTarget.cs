@@ -33,17 +33,17 @@ namespace Exceptionless.NLog {
                 });
         }
 
-        protected override void Write(AsyncLogEventInfo info) {
+        protected override void Write(LogEventInfo logEvent) {
             if (!_client.Configuration.IsValid)
                 return;
 
-            LogLevel minLogLevel = LogLevel.FromOrdinal(_client.Configuration.Settings.GetMinLogLevel(info.LogEvent.LoggerName).Ordinal);
-            if (info.LogEvent.Level < minLogLevel)
+            LogLevel minLogLevel = LogLevel.FromOrdinal(_client.Configuration.Settings.GetMinLogLevel(logEvent.LoggerName).Ordinal);
+            if (logEvent.Level < minLogLevel)
                 return;
 
-            var builder = _client.CreateFromLogEvent(info.LogEvent);
+            var builder = _client.CreateFromLogEvent(logEvent);
             foreach (var field in Fields) {
-                var renderedField = field.Layout.Render(info.LogEvent);
+                var renderedField = field.Layout.Render(logEvent);
                 if (!String.IsNullOrWhiteSpace(renderedField))
                     builder.AddObject(renderedField, field.Name);
             }

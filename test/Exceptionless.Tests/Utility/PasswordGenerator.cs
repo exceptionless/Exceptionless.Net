@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Security.Cryptography;
-using Exceptionless.Helpers;
 
 namespace Exceptionless.Core.Security
 {

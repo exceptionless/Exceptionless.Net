@@ -185,8 +185,10 @@ namespace Exceptionless {
 
             var context = new EventPluginContext(this, ev, pluginContextData);
             EventPluginManager.Run(context);
-            if (context.Cancel)
+            if (context.Cancel) {
+                _log.Value.FormattedInfo(typeof(ExceptionlessClient), "Event submission cancelled by event pipeline: refid={0} type={1} message={2}", ev.ReferenceId, ev.Type, ev.Message);
                 return;
+            }
 
             // ensure all required data
             if (String.IsNullOrEmpty(ev.Type))

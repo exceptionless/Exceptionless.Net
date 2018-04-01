@@ -8,9 +8,9 @@ namespace Exceptionless.WebApi {
     public class ExceptionlessHandleErrorAttribute : IExceptionFilter {
         private readonly ExceptionlessClient _client;
 
-        public bool HasWrappedFilter { get { return WrappedFilter != null; } }
+        protected bool HasWrappedFilter { get { return WrappedFilter != null; } }
 
-        public IExceptionFilter WrappedFilter { get; set; }
+        protected internal IExceptionFilter WrappedFilter { get; set; }
 
         public bool AllowMultiple { get { return HasWrappedFilter && WrappedFilter.AllowMultiple; } }
 
@@ -18,9 +18,17 @@ namespace Exceptionless.WebApi {
             _client = client ?? ExceptionlessClient.Default;
         }
 
-        public virtual void OnHttpException(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
+        public Task ExecuteExceptionFilterAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
+            _client.Configuration.Resolver.GetLog().Trace("ExecuteExceptionFilterAsync executing...");
+            if (actionExecutedContext == null)
+                throw new ArgumentNullException(nameof(actionExecutedContext));
+
+            return OnHttpExceptionAsync(actionExecutedContext, cancellationToken);
+        }
+
+        protected virtual async Task OnHttpExceptionAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
             if (HasWrappedFilter)
-                WrappedFilter.ExecuteExceptionFilterAsync(actionExecutedContext, cancellationToken);
+                await WrappedFilter.ExecuteExceptionFilterAsync(actionExecutedContext, cancellationToken).ConfigureAwait(false);
 
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
@@ -30,15 +38,6 @@ namespace Exceptionless.WebApi {
                 .ToExceptionless(contextData, _client)
                 .SetHttpActionContext(actionExecutedContext.ActionContext)
                 .Submit();
-        }
-
-        public Task ExecuteExceptionFilterAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken) {
-            _client.Configuration.Resolver.GetLog().Trace("ExecuteExceptionFilterAsync executing...");
-            if (actionExecutedContext == null)
-                throw new ArgumentNullException("actionExecutedContext");
-
-            OnHttpException(actionExecutedContext, cancellationToken);
-            return Task.FromResult(0);
         }
     }
 }

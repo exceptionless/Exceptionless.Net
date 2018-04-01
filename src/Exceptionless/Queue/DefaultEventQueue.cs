@@ -68,12 +68,13 @@ namespace Exceptionless.Queue {
             Task resultTask;
             try {
                 _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
-                _storage.CleanupQueueFiles(_config.GetQueueName(), _config.QueueMaxAge, _config.QueueMaxAttempts);
-                _storage.ReleaseStaleLocks(_config.GetQueueName());
+                string queueName = _config.GetQueueName();
+                _storage.CleanupQueueFiles(queueName, _config.QueueMaxAge, _config.QueueMaxAttempts);
+                _storage.ReleaseStaleLocks(queueName);
 
                 DateTime maxCreatedDate = DateTime.Now;
                 int batchSize = _config.SubmissionBatchSize;
-                var batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, batchSize, maxCreatedDate);
+                var batch = _storage.GetEventBatch(queueName, _serializer, batchSize, maxCreatedDate);
                 while (batch.Any()) {
                     bool deleteBatch = true;
 
@@ -132,7 +133,7 @@ namespace Exceptionless.Queue {
                     if (!deleteBatch || IsQueueProcessingSuspended)
                         break;
 
-                    batch = _storage.GetEventBatch(_config.GetQueueName(), _serializer, batchSize, maxCreatedDate);
+                    batch = _storage.GetEventBatch(queueName, _serializer, batchSize, maxCreatedDate);
                 }
             } catch (Exception ex) {
                 _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while processing the queue: ", ex.Message));
@@ -187,11 +188,11 @@ namespace Exceptionless.Queue {
             }
         }
 
-        private bool IsQueueProcessingSuspended {
+        internal bool IsQueueProcessingSuspended {
             get { return _suspendProcessingUntil.HasValue && _suspendProcessingUntil.Value > DateTime.Now; }
         }
 
-        private bool AreQueuedItemsDiscarded {
+        internal bool AreQueuedItemsDiscarded {
             get { return _discardQueuedItemsUntil.HasValue && _discardQueuedItemsUntil.Value > DateTime.Now; }
         }
 

@@ -9,14 +9,16 @@ using Nancy.Helpers;
 
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
-        public static RequestInfo Collect(NancyContext context, IEnumerable<string> exclusions) {
+        public static RequestInfo Collect(NancyContext context, ExceptionlessConfiguration config) {
             if (context == null)
                 return null;
 
             var info = new RequestInfo {
-                ClientIpAddress = context.Request.UserHostAddress,
                 HttpMethod = context.Request.Method
             };
+
+            if (config.IncludePrivateInformation)
+                info.ClientIpAddress = context.Request.UserHostAddress;
 
             if (!String.IsNullOrWhiteSpace(context.Request.Headers.UserAgent))
                 info.UserAgent = context.Request.Headers.UserAgent;
@@ -31,7 +33,7 @@ namespace Exceptionless.ExtendedData {
             if (!String.IsNullOrWhiteSpace(context.Request.Headers.Referrer))
                 info.Referrer = context.Request.Headers.Referrer;
 
-            var exclusionsArray = exclusions as string[] ?? exclusions.ToArray();
+            var exclusionsArray = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
             info.Cookies = context.Request.Cookies.ToDictionary(exclusionsArray);
 
             if (context.Request.Url != null && !String.IsNullOrWhiteSpace(context.Request.Url.Query))

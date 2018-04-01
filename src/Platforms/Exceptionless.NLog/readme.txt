@@ -24,13 +24,15 @@ the minLevel on the Exceptionless target to Trace so that you can control log le
 client configuration settings. Also, you can call Configuration.SetDefaultMinLogLevel to control the default
 minimum log level that will be used until the client retrieves settings from the server.
 
-<nlog>
+<?xml version="1.0" encoding="utf-8" ?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <extensions>
     <add assembly="Exceptionless.NLog"/>
   </extensions>
   
   <targets async="true">
-    <target name="exceptionless" apiKey="API_KEY_HERE" xsi:type="Exceptionless">
+    <target xsi:type="Exceptionless" name="exceptionless" apiKey="API_KEY_HERE">
       <field name="host" layout="${machinename}" />
       <field name="identity" layout="${identity}" />
       <field name="windows-identity" layout="${windows-identity:userName=True:domain=False}" />

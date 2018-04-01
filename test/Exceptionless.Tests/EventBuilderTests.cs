@@ -1,13 +1,24 @@
 using System;
-using Exceptionless;
+using Exceptionless.Tests.Log;
+using Exceptionless.Tests.Utility;
 using Xunit;
+using Xunit.Abstractions;
+using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.Tests {
     public class EventBuilderTests {
+        private readonly TestOutputWriter _writer;
+        public EventBuilderTests(ITestOutputHelper output) {
+            _writer = new TestOutputWriter(output);
+        }
+
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
-                c.UseTraceLogger();
+                c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.UserAgent = "testclient/1.0.0.0";
+
+                // Disable updating settings.
+                c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
 
@@ -15,16 +26,16 @@ namespace Exceptionless.Tests {
         public void CanCreateEventWithNoDuplicateTags() {
             var client = CreateClient();
             var builder = client.CreateLog("Tag Example");
-            Assert.Equal(builder.Target.Tags.Count, 0);
+            Assert.Empty(builder.Target.Tags);
 
             builder.AddTags("Exceptionless", null, "");
-            Assert.Equal(builder.Target.Tags.Count, 1);
+            Assert.Single(builder.Target.Tags);
 
             builder.AddTags("Exceptionless");
-            Assert.Equal(builder.Target.Tags.Count, 1);
+            Assert.Single(builder.Target.Tags);
 
             builder.AddTags("test", "Exceptionless", "exceptionless");
-            Assert.Equal(builder.Target.Tags.Count, 2);
+            Assert.Equal(2, builder.Target.Tags.Count);
         }
     }
 }

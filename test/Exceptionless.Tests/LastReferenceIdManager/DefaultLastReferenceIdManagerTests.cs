@@ -9,7 +9,7 @@ namespace Exceptionless.Tests {
             var lastReferenceIdManager = DependencyResolver.Default.GetLastReferenceIdManager();
             Assert.Null(lastReferenceIdManager.GetLast());
 
-            var key = Guid.NewGuid().ToString();
+            string key = Guid.NewGuid().ToString();
             lastReferenceIdManager.SetLast(key);
             Assert.Equal(key, lastReferenceIdManager.GetLast());
             

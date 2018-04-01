@@ -65,7 +65,7 @@ namespace Exceptionless {
         /// <param name="context">The http action context to gather information from.</param>
         /// <param name="config">The config.</param>
         public static RequestInfo GetRequestInfo(this HttpActionContext context, ExceptionlessConfiguration config) {
-            return RequestInfoCollector.Collect(context, config.DataExclusions);
+            return RequestInfoCollector.Collect(context, config);
         }
 
         /// <summary>

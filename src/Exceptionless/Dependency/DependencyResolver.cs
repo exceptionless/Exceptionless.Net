@@ -24,6 +24,8 @@ namespace Exceptionless.Dependency {
         }
 
         public static void RegisterDefaultServices(IDependencyResolver resolver) {
+            resolver.Register(resolver);
+
             var fileStorage = new Lazy<IObjectStorage>(() => resolver.Resolve<InMemoryObjectStorage>());
             resolver.Register(typeof(IObjectStorage), () => fileStorage.Value);
 
@@ -32,6 +34,9 @@ namespace Exceptionless.Dependency {
 
             var jsonSerializer = new Lazy<IJsonSerializer>(() => resolver.Resolve<DefaultJsonSerializer>());
             resolver.Register(typeof(IJsonSerializer), () => jsonSerializer.Value);
+
+            var storageSerializer = new Lazy<IStorageSerializer>(() => resolver.Resolve<DefaultJsonSerializer>());
+            resolver.Register(typeof(IStorageSerializer), () => storageSerializer.Value);
 
             var eventQueue = new Lazy<IEventQueue>(() => resolver.Resolve<DefaultEventQueue>());
             resolver.Register(typeof(IEventQueue), () => eventQueue.Value);

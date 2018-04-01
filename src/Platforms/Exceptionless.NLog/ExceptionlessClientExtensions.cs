@@ -11,7 +11,8 @@ namespace Exceptionless.NLog {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-            var contextData = new ContextData(ev.GetContextData());
+            var data = ev.GetContextData();
+            var contextData = data != null ? new ContextData(data) : new ContextData();
             if (ev.Exception != null)
                 contextData.SetException(ev.Exception);
 
@@ -19,24 +20,30 @@ namespace Exceptionless.NLog {
             builder.Target.Date = ev.TimeStamp;
             builder.SetSource(ev.LoggerName);
 
-            var properties = ev.Properties
-                .Where(kvp => !_ignoredEventProperties.Contains(kvp.Key.ToString(), StringComparer.OrdinalIgnoreCase))
-                .ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
+            if (ev.Properties.Count > 0) {
+                foreach (var property in ev.Properties) {
+                    string propertyKey = property.Key.ToString();
+                    if (_ignoredEventProperties.Contains(propertyKey, StringComparer.OrdinalIgnoreCase))
+                        continue;
 
-            object value;
-            if (properties.TryGetValue("@value", out value)) {
-                try {
-                    builder.SetValue(Convert.ToDecimal(value));
-                    properties.Remove("@value");
-                } catch (Exception) {}
-            }
+                    if (propertyKey.Equals("@value", StringComparison.OrdinalIgnoreCase)) {
+                        try {
+                            builder.SetValue(Convert.ToDecimal(property.Value));
+                        } catch (Exception) { }
 
-            object stackingKey;
-            if (properties.TryGetValue(Event.KnownDataKeys.ManualStackingInfo, out stackingKey)) {
-                try {
-                    builder.SetManualStackingKey(stackingKey.ToString());
-                    properties.Remove(Event.KnownDataKeys.ManualStackingInfo);
-                } catch (Exception) { }
+                        continue;
+                    }
+
+                    if (propertyKey.Equals(Event.KnownDataKeys.ManualStackingInfo, StringComparison.OrdinalIgnoreCase)) {
+                        try {
+                            builder.SetManualStackingKey(property.Value.ToString());
+                        } catch (Exception) { }
+
+                        continue;
+                    }
+
+                    builder.SetProperty(propertyKey, property.Value);
+                }
             }
 
             if (ev.Exception == null) {
@@ -49,12 +56,9 @@ namespace Exceptionless.NLog {
             if (!String.IsNullOrWhiteSpace(ev.FormattedMessage))
                 builder.SetMessage(ev.FormattedMessage);
 
-            var tagList = ev.GetTags();
-            if (tagList.Count > 0)
-                builder.AddTags(tagList.ToArray());
-
-            foreach (var p in properties)
-                builder.SetProperty(p.Key, p.Value);
+            var tags = ev.GetTags();
+            if (tags != null)
+                builder.AddTags(tags.ToArray());
 
             return builder;
         }

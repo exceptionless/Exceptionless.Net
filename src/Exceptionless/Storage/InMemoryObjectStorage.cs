@@ -9,7 +9,7 @@ namespace Exceptionless.Storage {
         private readonly Dictionary<string, Tuple<ObjectInfo, object>> _storage = new Dictionary<string, Tuple<ObjectInfo, object>>(StringComparer.OrdinalIgnoreCase);
         private readonly object _lock = new object();
 
-        public InMemoryObjectStorage() : this(100) {}
+        public InMemoryObjectStorage() : this(1000) {}
 
         public InMemoryObjectStorage(int maxObjects) {
             MaxObjects = maxObjects;
@@ -17,20 +17,26 @@ namespace Exceptionless.Storage {
 
         public long MaxObjects { get; set; }
 
+        public int Count {
+            get { return _storage.Count; }
+        }
+
         public T GetObject<T>(string path) where T : class {
             if (String.IsNullOrWhiteSpace(path))
                 throw new ArgumentNullException("path");
 
             lock (_lock) {
-                if (!_storage.ContainsKey(path))
+                Tuple<ObjectInfo, object> value;
+                if (!_storage.TryGetValue(path, out value))
                     throw new FileNotFoundException();
 
-                return _storage[path].Item2 as T;
+                return value.Item2 as T;
             }
         }
 
         public ObjectInfo GetObjectInfo(string path) {
-            return Exists(path) ? _storage[path].Item1 : null;
+            Tuple<ObjectInfo, object> value;
+            return _storage.TryGetValue(path, out value) ? value.Item1 : null;
         }
 
         public bool Exists(string path) {
@@ -81,7 +87,7 @@ namespace Exceptionless.Storage {
             lock (_lock) {
                 if (!_storage.ContainsKey(path))
                     return false;
-                
+
                 _storage.Remove(path);
             }
 

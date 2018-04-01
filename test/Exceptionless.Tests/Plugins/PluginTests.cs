@@ -43,18 +43,18 @@ namespace Exceptionless.Tests.Plugins {
 
             var plugin = new ConfigurationDefaultsPlugin();
             plugin.Run(context);
-            Assert.Equal(0, context.Event.Tags.Count);
+            Assert.Empty(context.Event.Tags);
 
             client.Configuration.DefaultTags.Add(Event.KnownTags.Critical);
             plugin.Run(context);
-            Assert.Equal(1, context.Event.Tags.Count);
-            Assert.Equal(0, context.Event.Data.Count);
+            Assert.Single(context.Event.Tags);
+            Assert.Empty(context.Event.Data);
 
             client.Configuration.DefaultData.Add("Message", new { Exceptionless = "Is Awesome!" });
             for (int index = 0; index < 2; index++) {
                 plugin.Run(context);
-                Assert.Equal(1, context.Event.Tags.Count);
-                Assert.Equal(1, context.Event.Data.Count);
+                Assert.Single(context.Event.Tags);
+                Assert.Single(context.Event.Data);
             }
         }
 
@@ -66,13 +66,13 @@ namespace Exceptionless.Tests.Plugins {
             var context = new EventPluginContext(client, new Event());
             var plugin = new ConfigurationDefaultsPlugin();
             plugin.Run(context);
-            Assert.Equal(1, context.Event.Data.Count);
+            Assert.Single(context.Event.Data);
             Assert.Equal("Test", context.Event.Data["Message"]);
 
             client.Configuration.AddDataExclusions("Ignore*");
             client.Configuration.DefaultData.Add("Ignored", "Test");
             plugin.Run(context);
-            Assert.Equal(1, context.Event.Data.Count);
+            Assert.Single(context.Event.Data);
             Assert.Equal("Test", context.Event.Data["Message"]);
         }
 
@@ -402,7 +402,7 @@ namespace Exceptionless.Tests.Plugins {
                 plugin.Run(context);
                 Assert.False(context.Cancel);
 
-                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
                 Assert.NotNull(error);
 
                 context = new EventPluginContext(client, new Event());
@@ -441,7 +441,7 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Theory]
-        [MemberData("DifferentExceptionDataDictionaryTypes")]
+        [MemberData(nameof(DifferentExceptionDataDictionaryTypes))]
         public void ErrorPlugin_CanProcessDifferentExceptionDataDictionaryTypes(IDictionary data, bool canMarkAsProcessed, int processedDataItemCount) {
             var errorPlugins = new List<IEventPlugin> {
                 new ErrorPlugin(),
@@ -462,7 +462,7 @@ namespace Exceptionless.Tests.Plugins {
 
                 Assert.Equal(canMarkAsProcessed, exception.Data != null && exception.Data.Contains("@exceptionless"));
 
-                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
                 Assert.NotNull(error);
                 Assert.Equal(processedDataItemCount, error.Data.Count);
             }
@@ -492,7 +492,7 @@ namespace Exceptionless.Tests.Plugins {
                 plugin.Run(context);
                 Assert.False(context.Cancel);
 
-                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
                 Assert.NotNull(error);
                 Assert.Equal(5, error.Data.Count);
             }
@@ -516,10 +516,10 @@ namespace Exceptionless.Tests.Plugins {
                 context.ContextData.SetException(exception);
 
                 plugin.Run(context);
-                IData error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
                 Assert.NotNull(error);
                 Assert.True(error.Data.ContainsKey(Error.KnownDataKeys.ExtraProperties));
-                var json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
+                string json = error.Data[Error.KnownDataKeys.ExtraProperties] as string;
                 Assert.Equal("{\"IgnoredProperty\":\"Test\",\"RandomValue\":\"Test\"}", json);
 
                 client.Configuration.AddDataExclusions("Ignore*");
@@ -541,27 +541,27 @@ namespace Exceptionless.Tests.Plugins {
             foreach (var plugin in client.Configuration.Plugins)
                 client.Configuration.RemovePlugin(plugin.Key);
 
-            Assert.Equal(0, client.Configuration.Plugins.Count());
+            Assert.Empty(client.Configuration.Plugins);
 
             Parallel.For(0, 1000, i => {
                 client.Configuration.AddPlugin<EnvironmentInfoPlugin>();
             });
 
-            Assert.Equal(1, client.Configuration.Plugins.Count());
+            Assert.Single(client.Configuration.Plugins);
             client.Configuration.RemovePlugin<EnvironmentInfoPlugin>();
-            Assert.Equal(0, client.Configuration.Plugins.Count());
+            Assert.Empty(client.Configuration.Plugins);
         }
 
         [Fact]
         public void EnvironmentInfo_CanRunInParallel() {
             var client = CreateClient();
-            var ev = new Event { Type = Event.KnownTypes.Session };
             var plugin = new EnvironmentInfoPlugin();
 
             Parallel.For(0, 10000, i => {
+                var ev = new Event { Type = Event.KnownTypes.Session };
                 var context = new EventPluginContext(client, ev);
                 plugin.Run(context);
-                Assert.Equal(1, context.Event.Data.Count);
+                Assert.Single(context.Event.Data);
                 Assert.NotNull(context.Event.Data[Event.KnownDataKeys.EnvironmentInfo]);
             });
         }
@@ -573,7 +573,7 @@ namespace Exceptionless.Tests.Plugins {
 
             var plugin = new EnvironmentInfoPlugin();
             plugin.Run(context);
-            Assert.Equal(1, context.Event.Data.Count);
+            Assert.Single(context.Event.Data);
             Assert.NotNull(context.Event.Data[Event.KnownDataKeys.EnvironmentInfo]);
         }
 
@@ -589,7 +589,7 @@ namespace Exceptionless.Tests.Plugins {
             var context = new EventPluginContext(client, new Event());
             EventPluginManager.Run(context);
             Assert.True(context.Cancel);
-            Assert.Equal(0, context.Event.Tags.Count);
+            Assert.Empty(context.Event.Tags);
         }
 
         [Fact]
@@ -725,7 +725,7 @@ namespace Exceptionless.Tests.Plugins {
             foreach (var plugin in config.Plugins)
                 config.RemovePlugin(plugin.Key);
 
-            Assert.Equal(0, config.Plugins.Count());
+            Assert.Empty(config.Plugins);
             config.AddPlugin<EnvironmentInfoPlugin>();
             config.AddPlugin<PluginWithPriority11>();
             config.AddPlugin(new PluginWithNoPriority());
@@ -887,7 +887,7 @@ namespace Exceptionless.Tests.Plugins {
             foreach (var report in summary.Reports) {
                 _writer.WriteLine(report.ToString());
 
-                var benchmarkMedianMilliseconds = report.ResultStatistics != null ? report.ResultStatistics.Median / 1000000 : 0;
+                double benchmarkMedianMilliseconds = report.ResultStatistics != null ? report.ResultStatistics.Median / 1000000 : 0;
                 _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.Benchmark.DisplayInfo, benchmarkMedianMilliseconds));
             }
         }

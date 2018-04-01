@@ -21,7 +21,7 @@ namespace Exceptionless {
             client.Startup();
 
             client.RegisterApplicationThreadExceptionHandler();
-            
+
             if (!showDialog)
                 return;
 

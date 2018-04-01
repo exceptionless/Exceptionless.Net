@@ -167,13 +167,13 @@ namespace Exceptionless {
                 if (_updateSettingsWhenIdleInterval == value)
                     return;
 
-                if (value.HasValue && value > TimeSpan.Zero && value < TimeSpan.FromSeconds(15))
-                    _updateSettingsWhenIdleInterval = TimeSpan.FromSeconds(15);
+                if (value.HasValue && value > TimeSpan.Zero && value < TimeSpan.FromMinutes(2))
+                    _updateSettingsWhenIdleInterval = TimeSpan.FromMinutes(2);
                 else if (value.HasValue && value <= TimeSpan.Zero)
                     _updateSettingsWhenIdleInterval = TimeSpan.FromMilliseconds(-1);
                 else
                     _updateSettingsWhenIdleInterval = value;
-                
+
                 OnChanged();
             }
         }

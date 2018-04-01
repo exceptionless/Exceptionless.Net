@@ -23,7 +23,7 @@ internal sealed partial class ThisAssembly {
 
     internal const string AssemblyTrademark = "Exceptionless";
 
-    internal const string AssemblyCopyright = "Copyright (c) 2016 Exceptionless.  All rights reserved.";
+    internal const string AssemblyCopyright = "Copyright (c) 2018 Exceptionless.  All rights reserved.";
 
     internal const string AssemblyConfiguration = "Release";
 

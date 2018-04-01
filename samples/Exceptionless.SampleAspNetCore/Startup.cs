@@ -32,6 +32,7 @@ namespace Exceptionless.SampleAspNetCore {
             //OR
             //loggerFactory.AddExceptionless((c) => c.ReadFromConfiguration(Configuration));
 
+            loggerFactory.AddExceptionless();
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 

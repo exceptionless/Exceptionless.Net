@@ -11,16 +11,18 @@ using Exceptionless.Extensions;
 
 namespace Exceptionless.AspNetCore {
     internal static class RequestInfoCollector {
-        public static RequestInfo Collect(HttpContext context, IEnumerable<string> exclusions) {
+        public static RequestInfo Collect(HttpContext context, ExceptionlessConfiguration config) {
             if (context == null)
                 return null;
 
             var info = new RequestInfo {
-                ClientIpAddress = context.GetClientIpAddress(),
                 HttpMethod = context.Request.Method,
                 IsSecure = context.Request.IsHttps,
                 Path = context.Request.Path.HasValue ? context.Request.Path.Value : "/",
             };
+
+            if (config.IncludePrivateInformation)
+                info.ClientIpAddress = context.GetClientIpAddress();
 
             if (!String.IsNullOrEmpty(context.Request.Host.Host))
                 info.Host = context.Request.Host.Host;
@@ -34,7 +36,7 @@ namespace Exceptionless.AspNetCore {
             if (context.Request.Headers.ContainsKey(HeaderNames.Referer))
                 info.Referrer = context.Request.Headers[HeaderNames.Referer].ToString();
 
-            var exclusionList = exclusions as string[] ?? exclusions.ToArray();
+            var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
             info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
             info.QueryString = context.Request.Query.ToDictionary(exclusionList);
 

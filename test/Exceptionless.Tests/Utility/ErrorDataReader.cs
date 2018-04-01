@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
@@ -16,7 +14,7 @@ namespace Exceptionless.Tests.Utility {
         }
 
         private static Event GetEvent(string fileName) {
-            var json = File.ReadAllText(fileName);
+            string json = File.ReadAllText(fileName);
             var serializer = GetSerializer();
             var ev = serializer.Deserialize<Event>(json);
             ev.Data[Event.KnownDataKeys.Error] = ev.Data.GetValue<Error>(Event.KnownDataKeys.Error);

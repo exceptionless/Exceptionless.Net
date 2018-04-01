@@ -1,10 +1,14 @@
-version: 4.1.{build}
+version: 4.2.{build}
 os: Visual Studio 2017
 clone_depth: 2
 configuration: Release
 
 pull_requests:
   do_not_increment_build_number: true
+
+environment:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
 init:
   - git config --global core.autocrlf input
@@ -30,6 +34,7 @@ before_build:
 build_script:
   - ps: .\build\Build.ps1
   - dotnet build test\Exceptionless.Tests -c Release
+  - dotnet build test\Exceptionless.MessagePack.Tests -c Release
 
 #test_script:
 #  - dotnet test test\Exceptionless.Tests\

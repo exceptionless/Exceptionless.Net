@@ -7,6 +7,7 @@ using Exceptionless.AspNetCore;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
+using Exceptionless.Storage;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,6 +79,10 @@ namespace Exceptionless {
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
 
+            string storagePath = section["StoragePath"];
+            if (!String.IsNullOrEmpty(storagePath))
+                config.Resolver.Register(typeof(IObjectStorage), () => new FolderObjectStorage(config.Resolver, storagePath));
+
             foreach (var setting in section.GetSection("Settings").GetChildren())
                 if (setting.Value != null)
                     config.Settings[setting.Key] = setting.Value;
@@ -89,7 +94,7 @@ namespace Exceptionless {
         /// <param name="context">The http context to gather information from.</param>
         /// <param name="config">The config.</param>
         public static RequestInfo GetRequestInfo(this HttpContext context, ExceptionlessConfiguration config) {
-            return RequestInfoCollector.Collect(context, config.DataExclusions);
+            return RequestInfoCollector.Collect(context, config);
         }
 
         /// <summary>

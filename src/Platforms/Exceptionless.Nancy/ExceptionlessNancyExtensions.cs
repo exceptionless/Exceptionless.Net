@@ -65,7 +65,7 @@ namespace Exceptionless {
         /// <param name="context">The nancy context to gather information from.</param>
         /// <param name="config">The config.</param>
         public static RequestInfo GetRequestInfo(this NancyContext context, ExceptionlessConfiguration config) {
-            return RequestInfoCollector.Collect(context, config.DataExclusions);
+            return RequestInfoCollector.Collect(context, config);
         }
 
         public static Event AddRequestInfo(this Event ev, NancyContext context) {

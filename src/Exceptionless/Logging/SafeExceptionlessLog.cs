@@ -8,7 +8,7 @@ namespace Exceptionless.Logging {
         public SafeExceptionlessLog(IExceptionlessLog log, IExceptionlessLog fallbackLog = null) {
             _log = log;
             _fallbackLog = fallbackLog ?? new NullExceptionlessLog();
-            MinimumLogLevel = LogLevel.Info;
+            MinimumLogLevel = log.MinimumLogLevel ?? LogLevel.Info;
         }
 
         private LogLevel _logLevel;
