@@ -88,10 +88,8 @@ namespace Exceptionless.Configuration {
 
                 // TODO: Store snapshot of settings after reading from config and attributes and use that to revert to defaults.
                 // Remove any existing server settings that are not in the new server settings.
-                foreach (string key in savedServerSettings.Keys.Except(response.Settings.Keys)) {
-                    if (config.Settings.ContainsKey(key))
-                        config.Settings.Remove(key);
-                }
+                foreach (string key in savedServerSettings.Keys.Except(response.Settings.Keys))
+                    config.Settings.Remove(key);
 
                 var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
                 persistedClientData[String.Concat(config.GetQueueName(), "-ServerConfigVersion")] = response.SettingsVersion.ToString();

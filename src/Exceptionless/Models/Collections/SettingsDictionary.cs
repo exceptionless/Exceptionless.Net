@@ -319,7 +319,11 @@ namespace Exceptionless.Models {
                 return;
 
             foreach (var v in values) {
-                if (!ContainsKey(v.Key) || v.Value != this[v.Key])
+                if (v.Key == null)
+                    continue;
+
+                string temp;
+                if (!TryGetValue(v.Key, out temp) || v.Value != temp)
                     this[v.Key] = v.Value;
             }
         }
