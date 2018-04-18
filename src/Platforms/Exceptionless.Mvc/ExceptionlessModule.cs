@@ -9,24 +9,33 @@ using Exceptionless.Web.Extensions;
 
 namespace Exceptionless.Mvc {
     public class ExceptionlessModule : IHttpModule {
+        private readonly ExceptionlessClient _client;
         private HttpApplication _app;
 
+        public ExceptionlessModule() {
+            _client = ExceptionlessClient.Default;
+        }
+
+        public ExceptionlessModule(ExceptionlessClient client = null) {
+            _client = client ?? throw new ArgumentNullException();
+        }
+
         public virtual void Init(HttpApplication app) {
-            ExceptionlessClient.Default.Startup();
-            ExceptionlessClient.Default.RegisterHttpApplicationErrorHandler(app);
-            ExceptionlessClient.Default.Configuration.AddPlugin<ExceptionlessWebPlugin>();
-            ExceptionlessClient.Default.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
-            ExceptionlessClient.Default.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
+            _client.Startup();
+            _client.RegisterHttpApplicationErrorHandler(app);
+            _client.Configuration.AddPlugin<ExceptionlessWebPlugin>();
+            _client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
+            _client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
 
             _app = app;
 
             if (!GlobalFilters.Filters.Any(f => f.Instance is ExceptionlessSendErrorsAttribute))
-                GlobalFilters.Filters.Add(new ExceptionlessSendErrorsAttribute());
+                GlobalFilters.Filters.Add(new ExceptionlessSendErrorsAttribute(_client));
         }
 
         public void Dispose() {
-            ExceptionlessClient.Default.Shutdown();
-            ExceptionlessClient.Default.UnregisterHttpApplicationErrorHandler(_app);
+            _client.Shutdown();
+            _client.UnregisterHttpApplicationErrorHandler(_app);
         }
     }
 }
