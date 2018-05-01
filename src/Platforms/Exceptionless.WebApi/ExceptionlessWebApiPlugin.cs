@@ -18,7 +18,7 @@ namespace Exceptionless.WebApi {
         public void Run(EventPluginContext context) {
             var actionContext = context.ContextData.GetHttpActionContext();
             var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
-            if (context.Client.Configuration.IncludePrivateInformation)
+            if (context.Client.Configuration.IncludeUserName)
                 AddUser(context, actionContext, serializer);
 
             if (actionContext == null)

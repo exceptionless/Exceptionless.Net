@@ -23,9 +23,9 @@ namespace Exceptionless.ExtendedData {
                 Path = String.IsNullOrEmpty(context.Request.Path) ? "/" : context.Request.Path
             };
 
-            if (config.IncludePrivateInformation) {
+            if (config.IncludeIpAddress) {
                 try {
-                    info.ClientIpAddress = GetUserIPAddress(context);
+                    info.ClientIpAddress = GetUserIpAddress(context);
                 } catch (ArgumentException ex) {
                     config.Resolver.GetLog().Error(ex, "An error occurred while setting the Client Ip Address.");
                 }
@@ -47,35 +47,41 @@ namespace Exceptionless.ExtendedData {
                 info.Port = context.Request.Url.Port;
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
-            info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-            if (context.Request.Form.Count > 0) {
-                info.PostData = context.Request.Form.ToDictionary(exclusionList);
-            } else if (context.Request.ContentLength > 0) {
-                if (context.Request.ContentLength < 1024 * 50) {
-                    try {
-                        if (context.Request.InputStream.CanSeek && context.Request.InputStream.Position > 0)
-                            context.Request.InputStream.Position = 0;
+            if (config.IncludeCookies)
+                info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-                        if (context.Request.InputStream.Position == 0) {
-                            using (var inputStream = new StreamReader(context.Request.InputStream))
-                                info.PostData = inputStream.ReadToEnd();
-                        } else {
-                            info.PostData = "Unable to get POST data: The stream could not be reset.";
+            if (config.IncludePostData) {
+                if (context.Request.Form.Count > 0) {
+                    info.PostData = context.Request.Form.ToDictionary(exclusionList);
+                } else if (context.Request.ContentLength > 0) {
+                    if (context.Request.ContentLength < 1024 * 50) {
+                        try {
+                            if (context.Request.InputStream.CanSeek && context.Request.InputStream.Position > 0)
+                                context.Request.InputStream.Position = 0;
+
+                            if (context.Request.InputStream.Position == 0) {
+                                using (var inputStream = new StreamReader(context.Request.InputStream))
+                                    info.PostData = inputStream.ReadToEnd();
+                            } else {
+                                info.PostData = "Unable to get POST data: The stream could not be reset.";
+                            }
+                        } catch (Exception ex) {
+                            info.PostData = "Error retrieving POST data: " + ex.Message;
                         }
-                    } catch (Exception ex) {
-                        info.PostData = "Error retrieving POST data: " + ex.Message;
+                    } else {
+                        string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
+                        info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
                     }
-                } else {
-                    string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
-                    info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
                 }
             }
 
-            try {
-                info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
-            } catch (Exception ex) {
-                config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
+            if (config.IncludeQueryString) {
+                try {
+                    info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
+                } catch (Exception ex) {
+                    config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
+                }
             }
 
             return info;
@@ -129,7 +135,7 @@ namespace Exceptionless.ExtendedData {
             return d;
         }
 
-        private static string GetUserIPAddress(HttpContextBase context) {
+        private static string GetUserIpAddress(HttpContextBase context) {
             string clientIp = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
             if (String.IsNullOrEmpty(clientIp))
                 clientIp = context.Request.UserHostAddress;

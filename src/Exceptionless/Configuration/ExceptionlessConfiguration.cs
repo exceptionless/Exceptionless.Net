@@ -23,6 +23,7 @@ namespace Exceptionless {
         private string _apiKey;
         private string _heartbeatServerUrl;
         private string _serverUrl;
+        private bool _includePrivateInformation;
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
         private TimeSpan? _updateSettingsWhenIdleInterval;
@@ -193,7 +194,46 @@ namespace Exceptionless {
         /// <value>
         /// <c>true</c> to include private information about the local machine; otherwise, <c>false</c>.
         /// </value>
-        public bool IncludePrivateInformation { get; set; }
+        public bool IncludePrivateInformation {
+            get { return _includePrivateInformation; }
+            set {
+                _includePrivateInformation = value;
+                IncludeUserName = value;
+                IncludeMachineName = value;
+                IncludeIpAddress = value;
+                IncludeCookies = value;
+                IncludePostData = value;
+                IncludeQueryString = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to include User Name.
+        /// </summary>
+        public bool IncludeUserName { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to include MachineName in MachineInfo.
+        /// </summary>
+        public bool IncludeMachineName { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to include Ip Addresses in MachineInfo and RequestInfo.
+        /// </summary>
+        public bool IncludeIpAddress { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to include Cookies.
+        /// NOTE: DataExclusions are applied to all Cookie keys when enabled.
+        /// </summary>
+        public bool IncludeCookies { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to include Form/POST Data.
+        /// NOTE: DataExclusions are only applied to Form data keys when enabled.
+        /// </summary>
+        public bool IncludePostData { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to include query string information.
+        /// NOTE: DataExclusions are applied to all Query String keys when enabled.
+        /// </summary>
+        public bool IncludeQueryString { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to automatically send session start, session heartbeats and session end events.
