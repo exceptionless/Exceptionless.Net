@@ -328,6 +328,9 @@ namespace Exceptionless {
                     config.UseIsolatedStorageLogger();
             }
 
+            if (section.IncludePrivateInformation.HasValue && !section.IncludePrivateInformation.Value)
+                config.IncludePrivateInformation = false;
+
             foreach (var tag in section.Tags.SplitAndTrim(',').Where(tag => !String.IsNullOrEmpty(tag)))
                 config.DefaultTags.Add(tag);
 
