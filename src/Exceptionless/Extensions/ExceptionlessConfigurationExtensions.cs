@@ -129,7 +129,6 @@ namespace Exceptionless {
             config.AddPlugin<ReferenceIdPlugin>();
         }
 
-
         /// <summary>
         /// Reads the <see cref="ExceptionlessAttribute" /> and <see cref="ExceptionlessSettingAttribute" />
         /// from the passed in assembly.
