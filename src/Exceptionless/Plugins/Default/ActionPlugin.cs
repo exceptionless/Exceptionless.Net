@@ -5,6 +5,7 @@ namespace Exceptionless.Plugins.Default {
     public class ActionPlugin : IEventPlugin {
         private readonly Action<EventPluginContext> _pluginAction;
 
+        [Android.Preserve]
         public ActionPlugin(Action<EventPluginContext> pluginAction) {
             _pluginAction = pluginAction;
         }

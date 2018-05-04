@@ -11,6 +11,7 @@ namespace Exceptionless.Storage {
         private readonly Timer _timer;
         private readonly int _delay;
 
+        [Android.Preserve]
         public PersistedDictionary(string path, IObjectStorage objectStorage, IJsonSerializer serializer, int delay = 250) {
             _objectStorage = objectStorage;
             _path = path;

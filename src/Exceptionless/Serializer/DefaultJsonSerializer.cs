@@ -14,6 +14,7 @@ namespace Exceptionless.Serializer {
     public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
         private readonly JsonSerializerSettings _serializerSettings;
 
+        [Android.Preserve]
         public DefaultJsonSerializer() {
             _serializerSettings = new JsonSerializerSettings {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,

@@ -14,6 +14,7 @@ namespace Exceptionless.Logging {
         private bool _firstWrite = true;
         private bool _isFlushing = false;
 
+        [Android.Preserve]
         public FileExceptionlessLog(string filePath, bool append = false) {
             if (String.IsNullOrEmpty(filePath))
                 throw new ArgumentNullException("filePath");

@@ -6,6 +6,9 @@ using Exceptionless.Models;
 namespace Exceptionless.Plugins.Default {
     [Priority(50)]
     public class EnvironmentInfoPlugin : IEventPlugin {
+        [Android.Preserve]
+        public EnvironmentInfoPlugin() {}
+
         public void Run(EventPluginContext context) {
             if (context.Event.Data.ContainsKey(Event.KnownDataKeys.EnvironmentInfo))
                 return;

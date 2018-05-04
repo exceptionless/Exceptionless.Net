@@ -2,6 +2,9 @@
 
 namespace Exceptionless.Logging {
     public class NullExceptionlessLog : IExceptionlessLog {
+        [Android.Preserve]
+        public NullExceptionlessLog() {}
+
         public LogLevel MinimumLogLevel { get; set; }
 
         public void Error(string message, string source = null, Exception exception = null) {}

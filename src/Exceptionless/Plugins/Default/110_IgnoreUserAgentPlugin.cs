@@ -5,6 +5,9 @@ using Exceptionless.Extensions;
 namespace Exceptionless.Plugins.Default {
     [Priority(110)]
     public class IgnoreUserAgentPlugin : IEventPlugin {
+        [Android.Preserve]
+        public IgnoreUserAgentPlugin() {}
+
         public void Run(EventPluginContext context) {
             var request = context.Event.GetRequestInfo(context.Client.Configuration.Resolver.GetJsonSerializer());
             if (request == null)

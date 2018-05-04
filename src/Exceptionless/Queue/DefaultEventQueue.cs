@@ -22,8 +22,10 @@ namespace Exceptionless.Queue {
         private DateTime? _suspendProcessingUntil;
         private DateTime? _discardQueuedItemsUntil;
 
+        [Android.Preserve]
         public DefaultEventQueue(ExceptionlessConfiguration config, IExceptionlessLog log, ISubmissionClient client, IObjectStorage objectStorage, IJsonSerializer serializer): this(config, log, client, objectStorage, serializer, null, null) {}
 
+        [Android.Preserve]
         public DefaultEventQueue(ExceptionlessConfiguration config, IExceptionlessLog log, ISubmissionClient client, IObjectStorage objectStorage, IJsonSerializer serializer, TimeSpan? processQueueInterval, TimeSpan? queueStartDelay) {
             _log = log;
             _config = config;

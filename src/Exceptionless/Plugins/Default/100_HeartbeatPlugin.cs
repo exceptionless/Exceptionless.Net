@@ -12,6 +12,7 @@ namespace Exceptionless.Plugins.Default {
         /// Controls whether session heartbeats are sent.
         /// </summary>
         /// <param name="interval">The interval at which heartbeats are sent after the last sent event. The default is 1 minutes.</param>
+        [Android.Preserve]
         public HeartbeatPlugin(TimeSpan? interval = null) {
             _interval = interval.HasValue && interval.Value.Seconds >= 30 ? interval.Value : TimeSpan.FromMinutes(1);
         }

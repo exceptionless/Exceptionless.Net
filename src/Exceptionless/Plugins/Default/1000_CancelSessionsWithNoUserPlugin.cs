@@ -4,6 +4,9 @@ using Exceptionless.Dependency;
 namespace Exceptionless.Plugins.Default {
     [Priority(1000)]
     public class CancelSessionsWithNoUserPlugin : IEventPlugin {
+        [Android.Preserve]
+        public CancelSessionsWithNoUserPlugin() {}
+
         public void Run(EventPluginContext context) {
             if (!context.Event.IsSessionStart())
                 return;

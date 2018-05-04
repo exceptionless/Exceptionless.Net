@@ -20,12 +20,14 @@ namespace Exceptionless.Plugins.Default {
         /// <summary>
         /// Duplicates events based on hashcode and interval.
         /// </summary>
+        [Android.Preserve]
         public DuplicateCheckerPlugin() : this(null) {}
 
         /// <summary>
         /// Duplicates events based on hashcode and interval.
         /// </summary>
         /// <param name="interval">The amount of time events will be deduplicated.</param>
+        [Android.Preserve]
         public DuplicateCheckerPlugin(TimeSpan? interval) {
             _interval = interval ?? TimeSpan.FromSeconds(60);
             _timer = new Timer(OnTimer, null, _interval, _interval);
