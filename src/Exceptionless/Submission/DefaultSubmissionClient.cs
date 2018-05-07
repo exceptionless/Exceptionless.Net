@@ -81,7 +81,7 @@ namespace Exceptionless.Submission {
             if (!config.IsValid)
                 return new SettingsResponse(false, message: "Invalid client configuration settings.");
 
-            string url = String.Format("{0}/projects/config?v={1}", GetServiceEndPoint(config), version);
+            string url = String.Format("{0}/projects/config?v={1}", GetConfigServiceEndPoint(config), version);
 
             HttpResponseMessage response;
             try {
@@ -186,6 +186,17 @@ namespace Exceptionless.Submission {
         
         private Uri GetServiceEndPoint(ExceptionlessConfiguration config) {
             var builder = new UriBuilder(config.ServerUrl);
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
+
+            // EnableSSL
+            if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
+                builder.Port = 443;
+
+            return builder.Uri;
+        }
+
+        private Uri GetConfigServiceEndPoint(ExceptionlessConfiguration config) {
+            var builder = new UriBuilder(config.ConfigServerUrl);
             builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
 
             // EnableSSL
