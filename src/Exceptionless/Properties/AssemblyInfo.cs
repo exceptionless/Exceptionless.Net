@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyTitle("Exceptionless")]
 [assembly: AssemblyDescription("Exceptionless")]
-
+[assembly: Exceptionless.Linking.Preserve]
 #if !PORTABLE && !NETSTANDARD1_2
 [assembly: Guid("2d458cc4-3bb3-4852-b6a2-11d5ac8672df")]
 #endif
