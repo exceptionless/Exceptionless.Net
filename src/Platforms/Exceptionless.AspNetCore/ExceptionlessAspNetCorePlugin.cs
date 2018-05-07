@@ -12,7 +12,7 @@ namespace Exceptionless.AspNetCore {
         public void Run(EventPluginContext context) {
             var httpContext = context.ContextData.GetHttpContext();
             var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
-            if (context.Client.Configuration.IncludePrivateInformation)
+            if (context.Client.Configuration.IncludeUserName)
                 AddUser(context, httpContext, serializer);
 
             if (httpContext == null)

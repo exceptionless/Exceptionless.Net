@@ -20,7 +20,7 @@ namespace Exceptionless.ExtendedData {
                 HttpMethod = context.Request.Method.Method
             };
 
-            if (config.IncludePrivateInformation)
+            if (config.IncludeIpAddress)
                 info.ClientIpAddress = context.Request.GetClientIpAddress();
 
             if (context.Request.Headers.UserAgent != null)
@@ -37,8 +37,10 @@ namespace Exceptionless.ExtendedData {
                 info.Referrer = context.Request.Headers.Referrer.ToString();
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
-            info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
-            info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
+            if (config.IncludeCookies)
+                info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
+            if (config.IncludeQueryString)
+                info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
 
             // TODO Collect form data.
             return info;

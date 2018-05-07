@@ -20,6 +20,9 @@ namespace Exceptionless {
         [ConfigurationProperty("enableLogging", DefaultValue = null)]
         public bool? EnableLogging { get { return (bool?)base["enableLogging"]; } set { base["enableLogging"] = value; } }
 
+        [ConfigurationProperty("includePrivateInformation", DefaultValue = null)]
+        public bool? IncludePrivateInformation { get { return (bool?)base["includePrivateInformation"]; } set { base["includePrivateInformation"] = value; } }
+
         [ConfigurationProperty("queueMaxAge", DefaultValue = null)]
         public TimeSpan? QueueMaxAge { get { return (TimeSpan?)base["queueMaxAge"]; } set { base["queueMaxAge"] = value; } }
 

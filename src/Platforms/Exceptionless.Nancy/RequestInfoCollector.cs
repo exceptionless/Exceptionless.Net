@@ -17,7 +17,7 @@ namespace Exceptionless.ExtendedData {
                 HttpMethod = context.Request.Method
             };
 
-            if (config.IncludePrivateInformation)
+            if (config.IncludeIpAddress)
                 info.ClientIpAddress = context.Request.UserHostAddress;
 
             if (!String.IsNullOrWhiteSpace(context.Request.Headers.UserAgent))
@@ -34,9 +34,10 @@ namespace Exceptionless.ExtendedData {
                 info.Referrer = context.Request.Headers.Referrer;
 
             var exclusionsArray = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
-            info.Cookies = context.Request.Cookies.ToDictionary(exclusionsArray);
+            if (config.IncludeCookies)
+                info.Cookies = context.Request.Cookies.ToDictionary(exclusionsArray);
 
-            if (context.Request.Url != null && !String.IsNullOrWhiteSpace(context.Request.Url.Query))
+            if (config.IncludeQueryString && context.Request.Url != null && !String.IsNullOrWhiteSpace(context.Request.Url.Query))
                 info.QueryString = HttpUtility.ParseQueryString(context.Request.Url.Query).ToDictionary(exclusionsArray);
 
             return info;
