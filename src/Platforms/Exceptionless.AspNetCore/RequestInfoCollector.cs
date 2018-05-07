@@ -21,7 +21,7 @@ namespace Exceptionless.AspNetCore {
                 Path = context.Request.Path.HasValue ? context.Request.Path.Value : "/",
             };
 
-            if (config.IncludePrivateInformation)
+            if (config.IncludeIpAddress)
                 info.ClientIpAddress = context.GetClientIpAddress();
 
             if (!String.IsNullOrEmpty(context.Request.Host.Host))
@@ -37,29 +37,34 @@ namespace Exceptionless.AspNetCore {
                 info.Referrer = context.Request.Headers[HeaderNames.Referer].ToString();
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
-            info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
-            info.QueryString = context.Request.Query.ToDictionary(exclusionList);
+            if (config.IncludeCookies)
+                info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-            if (context.Request.HasFormContentType && context.Request.Form.Count > 0) {
-                info.PostData = context.Request.Form.ToDictionary(exclusionList);
-            } else if (context.Request.ContentLength.HasValue && context.Request.ContentLength.Value > 0) {
-                if (context.Request.ContentLength.Value < 1024 * 50) {
-                    try {
-                        if (context.Request.Body.CanSeek && context.Request.Body.Position > 0)
-                            context.Request.Body.Position = 0;
+            if (config.IncludeQueryString)
+                info.QueryString = context.Request.Query.ToDictionary(exclusionList);
 
-                        if (context.Request.Body.Position == 0) {
-                            using (var inputStream = new StreamReader(context.Request.Body))
-                                info.PostData = inputStream.ReadToEnd();
-                        } else {
-                            info.PostData = "Unable to get POST data: The stream could not be reset.";
+            if (config.IncludePostData) {
+                if (context.Request.HasFormContentType && context.Request.Form.Count > 0) {
+                    info.PostData = context.Request.Form.ToDictionary(exclusionList);
+                } else if (context.Request.ContentLength.HasValue && context.Request.ContentLength.Value > 0) {
+                    if (context.Request.ContentLength.Value < 1024 * 50) {
+                        try {
+                            if (context.Request.Body.CanSeek && context.Request.Body.Position > 0)
+                                context.Request.Body.Position = 0;
+
+                            if (context.Request.Body.Position == 0) {
+                                using (var inputStream = new StreamReader(context.Request.Body))
+                                    info.PostData = inputStream.ReadToEnd();
+                            } else {
+                                info.PostData = "Unable to get POST data: The stream could not be reset.";
+                            }
+                        } catch (Exception ex) {
+                            info.PostData = "Error retrieving POST data: " + ex.Message;
                         }
-                    } catch (Exception ex) {
-                        info.PostData = "Error retrieving POST data: " + ex.Message;
+                    } else {
+                        string value = Math.Round(context.Request.ContentLength.Value / 1024m, 0).ToString("N0");
+                        info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
                     }
-                } else {
-                    string value = Math.Round(context.Request.ContentLength.Value / 1024m, 0).ToString("N0");
-                    info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
                 }
             }
 

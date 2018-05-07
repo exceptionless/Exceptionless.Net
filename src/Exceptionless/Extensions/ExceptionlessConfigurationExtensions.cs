@@ -129,7 +129,6 @@ namespace Exceptionless {
             config.AddPlugin<ReferenceIdPlugin>();
         }
 
-
         /// <summary>
         /// Reads the <see cref="ExceptionlessAttribute" /> and <see cref="ExceptionlessSettingAttribute" />
         /// from the passed in assembly.
@@ -327,6 +326,9 @@ namespace Exceptionless {
                 else if (!config.Resolver.HasRegistration<IExceptionlessLog>())
                     config.UseIsolatedStorageLogger();
             }
+
+            if (section.IncludePrivateInformation.HasValue && !section.IncludePrivateInformation.Value)
+                config.IncludePrivateInformation = false;
 
             foreach (var tag in section.Tags.SplitAndTrim(',').Where(tag => !String.IsNullOrEmpty(tag)))
                 config.DefaultTags.Add(tag);

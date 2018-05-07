@@ -15,7 +15,16 @@ You can get your Exceptionless api key by logging into http://exceptionless.io
 and viewing your project configuration page.
 
 -------------------------------------
-		 .NET Core && Portable Class Library (PCL) Integration
+		General Data Protection Regulation
+-------------------------------------
+By default the Exceptionless Client will report all available metadata including potential PII data.
+You can fine tune the collection of information via Data Exclusions or turning off collection completely.
+
+Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Configuration#general-data-protection-regulation
+for detailed information on how to configure the client to meet your requirements.
+
+-------------------------------------
+		.NET Core && Portable Class Library (PCL) Integration
 -------------------------------------
 This library is platform agnostic and is compiled against different runtimes. Depending on the 
 referenced runtime, Exceptionless will attempt to wire up to available error handlers and attempt to
@@ -33,7 +42,7 @@ Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Se
 for examples on sending events to Exceptionless.
 
 -------------------------------------
-		 .NET Framework (Legacy) Integration
+		.NET Framework (Legacy) Integration
 -------------------------------------
 If your project has an app.config file, the Exceptionless NuGet package 
 will automatically configure your app.config with the required config sections.
@@ -65,6 +74,6 @@ the following method.
 exception.ToExceptionless().Submit()
 
 -------------------------------------
-	  Documentation and Support
+		Documentation and Support
 -------------------------------------
 Please visit http://exceptionless.io for documentation and support.

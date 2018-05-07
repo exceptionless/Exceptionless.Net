@@ -15,9 +15,11 @@ using Exceptionless.Models.Data;
 namespace Exceptionless.Services {
     public class DefaultEnvironmentInfoCollector : IEnvironmentInfoCollector {
         private static EnvironmentInfo _environmentInfo;
+        private readonly ExceptionlessConfiguration _config;
         private readonly IExceptionlessLog _log;
 
-        public DefaultEnvironmentInfoCollector(IExceptionlessLog log) {
+        public DefaultEnvironmentInfoCollector(ExceptionlessConfiguration config, IExceptionlessLog log) {
+            _config = config;
             _log = log;
         }
 
@@ -48,12 +50,14 @@ namespace Exceptionless.Services {
 #endif
 
 #if !PORTABLE && !NETSTANDARD1_2
-            try {
-                IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
-                if (hostEntry != null && hostEntry.AddressList.Any())
-                    info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
-            } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
+            if (_config.IncludeIpAddress) {
+                try {
+                    IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
+                    if (hostEntry != null && hostEntry.AddressList.Any())
+                        info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
+                } catch (Exception ex) {
+                    _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
+                }
             }
 #endif
         }
@@ -154,17 +158,19 @@ namespace Exceptionless.Services {
             info.Data["ProcessArchitecture"] = RuntimeInformation.ProcessArchitecture;
 #endif
 
-            try {
+            if (_config.IncludeMachineName) {
+                try {
 #if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
-                info.MachineName = Environment.MachineName;
+                    info.MachineName = Environment.MachineName;
 #elif !PORTABLE && !NETSTANDARD1_2
                 Process process = Process.GetCurrentProcess();
                 info.MachineName = process.MachineName;
 #else
                 info.MachineName = Guid.NewGuid().ToString("N");
 #endif
-            } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
+                } catch (Exception ex) {
+                    _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
+                }
             }
 
 #if !PORTABLE && !NETSTANDARD1_2

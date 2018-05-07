@@ -28,6 +28,31 @@ namespace Exceptionless.Tests.Configuration {
             var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
             Assert.NotNull(client);
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", client.Configuration.ApiKey);
+            Assert.True(client.Configuration.IncludePrivateInformation);
+            Assert.True(client.Configuration.IncludeUserName);
+            Assert.True(client.Configuration.IncludeMachineName);
+            Assert.True(client.Configuration.IncludeIpAddress);
+            Assert.True(client.Configuration.IncludeCookies);
+            Assert.True(client.Configuration.IncludePostData);
+            Assert.True(client.Configuration.IncludeQueryString);
+
+            client.Configuration.IncludePrivateInformation = false;
+            Assert.False(client.Configuration.IncludePrivateInformation);
+            Assert.False(client.Configuration.IncludeUserName);
+            Assert.False(client.Configuration.IncludeMachineName);
+            Assert.False(client.Configuration.IncludeIpAddress);
+            Assert.False(client.Configuration.IncludeCookies);
+            Assert.False(client.Configuration.IncludePostData);
+            Assert.False(client.Configuration.IncludeQueryString);
+
+            client.Configuration.IncludeMachineName = true;
+            Assert.False(client.Configuration.IncludePrivateInformation);
+            Assert.False(client.Configuration.IncludeUserName);
+            Assert.True(client.Configuration.IncludeMachineName);
+            Assert.False(client.Configuration.IncludeIpAddress);
+            Assert.False(client.Configuration.IncludeCookies);
+            Assert.False(client.Configuration.IncludePostData);
+            Assert.False(client.Configuration.IncludeQueryString);
         }
 
         [Fact]
@@ -38,11 +63,20 @@ namespace Exceptionless.Tests.Configuration {
                 c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
                 c.ServerUrl = "http://localhost:45000";
                 c.SetVersion(version);
+                c.IncludeUserName = false;
             });
 
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", client.Configuration.ApiKey);
             Assert.Equal("http://localhost:45000", client.Configuration.ServerUrl);
             Assert.Equal(version, client.Configuration.DefaultData[Event.KnownDataKeys.Version].ToString());
+
+            Assert.True(client.Configuration.IncludePrivateInformation);
+            Assert.False(client.Configuration.IncludeUserName);
+            Assert.True(client.Configuration.IncludeMachineName);
+            Assert.True(client.Configuration.IncludeIpAddress);
+            Assert.True(client.Configuration.IncludeCookies);
+            Assert.True(client.Configuration.IncludePostData);
+            Assert.True(client.Configuration.IncludeQueryString);
         }
 
         [Fact]

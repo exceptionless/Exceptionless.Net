@@ -67,12 +67,10 @@ namespace Exceptionless {
             foreach (var tag in section.GetSection("DefaultTags").GetChildren())
                 config.DefaultTags.Add(tag.Value);
 
-            bool enabled;
-            if (Boolean.TryParse(section["Enabled"], out enabled) && !enabled)
+            if (Boolean.TryParse(section["Enabled"], out bool enabled) && !enabled)
                 config.Enabled = false;
 
-            bool includePrivateInformation;
-            if (Boolean.TryParse(section["IncludePrivateInformation"], out includePrivateInformation) && !includePrivateInformation)
+            if (Boolean.TryParse(section["IncludePrivateInformation"], out bool includePrivateInformation) && !includePrivateInformation)
                 config.IncludePrivateInformation = false;
 
             string serverUrl = section["ServerUrl"];
