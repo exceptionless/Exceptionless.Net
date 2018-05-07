@@ -17,7 +17,6 @@ namespace Exceptionless.Submission {
     public class DefaultSubmissionClient : ISubmissionClient, IDisposable {
         private readonly Lazy<HttpClient> _client;
 
-        [Android.Preserve]
         public DefaultSubmissionClient(ExceptionlessConfiguration config) {
             _client = new Lazy<HttpClient>(() => CreateHttpClient(config));
         }

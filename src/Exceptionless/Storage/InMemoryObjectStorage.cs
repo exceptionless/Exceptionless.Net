@@ -9,10 +9,8 @@ namespace Exceptionless.Storage {
         private readonly Dictionary<string, Tuple<ObjectInfo, object>> _storage = new Dictionary<string, Tuple<ObjectInfo, object>>(StringComparer.OrdinalIgnoreCase);
         private readonly object _lock = new object();
 
-        [Android.Preserve]
         public InMemoryObjectStorage() : this(1000) {}
 
-        [Android.Preserve]
         public InMemoryObjectStorage(int maxObjects) {
             MaxObjects = maxObjects;
         }

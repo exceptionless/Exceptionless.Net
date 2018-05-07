@@ -10,9 +10,6 @@ namespace Exceptionless.Plugins.Default {
     public class VersionPlugin : IEventPlugin {
         private static bool _checkedForVersion;
 
-        [Android.Preserve]
-        public VersionPlugin() {}
-
         public void Run(EventPluginContext context) {
             if (context.Event.Data.ContainsKey(Event.KnownDataKeys.Version))
                 return;

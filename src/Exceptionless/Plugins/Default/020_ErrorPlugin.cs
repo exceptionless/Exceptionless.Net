@@ -6,9 +6,6 @@ using Exceptionless.Models;
 namespace Exceptionless.Plugins.Default {
     [Priority(20)]
     public class ErrorPlugin : IEventPlugin {
-        [Android.Preserve]
-        public ErrorPlugin() {}
-
         public void Run(EventPluginContext context) {
             var exception = context.ContextData.GetException();
             if (exception == null)

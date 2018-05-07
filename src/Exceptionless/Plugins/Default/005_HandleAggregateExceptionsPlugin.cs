@@ -5,9 +5,6 @@ using Exceptionless.Models;
 namespace Exceptionless.Plugins.Default {
     [Priority(5)]
     public class HandleAggregateExceptionsPlugin : IEventPlugin {
-        [Android.Preserve]
-        public HandleAggregateExceptionsPlugin() {}
-
         public void Run(EventPluginContext context) {
             var aggregateException = context.ContextData.GetException() as AggregateException;
             if (aggregateException == null)

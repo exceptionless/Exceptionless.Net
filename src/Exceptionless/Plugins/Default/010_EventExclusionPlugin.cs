@@ -5,9 +5,6 @@ using Exceptionless.Models;
 namespace Exceptionless.Plugins.Default {
     [Priority(10)]
     public sealed class EventExclusionPlugin : IEventPlugin {
-        [Android.Preserve]
-        public EventExclusionPlugin() {}
-
         public void Run(EventPluginContext context) {
             foreach (var callback in context.Client.Configuration.EventExclusions) {
                 try {

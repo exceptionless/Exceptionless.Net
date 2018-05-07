@@ -10,7 +10,6 @@ namespace Exceptionless.Logging {
         private readonly Queue<LogEntry> _innerList;
         private int _maxEntriesToStore;
 
-        [Android.Preserve]
         public InMemoryExceptionlessLog() {
             _innerList = new Queue<LogEntry>();
             MaxEntriesToStore = DEFAULT_MAX_ENTRIES_TO_STORE;
