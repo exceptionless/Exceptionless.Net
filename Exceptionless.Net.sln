@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		build\Settings.ps1 = build\Settings.ps1
 		build\sourcelink.props = build\sourcelink.props
+		build\version.props = build\version.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{D363E15F-621D-40E4-8C96-DEE41A7070FF}"
