@@ -57,12 +57,19 @@ namespace Exceptionless.ExtendedData {
                 } else if (context.Request.ContentLength > 0) {
                     if (context.Request.ContentLength < 1024 * 50) {
                         try {
-                            if (context.Request.InputStream.CanSeek && context.Request.InputStream.Position > 0)
-                                context.Request.InputStream.Position = 0;
+                            if (context.Request.InputStream.CanSeek) {
+                                long originalPosition = 0;
+                                if (context.Request.InputStream.Position > 0) {
+                                    originalPosition = context.Request.InputStream.Position;
+                                    context.Request.InputStream.Position = 0;
+                                }
 
-                            if (context.Request.InputStream.Position == 0) {
-                                using (var inputStream = new StreamReader(context.Request.InputStream))
-                                    info.PostData = inputStream.ReadToEnd();
+                                if (context.Request.InputStream.Position == 0) {
+                                    using (var inputStream = new StreamReader(context.Request.InputStream))
+                                        info.PostData = inputStream.ReadToEnd();
+
+                                    context.Request.InputStream.Position = originalPosition;
+                                }
                             } else {
                                 info.PostData = "Unable to get POST data: The stream could not be reset.";
                             }
