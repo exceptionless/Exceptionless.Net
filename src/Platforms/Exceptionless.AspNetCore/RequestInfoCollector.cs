@@ -9,6 +9,7 @@ using Microsoft.Net.Http.Headers;
 using Exceptionless.Models.Data;
 using Exceptionless.Extensions;
 using Exceptionless.Dependency;
+using System.Text;
 
 namespace Exceptionless.AspNetCore {
     internal static class RequestInfoCollector {
@@ -63,7 +64,7 @@ namespace Exceptionless.AspNetCore {
                                 log.Debug($"Reading POST, original position: {originalPosition}");
 
                                 if (context.Request.Body.Position == 0) {
-                                    using (var inputStream = new StreamReader(context.Request.Body))
+                                    using (var inputStream = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true))
                                         info.PostData = inputStream.ReadToEnd();
 
                                     context.Request.Body.Position = originalPosition;

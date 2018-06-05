@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -71,7 +72,7 @@ namespace Exceptionless.ExtendedData {
                                 log.FormattedDebug("Reading POST, original position: {0}", originalPosition);
 
                                 if (context.Request.InputStream.Position == 0) {
-                                    using (var inputStream = new StreamReader(context.Request.InputStream))
+                                    using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true))
                                         info.PostData = inputStream.ReadToEnd();
 
                                     context.Request.InputStream.Position = originalPosition;
