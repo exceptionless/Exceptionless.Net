@@ -54,49 +54,7 @@ namespace Exceptionless.ExtendedData {
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
             if (config.IncludePostData) {
-                var log = config.Resolver.GetLog();
-
-                if (context.Request.Form.Count > 0) {
-                    log.Debug("Reading POST data from Request.Form");
-
-                    info.PostData = context.Request.Form.ToDictionary(exclusionList);
-                } else if (context.Request.ContentLength > 0) {
-                    if (context.Request.ContentLength < 1024 * 50) {
-                        try {
-                            if (context.Request.InputStream.CanSeek) {
-                                long originalPosition = 0;
-                                if (context.Request.InputStream.Position > 0) {
-                                    originalPosition = context.Request.InputStream.Position;
-                                    context.Request.InputStream.Position = 0;
-                                }
-                                log.FormattedDebug("Reading POST, original position: {0}", originalPosition);
-
-                                if (context.Request.InputStream.Position == 0) {
-                                    using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true))
-                                        info.PostData = inputStream.ReadToEnd();
-
-                                    context.Request.InputStream.Position = originalPosition;
-
-                                    log.FormattedDebug("Reading POST, set back to position: {0}", context.Request.InputStream.Position);
-                                }
-                            } else {
-                                string message = "Unable to get POST data: The stream could not be reset.";
-                                info.PostData = message;
-
-                                log.Debug(message);
-                            }
-                        } catch (Exception ex) {
-                            string message = $"Error retrieving POST data: {ex.Message}";
-                            info.PostData = message;
-
-                            log.Error(message);
-                        }
-                    } else {
-                        string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
-                        info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
-                        log.Debug((string)info.PostData);
-                    }
-                }
+                info.PostData = GetPostData(context, config, exclusionList);
             }
 
             if (config.IncludeQueryString) {
@@ -108,6 +66,63 @@ namespace Exceptionless.ExtendedData {
             }
 
             return info;
+        }
+
+        private static object GetPostData(HttpContextBase context, ExceptionlessConfiguration config, string[] exclusionList) {
+            var log = config.Resolver.GetLog();
+
+            if (context.Request.Form.Count > 0) {
+                log.Debug("Reading POST data from Request.Form");
+
+                return context.Request.Form.ToDictionary(exclusionList);
+            }
+
+            if (context.Request.ContentLength == 0)
+                return null;
+
+            if (context.Request.ContentLength >= 1024 * 50) {
+                string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
+                string message = String.Format("Data is too large ({0}kb) to be included.", value);
+                log.Debug(message);
+                return message;
+            }
+
+            try {
+                if (!context.Request.InputStream.CanSeek) {
+                    string message = "Unable to get POST data: The stream could not be reset.";
+                    log.Debug(message);
+
+                    return message;
+                }
+
+                long originalPosition = context.Request.InputStream.Position;
+                if (context.Request.InputStream.Position > 0) {
+                    context.Request.InputStream.Position = 0;
+                }
+
+                log.FormattedDebug("Reading POST, original position: {0}", originalPosition);
+
+                if (context.Request.InputStream.Position != 0) {
+                    string message = "Unable to get POST data: The stream position was not at 0.";
+                    log.Debug(message);
+
+                    return message;
+                }
+
+                using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true)) {
+                    string postData = inputStream.ReadToEnd();
+
+                    context.Request.InputStream.Position = originalPosition;
+
+                    log.FormattedDebug("Reading POST, set back to position: {0}", context.Request.InputStream.Position);
+                    return postData;
+                }
+            }
+            catch (Exception ex) {
+                string message = $"Error retrieving POST data: {ex.Message}";
+                log.Error(message);
+                return message;
+            }
         }
 
         private static readonly List<string> _ignoredFormFields = new List<string> {
