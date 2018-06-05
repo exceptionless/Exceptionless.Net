@@ -8,6 +8,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Exceptionless.Models.Data;
 using Exceptionless.Extensions;
+using Exceptionless.Dependency;
 
 namespace Exceptionless.AspNetCore {
     internal static class RequestInfoCollector {
@@ -44,7 +45,11 @@ namespace Exceptionless.AspNetCore {
                 info.QueryString = context.Request.Query.ToDictionary(exclusionList);
 
             if (config.IncludePostData) {
+                var log = config.Resolver.GetLog();
+
                 if (context.Request.HasFormContentType && context.Request.Form.Count > 0) {
+                    log.Debug("Reading POST data from Request.Form");
+
                     info.PostData = context.Request.Form.ToDictionary(exclusionList);
                 } else if (context.Request.ContentLength.HasValue && context.Request.ContentLength.Value > 0) {
                     if (context.Request.ContentLength.Value < 1024 * 50) {
@@ -55,22 +60,30 @@ namespace Exceptionless.AspNetCore {
                                     originalPosition = context.Request.Body.Position;
                                     context.Request.Body.Position = 0;
                                 }
+                                log.FormattedDebug("Reading POST, original position: {0}", originalPosition);
 
                                 if (context.Request.Body.Position == 0) {
                                     using (var inputStream = new StreamReader(context.Request.Body))
                                         info.PostData = inputStream.ReadToEnd();
 
                                     context.Request.Body.Position = originalPosition;
+
+                                    log.FormattedDebug("Reading POST, set back to position: {0}", context.Request.Body.Position);
                                 }
                             } else {
                                 info.PostData = "Unable to get POST data: The stream could not be reset.";
+
+                                log.Debug((string)info.PostData);
                             }
                         } catch (Exception ex) {
                             info.PostData = "Error retrieving POST data: " + ex.Message;
+
+                            log.Error((string)info.PostData);
                         }
                     } else {
                         string value = Math.Round(context.Request.ContentLength.Value / 1024m, 0).ToString("N0");
                         info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
+                        log.Debug((string)info.PostData);
                     }
                 }
             }
