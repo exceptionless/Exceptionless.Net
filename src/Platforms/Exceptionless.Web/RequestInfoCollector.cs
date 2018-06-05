@@ -52,8 +52,6 @@ namespace Exceptionless.ExtendedData {
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-            
-
             if (config.IncludePostData) {
                 var log = config.Resolver.GetLog();
 
