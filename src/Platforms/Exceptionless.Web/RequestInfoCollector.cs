@@ -80,14 +80,16 @@ namespace Exceptionless.ExtendedData {
                                     log.FormattedDebug("Reading POST, set back to position: {0}", context.Request.InputStream.Position);
                                 }
                             } else {
-                                info.PostData = "Unable to get POST data: The stream could not be reset.";
+                                string message = "Unable to get POST data: The stream could not be reset.";
+                                info.PostData = message;
 
-                                log.Debug((string)info.PostData);
+                                log.Debug(message);
                             }
                         } catch (Exception ex) {
-                            info.PostData = "Error retrieving POST data: " + ex.Message;
+                            string message = $"Error retrieving POST data: {ex.Message}";
+                            info.PostData = message;
 
-                            log.Error((string)info.PostData);
+                            log.Error(message);
                         }
                     } else {
                         string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
