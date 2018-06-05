@@ -109,6 +109,7 @@ namespace Exceptionless.ExtendedData {
                     return message;
                 }
 
+                // pass default values, except for leaveOpen: true. This prevents us from disposing the underlying stream
                 using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true)) {
                     string postData = inputStream.ReadToEnd();
 
