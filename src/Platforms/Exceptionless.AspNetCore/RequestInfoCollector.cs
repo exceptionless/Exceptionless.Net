@@ -60,7 +60,7 @@ namespace Exceptionless.AspNetCore {
                                     originalPosition = context.Request.Body.Position;
                                     context.Request.Body.Position = 0;
                                 }
-                                log.FormattedDebug("Reading POST, original position: {0}", originalPosition);
+                                log.Debug($"Reading POST, original position: {originalPosition}");
 
                                 if (context.Request.Body.Position == 0) {
                                     using (var inputStream = new StreamReader(context.Request.Body))
@@ -68,7 +68,7 @@ namespace Exceptionless.AspNetCore {
 
                                     context.Request.Body.Position = originalPosition;
 
-                                    log.FormattedDebug("Reading POST, set back to position: {0}", context.Request.Body.Position);
+                                    log.Debug($"Reading POST, set back to position: {context.Request.Body.Position}");
                                 }
                             } else {
                                 info.PostData = "Unable to get POST data: The stream could not be reset.";
