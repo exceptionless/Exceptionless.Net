@@ -14,6 +14,7 @@ using Exceptionless.Models.Data;
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
         private const int MAX_DATA_ITEM_LENGTH = 1000;
+        private const int MAX_BODY_SIZE = 50*1024;
 
         public static RequestInfo Collect(HttpContextBase context, ExceptionlessConfiguration config) {
             if (context == null)
@@ -77,12 +78,8 @@ namespace Exceptionless.ExtendedData {
                 return context.Request.Form.ToDictionary(exclusionList);
             }
 
-            if (context.Request.ContentLength == 0) {
-                log.Debug("Content-length null or zero");
-                return null;
-            }
-
-            if (context.Request.ContentLength >= 1024 * 50) {
+            var maxDataToRead = context.Request.ContentLength == 0 ? MAX_BODY_SIZE : context.Request.ContentLength;
+            if (maxDataToRead > MAX_BODY_SIZE) {
                 string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
                 string message = String.Format("Data is too large ({0}kb) to be included.", value);
                 log.Debug(message);
@@ -111,7 +108,13 @@ namespace Exceptionless.ExtendedData {
 
                 // pass default values, except for leaveOpen: true. This prevents us from disposing the underlying stream
                 using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true)) {
-                    string postData = inputStream.ReadToEnd();
+                    var sb = new StringBuilder();
+                    int numRead;
+                    char[] buffer = new char[1024];
+                    while ((numRead = inputStream.ReadBlock(buffer, 0, 1024)) > 0 && (sb.Length + numRead) < maxDataToRead) {
+                        sb.Append(buffer, 0, numRead);
+                    }
+                    string postData = sb.ToString();
 
                     context.Request.InputStream.Position = originalPosition;
 
