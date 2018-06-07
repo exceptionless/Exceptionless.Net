@@ -77,8 +77,10 @@ namespace Exceptionless.ExtendedData {
                 return context.Request.Form.ToDictionary(exclusionList);
             }
 
-            if (context.Request.ContentLength == 0)
+            if (context.Request.ContentLength == 0) {
+                log.Debug("Content-length null or zero");
                 return null;
+            }
 
             if (context.Request.ContentLength >= 1024 * 50) {
                 string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
@@ -91,7 +93,6 @@ namespace Exceptionless.ExtendedData {
                 if (!context.Request.InputStream.CanSeek) {
                     string message = "Unable to get POST data: The stream could not be reset.";
                     log.Debug(message);
-
                     return message;
                 }
 
@@ -105,7 +106,6 @@ namespace Exceptionless.ExtendedData {
                 if (context.Request.InputStream.Position != 0) {
                     string message = "Unable to get POST data: The stream position was not at 0.";
                     log.Debug(message);
-
                     return message;
                 }
 

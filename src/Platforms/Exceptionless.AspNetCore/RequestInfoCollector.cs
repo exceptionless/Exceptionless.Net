@@ -57,13 +57,14 @@ namespace Exceptionless.AspNetCore {
 
             if (context.Request.HasFormContentType && context.Request.Form.Count > 0) {
                 log.Debug("Reading POST data from Request.Form");
-
                 return context.Request.Form.ToDictionary(exclusionList);
             }
 
-            if (!context.Request.ContentLength.HasValue || context.Request.ContentLength.Value == 0)
+            if (!context.Request.ContentLength.HasValue || context.Request.ContentLength.Value == 0) {
+                log.Debug("Content-length null or zero");
                 return null;
-
+            }
+            
             if (context.Request.ContentLength.Value >= 1024 * 50) {
                 string value = Math.Round(context.Request.ContentLength.Value / 1024m, 0).ToString("N0");
                 string message = String.Format("Data is too large ({0}kb) to be included.", value);
@@ -75,7 +76,6 @@ namespace Exceptionless.AspNetCore {
                 if (!context.Request.Body.CanSeek) {
                     string message = "Unable to get POST data: The stream could not be reset.";
                     log.Debug(message);
-
                     return message;
                 }
 
@@ -89,7 +89,6 @@ namespace Exceptionless.AspNetCore {
                 if (context.Request.Body.Position != 0) {
                     string message = "Unable to get POST data: The stream position was not at 0.";
                     log.Debug(message);
-
                     return message;
                 }
 
