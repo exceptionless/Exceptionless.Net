@@ -61,8 +61,9 @@ namespace Exceptionless.AspNetCore {
                 return context.Request.Form.ToDictionary(exclusionList);
             }
 
-            var maxDataToRead = context.Request.ContentLength == 0 ? MAX_BODY_SIZE : context.Request.ContentLength;
-            if (maxDataToRead > 1024 * 50) {
+            var contentLength = context.Request.ContentLength.GetValueOrDefault();
+            
+            if (contentLength > MAX_BODY_SIZE) {
                 string value = Math.Round(context.Request.ContentLength.Value / 1024m, 0).ToString("N0");
                 string message = String.Format("Data is too large ({0}kb) to be included.", value);
                 log.Debug(message);
@@ -89,6 +90,8 @@ namespace Exceptionless.AspNetCore {
                     return message;
                 }
 
+                var maxDataToRead = contentLength == 0 ? MAX_BODY_SIZE : contentLength;
+
                 // pass default values, except for leaveOpen: true. This prevents us from disposing the underlying stream
                 using (var inputStream = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true)) {
                     var sb = new StringBuilder();
@@ -101,7 +104,9 @@ namespace Exceptionless.AspNetCore {
 
                     context.Request.Body.Position = originalPosition;
 
-                    log.Debug($"Reading POST, set back to position: {context.Request.Body.Position}");
+                    
+
+                    log.Debug($"Reading POST, set back to position: {originalPosition}");
                     return postData;
                 }
             }

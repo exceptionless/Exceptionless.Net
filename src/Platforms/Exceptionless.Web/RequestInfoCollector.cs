@@ -118,7 +118,7 @@ namespace Exceptionless.ExtendedData {
 
                     context.Request.InputStream.Position = originalPosition;
 
-                    log.FormattedDebug("Reading POST, set back to position: {0}", context.Request.InputStream.Position);
+                    log.FormattedDebug("Reading POST, set back to position: {0}", originalPosition);
                     return postData;
                 }
             }
