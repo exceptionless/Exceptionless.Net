@@ -104,8 +104,6 @@ namespace Exceptionless.AspNetCore {
 
                     context.Request.Body.Position = originalPosition;
 
-                    
-
                     log.Debug($"Reading POST, set back to position: {originalPosition}");
                     return postData;
                 }
