@@ -62,9 +62,14 @@ namespace Exceptionless.AspNetCore {
             }
 
             var contentLength = context.Request.ContentLength.GetValueOrDefault();
-            
+            if(contentLength == 0) {
+                string message = "Content-length was zero, empty post.";
+                log.Debug(message);
+                return message;
+            }
+
             if (contentLength > MAX_BODY_SIZE) {
-                string value = Math.Round(context.Request.ContentLength.Value / 1024m, 0).ToString("N0");
+                string value = Math.Round(contentLength / 1024m, 0).ToString("N0");
                 string message = String.Format("Data is too large ({0}kb) to be included.", value);
                 log.Debug(message);
                 return message;
@@ -96,8 +101,11 @@ namespace Exceptionless.AspNetCore {
                 using (var inputStream = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true)) {
                     var sb = new StringBuilder();
                     int numRead;
-                    char[] buffer = new char[1024];
-                    while ((numRead = inputStream.ReadBlock(buffer, 0, 1024)) > 0 && (sb.Length + numRead) < maxDataToRead) {
+
+                    int bufferSize = (int)Math.Min(1024, maxDataToRead);
+
+                    char[] buffer = new char[bufferSize];
+                    while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) < maxDataToRead) {
                         sb.Append(buffer, 0, numRead);
                     }
                     string postData = sb.ToString();
