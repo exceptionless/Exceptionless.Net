@@ -499,6 +499,31 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
+        public void ErrorPlugin_CopyExceptionData() {
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                var exception = new Exception("Test") {
+                    Data = { { "Test", "Test" } }
+                };
+
+                var client = CreateClient();
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+                Assert.Single(error.Data);
+                Assert.Equal("Test", error.Data.GetString("Test"));
+            }
+        }
+
+        [Fact]
         public void ErrorPlugin_IgnoredProperties() {
             var exception = new MyApplicationException("Test") {
                 IgnoredProperty = "Test",
