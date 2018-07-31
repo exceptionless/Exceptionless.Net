@@ -15,6 +15,7 @@ using Exceptionless.Storage;
 
 #if !PORTABLE && !NETSTANDARD1_2
 using Exceptionless.Diagnostics;
+using System.Net.Security;
 #endif
 
 #if NET45
@@ -432,6 +433,46 @@ namespace Exceptionless {
                 return null;
 
             return _environmentVariables[name];
+        }
+#endif
+
+#if !PORTABLE && !NETSTANDARD1_2
+        /// <summary>
+        /// Add a custom server certificate validation against the thumbprint of the server certificate.
+        /// </summary>
+        /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
+        /// <param name="thumbprint">Thumbprint of the server certificate. <example>e.g. "86481791CDAF6D7A02BEE9A649EA9F84DE84D22C"</example></param>
+        public static void TrustCertificateThumbprint(this ExceptionlessConfiguration config, string thumbprint) {
+            config.ServerCertificateValidationCallback = x => {
+                if (x.SslPolicyErrors == SslPolicyErrors.None) return true;
+                return x.Certificate != null && thumbprint != null && thumbprint.Equals(x.Certificate.Thumbprint, StringComparison.OrdinalIgnoreCase);
+            };
+        }
+
+        /// <summary>
+        /// Add a custom server certificate validation against the thumbprint of any of the ca certificates.
+        /// </summary>
+        /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
+        /// <param name="thumbprint">Thumbprint of the ca certificate. <example>e.g. "afe5d244a8d1194230ff479fe2f897bbcd7a8cb4"</example></param>
+        public static void TrustCAThumbprint(this ExceptionlessConfiguration config, string thumbprint) {
+            config.ServerCertificateValidationCallback = x => {
+                if (x.SslPolicyErrors == SslPolicyErrors.None) return true;
+                if (x.Chain == null || thumbprint == null) return false;
+                foreach (var ca in x.Chain.ChainElements) {
+                    if (thumbprint.Equals(ca.Certificate.Thumbprint, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+                return false;
+            };
+        }
+
+        /// <summary>
+        /// Disable any certificate validation. Do not use this in production.
+        /// </summary>
+        /// <param name="config"></param>
+        [Obsolete("This will open the client to Man-in-Middle attacks. It should never be used in production.")]
+        public static void SkipCertificateValidation(this ExceptionlessConfiguration config) {
+            config.ServerCertificateValidationCallback = x => true;
         }
 #endif
 

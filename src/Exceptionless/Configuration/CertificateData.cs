@@ -1,9 +1,8 @@
 ﻿#if !PORTABLE && !NETSTANDARD1_2
 using System.Net.Http;
-#if !PORTABLE && !NETSTANDARD1_2
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-#endif
+
 namespace Exceptionless {
     public class CertificateData {
 #if NET45
