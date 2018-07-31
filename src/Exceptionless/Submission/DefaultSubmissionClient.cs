@@ -131,8 +131,8 @@ namespace Exceptionless.Submission {
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
 #endif
 #if !PORTABLE && !NETSTANDARD1_2
-            if (config.ServerCertificateValidationCallback != null) {
-                var callback = config.ServerCertificateValidationCallback;
+            var callback = config.ServerCertificateValidationCallback;
+            if (callback != null) {
 #if NET45
                 bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
                     var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
