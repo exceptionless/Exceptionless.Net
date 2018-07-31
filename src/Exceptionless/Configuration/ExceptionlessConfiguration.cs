@@ -275,6 +275,13 @@ namespace Exceptionless {
             }
         }
 
+#if !PORTABLE && !NETSTANDARD1_2
+        /// <summary>
+        /// Callback which is invoked to validate the exceptionless server certificate.
+        /// </summary>
+        public Func<CertificateData, bool> ServerCertificateValidationCallback { get; set; }
+#endif
+
         /// <summary>
         /// A list of exclusion patterns that will automatically remove any data that matches them from any data submitted to the server.
         /// For example, entering CreditCard will remove any extended data properties, form fields, cookies and query

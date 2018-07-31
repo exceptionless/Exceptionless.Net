@@ -4,6 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+#if NET45 || (!PORTABLE && !NETSTANDARD1_2)
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+#endif
 using System.Text;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
@@ -123,12 +127,28 @@ namespace Exceptionless.Submission {
         protected virtual HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
 #if NET45
             var handler = new WebRequestHandler { UseDefaultCredentials = true };
-            handler.ServerCertificateValidationCallback = delegate { return true; };
 #else
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
-#if !PORTABLE && !NETSTANDARD1_2
-            //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
 #endif
+#if !PORTABLE && !NETSTANDARD1_2
+            if (config.ServerCertificateValidationCallback != null) {
+                var callback = config.ServerCertificateValidationCallback;
+#if NET45
+                bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
+                    var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
+                    return callback(certData);
+                }
+
+                handler.ServerCertificateValidationCallback = Validate;
+#else
+                bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
+                    var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
+                    return callback(certData);
+                }
+
+                handler.ServerCertificateCustomValidationCallback = Validate;
+#endif
+            }
 #endif
             if (handler.SupportsAutomaticDecompression)
                 handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
