@@ -40,7 +40,9 @@ using System.Runtime.Serialization;
 #if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
 using System.Security.Permissions;
 #endif
+#if !PORTABLE
 using System.Xml.Serialization;
+#endif
 using Exceptionless.Json.Converters;
 using Exceptionless.Json.Utilities;
 using Exceptionless.Json.Linq;

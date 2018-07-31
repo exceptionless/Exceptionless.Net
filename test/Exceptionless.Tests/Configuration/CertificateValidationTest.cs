@@ -2,17 +2,10 @@
 using System.Net.Security;
 using Exceptionless.Dependency;
 using Exceptionless.Submission;
-using Exceptionless.Tests.Utility;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Configuration {
     public class CertificateValidationTest {
-        private readonly TestOutputWriter _writer;
-        public CertificateValidationTest(ITestOutputHelper output) {
-            _writer = new TestOutputWriter(output);
-        }
-
         [Fact(Skip = "depends on availability of a remote service")]
         public void CanOverrideCertValidation() {
             Run(GetClient(x => {
