@@ -134,19 +134,9 @@ namespace Exceptionless.Submission {
             var callback = config.ServerCertificateValidationCallback;
             if (callback != null) {
 #if NET45
-                bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
-                    var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
-                    return callback(certData);
-                }
-
-                handler.ServerCertificateValidationCallback = Validate;
+                handler.ServerCertificateValidationCallback = (s,c,ch,p)=>Validate(s,c,ch,p,callback);
 #else
-                bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
-                    var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
-                    return callback(certData);
-                }
-
-                handler.ServerCertificateCustomValidationCallback = Validate;
+                handler.ServerCertificateCustomValidationCallback = (m,c,ch,p)=>Validate(m,c,ch,p,callback);
 #endif
             }
 #endif
@@ -166,6 +156,20 @@ namespace Exceptionless.Submission {
 
             return client;
         }
+
+#if !PORTABLE && !NETSTANDARD1_2
+#if NET45
+        private bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+            var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
+            return callback(certData);
+        }
+#else
+        private bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+            var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
+            return callback(certData);
+        }
+#endif
+#endif
 
         private string GetResponseMessage(HttpResponseMessage response) {
             if (response.IsSuccessStatusCode)
