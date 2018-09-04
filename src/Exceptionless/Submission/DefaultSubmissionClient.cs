@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-#if NET45 || (!PORTABLE && !NETSTANDARD1_2)
+#if NET45 || NETSTANDARD2_0
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 #endif
@@ -130,13 +130,13 @@ namespace Exceptionless.Submission {
 #else
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
 #endif
-#if !PORTABLE && !NETSTANDARD1_2
+#if NET45 || NETSTANDARD2_0
             var callback = config.ServerCertificateValidationCallback;
             if (callback != null) {
 #if NET45
-                handler.ServerCertificateValidationCallback = (s,c,ch,p)=>Validate(s,c,ch,p,callback);
+                handler.ServerCertificateValidationCallback = (s,c,ch,p) => Validate(s,c,ch,p,callback);
 #else
-                handler.ServerCertificateCustomValidationCallback = (m,c,ch,p)=>Validate(m,c,ch,p,callback);
+                handler.ServerCertificateCustomValidationCallback = (m,c,ch,p) => Validate(m,c,ch,p,callback);
 #endif
             }
 #endif
@@ -157,7 +157,7 @@ namespace Exceptionless.Submission {
             return client;
         }
 
-#if !PORTABLE && !NETSTANDARD1_2
+#if NET45 || NETSTANDARD2_0
 #if NET45
         private bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
             var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
