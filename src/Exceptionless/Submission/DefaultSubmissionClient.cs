@@ -4,6 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+#if NET45 || (!PORTABLE && !NETSTANDARD1_2)
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+#endif
 using System.Text;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
@@ -123,12 +127,18 @@ namespace Exceptionless.Submission {
         protected virtual HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
 #if NET45
             var handler = new WebRequestHandler { UseDefaultCredentials = true };
-            handler.ServerCertificateValidationCallback = delegate { return true; };
 #else
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
-#if !PORTABLE && !NETSTANDARD1_2
-            //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
 #endif
+#if !PORTABLE && !NETSTANDARD1_2
+            var callback = config.ServerCertificateValidationCallback;
+            if (callback != null) {
+#if NET45
+                handler.ServerCertificateValidationCallback = (s,c,ch,p)=>Validate(s,c,ch,p,callback);
+#else
+                handler.ServerCertificateCustomValidationCallback = (m,c,ch,p)=>Validate(m,c,ch,p,callback);
+#endif
+            }
 #endif
             if (handler.SupportsAutomaticDecompression)
                 handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
@@ -146,6 +156,20 @@ namespace Exceptionless.Submission {
 
             return client;
         }
+
+#if !PORTABLE && !NETSTANDARD1_2
+#if NET45
+        private bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+            var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
+            return callback(certData);
+        }
+#else
+        private bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+            var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
+            return callback(certData);
+        }
+#endif
+#endif
 
         private string GetResponseMessage(HttpResponseMessage response) {
             if (response.IsSuccessStatusCode)

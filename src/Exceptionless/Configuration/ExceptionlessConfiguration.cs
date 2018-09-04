@@ -1,5 +1,7 @@
 ﻿using System;
+#if !PORTABLE
 using System.Collections.Concurrent;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -274,6 +276,13 @@ namespace Exceptionless {
                     _submissionBatchSize = value;
             }
         }
+
+#if !PORTABLE && !NETSTANDARD1_2
+        /// <summary>
+        /// Callback which is invoked to validate the exceptionless server certificate.
+        /// </summary>
+        public Func<CertificateData, bool> ServerCertificateValidationCallback { get; set; }
+#endif
 
         /// <summary>
         /// A list of exclusion patterns that will automatically remove any data that matches them from any data submitted to the server.
