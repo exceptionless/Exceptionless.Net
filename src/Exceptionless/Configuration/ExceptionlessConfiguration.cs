@@ -277,7 +277,7 @@ namespace Exceptionless {
             }
         }
 
-#if NET45 || NETSTANDARD2_0
+#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Callback which is invoked to validate the exceptionless server certificate.
         /// </summary>

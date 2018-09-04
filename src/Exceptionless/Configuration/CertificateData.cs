@@ -1,5 +1,4 @@
-﻿#if NET45 || NETSTANDARD2_0
-using System;
+﻿#if !PORTABLE && !NETSTANDARD1_2
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -44,7 +43,9 @@ namespace Exceptionless {
         /// An object that contains state information for this validation.
         /// </summary>
         public object Sender { get; }
-#else
+#endif
+
+#if !NET45 && !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// The request which was sent to the remore party
         /// </summary>

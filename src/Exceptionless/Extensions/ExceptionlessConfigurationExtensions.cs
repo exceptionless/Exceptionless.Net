@@ -436,7 +436,7 @@ namespace Exceptionless {
         }
 #endif
 
-#if NET45 || NETSTANDARD2_0
+#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Add a custom server certificate validation against the thumbprint of the server certificate.
         /// </summary>
@@ -444,9 +444,7 @@ namespace Exceptionless {
         /// <param name="thumbprint">Thumbprint of the server certificate. <example>e.g. "86481791CDAF6D7A02BEE9A649EA9F84DE84D22C"</example></param>
         public static void TrustCertificateThumbprint(this ExceptionlessConfiguration config, string thumbprint) {
             config.ServerCertificateValidationCallback = x => {
-                if (x.SslPolicyErrors == SslPolicyErrors.None)
-                    return true;
-
+                if (x.SslPolicyErrors == SslPolicyErrors.None) return true;
                 return x.Certificate != null && thumbprint != null && thumbprint.Equals(x.Certificate.Thumbprint, StringComparison.OrdinalIgnoreCase);
             };
         }
@@ -458,17 +456,12 @@ namespace Exceptionless {
         /// <param name="thumbprint">Thumbprint of the ca certificate. <example>e.g. "afe5d244a8d1194230ff479fe2f897bbcd7a8cb4"</example></param>
         public static void TrustCAThumbprint(this ExceptionlessConfiguration config, string thumbprint) {
             config.ServerCertificateValidationCallback = x => {
-                if (x.SslPolicyErrors == SslPolicyErrors.None)
-                    return true;
-
-                if (x.Chain == null || thumbprint == null)
-                    return false;
-
+                if (x.SslPolicyErrors == SslPolicyErrors.None) return true;
+                if (x.Chain == null || thumbprint == null) return false;
                 foreach (var ca in x.Chain.ChainElements) {
                     if (thumbprint.Equals(ca.Certificate.Thumbprint, StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
-
                 return false;
             };
         }
