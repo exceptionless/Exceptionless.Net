@@ -27,6 +27,7 @@ Get-ChildItem './Newtonsoft.Json' *.cs -recurse |
         $c = $c -replace 'public( (?:static|sealed|abstract))? (class|struct|interface|enum)','internal$1 $2'
         $c = $c -replace 'public delegate void','internal delegate void'
         $c = $c -replace '\[CLSCompliant\(false\)\]',''
+        $c = $c -replace 'internal sealed class JsonIgnoreAttribute','public sealed class JsonIgnoreAttribute'
         $c | Set-Content $_.FullName
     }
 
