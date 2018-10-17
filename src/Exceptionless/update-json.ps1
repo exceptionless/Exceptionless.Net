@@ -24,10 +24,11 @@ Get-ChildItem './Newtonsoft.Json' *.cs -recurse |
     Foreach-Object {
         $c = ($_ | Get-Content) 
         $c = $c -replace 'Newtonsoft.Json','Exceptionless.Json'
-        $c = $c -replace 'public( (?:static|sealed|abstract))? (class|struct|interface|enum)','internal$1 $2'
-        $c = $c -replace 'public delegate void','internal delegate void'
-        $c = $c -replace '\[CLSCompliant\(false\)\]',''
-        $c = $c -replace 'internal sealed class JsonIgnoreAttribute','public sealed class JsonIgnoreAttribute'
+        if($_.name -ne 'JsonIgnoreAttribute.cs'){
+            $c = $c -replace 'public( (?:static|sealed|abstract))? (class|struct|interface|enum)','internal$1 $2'
+            $c = $c -replace 'public delegate void','internal delegate void'
+            $c = $c -replace '\[CLSCompliant\(false\)\]',''
+        }
         $c | Set-Content $_.FullName
     }
 
