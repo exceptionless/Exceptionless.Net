@@ -33,7 +33,7 @@ namespace Exceptionless.Json
     /// Instructs the <see cref="JsonSerializer"/> to always serialize the member, and require the member has a value.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
-    public sealed class JsonRequiredAttribute : Attribute
+    internal sealed class JsonRequiredAttribute : Attribute
     {
     }
 }

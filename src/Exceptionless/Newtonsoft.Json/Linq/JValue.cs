@@ -41,7 +41,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a value in JSON (string, integer, date, etc).
     /// </summary>
-    public class JValue : JToken, IEquatable<JValue>, IFormattable, IComparable, IComparable<JValue>
+    internal class JValue : JToken, IEquatable<JValue>, IFormattable, IComparable, IComparable<JValue>
 #if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
         , IConvertible
 #endif
@@ -95,7 +95,7 @@ namespace Exceptionless.Json.Linq
         /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        [CLSCompliant(false)]
+        
         public JValue(ulong value)
             : this(value, JTokenType.Integer)
         {

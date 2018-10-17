@@ -45,7 +45,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a token that can contain other tokens.
     /// </summary>
-    public abstract class JContainer : JToken, IList<JToken>
+    internal abstract class JContainer : JToken, IList<JToken>
 #if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         , ITypedList, IBindingList
 #endif

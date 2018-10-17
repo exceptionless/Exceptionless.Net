@@ -37,7 +37,7 @@ namespace Exceptionless.Json.Bson
     /// <summary>
     /// Represents a reader that provides fast, non-cached, forward-only access to serialized JSON data.
     /// </summary>
-    public class BsonReader : JsonReader
+    internal class BsonReader : JsonReader
     {
         private const int MaxCharBytesSize = 128;
         private static readonly byte[] SeqRange1 = new byte[] { 0, 127 }; // range of 1-byte sequence

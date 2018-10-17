@@ -97,7 +97,7 @@ namespace Exceptionless.Json.Serialization
     /// <summary>
     /// Used by <see cref="JsonSerializer"/> to resolves a <see cref="JsonContract"/> for a given <see cref="System.Type"/>.
     /// </summary>
-    public class DefaultContractResolver : IContractResolver
+    internal class DefaultContractResolver : IContractResolver
     {
 #pragma warning disable 612,618
         private static readonly IContractResolver _instance = new DefaultContractResolver(true);
@@ -586,7 +586,7 @@ namespace Exceptionless.Json.Serialization
         internal class EnumerableDictionaryWrapper<TEnumeratorKey, TEnumeratorValue> : IEnumerable<KeyValuePair<object, object>>
         {
             private readonly IEnumerable<KeyValuePair<TEnumeratorKey, TEnumeratorValue>> _e;
-
+            
             public EnumerableDictionaryWrapper(IEnumerable<KeyValuePair<TEnumeratorKey, TEnumeratorValue>> e)
             {
                 ValidationUtils.ArgumentNotNull(e, nameof(e));

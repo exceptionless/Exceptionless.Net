@@ -3,7 +3,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Specifies how JSON comments are handled when loading JSON.
     /// </summary>
-    public enum CommentHandling
+    internal enum CommentHandling
     {
         /// <summary>
         /// Ignore comments.
@@ -19,7 +19,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Specifies how line information is handled when loading JSON.
     /// </summary>
-    public enum LineInfoHandling
+    internal enum LineInfoHandling
     {
         /// <summary>
         /// Ignore line information.

@@ -38,7 +38,7 @@ namespace Exceptionless.Json.Linq
     /// <example>
     ///   <code lang="cs" source="..\Src\Exceptionless.Json.Tests\Documentation\LinqToJsonTests.cs" region="LinqToJsonCreateParseArray" title="Parsing a JSON Array from Text" />
     /// </example>
-    public class JArray : JContainer, IList<JToken>
+    internal class JArray : JContainer, IList<JToken>
     {
         private readonly List<JToken> _values = new List<JToken>();
 

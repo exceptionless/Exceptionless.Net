@@ -36,7 +36,7 @@ namespace Exceptionless.Json
     /// <summary>
     /// Specifies the settings on a <see cref="JsonSerializer"/> object.
     /// </summary>
-    public class JsonSerializerSettings
+    internal class JsonSerializerSettings
     {
         internal const ReferenceLoopHandling DefaultReferenceLoopHandling = ReferenceLoopHandling.Error;
         internal const MissingMemberHandling DefaultMissingMemberHandling = MissingMemberHandling.Ignore;

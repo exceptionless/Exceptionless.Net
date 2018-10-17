@@ -52,7 +52,7 @@ namespace Exceptionless.Json.Linq
     /// <example>
     ///   <code lang="cs" source="..\Src\Exceptionless.Json.Tests\Documentation\LinqToJsonTests.cs" region="LinqToJsonCreateParse" title="Parsing a JSON Object from Text" />
     /// </example>
-    public class JObject : JContainer, IDictionary<string, JToken>, INotifyPropertyChanged
+    internal class JObject : JContainer, IDictionary<string, JToken>, INotifyPropertyChanged
 #if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         , ICustomTypeDescriptor
 #endif

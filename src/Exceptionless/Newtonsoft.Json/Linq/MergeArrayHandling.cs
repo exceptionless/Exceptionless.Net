@@ -3,7 +3,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Specifies how JSON arrays are merged together.
     /// </summary>
-    public enum MergeArrayHandling
+    internal enum MergeArrayHandling
     {
         /// <summary>Concatenate arrays.</summary>
         Concat = 0,

@@ -43,7 +43,7 @@ namespace Exceptionless.Json.Schema
     /// </note>
     /// </summary>
     [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
-    public class JsonSchemaResolver
+    internal class JsonSchemaResolver
     {
         /// <summary>
         /// Gets or sets the loaded schemas.
