@@ -1438,7 +1438,7 @@ namespace Exceptionless.Json.Serialization
             property.HasMemberAttribute = hasMemberAttribute;
 
             bool hasJsonIgnoreAttribute =
-                JsonTypeReflector.GetAttribute<DataMemberIgnoreAttribute>(attributeProvider) != null
+                JsonTypeReflector.GetAttribute<ExceptionlessIgnoreAttribute>(attributeProvider) != null
                     // automatically ignore extension data dictionary property if it is public
                 || JsonTypeReflector.GetAttribute<JsonExtensionDataAttribute>(attributeProvider) != null
 #if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
