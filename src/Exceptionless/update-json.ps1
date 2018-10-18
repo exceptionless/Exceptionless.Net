@@ -2,7 +2,10 @@
 if (Test-Path json.zip) {
 	del json.zip
 }
+
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/9.0.1.zip -OutFile json.zip
+
 if (Test-Path json-temp) {
 	rmdir './json-temp' -Recurse -Force
 }
@@ -24,6 +27,7 @@ Get-ChildItem './Newtonsoft.Json' *.cs -recurse |
     Foreach-Object {
         $c = ($_ | Get-Content) 
         $c = $c -replace 'Newtonsoft.Json','Exceptionless.Json'
+        $c = $c -replace 'JsonIgnoreAttribute','ExceptionlessIgnoreAttribute'
         if($_.name -ne 'JsonIgnoreAttribute.cs'){
             $c = $c -replace 'public( (?:static|sealed|abstract))? (class|struct|interface|enum)','internal$1 $2'
             $c = $c -replace 'public delegate void','internal delegate void'
@@ -31,6 +35,8 @@ Get-ChildItem './Newtonsoft.Json' *.cs -recurse |
         }
         $c | Set-Content $_.FullName
     }
+
+Rename-Item -Path "./Newtonsoft.Json/JsonIgnoreAttribute.cs" "ExceptionlessIgnoreAttribute.cs"
 
 del './Newtonsoft.Json/*.csproj' -Force
 del './Newtonsoft.Json/*.xproj' -Force
