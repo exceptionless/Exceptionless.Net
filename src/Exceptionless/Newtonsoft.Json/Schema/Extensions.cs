@@ -39,7 +39,7 @@ namespace Exceptionless.Json.Schema
     /// </note>
     /// </summary>
     [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
-    public static class Extensions
+    internal static class Extensions
     {
         /// <summary>
         /// <para>

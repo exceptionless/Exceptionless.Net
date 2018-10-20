@@ -52,7 +52,7 @@ namespace Exceptionless.Json
     /// </note>
     /// </summary>
     [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
-    public class JsonValidatingReader : JsonReader, IJsonLineInfo
+    internal class JsonValidatingReader : JsonReader, IJsonLineInfo
     {
         private class SchemaScope
         {

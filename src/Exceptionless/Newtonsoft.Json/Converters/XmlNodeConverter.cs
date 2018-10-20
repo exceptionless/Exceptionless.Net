@@ -922,7 +922,7 @@ namespace Exceptionless.Json.Converters
     /// <summary>
     /// Converts XML to and from JSON.
     /// </summary>
-    public class XmlNodeConverter : JsonConverter
+    internal class XmlNodeConverter : JsonConverter
     {
         private const string TextName = "#text";
         private const string CommentName = "#comment";

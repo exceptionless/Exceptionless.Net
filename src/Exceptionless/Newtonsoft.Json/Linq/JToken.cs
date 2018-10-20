@@ -51,7 +51,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents an abstract JSON token.
     /// </summary>
-    public abstract class JToken : IJEnumerable<JToken>, IJsonLineInfo
+    internal abstract class JToken : IJEnumerable<JToken>, IJsonLineInfo
 #if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
         , ICloneable
 #endif
@@ -785,7 +785,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ushort(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -809,7 +809,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator char(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -856,7 +856,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator sbyte(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -936,7 +936,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ushort?(JToken value)
         {
             if (value == null)
@@ -993,7 +993,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator sbyte?(JToken value)
         {
             if (value == null)
@@ -1124,7 +1124,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator uint?(JToken value)
         {
             if (value == null)
@@ -1153,7 +1153,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ulong?(JToken value)
         {
             if (value == null)
@@ -1264,7 +1264,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator uint(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -1288,7 +1288,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        [CLSCompliant(false)]
+        
         public static explicit operator ulong(JToken value)
         {
             JValue v = EnsureValue(value);
@@ -1542,7 +1542,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(sbyte value)
         {
             return new JValue(value);
@@ -1553,7 +1553,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(sbyte? value)
         {
             return new JValue(value);
@@ -1626,7 +1626,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(short value)
         {
             return new JValue(value);
@@ -1637,7 +1637,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ushort value)
         {
             return new JValue(value);
@@ -1708,7 +1708,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(short? value)
         {
             return new JValue(value);
@@ -1719,7 +1719,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ushort? value)
         {
             return new JValue(value);
@@ -1730,7 +1730,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(uint? value)
         {
             return new JValue(value);
@@ -1741,7 +1741,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ulong? value)
         {
             return new JValue(value);
@@ -1782,7 +1782,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(uint value)
         {
             return new JValue(value);
@@ -1793,7 +1793,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        [CLSCompliant(false)]
+        
         public static implicit operator JToken(ulong value)
         {
             return new JValue(value);

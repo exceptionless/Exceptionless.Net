@@ -37,7 +37,7 @@ namespace Exceptionless.Json.Converters
     /// <summary>
     /// Converts a <see cref="IJsonValue"/> to and from JSON.
     /// </summary>
-    public class JsonValueConverter : JsonConverter
+    internal class JsonValueConverter : JsonConverter
     {
         /// <summary>
         /// Writes the JSON representation of the object.

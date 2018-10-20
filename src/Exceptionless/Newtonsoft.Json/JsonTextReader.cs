@@ -55,7 +55,7 @@ namespace Exceptionless.Json
     /// <summary>
     /// Represents a reader that provides fast, non-cached, forward-only access to JSON text data.
     /// </summary>
-    public class JsonTextReader : JsonReader, IJsonLineInfo
+    internal class JsonTextReader : JsonReader, IJsonLineInfo
     {
         private const char UnicodeReplacementChar = '\uFFFD';
         private const int MaximumJavascriptIntegerCharacterLength = 380;

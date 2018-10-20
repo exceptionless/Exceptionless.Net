@@ -40,7 +40,7 @@ namespace Exceptionless.Json.Bson
     /// <summary>
     /// Represents a writer that provides a fast, non-cached, forward-only way of generating JSON data.
     /// </summary>
-    public class BsonWriter : JsonWriter
+    internal class BsonWriter : JsonWriter
     {
         private readonly BsonBinaryWriter _writer;
 
@@ -294,7 +294,7 @@ namespace Exceptionless.Json.Bson
         /// Writes a <see cref="UInt32"/> value.
         /// </summary>
         /// <param name="value">The <see cref="UInt32"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public override void WriteValue(uint value)
         {
             if (value > int.MaxValue)
@@ -320,7 +320,7 @@ namespace Exceptionless.Json.Bson
         /// Writes a <see cref="UInt64"/> value.
         /// </summary>
         /// <param name="value">The <see cref="UInt64"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public override void WriteValue(ulong value)
         {
             if (value > long.MaxValue)
@@ -376,7 +376,7 @@ namespace Exceptionless.Json.Bson
         /// Writes a <see cref="UInt16"/> value.
         /// </summary>
         /// <param name="value">The <see cref="UInt16"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public override void WriteValue(ushort value)
         {
             base.WriteValue(value);
@@ -413,7 +413,7 @@ namespace Exceptionless.Json.Bson
         /// Writes a <see cref="SByte"/> value.
         /// </summary>
         /// <param name="value">The <see cref="SByte"/> value to write.</param>
-        [CLSCompliant(false)]
+        
         public override void WriteValue(sbyte value)
         {
             base.WriteValue(value);

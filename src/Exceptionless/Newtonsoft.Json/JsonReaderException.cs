@@ -36,7 +36,7 @@ namespace Exceptionless.Json
 #if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
     [Serializable]
 #endif
-    public class JsonReaderException : JsonException
+    internal class JsonReaderException : JsonException
     {
         /// <summary>
         /// Gets the line number indicating where the error occurred.

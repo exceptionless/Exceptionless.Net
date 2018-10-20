@@ -37,7 +37,7 @@ namespace Exceptionless.Json.Schema
     /// </summary>
     [Flags]
     [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
-    public enum JsonSchemaType
+    internal enum JsonSchemaType
     {
         /// <summary>
         /// No type specified.

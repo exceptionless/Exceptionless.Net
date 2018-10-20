@@ -49,7 +49,7 @@ namespace Exceptionless.Json.Schema
     /// </note>
     /// </summary>
     [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
-    public class JsonSchemaGenerator
+    internal class JsonSchemaGenerator
     {
         /// <summary>
         /// Gets or sets how undefined schemas are handled by the serializer.
