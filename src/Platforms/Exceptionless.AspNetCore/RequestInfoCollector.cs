@@ -105,7 +105,7 @@ namespace Exceptionless.AspNetCore {
                     int bufferSize = (int)Math.Min(1024, maxDataToRead);
 
                     char[] buffer = new char[bufferSize];
-                    while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) < maxDataToRead) {
+                    while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) <= maxDataToRead) {
                         sb.Append(buffer, 0, numRead);
                     }
                     string postData = sb.ToString();
