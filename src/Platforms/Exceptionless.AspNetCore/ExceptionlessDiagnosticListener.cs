@@ -14,7 +14,7 @@ namespace Exceptionless.AspNetCore {
         [DiagnosticName("Microsoft.AspNetCore.Diagnostics.HandledException")]
         public void OnDiagnosticHandledException(HttpContext httpContext, Exception exception) {
             var contextData = new ContextData();
-            contextData.SetSubmissionMethod("Microsoft.AspNetCore.Diagnostics.UnhandledException");
+            contextData.SetSubmissionMethod("Microsoft.AspNetCore.Diagnostics.HandledException");
 
             exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
         }
@@ -23,7 +23,7 @@ namespace Exceptionless.AspNetCore {
         public void OnDiagnosticUnhandledException(HttpContext httpContext, Exception exception) {
             var contextData = new ContextData();
             contextData.MarkAsUnhandledError();
-            contextData.SetSubmissionMethod("Microsoft.AspNetCore.Diagnostics.HandledException");
+            contextData.SetSubmissionMethod("Microsoft.AspNetCore.Diagnostics.UnhandledException");
 
             exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
         }
