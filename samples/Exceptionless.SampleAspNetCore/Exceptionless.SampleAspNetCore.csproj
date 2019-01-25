@@ -1,13 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <DebugType>portable</DebugType>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Exceptionless.SampleAspNetCore</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>Exceptionless.SampleAspNetCore</PackageId>
-    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
@@ -18,6 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>
