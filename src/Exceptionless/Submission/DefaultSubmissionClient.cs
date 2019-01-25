@@ -176,6 +176,8 @@ namespace Exceptionless.Submission {
                 return null;
 
             int statusCode = (int)response.StatusCode;
+            if (statusCode == 401)
+                return "401 Unauthorized.";
             if (statusCode == 404)
                 return "404 Page not found.";
 
@@ -189,7 +191,7 @@ namespace Exceptionless.Submission {
                 } catch { }
             }
 
-            return message;
+            return !String.IsNullOrEmpty(message) ? message : $"{statusCode} {response.ReasonPhrase}";
         }
 
         private string GetResponseText(HttpResponseMessage response) {
