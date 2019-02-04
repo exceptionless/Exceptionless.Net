@@ -12,7 +12,7 @@ using Exceptionless.Dependency;
 using System.Text;
 
 namespace Exceptionless.AspNetCore {
-    internal static class RequestInfoCollector {
+    public static class RequestInfoCollector {
         private const int MAX_BODY_SIZE = 50 * 1024;
         public static RequestInfo Collect(HttpContext context, ExceptionlessConfiguration config) {
             if (context == null)
