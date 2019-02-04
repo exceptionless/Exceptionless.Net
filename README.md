@@ -16,7 +16,7 @@ All of our [.NET clients can be installed](https://www.nuget.org/profiles/except
 
 **This section is for development purposes only! If you are trying to use the Exceptionless .NET libraries, please get them from NuGet.**
 
-1. You will need to have [Visual Studio 2015](http://www.visualstudio.com/products/visual-studio-community-vs) and [.NET Core SDK with VS Tooling](https://www.microsoft.com/net/core) installed.
+1. You will need to have [Visual Studio 2017](http://www.visualstudio.com/products/visual-studio-community-vs) and [.NET Core SDK with VS Tooling](https://www.microsoft.com/net/core) installed.
 2. Open the `Exceptionless.Net.sln` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
 4. Run the project by pressing `F5` to start the console.

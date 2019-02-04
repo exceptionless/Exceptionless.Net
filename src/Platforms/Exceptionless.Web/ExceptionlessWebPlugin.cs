@@ -20,7 +20,7 @@ namespace Exceptionless.Web {
                 httpContext = HttpContext.Current.ToWrapped();
 
             var serializer = context.Client.Configuration.Resolver.GetJsonSerializer();
-            if (context.Client.Configuration.IncludePrivateInformation)
+            if (context.Client.Configuration.IncludeUserName)
                 AddUser(context, httpContext, serializer);
 
             if (httpContext == null)

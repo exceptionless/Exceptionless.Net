@@ -34,7 +34,7 @@ namespace Exceptionless.Json.Serialization
     ///   <code lang="cs" source="..\Src\Exceptionless.Json.Tests\Documentation\SerializationTests.cs" region="ReducingSerializedJsonSizeContractResolverObject" title="IContractResolver Class" />
     ///   <code lang="cs" source="..\Src\Exceptionless.Json.Tests\Documentation\SerializationTests.cs" region="ReducingSerializedJsonSizeContractResolverExample" title="IContractResolver Example" />
     /// </example>
-    public interface IContractResolver
+    internal interface IContractResolver
     {
         /// <summary>
         /// Resolves the contract for a given type.

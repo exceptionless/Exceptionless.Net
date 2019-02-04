@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -12,6 +14,7 @@ using Exceptionless.Models.Data;
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
         private const int MAX_DATA_ITEM_LENGTH = 1000;
+        private const int MAX_BODY_SIZE = 50*1024;
 
         public static RequestInfo Collect(HttpContextBase context, ExceptionlessConfiguration config) {
             if (context == null)
@@ -23,9 +26,9 @@ namespace Exceptionless.ExtendedData {
                 Path = String.IsNullOrEmpty(context.Request.Path) ? "/" : context.Request.Path
             };
 
-            if (config.IncludePrivateInformation) {
+            if (config.IncludeIpAddress) {
                 try {
-                    info.ClientIpAddress = GetUserIPAddress(context);
+                    info.ClientIpAddress = GetUserIpAddress(context);
                 } catch (ArgumentException ex) {
                     config.Resolver.GetLog().Error(ex, "An error occurred while setting the Client Ip Address.");
                 }
@@ -47,38 +50,94 @@ namespace Exceptionless.ExtendedData {
                 info.Port = context.Request.Url.Port;
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
-            info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-            if (context.Request.Form.Count > 0) {
-                info.PostData = context.Request.Form.ToDictionary(exclusionList);
-            } else if (context.Request.ContentLength > 0) {
-                if (context.Request.ContentLength < 1024 * 50) {
-                    try {
-                        if (context.Request.InputStream.CanSeek && context.Request.InputStream.Position > 0)
-                            context.Request.InputStream.Position = 0;
+            if (config.IncludeCookies)
+                info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-                        if (context.Request.InputStream.Position == 0) {
-                            using (var inputStream = new StreamReader(context.Request.InputStream))
-                                info.PostData = inputStream.ReadToEnd();
-                        } else {
-                            info.PostData = "Unable to get POST data: The stream could not be reset.";
-                        }
-                    } catch (Exception ex) {
-                        info.PostData = "Error retrieving POST data: " + ex.Message;
-                    }
-                } else {
-                    string value = Math.Round(context.Request.ContentLength / 1024m, 0).ToString("N0");
-                    info.PostData = String.Format("Data is too large ({0}kb) to be included.", value);
+            if (config.IncludePostData) {
+                info.PostData = GetPostData(context, config, exclusionList);
+            }
+
+            if (config.IncludeQueryString) {
+                try {
+                    info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
+                } catch (Exception ex) {
+                    config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
                 }
             }
 
-            try {
-                info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
-            } catch (Exception ex) {
-                config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
+            return info;
+        }
+
+        private static object GetPostData(HttpContextBase context, ExceptionlessConfiguration config, string[] exclusionList) {
+            var log = config.Resolver.GetLog();
+
+            if (context.Request.Form.Count > 0) {
+                log.Debug("Reading POST data from Request.Form");
+
+                return context.Request.Form.ToDictionary(exclusionList);
             }
 
-            return info;
+            var contentLength = context.Request.ContentLength;
+            if (contentLength == 0) {
+                string message = "Content-length was zero, empty post.";
+                log.Debug(message);
+                return message;
+            }
+
+            if (contentLength > MAX_BODY_SIZE) {
+                string value = Math.Round(contentLength / 1024m, 0).ToString("N0");
+                string message = String.Format("Data is too large ({0}kb) to be included.", value);
+                log.Debug(message);
+                return message;
+            }
+
+            try {
+                if (!context.Request.InputStream.CanSeek) {
+                    string message = "Unable to get POST data: The stream could not be reset.";
+                    log.Debug(message);
+                    return message;
+                }
+
+                long originalPosition = context.Request.InputStream.Position;
+                if (context.Request.InputStream.Position > 0) {
+                    context.Request.InputStream.Position = 0;
+                }
+
+                log.FormattedDebug("Reading POST, original position: {0}", originalPosition);
+
+                if (context.Request.InputStream.Position != 0) {
+                    string message = "Unable to get POST data: The stream position was not at 0.";
+                    log.Debug(message);
+                    return message;
+                }
+
+                var maxDataToRead = contentLength == 0 ? MAX_BODY_SIZE : contentLength;
+
+                // pass default values, except for leaveOpen: true. This prevents us from disposing the underlying stream
+                using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true)) {
+                    var sb = new StringBuilder();
+                    int numRead;
+
+                    int bufferSize = Math.Min(1024, maxDataToRead);
+                    
+                    char[] buffer = new char[bufferSize];
+                    while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) < maxDataToRead) {
+                        sb.Append(buffer, 0, numRead);
+                    }
+                    string postData = sb.ToString();
+
+                    context.Request.InputStream.Position = originalPosition;
+
+                    log.FormattedDebug("Reading POST, set back to position: {0}", originalPosition);
+                    return postData;
+                }
+            }
+            catch (Exception ex) {
+                string message = $"Error retrieving POST data: {ex.Message}";
+                log.Error(message);
+                return message;
+            }
         }
 
         private static readonly List<string> _ignoredFormFields = new List<string> {
@@ -129,7 +188,7 @@ namespace Exceptionless.ExtendedData {
             return d;
         }
 
-        private static string GetUserIPAddress(HttpContextBase context) {
+        private static string GetUserIpAddress(HttpContextBase context) {
             string clientIp = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
             if (String.IsNullOrEmpty(clientIp))
                 clientIp = context.Request.UserHostAddress;

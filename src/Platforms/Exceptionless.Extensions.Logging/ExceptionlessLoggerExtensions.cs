@@ -24,6 +24,8 @@ namespace Exceptionless {
             return ExceptionlessLogLevel.Off;
         }
 
+        // TODO: Add support for ILoggingBuilder
+
         /// <summary>
         /// Adds Exceptionless to the logging pipeline using the default client.
         /// </summary>

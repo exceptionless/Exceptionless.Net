@@ -35,7 +35,7 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a JSON property.
     /// </summary>
-    public class JProperty : JContainer
+    internal class JProperty : JContainer
     {
         #region JPropertyList
         private class JPropertyList : IList<JToken>

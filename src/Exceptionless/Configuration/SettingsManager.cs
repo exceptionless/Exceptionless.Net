@@ -8,6 +8,8 @@ using Exceptionless.Storage;
 
 namespace Exceptionless.Configuration {
     public static class SettingsManager {
+        private static bool _isUpdatingSettings = false;
+
         public static void ApplySavedServerSettings(ExceptionlessConfiguration config) {
             if (config == null)
                 return;
@@ -33,7 +35,7 @@ namespace Exceptionless.Configuration {
                 var fileStorage = config.Resolver.GetFileStorage();
                 if (!fileStorage.Exists(configPath))
                     return new SettingsDictionary();
-            
+
                 return fileStorage.GetObject<SettingsDictionary>(configPath);
             } catch (Exception ex) {
                 config.Resolver.GetLog().FormattedError(typeof(SettingsManager), ex, "Unable to read and apply saved server settings: {0}", ex.Message);
@@ -69,10 +71,11 @@ namespace Exceptionless.Configuration {
         }
 
         public static void UpdateSettings(ExceptionlessConfiguration config, int? version = null) {
-            if (config == null || !config.IsValid || !config.Enabled)
+            if (config == null || !config.IsValid || !config.Enabled || _isUpdatingSettings)
                 return;
 
             try {
+                _isUpdatingSettings = true;
                 if (!version.HasValue || version < 0)
                     version = GetVersion(config);
 
@@ -88,10 +91,8 @@ namespace Exceptionless.Configuration {
 
                 // TODO: Store snapshot of settings after reading from config and attributes and use that to revert to defaults.
                 // Remove any existing server settings that are not in the new server settings.
-                foreach (string key in savedServerSettings.Keys.Except(response.Settings.Keys)) {
-                    if (config.Settings.ContainsKey(key))
-                        config.Settings.Remove(key);
-                }
+                foreach (string key in savedServerSettings.Keys.Except(response.Settings.Keys))
+                    config.Settings.Remove(key);
 
                 var persistedClientData = config.Resolver.Resolve<PersistedDictionary>();
                 persistedClientData[String.Concat(config.GetQueueName(), "-ServerConfigVersion")] = response.SettingsVersion.ToString();
@@ -100,6 +101,8 @@ namespace Exceptionless.Configuration {
                 fileStorage.SaveObject(GetConfigPath(config), response.Settings);
             } catch (Exception ex) {
                 config.Resolver.GetLog().Error(typeof(SettingsManager), ex, "Error occurred updating settings.");
+            } finally {
+                _isUpdatingSettings = false;
             }
         }
 

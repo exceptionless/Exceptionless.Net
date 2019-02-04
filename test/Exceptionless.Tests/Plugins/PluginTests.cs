@@ -187,6 +187,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("404", "/unknown", "@@404:*", "false", true)]
         [InlineData("404", "/unknown", "@@404:/unknown", "false", true)]
         [InlineData("404", "/unknown", "@@404:/unknown", "true", false)]
+        [InlineData("404", "/example.php", "@@404:*.php", "false", true)]
         public void EventExclusionPlugin_SourceType(string type, string source, string settingKey, string settingValue, bool cancelled) {
             var client = CreateClient();
             if (settingKey != null)
@@ -495,6 +496,31 @@ namespace Exceptionless.Tests.Plugins {
                 var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
                 Assert.NotNull(error);
                 Assert.Equal(5, error.Data.Count);
+            }
+        }
+
+        [Fact]
+        public void ErrorPlugin_CopyExceptionData() {
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            foreach (var plugin in errorPlugins) {
+                var exception = new Exception("Test") {
+                    Data = { { "Test", "Test" } }
+                };
+
+                var client = CreateClient();
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(exception);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+
+                var error = context.Event.GetError() as IData ?? context.Event.GetSimpleError();
+                Assert.NotNull(error);
+                Assert.Single(error.Data);
+                Assert.Equal("Test", error.Data.GetString("Test"));
             }
         }
 

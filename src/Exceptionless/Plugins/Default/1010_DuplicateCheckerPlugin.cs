@@ -72,10 +72,17 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private void EnqueueMergedEvents() {
-            lock (_lock) {
-                while (_mergedEvents.Count > 0)
-                    _mergedEvents.Dequeue().Resubmit();
-            }
+            bool more;
+            do {
+                MergedEvent mergedEvent = null;
+                lock (_lock) {
+                    if (_mergedEvents.Count > 0) {
+                        mergedEvent = _mergedEvents.Dequeue();
+                    }
+                    more = _mergedEvents.Count > 0;
+                }
+                mergedEvent?.Resubmit();
+            } while (more);
         }
 
         public void Dispose() {

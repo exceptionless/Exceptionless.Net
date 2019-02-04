@@ -37,7 +37,7 @@ namespace Exceptionless.Json
     /// when deserializing with a value other than <c>TypeNameHandling.None</c>.
     /// </remarks>
     [Flags]
-    public enum TypeNameHandling
+    internal enum TypeNameHandling
     {
         /// <summary>
         /// Do not include the .NET type name when serializing types.

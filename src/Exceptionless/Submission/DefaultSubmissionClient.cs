@@ -4,6 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+#if NET45 || (!PORTABLE && !NETSTANDARD1_2)
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+#endif
 using System.Text;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
@@ -81,7 +85,7 @@ namespace Exceptionless.Submission {
             if (!config.IsValid)
                 return new SettingsResponse(false, message: "Invalid client configuration settings.");
 
-            string url = String.Format("{0}/projects/config?v={1}", GetServiceEndPoint(config), version);
+            string url = String.Format("{0}/projects/config?v={1}", GetConfigServiceEndPoint(config), version);
 
             HttpResponseMessage response;
             try {
@@ -123,12 +127,18 @@ namespace Exceptionless.Submission {
         protected virtual HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
 #if NET45
             var handler = new WebRequestHandler { UseDefaultCredentials = true };
-            handler.ServerCertificateValidationCallback = delegate { return true; };
 #else
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
-#if !PORTABLE && !NETSTANDARD1_2
-            //handler.ServerCertificateCustomValidationCallback = delegate { return true; };
 #endif
+#if !PORTABLE && !NETSTANDARD1_2
+            var callback = config.ServerCertificateValidationCallback;
+            if (callback != null) {
+#if NET45
+                handler.ServerCertificateValidationCallback = (s,c,ch,p)=>Validate(s,c,ch,p,callback);
+#else
+                handler.ServerCertificateCustomValidationCallback = (m,c,ch,p)=>Validate(m,c,ch,p,callback);
+#endif
+            }
 #endif
             if (handler.SupportsAutomaticDecompression)
                 handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip | DecompressionMethods.None;
@@ -147,11 +157,27 @@ namespace Exceptionless.Submission {
             return client;
         }
 
+#if !PORTABLE && !NETSTANDARD1_2
+#if NET45
+        private bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+            var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
+            return callback(certData);
+        }
+#else
+        private bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+            var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
+            return callback(certData);
+        }
+#endif
+#endif
+
         private string GetResponseMessage(HttpResponseMessage response) {
             if (response.IsSuccessStatusCode)
                 return null;
 
             int statusCode = (int)response.StatusCode;
+            if (statusCode == 401)
+                return "401 Unauthorized.";
             if (statusCode == 404)
                 return "404 Page not found.";
 
@@ -165,7 +191,7 @@ namespace Exceptionless.Submission {
                 } catch { }
             }
 
-            return message;
+            return !String.IsNullOrEmpty(message) ? message : $"{statusCode} {response.ReasonPhrase}";
         }
 
         private string GetResponseText(HttpResponseMessage response) {
@@ -186,6 +212,17 @@ namespace Exceptionless.Submission {
         
         private Uri GetServiceEndPoint(ExceptionlessConfiguration config) {
             var builder = new UriBuilder(config.ServerUrl);
+            builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
+
+            // EnableSSL
+            if (builder.Scheme == "https" && builder.Port == 80 && !builder.Host.Contains("local"))
+                builder.Port = 443;
+
+            return builder.Uri;
+        }
+
+        private Uri GetConfigServiceEndPoint(ExceptionlessConfiguration config) {
+            var builder = new UriBuilder(config.ConfigServerUrl);
             builder.Path += builder.Path.EndsWith("/") ? "api/v2" : "/api/v2";
 
             // EnableSSL
