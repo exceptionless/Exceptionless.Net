@@ -47,12 +47,11 @@ the following method.
 
 exception.ToExceptionless().Submit()
 
-Please note that ASP.NET Core doesn't have a static http context. If possible, it is recommended
-that you set the HttpContext when submitting events. Doing so will allow the request and
-user information to be populated. You can do this by calling the SetHttpContext EventBuilder
-extension method.
+Please note that ASP.NET Core doesn't have a static http context. We recommend registering
+the http context accessor. Doing so will allow the request and user information to be populated. 
+You can do this by calling the AddHttpContextAccessor while configure services.
 
-exception.ToExceptionless().SetHttpContext(ActionContext).Submit()
+services.AddHttpContextAccessor()
 
 -------------------------------------
       Documentation and Support

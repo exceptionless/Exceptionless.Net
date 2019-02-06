@@ -9,7 +9,7 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
         // GET api/values
         [HttpGet]
         public Dictionary<string, string> Get() {
-            ExceptionlessClient.Default.CreateLog("ValuesController", "Getting results", LogLevel.Info).SetHttpContext(HttpContext).Submit();
+            ExceptionlessClient.Default.CreateLog("ValuesController", "Getting results", LogLevel.Info).Submit();
             throw new Exception($"Random AspNetCore Exception: {Guid.NewGuid()}");
         }
     }

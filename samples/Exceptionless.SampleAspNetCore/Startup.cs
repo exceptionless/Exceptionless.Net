@@ -23,6 +23,7 @@ namespace Exceptionless.SampleAspNetCore {
                 .AddConfiguration(Configuration.GetSection("Logging"))
                 .AddDebug()
                 .AddConsole());
+            services.AddHttpContextAccessor();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 

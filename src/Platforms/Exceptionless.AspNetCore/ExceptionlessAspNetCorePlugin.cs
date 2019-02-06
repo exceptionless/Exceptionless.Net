@@ -9,14 +9,9 @@ using Exceptionless.Models;
 namespace Exceptionless.AspNetCore {
     [Priority(90)]
     public class ExceptionlessAspNetCorePlugin : IEventPlugin {
-        IHttpContextAccessor _httpContextAccessor;
-
-        public ExceptionlessAspNetCorePlugin()
-            : this(null) {
-
-        }
-
-        public ExceptionlessAspNetCorePlugin(IHttpContextAccessor httpContextAccessor) {
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        
+        public ExceptionlessAspNetCorePlugin(IHttpContextAccessor httpContextAccessor = null) {
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -38,8 +33,7 @@ namespace Exceptionless.AspNetCore {
 
             try {
                 ri = httpContext.GetRequestInfo(context.Client.Configuration);
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 context.Log.Error(typeof(ExceptionlessAspNetCorePlugin), ex, "Error adding request info.");
             }
 
