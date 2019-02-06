@@ -27,7 +27,7 @@ namespace Exceptionless.ExtendedData {
                 info.Host = context.Request.Url.HostName;
                 info.IsSecure = context.Request.Url.IsSecure;
                 info.Path = context.Request.Url.BasePath + context.Request.Url.Path;
-                info.Port = context.Request.Url.Port ?? 80;
+                info.Port = context.Request.Url.Port.GetValueOrDefault(info.IsSecure ? 443 : 80);
             }
 
             if (!String.IsNullOrWhiteSpace(context.Request.Headers.Referrer))

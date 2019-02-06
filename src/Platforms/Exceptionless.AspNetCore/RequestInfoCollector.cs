@@ -30,8 +30,7 @@ namespace Exceptionless.AspNetCore {
             if (!String.IsNullOrEmpty(context.Request.Host.Host))
                 info.Host = context.Request.Host.Host;
 
-            if (context.Request.Host.Port.HasValue)
-                info.Port = context.Request.Host.Port.Value;
+            info.Port = context.Request.Host.Port.GetValueOrDefault(info.IsSecure ? 443 : 80);
 
             if (context.Request.Headers.ContainsKey(HeaderNames.UserAgent))
                 info.UserAgent = context.Request.Headers[HeaderNames.UserAgent].ToString();
@@ -46,9 +45,8 @@ namespace Exceptionless.AspNetCore {
             if (config.IncludeQueryString)
                 info.QueryString = context.Request.Query.ToDictionary(exclusionList);
 
-            if (config.IncludePostData) {
+            if (config.IncludePostData)
                 info.PostData = GetPostData(context, config, exclusionList);
-            }
 
             return info;
         }
