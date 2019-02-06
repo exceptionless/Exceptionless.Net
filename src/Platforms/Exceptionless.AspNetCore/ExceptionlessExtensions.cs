@@ -18,8 +18,12 @@ namespace Exceptionless {
             if (client == null)
                 client = ExceptionlessClient.Default;
 
+            // Can be registered in Startup.ConfigureServices via services.AddHttpContextAccessor();
+            // this is necessary to obtain Session and Request information outside of ExceptionlessMiddleware
+            var contextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
+
             client.Startup();
-            client.Configuration.AddPlugin<ExceptionlessAspNetCorePlugin>();
+            client.Configuration.AddPlugin(new ExceptionlessAspNetCorePlugin(contextAccessor));
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
 

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DiagnosticAdapter;
 
 namespace Exceptionless.AspNetCore {
-    internal sealed class ExceptionlessDiagnosticListener {
+    public sealed class ExceptionlessDiagnosticListener {
         private readonly ExceptionlessClient _client;
 
         public ExceptionlessDiagnosticListener(ExceptionlessClient client) {
