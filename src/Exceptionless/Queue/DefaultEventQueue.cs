@@ -109,7 +109,9 @@ namespace Exceptionless.Queue {
                                 _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
                             }
                         } else if (!response.Success) {
-                            _log.Error(typeof(DefaultEventQueue), String.Concat("An error occurred while submitting events: ", response.Message));
+                            _log.Error(typeof(DefaultEventQueue), response.Exception, 
+                                String.IsNullOrEmpty(response.Message) ? "An error occurred while submitting events." : 
+                                String.Concat("An error occurred while submitting events: ", response.Message));
                             SuspendProcessing();
                             deleteBatch = false;
                         }
