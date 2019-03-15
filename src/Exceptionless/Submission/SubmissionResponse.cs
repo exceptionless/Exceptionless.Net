@@ -3,7 +3,7 @@ using System.Net;
 
 namespace Exceptionless.Submission {
     public class SubmissionResponse {
-        public SubmissionResponse(int statusCode, string message = null) {
+        public SubmissionResponse(int statusCode, string message = null, Exception exception = null) {
             StatusCode = statusCode;
             Message = message;
 
@@ -14,6 +14,7 @@ namespace Exceptionless.Submission {
             UnableToAuthenticate = (HttpStatusCode)statusCode == HttpStatusCode.Unauthorized || (HttpStatusCode)statusCode == HttpStatusCode.Forbidden;
             NotFound = (HttpStatusCode)statusCode == HttpStatusCode.NotFound;
             RequestEntityTooLarge = (HttpStatusCode)statusCode == HttpStatusCode.RequestEntityTooLarge;
+            Exception = exception;
         }
 
         public bool Success { get; private set; }
@@ -26,5 +27,7 @@ namespace Exceptionless.Submission {
 
         public int StatusCode { get; private set; }
         public string Message { get; private set; }
+
+        public Exception Exception { get; private set; }
     }
 }

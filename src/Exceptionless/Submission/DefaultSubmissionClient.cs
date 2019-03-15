@@ -43,7 +43,7 @@ namespace Exceptionless.Submission {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 response = _client.Value.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
-                return new SubmissionResponse(500, message: ex.Message);
+                return new SubmissionResponse(500, exception: ex);
             }
             
             int settingsVersion;
@@ -71,7 +71,7 @@ namespace Exceptionless.Submission {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 response = _client.Value.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
             } catch (Exception ex) {
-                return new SubmissionResponse(500, message: ex.Message);
+                return new SubmissionResponse(500, exception: ex);
             }
 
             int settingsVersion;

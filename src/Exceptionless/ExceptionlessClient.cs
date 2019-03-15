@@ -112,7 +112,7 @@ namespace Exceptionless {
             try {
                 var response = _submissionClient.Value.PostUserDescription(referenceId, new UserDescription(email, description), Configuration, Configuration.Resolver.GetJsonSerializer());
                 if (!response.Success)
-                    _log.Value.FormattedError(typeof(ExceptionlessClient), "Failed to submit user email and description for event '{0}': {1} {2}", referenceId, response.StatusCode, response.Message);
+                    _log.Value.FormattedError(typeof(ExceptionlessClient), response.Exception, "Failed to submit user email and description for event '{0}': {1} {2}", referenceId, response.StatusCode, response.Message);
 
                 return response.Success;
             } catch (Exception ex) {
