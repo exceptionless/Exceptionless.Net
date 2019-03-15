@@ -150,6 +150,7 @@ namespace Exceptionless.Submission {
                 handler.Proxy = config.Proxy;
 
             var client = new HttpClient(handler, true);
+            client.DefaultRequestHeaders.ConnectionClose = true;
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.ExpectContinue = false;
             client.DefaultRequestHeaders.UserAgent.ParseAdd(config.UserAgent);
