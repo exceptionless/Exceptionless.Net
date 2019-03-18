@@ -5,6 +5,12 @@ using System.Linq;
 namespace Exceptionless {
     internal static class CollectionEqualityExtensions {
         public static bool CollectionEquals<T>(this IEnumerable<T> source, IEnumerable<T> other) {
+            if (source == null && other == null)
+                return true;
+            
+            if (source == null || other == null)
+                return false;
+            
             var sourceEnumerator = source.GetEnumerator();
             var otherEnumerator = other.GetEnumerator();
 
@@ -14,23 +20,29 @@ namespace Exceptionless {
                     return false;
                 }
 
-                if (sourceEnumerator.Current.Equals(otherEnumerator.Current)) {
-                    // values aren't equal
+                var sourceValue = sourceEnumerator.Current;
+                var otherValue = otherEnumerator.Current;
+                if (sourceValue == null && otherValue == null)
+                    continue;
+                
+                if (source == null || other == null || !sourceValue.Equals(otherValue))
                     return false;
-                }
             }
 
             if (otherEnumerator.MoveNext()) {
                 // counts differ
                 return false;
             }
+            
             return true;
         }
 
         public static bool CollectionEquals<TValue>(this IDictionary<string, TValue> source, IDictionary<string, TValue> other) {
-            if (source.Count != other.Count) {
+            if (source == null && other == null)
+                return true;
+            
+            if (source == null || other == null || source.Count != other.Count)
                 return false;
-            }
 
             foreach (var key in source.Keys) {
                 var sourceValue = source[key];
@@ -40,11 +52,25 @@ namespace Exceptionless {
                     return false;
                 }
 
-                if (sourceValue.Equals(otherValue)) {
+                if (sourceValue == null && otherValue == null)
+                    continue;
+                
+                if (source == null || other == null || !sourceValue.Equals(otherValue))
                     return false;
-                }
             }
+            
             return true;
+        }
+        
+        
+        public static bool CollectionEquals<TValue>(this ISet<TValue> source, ISet<TValue> other) {
+            if (source == null && other == null)
+                return true;
+            
+            if (source == null || other == null || source.Count != other.Count)
+                return false;
+
+            return source.SetEquals(other);
         }
 
         public static int GetCollectionHashCode<T>(this IEnumerable<T> source) {
