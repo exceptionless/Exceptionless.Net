@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Exceptionless.Windows.Core</id>
+    <id>Exceptionless.Wpf.Core</id>
     <version>$version$</version>
     <authors>Exceptionless</authors>
     <owners>Exceptionless</owners>
-    <description>Exceptionless client for dotnet core WinForms applications. Exceptionless is a cloud based error reporting service that sends your exceptions to https://exceptionless.com and provides aggregated views and analytics.</description>
+    <description>Exceptionless client for dotnet core WPF applications. Exceptionless is a cloud based error reporting service that sends your exceptions to https://exceptionless.com and provides aggregated views and analytics.</description>
     <projectUrl>http://exceptionless.io</projectUrl>
     <iconUrl>https://be.exceptionless.io/img/exceptionless-32.png</iconUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
