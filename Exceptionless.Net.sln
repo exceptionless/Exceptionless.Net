@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.152
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{728C18BC-4085-4492-B0B2-8211CA209A50}"
 	ProjectSection(SolutionItems) = preProject
@@ -99,6 +99,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{847AAE03-9F4A-4920-9E56-8AECB915E2B6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.TestHarness", "test\Exceptionless.TestHarness\Exceptionless.TestHarness.csproj", "{485643BC-C33E-485A-80CC-DBD2E3C3E44A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Wpf.Core", "src\Platforms\Exceptionless.Wpf.Core\Exceptionless.Wpf.Core.csproj", "{BF33A36B-1B2B-4741-899D-C2268D1B57DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleWpf.Core", "samples\Exceptionless.SampleWpf.Core\Exceptionless.SampleWpf.Core.csproj", "{AEAE1001-5EDF-427F-B33D-EBC12F83371E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Windows.Core", "src\Platforms\Exceptionless.Windows.Core\Exceptionless.Windows.Core.csproj", "{B9C4ADEE-8565-4AFD-9FD6-F96338BF50BF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleWindows.Core", "samples\Exceptionless.SampleWindows.Core\Exceptionless.SampleWindows.Core.csproj", "{3B9986C9-7B39-4F89-A79C-BA3667841B11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -202,6 +210,22 @@ Global
 		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{485643BC-C33E-485A-80CC-DBD2E3C3E44A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF33A36B-1B2B-4741-899D-C2268D1B57DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF33A36B-1B2B-4741-899D-C2268D1B57DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF33A36B-1B2B-4741-899D-C2268D1B57DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF33A36B-1B2B-4741-899D-C2268D1B57DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEAE1001-5EDF-427F-B33D-EBC12F83371E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEAE1001-5EDF-427F-B33D-EBC12F83371E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEAE1001-5EDF-427F-B33D-EBC12F83371E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEAE1001-5EDF-427F-B33D-EBC12F83371E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9C4ADEE-8565-4AFD-9FD6-F96338BF50BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9C4ADEE-8565-4AFD-9FD6-F96338BF50BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9C4ADEE-8565-4AFD-9FD6-F96338BF50BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C4ADEE-8565-4AFD-9FD6-F96338BF50BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B9986C9-7B39-4F89-A79C-BA3667841B11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B9986C9-7B39-4F89-A79C-BA3667841B11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B9986C9-7B39-4F89-A79C-BA3667841B11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B9986C9-7B39-4F89-A79C-BA3667841B11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -230,6 +254,10 @@ Global
 		{F7ABD87A-2D84-4962-9A97-EC2F864CFA21} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{8DB42DED-86AE-4FC9-AE98-2884A0D607AC} = {847AAE03-9F4A-4920-9E56-8AECB915E2B6}
 		{485643BC-C33E-485A-80CC-DBD2E3C3E44A} = {847AAE03-9F4A-4920-9E56-8AECB915E2B6}
+		{BF33A36B-1B2B-4741-899D-C2268D1B57DD} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
+		{AEAE1001-5EDF-427F-B33D-EBC12F83371E} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
+		{B9C4ADEE-8565-4AFD-9FD6-F96338BF50BF} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
+		{3B9986C9-7B39-4F89-A79C-BA3667841B11} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EBB2CC85-FF87-431B-865F-2F110B2A10E6}

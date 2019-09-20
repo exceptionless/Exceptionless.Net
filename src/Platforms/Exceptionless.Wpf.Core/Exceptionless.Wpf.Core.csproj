@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <RootNamespace>Exceptionless</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+    </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="Images\ErrorFeedback.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\ErrorFeedback.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>
