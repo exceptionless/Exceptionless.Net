@@ -266,11 +266,7 @@ namespace Exceptionless {
                     callingAssembly = null;
                 }
 
-                if (callingAssembly == null) {
-                    config.ReadFromAttributes(Assembly.GetEntryAssembly());
-                } else {
-                    config.ReadFromAttributes(Assembly.GetEntryAssembly(), callingAssembly);
-                }
+                config.ReadFromAttributes(Assembly.GetEntryAssembly(), callingAssembly);
 #endif
             } else {
                 config.ReadFromAttributes(configAttributesAssemblies);
