@@ -8,7 +8,7 @@
         WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
         FocusManager.FocusedElement="{Binding ElementName=DescriptionTextBox}"
-        Icon="/Exceptionless.Wpf.Core;component/Images/ErrorFeedback.png"
+        Icon="/Exceptionless.Wpf;component/Images/ErrorFeedback.png"
         >
     <Grid>
         <Grid.RowDefinitions>
@@ -26,7 +26,7 @@
                 [AppName] has encountered a problem and needs to close.  We are sorry for the inconvenience.
             </TextBlock>
             <Image Name="errorImage" Grid.Column="2"  
-                   Source="/Exceptionless.Wpf.Core;component/Images/ErrorFeedback.png" 
+                   Source="/Exceptionless.Wpf;component/Images/ErrorFeedback.png" 
                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="48" Height="48" />
         </Grid>
 
