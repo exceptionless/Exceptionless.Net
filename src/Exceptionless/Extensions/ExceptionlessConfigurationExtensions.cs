@@ -258,7 +258,15 @@ namespace Exceptionless {
 #if NETSTANDARD1_5
                 config.ReadFromAttributes(Assembly.GetEntryAssembly());
 #elif NET45 || NETSTANDARD2_0
-                config.ReadFromAttributes(Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly());
+                Assembly callingAssembly;
+                try {
+                    callingAssembly = Assembly.GetCallingAssembly();
+                }
+                catch (PlatformNotSupportedException) {
+                    callingAssembly = null;
+                }
+
+                config.ReadFromAttributes(Assembly.GetEntryAssembly(), callingAssembly);
 #endif
             } else {
                 config.ReadFromAttributes(configAttributesAssemblies);
