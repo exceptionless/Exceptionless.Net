@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET45
+using System;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Serializer;
@@ -59,3 +60,5 @@ namespace Exceptionless.Tests.Log {
         }
     }
 }
+
+#endif

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <DebugType>portable</DebugType>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Exceptionless.SampleAspNetCore</AssemblyName>
@@ -14,9 +14,5 @@
     <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" />
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.AspNetCore\Exceptionless.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.Extensions.Logging\Exceptionless.Extensions.Logging.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>

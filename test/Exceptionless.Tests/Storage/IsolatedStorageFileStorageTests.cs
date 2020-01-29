@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET45
+using System;
 using Exceptionless.Dependency;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
@@ -16,3 +17,4 @@ namespace Exceptionless.Tests.Storage {
         }
     }
 }
+#endif
