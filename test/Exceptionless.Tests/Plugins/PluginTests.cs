@@ -914,7 +914,7 @@ namespace Exceptionless.Tests.Plugins {
                 _writer.WriteLine(report.ToString());
 
                 double benchmarkMedianMilliseconds = report.ResultStatistics != null ? report.ResultStatistics.Median / 1000000 : 0;
-                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.Benchmark.DisplayInfo, benchmarkMedianMilliseconds));
+                _writer.WriteLine(String.Format("{0} - {1:0.00}ms", report.BenchmarkCase.DisplayInfo, benchmarkMedianMilliseconds));
             }
         }
 

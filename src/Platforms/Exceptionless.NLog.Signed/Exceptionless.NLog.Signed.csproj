@@ -37,21 +37,20 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
+  
+  <ItemGroup Label="Package References">
+    <PackageReference Include="NLog" Version="4.6.8" />
+  </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Build">
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0;SIGNED;</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Package References">
-    <PackageReference Include="NLog" Version="5.0.0-beta11" />
-  </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
-    <PackageReference Include="NLog" Version="4.4.12" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
