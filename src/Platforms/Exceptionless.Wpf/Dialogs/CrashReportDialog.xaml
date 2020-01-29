@@ -1,11 +1,15 @@
 ﻿<Window x:Class="Exceptionless.Dialogs.CrashReportDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
         Title="[AppName] Error" Height="525" Width="425" 
-        WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"        
+        WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
         FocusManager.FocusedElement="{Binding ElementName=DescriptionTextBox}"
-        Icon="../Images/ErrorFeedback.png">
+        Icon="/Exceptionless.Wpf;component/Images/ErrorFeedback.png"
+        >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="60" />
@@ -22,7 +26,7 @@
                 [AppName] has encountered a problem and needs to close.  We are sorry for the inconvenience.
             </TextBlock>
             <Image Name="errorImage" Grid.Column="2"  
-                   Source="../Images/ErrorFeedback.png" 
+                   Source="/Exceptionless.Wpf;component/Images/ErrorFeedback.png" 
                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="48" Height="48" />
         </Grid>
 
@@ -89,5 +93,4 @@
                     Click="OnSubmitReportButtonClick" />
         </DockPanel>
     </Grid>
-
 </Window>
