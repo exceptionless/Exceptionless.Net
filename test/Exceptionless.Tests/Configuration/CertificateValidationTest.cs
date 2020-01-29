@@ -11,7 +11,9 @@ namespace Exceptionless.Tests.Configuration {
             Run(GetClient(x => {
                 Assert.NotNull(x.Certificate);
                 Assert.NotNull(x.Chain);
+#if NET45
                 Assert.NotNull(x.Sender);
+#endif
                 Assert.Equal(SslPolicyErrors.RemoteCertificateChainErrors, x.SslPolicyErrors);
                 return true;
             },"https://expired.badssl.com/"));

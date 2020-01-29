@@ -1,15 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-    <PropertyGroup>
-      <TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
-        <RootNamespace>Exceptionless</RootNamespace>
-    </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+    <TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
-    </ItemGroup>
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Exceptionless</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+  </ItemGroup>
   
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " Label="Build">
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
+    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Images\ErrorFeedback.png" />
     <None Remove="readme.txt" />

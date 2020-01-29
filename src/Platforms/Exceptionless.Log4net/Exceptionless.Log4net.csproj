@@ -1,13 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Log4net</PackageId>
     <AssemblyName>Exceptionless.Log4net</AssemblyName>
     <AssemblyTitle>Log4net appender that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>Log4net appender that sends log entries to Exceptionless. $(Description)</Description>
     <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

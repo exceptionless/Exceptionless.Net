@@ -1,13 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.AspNetCore.Signed</PackageId>
     <AssemblyName>Exceptionless.AspNetCore.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
     <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
   </PropertyGroup>
     
   <ItemGroup Label="Package">

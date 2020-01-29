@@ -1,13 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\common.props" />
 
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <TargetFramework>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Portable</PackageId>
     <AssemblyName>Exceptionless.Portable</AssemblyName>
     <AssemblyTitle>[DEPRECATED] Exceptionless Portable Class Library</AssemblyTitle>
     <Description>[DEPRECATED] Please install the Exceptionless package instead.</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl</PackageTags>
-    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;portable46-net451+win81+wpa81;net45</TargetFrameworks>
   </PropertyGroup>
     
   <ItemGroup Label="Package">

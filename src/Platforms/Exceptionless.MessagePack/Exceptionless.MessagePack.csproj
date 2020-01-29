@@ -1,12 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.MessagePack</PackageId>
     <AssemblyName>Exceptionless.MessagePack</AssemblyName>
     <AssemblyTitle>Serialize/deserialize log entries with MessagePack.</AssemblyTitle>
     <Description>Serialize/deserialize log entries with MessagePack. $(Description)</Description>
     <PackageTags>MessagePack;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Label="Build">
