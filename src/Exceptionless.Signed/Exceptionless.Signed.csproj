@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <TargetFramework>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
   </PropertyGroup>
 
@@ -12,10 +12,10 @@
     <PackageId>Exceptionless.Signed</PackageId>
     <AssemblyName>Exceptionless.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for non visual (ie. Console and Services) applications.</AssemblyTitle>
-    <Description>Exceptionless client for portable applications. $(Description)</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless package instead.</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl;NETSTANDARD;Core</PackageTags>
   </PropertyGroup>
-    
+
   <ItemGroup Label="Package">
     <None Include="NuGet\tools\*">
       <PackagePath>tools</PackagePath>
@@ -81,7 +81,7 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.4'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_4;SIGNED</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'" Label="Package References">
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="System.AppDomain" Version="2.0.11" />

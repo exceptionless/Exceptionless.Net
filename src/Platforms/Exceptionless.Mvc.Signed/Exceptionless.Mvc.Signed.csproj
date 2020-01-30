@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Mvc.Signed</PackageId>
     <AssemblyName>Exceptionless.Mvc.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET MVC 3+ applications.</AssemblyTitle>
-    <Description>Exceptionless client for ASP.NET MVC 3+ applications. $(Description)</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless.Mvc package instead.</Description>
     <PackageTags>MVC;ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
     <TargetFramework>net45</TargetFramework>
   </PropertyGroup>

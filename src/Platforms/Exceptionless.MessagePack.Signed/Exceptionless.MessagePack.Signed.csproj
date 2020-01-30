@@ -4,7 +4,7 @@
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
   </PropertyGroup>
 
@@ -12,7 +12,7 @@
     <PackageId>Exceptionless.MessagePack.Signed</PackageId>
     <AssemblyName>Exceptionless.MessagePack.Signed</AssemblyName>
     <AssemblyTitle>Serialize/deserialize log entries with MessagePack.</AssemblyTitle>
-    <Description>Serialize/deserialize log entries with MessagePack. $(Description)</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless.MessagePack package instead.</Description>
     <PackageTags>MessagePack;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
-  
+
   <PropertyGroup Label="Signing">
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
@@ -40,6 +40,6 @@
   </PropertyGroup>
 
   <ItemGroup Label="Package References">
-    <PackageReference Include="MessagePack" Version="1.7.2" />
+    <PackageReference Include="MessagePack" Version="1.7.3.4" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
   </PropertyGroup>
 
@@ -12,7 +12,7 @@
     <PackageId>Exceptionless.NLog.Signed</PackageId>
     <AssemblyName>Exceptionless.NLog.Signed</AssemblyName>
     <AssemblyTitle>NLog target that sends log entries to Exceptionless.</AssemblyTitle>
-    <Description>NLog target that sends log entries to Exceptionless. $(Description)</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless.NLog package instead.</Description>
     <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 

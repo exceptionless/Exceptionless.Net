@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
   </PropertyGroup>
 
@@ -12,10 +12,10 @@
     <PackageId>Exceptionless.AspNetCore.Signed</PackageId>
     <AssemblyName>Exceptionless.AspNetCore.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
-    <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless.AspNetCore package instead.</Description>
     <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
-    
+
   <ItemGroup Label="Package">
     <None Include="..\Exceptionless.AspNetCore\readme.txt">
       <PackagePath></PackagePath>
