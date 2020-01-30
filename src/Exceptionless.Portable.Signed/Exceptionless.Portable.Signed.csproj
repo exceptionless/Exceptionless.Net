@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <TargetFramework>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
   </PropertyGroup>
 
@@ -12,10 +12,10 @@
     <PackageId>Exceptionless.Portable.Signed</PackageId>
     <AssemblyName>Exceptionless.Portable.Signed</AssemblyName>
     <AssemblyTitle>[DEPRECATED] Exceptionless Portable Class Library</AssemblyTitle>
-    <Description>[DEPRECATED] Please install the Exceptionless.Signed package instead.</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless package instead.</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl</PackageTags>
   </PropertyGroup>
-    
+
   <ItemGroup Label="Package">
     <None Include="readme.txt">
       <PackagePath></PackagePath>

@@ -1,8 +1,8 @@
 # Exceptionless .NET Clients
-[![Build status](https://ci.appveyor.com/api/projects/status/xk17pk0u7a5r7yrw/branch/master?svg=true)](https://ci.appveyor.com/project/Exceptionless/exceptionless-net) 
+[![Build status](https://ci.appveyor.com/api/projects/status/xk17pk0u7a5r7yrw/branch/master?svg=true)](https://ci.appveyor.com/project/Exceptionless/exceptionless-net)
 [![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.svg?style=flat)](https://www.nuget.org/packages/Exceptionless/)
 [![Slack Status](https://slack.exceptionless.com/badge.svg)](https://slack.exceptionless.com)
-[![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless) 
+[![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless)
 
 The definition of the word exceptionless is: to be without exception. [Exceptionless](http://exceptionless.io) provides real-time .NET error reporting for your ASP.NET, Web API, WebForms, WPF, Console, and MVC apps. It organizes the gathered information into simple actionable data that will help your app become exceptionless!
 
@@ -16,7 +16,7 @@ All of our [.NET clients can be installed](https://www.nuget.org/profiles/except
 
 **This section is for development purposes only! If you are trying to use the Exceptionless .NET libraries, please get them from NuGet.**
 
-1. You will need to have [Visual Studio 2017](http://www.visualstudio.com/products/visual-studio-community-vs) and [.NET Core SDK with VS Tooling](https://www.microsoft.com/net/core) installed.
+1. You will need to have [Visual Studio 2019](http://www.visualstudio.com/products/visual-studio-community-vs) and [.NET Core SDK with VS Tooling](https://www.microsoft.com/net/core) installed.
 2. Open the `Exceptionless.Net.sln` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
 4. Run the project by pressing `F5` to start the console.

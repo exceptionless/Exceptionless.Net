@@ -9,7 +9,7 @@
     <PackageTags>Nancy;NancyFx;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
     <TargetFramework>net45</TargetFramework>
   </PropertyGroup>
-  
+
   <ItemGroup Label="Package">
     <None Include="NuGet\tools\*">
       <PackagePath>tools</PackagePath>
@@ -28,7 +28,13 @@
   <ItemGroup Label="Build">
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
   </ItemGroup>
-  
+
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>

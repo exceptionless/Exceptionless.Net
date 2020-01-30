@@ -29,7 +29,13 @@
     <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
     <Compile Include="..\Exceptionless.Web\ExceptionlessClientExtensions.cs;..\Exceptionless.Web\ExceptionlessWebExtensions.cs;..\Exceptionless.Web\ExceptionlessWebPlugin.cs;..\Exceptionless.Web\RequestInfoCollector.cs;..\Exceptionless.Web\WebLastReferenceIdManager.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
   </ItemGroup>
-  
+
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>

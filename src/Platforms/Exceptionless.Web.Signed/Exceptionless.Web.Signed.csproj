@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Web.Signed</PackageId>
     <AssemblyName>Exceptionless.Web.Signed</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET WebForms applications.</AssemblyTitle>
-    <Description>Exceptionless client for ASP.NET WebForms applications. $(Description)</Description>
+    <Description>[DEPRECATED] Please install the Exceptionless.Web package instead.</Description>
     <PackageTags>WebForms;Web Forms;Wcf;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
     <TargetFramework>net45</TargetFramework>
   </PropertyGroup>

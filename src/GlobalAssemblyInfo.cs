@@ -4,7 +4,7 @@ using System.Reflection;
 [assembly: AssemblyProduct("Exceptionless")]
 [assembly: AssemblyCompany("Exceptionless")]
 [assembly: AssemblyTrademark("Exceptionless")]
-[assembly: AssemblyCopyright("Copyright (c) 2017 Exceptionless.  All rights reserved.")]
+[assembly: AssemblyCopyright("Copyright (c) 2020 Exceptionless.  All rights reserved.")]
 
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
@@ -23,7 +23,7 @@ internal sealed partial class ThisAssembly {
 
     internal const string AssemblyTrademark = "Exceptionless";
 
-    internal const string AssemblyCopyright = "Copyright (c) 2018 Exceptionless.  All rights reserved.";
+    internal const string AssemblyCopyright = "Copyright (c) 2020 Exceptionless.  All rights reserved.";
 
     internal const string AssemblyConfiguration = "Release";
 

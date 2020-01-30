@@ -4,7 +4,7 @@
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
     <TargetFramework>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
   </PropertyGroup>
 
@@ -15,7 +15,7 @@
     <Description>Exceptionless client for portable applications. $(Description)</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl;NETSTANDARD;Core</PackageTags>
   </PropertyGroup>
-    
+
   <ItemGroup Label="Package">
     <None Include="NuGet\tools\*">
       <PackagePath>tools</PackagePath>
@@ -34,6 +34,12 @@
       <Link>Exceptionless.Json.Dynamic.snk</Link>
     </EmbeddedResource>
   </ItemGroup>
+
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.2'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_2</DefineConstants>
@@ -74,7 +80,7 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.4'" Label="Build">
     <DefineConstants>$(DefineConstants);NO_SQL_CLIENT;NETSTANDARD;NETSTANDARD1_4</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'" Label="Package References">
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="System.AppDomain" Version="2.0.11" />
