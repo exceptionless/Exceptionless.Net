@@ -148,15 +148,21 @@ namespace Exceptionless.Tests.Serializer
 
         [Fact]
         public virtual void CanSerializeSimpleError() {
+            var client = new ExceptionlessClient(new ExceptionlessConfiguration(_resolver));
+            var exception = new ArgumentException("The argument cannot be null or empty", "value");
+
             var evt = CreateSimpleEvent();
-            evt.Data[Event.KnownDataKeys.SimpleError] = new ArgumentException("The argument cannot be null or empty", "value").ToSimpleErrorModel(new ExceptionlessClient(new ExceptionlessConfiguration(_resolver)));
+            evt.Data[Event.KnownDataKeys.SimpleError] = exception.ToSimpleErrorModel(client);
             AssertEventSerialize(evt);
         }
 
         [Fact]
         public virtual void CanSerializeError() {
+            var client = new ExceptionlessClient(new ExceptionlessConfiguration(_resolver));
+            var exception = new ArgumentException("The argument cannot be null or empty", "value");
+
             var evt = CreateSimpleEvent();
-            evt.Data[Event.KnownDataKeys.Error] = new ArgumentException("The argument cannot be null or empty", "value").ToErrorModel(new ExceptionlessClient(new ExceptionlessConfiguration(_resolver)));
+            evt.Data[Event.KnownDataKeys.Error] = exception.ToErrorModel(client);
             AssertEventSerialize(evt);
         }
     }
