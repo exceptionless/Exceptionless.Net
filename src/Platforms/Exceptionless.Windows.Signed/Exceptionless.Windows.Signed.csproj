@@ -9,12 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
-    <PackageId>Exceptionless.Wpf</PackageId>
-    <AssemblyName>Exceptionless.Wpf</AssemblyName>
-    <AssemblyTitle>Exceptionless client for WPF applications</AssemblyTitle>
-    <Description>Exceptionless client for WPF applications. $(Description)</Description>
-    <PackageTags>WPF;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
-    <UseWPF>true</UseWPF>
+    <PackageId>Exceptionless.Windows.Signed</PackageId>
+    <AssemblyName>Exceptionless.Windows.Signed</AssemblyName>
+    <AssemblyTitle>Exceptionless client for WinForms applications</AssemblyTitle>
+    <Description>[DEPRECATED] Please install the Exceptionless.Windows package instead.</Description>
+    <PackageTags>WinForms;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Exceptionless</RootNamespace>
     <OutputType>Library</OutputType>
@@ -25,7 +24,7 @@
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Include="..\..\Exceptionless\NuGet\tools\exceptionless.psm1">
+    <None Include="..\..\Exceptionless.Signed\NuGet\tools\exceptionless.psm1">
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
@@ -36,15 +35,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+    <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " Label="Build">
-    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET45;SIGNED;</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Label="Signing">
@@ -52,18 +51,4 @@
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Images\ErrorFeedback.png" />
-    <None Remove="readme.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Images\ErrorFeedback.png" />
-    <Resource Include="readme.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
 </Project>
