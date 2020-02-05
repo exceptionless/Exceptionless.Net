@@ -9,6 +9,7 @@
   <PropertyGroup>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Exceptionless</RootNamespace>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,11 +29,4 @@
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Dialogs\CrashReportForm.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>CrashReportForm.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
 </Project>
