@@ -11,8 +11,7 @@ using Exceptionless.Services;
 using Exceptionless.Storage;
 using Xunit;
 
-namespace Exceptionless.Tests.Serializer
-{
+namespace Exceptionless.Tests.Serializer {
     public abstract class StorageSerializerTestBase {
         private readonly IDependencyResolver _resolver;
         public StorageSerializerTestBase() {

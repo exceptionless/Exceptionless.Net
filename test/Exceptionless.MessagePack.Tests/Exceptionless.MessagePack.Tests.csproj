@@ -11,6 +11,12 @@
     <AssemblyName>Exceptionless.MessagePack.Tests</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\src\Exceptionless.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
