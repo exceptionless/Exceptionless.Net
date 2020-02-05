@@ -1,4 +1,4 @@
-﻿$configuration = "Release"
+$configuration = "Release"
 $base_dir = Resolve-Path "..\"
 $artifacts_dir = "$base_dir\artifacts"
 $build_dir = "$base_dir\build"
@@ -29,11 +29,7 @@ $client_projects = @(
     @{ Name = "Exceptionless.MessagePack.Signed";  SourceDir = "$source_dir\Platforms\Exceptionless.MessagePack.Signed"; ExternalNuGetDependencies = "MessagePack"; },
 
     @{ Name = "Exceptionless.Windows";             SourceDir = "$source_dir\Platforms\Exceptionless.Windows";            ExternalNuGetDependencies = $null; },
-    @{ Name = "Exceptionless.Windows.Signed";      SourceDir = "$source_dir\Platforms\Exceptionless.Windows";            ExternalNuGetDependencies = $null; },
+    @{ Name = "Exceptionless.Windows.Signed";      SourceDir = "$source_dir\Platforms\Exceptionless.Windows.Signed";     ExternalNuGetDependencies = $null; },
     @{ Name = "Exceptionless.Wpf";                 SourceDir = "$source_dir\Platforms\Exceptionless.Wpf";                ExternalNuGetDependencies = $null; },
-    @{ Name = "Exceptionless.Wpf.Signed";          SourceDir = "$source_dir\Platforms\Exceptionless.Wpf";                ExternalNuGetDependencies = $null; }
-)
-
-$client_build_configurations = @(
-    @{ Constants = "NET45"; TargetFrameworkVersionProperty="NET45";   NuGetDir = "net45"; }
+    @{ Name = "Exceptionless.Wpf.Signed";          SourceDir = "$source_dir\Platforms\Exceptionless.Wpf.Signed";         ExternalNuGetDependencies = $null; }
 )
