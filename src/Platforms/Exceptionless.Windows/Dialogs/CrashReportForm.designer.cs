@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace Exceptionless.Dialogs
 {
     sealed partial class CrashReportForm
@@ -100,13 +102,21 @@ namespace Exceptionless.Dialogs
             // InformationHeaderPictureBox
             // 
             this.InformationHeaderPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.InformationHeaderPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("InformationHeaderPictureBox.Image")));
             this.InformationHeaderPictureBox.Location = new System.Drawing.Point(351, 19);
             this.InformationHeaderPictureBox.Name = "InformationHeaderPictureBox";
             this.InformationHeaderPictureBox.Size = new System.Drawing.Size(35, 35);
             this.InformationHeaderPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.InformationHeaderPictureBox.TabIndex = 1;
             this.InformationHeaderPictureBox.TabStop = false;
+
+            try {
+                byte[] data = System.Convert.FromBase64String(resources.GetString("InformationHeaderPictureBox.Text"));
+                using (var ms = new System.IO.MemoryStream(data)) {
+                    this.InformationHeaderPictureBox.Image = Image.FromStream(ms);
+                }
+            } catch(System.Exception) { }
+
+
             // 
             // InformationHeaderLabel
             // 
@@ -116,8 +126,7 @@ namespace Exceptionless.Dialogs
             this.InformationHeaderLabel.Name = "InformationHeaderLabel";
             this.InformationHeaderLabel.Size = new System.Drawing.Size(336, 31);
             this.InformationHeaderLabel.TabIndex = 0;
-            this.InformationHeaderLabel.Text = "[AppName] has encountered a problem and needs to close.  We are sorry for the inc" +
-    "onvenience.";
+            this.InformationHeaderLabel.Text = "[AppName] has encountered a problem and needs to close.  We are sorry for the inconvenience.";
             // 
             // InformationBodyLabel
             // 
