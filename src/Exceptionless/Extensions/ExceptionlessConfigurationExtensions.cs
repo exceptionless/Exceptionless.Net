@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -154,11 +154,13 @@ namespace Exceptionless {
                 throw new ArgumentNullException("config");
 
             if (assemblies == null) {
-                assemblies = new List<Assembly> {
-#if NET45
-                    Assembly.GetCallingAssembly()
+                Assembly callingAssembly = null;
+#if NET45 || NETSTANDARD2_0
+                try {
+                    callingAssembly = Assembly.GetCallingAssembly();
+                } catch (PlatformNotSupportedException) { }
 #endif
-                };
+                assemblies = new List<Assembly> { callingAssembly };
             }
 
             assemblies = assemblies.Where(a => a != null).Distinct().ToList();
@@ -182,7 +184,7 @@ namespace Exceptionless {
 
                 foreach (var assembly in assemblies) {
                     var attributes = assembly.GetCustomAttributes(typeof(ExceptionlessSettingAttribute));
-                    foreach (ExceptionlessSettingAttribute attribute in attributes.OfType<ExceptionlessSettingAttribute>()) {
+                    foreach (var attribute in attributes.OfType<ExceptionlessSettingAttribute>()) {
                         if (!String.IsNullOrEmpty(attribute.Name))
                             config.Settings[attribute.Name] = attribute.Value;
                     }
@@ -258,13 +260,10 @@ namespace Exceptionless {
 #if NETSTANDARD1_5
                 config.ReadFromAttributes(Assembly.GetEntryAssembly());
 #elif NET45 || NETSTANDARD2_0
-                Assembly callingAssembly;
+                Assembly callingAssembly = null;
                 try {
                     callingAssembly = Assembly.GetCallingAssembly();
-                }
-                catch (PlatformNotSupportedException) {
-                    callingAssembly = null;
-                }
+                } catch (PlatformNotSupportedException) { }
 
                 config.ReadFromAttributes(Assembly.GetEntryAssembly(), callingAssembly);
 #endif
