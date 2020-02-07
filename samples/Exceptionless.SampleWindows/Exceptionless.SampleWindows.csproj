@@ -10,6 +10,7 @@
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Exceptionless</RootNamespace>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " Label="Build">
@@ -23,5 +24,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" />
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.Windows\Exceptionless.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
