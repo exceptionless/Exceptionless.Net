@@ -2,10 +2,10 @@
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <TargetFramework>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;</TargetFramework>
+    <TargetFramework>netstandard2.0;</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
-    <TargetFrameworks>netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <TargetFrameworks>netstandard2.0;portable46-net451+win81+wpa81;net45</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
@@ -15,7 +15,7 @@
     <Description>[DEPRECATED] Please install the Exceptionless package instead.</Description>
     <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;pcl</PackageTags>
   </PropertyGroup>
-    
+
   <ItemGroup Label="Package">
     <None Include="readme.txt">
       <PackagePath></PackagePath>
@@ -65,7 +65,7 @@
     <Reference Include="System.Xml.ReaderWriter" />
     <Reference Include="System.Xml.XDocument" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Framework References">
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
