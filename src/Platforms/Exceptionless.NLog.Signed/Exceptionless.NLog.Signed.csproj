@@ -16,6 +16,11 @@
     <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.NLog\obj\**\*" />
+    <Compile Include="..\Exceptionless.NLog\**\*.cs;" Exclude="..\Exceptionless.NLog\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
   <ItemGroup Label="Package">
     <None Include="..\Exceptionless.NLog\readme.txt">
       <PackagePath></PackagePath>
@@ -26,7 +31,7 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup Label="Package References">
     <PackageReference Include="NLog" Version="4.6.8" />
   </ItemGroup>
