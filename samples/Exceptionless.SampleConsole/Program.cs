@@ -338,7 +338,7 @@ namespace Exceptionless.SampleConsole {
                 Console.WriteLine("Sending captured events...");
             }
 
-            string path = Path.GetFullPath(@"..\..\Errors\");
+            string path = Path.GetFullPath(Path.Combine("..", "..", "Errors"));
             if (!Directory.Exists(path))
                 return;
 

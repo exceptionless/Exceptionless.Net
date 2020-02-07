@@ -12,15 +12,15 @@ namespace Exceptionless.SampleWindows {
         public string SampleFolder { get; private set; }
 
         public static string FindSamples() {
-            string folder = Path.GetFullPath(@".\Samples");
+            string folder = Path.GetFullPath("Samples");
             if (Directory.Exists(folder))
                 return folder;
 
-            folder = Path.GetFullPath(@"..\Samples");
+            folder = Path.GetFullPath(Path.Combine("..", "Samples"));
             if (Directory.Exists(folder))
                 return folder;
 
-            folder = Path.GetFullPath(@"..\..\Samples");
+            folder = Path.GetFullPath(Path.Combine("..", "..", "Samples"));
             if (Directory.Exists(folder))
                 return folder;
 
