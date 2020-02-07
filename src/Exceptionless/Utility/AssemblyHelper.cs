@@ -8,10 +8,8 @@ using Exceptionless.Logging;
 namespace Exceptionless.Utility {
     public class AssemblyHelper {
         public static Assembly GetRootAssembly() {
-#if NETSTANDARD1_5
+#if NET45 || NETSTANDARD2_0 ||NETSTANDARD1_5
             return Assembly.GetEntryAssembly();
-#elif NET45 || NETSTANDARD2_0
-            return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 #else
             return null;
 #endif
@@ -19,7 +17,7 @@ namespace Exceptionless.Utility {
 
         public static string GetAssemblyTitle() {
             // Get all attributes on this assembly
-            Assembly assembly = GetRootAssembly();
+            var assembly = GetRootAssembly();
             if (assembly == null)
                 return String.Empty;
 
