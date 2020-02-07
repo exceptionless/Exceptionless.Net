@@ -1,4 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
+#if !PORTABLE && !NETSTANDARD1_2
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -40,7 +40,7 @@ namespace Exceptionless.Logging {
         protected virtual WrappedDisposable<StreamWriter> GetWriter(bool append = false) {
 #if NETSTANDARD
             return new WrappedDisposable<StreamWriter>(new StreamWriter(
-                new FileStream(FilePath, append ? FileMode.Append : FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite), Encoding.UTF8)
+                new FileStream(FilePath, append ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.ReadWrite), Encoding.UTF8)
             );
 #else
             return new WrappedDisposable<StreamWriter>(new StreamWriter(FilePath, append, Encoding.UTF8));
