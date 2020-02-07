@@ -15,7 +15,7 @@ namespace Exceptionless.Tests.Log {
                 log.Info("Test");
                 log.Flush();
 
-                Assert.True(LogExists());
+                Assert.True(LogExists(log.FilePath));
                 string contents = log.GetFileContents();
 
                 Assert.EndsWith(" Info  Test\r\n", contents);
@@ -33,7 +33,7 @@ namespace Exceptionless.Tests.Log {
 
                 Thread.Sleep(1010 * 3);
 
-                Assert.True(LogExists());
+                Assert.True(LogExists(log.FilePath));
                 contents = log.GetFileContents();
 
                 Assert.EndsWith(" Info  Test\r\n", contents);

@@ -35,12 +35,12 @@ namespace Exceptionless.Tests.Log {
         }
 
         protected override bool LogExists(string path = LOG_FILE) {
-            return File.Exists(path);
+            return File.Exists(Path.GetFullPath(path));
         }
 
         protected override void DeleteLog(string path = LOG_FILE) {
             if (LogExists(path))
-                File.Delete(path);
+                File.Delete(Path.GetFullPath(path));
         }
     }
 }
