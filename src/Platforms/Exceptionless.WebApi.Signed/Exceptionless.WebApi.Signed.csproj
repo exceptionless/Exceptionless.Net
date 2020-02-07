@@ -10,6 +10,11 @@
     <TargetFramework>net45</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.WebApi\obj\**\*" />
+    <Compile Include="..\Exceptionless.WebApi\**\*.cs;" Exclude="..\Exceptionless.WebApi\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
   <ItemGroup Label="Package">
     <None Include="..\Exceptionless.WebApi\NuGet\tools\*">
       <PackagePath>tools</PackagePath>

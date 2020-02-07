@@ -16,6 +16,11 @@
     <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup Label="Build">
+     <Compile Remove="..\Exceptionless.Log4net\obj\**\*" />
+     <Compile Include="..\Exceptionless.Log4net\**\*.cs;" Exclude="..\Exceptionless.Log4net\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+   </ItemGroup>
+
   <ItemGroup Label="Package">
     <None Include="..\Exceptionless.Log4net\readme.txt">
       <PackagePath></PackagePath>

@@ -16,6 +16,11 @@
     <PackageTags>MessagePack;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.MessagePack\obj\**\*" />
+    <Compile Include="..\Exceptionless.MessagePack\**\*.cs;" Exclude="..\Exceptionless.MessagePack\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>

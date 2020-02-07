@@ -10,6 +10,11 @@
     <TargetFramework>net45</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup Label="Build">
+    <Compile Remove="..\Exceptionless.Web\obj\**\*" />
+    <Compile Include="..\Exceptionless.Web\**\*.cs;" Exclude="..\Exceptionless.Web\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
   <ItemGroup Label="Package">
     <None Include="..\Exceptionless.Web\NuGet\tools\*">
       <PackagePath>tools</PackagePath>
@@ -24,7 +29,7 @@
       <Pack>true</Pack>
     </None>
   </ItemGroup>
-  
+
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
