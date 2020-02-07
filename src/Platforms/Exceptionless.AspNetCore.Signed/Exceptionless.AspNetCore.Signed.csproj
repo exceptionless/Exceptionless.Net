@@ -27,12 +27,6 @@
     <Compile Remove="..\Exceptionless.AspNetCore\obj\**\*" />
     <Compile Include="..\Exceptionless.AspNetCore\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.AspNetCore\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
   </ItemGroup>
-
-  <PropertyGroup Label="Signing">
-    <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />

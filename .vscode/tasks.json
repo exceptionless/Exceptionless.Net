@@ -1,52 +1,43 @@
 {
-    "version": "0.1.0",
-  	"linux": { "command": "sh", "args": ["-c"] },
-  	"osx": { "command": "sh", "args": ["-c"] },
-  	"windows": { "command": "cmd", "args": ["/C"] },
-    "isShellCommand": true,
-    "showOutput": "always",
-    "suppressTaskName": true,
-    "tasks": [
-        {
-			"taskName": "restore",
-			"args": [ "dotnet restore" ]
-		},
-		{
-			"taskName": "build",
-			"args": [ "dotnet build src/**/project.json -c Debug" ],
-			"isBuildCommand": true,
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"taskName": "test",
-			"args": [ "dotnet test src/Exceptionless.Tests" ],
-			"isBuildCommand": true,
-			"problemMatcher": "$msCompile"
-		},
-        
-		{
-			"taskName": "SampleConsole: Dotnet Build",
-			"args": [ "dotnet build src/Samples/Exceptionless.SampleConsole -c Debug" ],
-			"isBuildCommand": true,
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"taskName": "SampleConsole: Dotnet Run",
-			"args": [ "dotnet run src/Samples/Exceptionless.SampleConsole -c Debug" ],
-			"isBuildCommand": true,
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"taskName": "SampleAspNetCore: Dotnet Build",
-			"args": [ "dotnet run src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
-			"isBuildCommand": true,
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"taskName": "SampleAspNetCore: Dotnet Run",
-			"args": [ "dotnet run src/Samples/Exceptionless.SampleAspNetCore -c Debug" ],
-			"isBuildCommand": true,
-			"problemMatcher": "$msCompile"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary",
+        "Exceptionless.Net.ClientsOnly.sln"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Run Tests",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "test",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary",
+        "Exceptionless.Net.ClientsOnly.sln"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
+    }
+  ]
 }

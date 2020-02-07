@@ -1,18 +1,27 @@
 <Project ToolsVersion="15.0">
-  <Import Project="version.props" />
 
-  <PropertyGroup Label="Source Link">
-    <ProjectParentDirectory>$([System.IO.Path]::GetDirectoryName('$(MSBuildProjectDirectory)'))</ProjectParentDirectory>
-    <ProjectParentDirectoryName>$([System.IO.Path]::GetFileName('$(ProjectParentDirectory)'))</ProjectParentDirectoryName>
-  </PropertyGroup>
 
-  <Import Project="sourcelink.props" Condition="'$(ProjectParentDirectoryName)' == 'src'" />
+  <PropertyGroup>
+    <Product>Exceptionless</Product>
+    <Description>Exceptionless is a cloud based error reporting service that sends your exceptions to https://exceptionless.com and provides aggregated views and analytics.</Description>
+    <PackageProjectUrl>https://github.com/exceptionless/Exceptionless</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless/releases</PackageReleaseNotes>
+    <MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
 
-  <PropertyGroup Label="Build">
-    <DebugType>portable</DebugType>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
+    <Copyright>Copyright (c) 2020 Exceptionless.  All rights reserved.</Copyright>
+    <Authors>Exceptionless</Authors>
+    <NoWarn>$(NoWarn);CS1591;NU1701</NoWarn>
+    <WarningsAsErrors>true</WarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
+    <PackageIcon>exceptionless-icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
@@ -25,19 +34,20 @@
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
 
-  <PropertyGroup Label="Package">
-    <Product>Exceptionless</Product>
-    <Description>Exceptionless is a cloud based error reporting service that sends your exceptions to https://exceptionless.com and provides aggregated views and analytics.</Description>
-    <Copyright>Copyright (c) 2020 Exceptionless. All rights reserved.</Copyright>
-    <Authors>Exceptionless</Authors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
-
-    <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</PackageReleaseNotes>
-    <PackageIconUrl>https://be.exceptionless.io/img/exceptionless-32.png</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/exceptionless/Exceptionless.Net</PackageProjectUrl>
-    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/exceptionless/Exceptionless.Net</RepositoryUrl>
+  <PropertyGroup Label="Signing">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Exceptionless.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="AsyncFixer" Version="1.1.6" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="2.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../LICENSE.txt" Pack="true" Visible="false" PackagePath="$(PackageLicenseFile)" />
+    <None Include="../../build/exceptionless-icon.png" Pack="true" PackagePath="$(PackageIcon)" />
+  </ItemGroup>
+
 </Project>
