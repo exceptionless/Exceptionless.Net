@@ -30,12 +30,6 @@
     <Compile Include="..\Exceptionless.Web\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.Web\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
   </ItemGroup>
   
-  <PropertyGroup Label="Signing">
-    <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <AssemblyOriginatorKeyFile>..\..\Exceptionless.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
