@@ -22,12 +22,12 @@ jobs:
       with:
         tag-prefix: v
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release Exceptionless.Net.ClientsOnly.sln
     - name: Run Tests
-      run: dotnet test --configuration Release --results-directory artifacts --no-build --logger:trx
+      run: dotnet test --configuration Release --results-directory artifacts --no-build --logger:trx Exceptionless.Net.ClientsOnly.sln
     - name: Package
       if: github.event_name != 'pull_request'
-      run: dotnet pack --configuration Release --no-build
+      run: dotnet pack --configuration Release --no-build Exceptionless.Net.ClientsOnly.sln
     - name: Publish CI Packages
       run: |
         for package in $(find -name "*.nupkg" | grep "minver" -v); do
