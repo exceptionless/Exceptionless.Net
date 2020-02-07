@@ -18,7 +18,7 @@ namespace Exceptionless.Tests.Log {
                 Assert.True(LogExists(log.FilePath));
                 string contents = log.GetFileContents();
 
-                Assert.EndsWith(" Info  Test\r\n", contents);
+                Assert.Contains(" Info  Test", contents);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Exceptionless.Tests.Log {
                 Assert.True(LogExists(log.FilePath));
                 contents = log.GetFileContents();
 
-                Assert.EndsWith(" Info  Test\r\n", contents);
+                Assert.Contains(" Info  Test", contents);
             }
         }
 
