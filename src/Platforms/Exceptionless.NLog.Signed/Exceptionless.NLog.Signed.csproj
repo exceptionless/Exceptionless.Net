@@ -23,11 +23,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup Label="Build">
-    <Compile Remove="..\Exceptionless.NLog\obj\**\*" />
-    <Compile Include="..\Exceptionless.NLog\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.NLog\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
-  </ItemGroup>
-
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>

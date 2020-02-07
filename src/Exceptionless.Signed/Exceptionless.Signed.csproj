@@ -28,9 +28,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Build">
-    <Compile Remove="..\Exceptionless\obj\**\*" />
-    <Compile Include="..\Exceptionless\**\*.cs;..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
-
     <EmbeddedResource Include="..\Exceptionless\Newtonsoft.Json\Dynamic.snk">
       <Link>Exceptionless.Json.Dynamic.snk</Link>
     </EmbeddedResource>

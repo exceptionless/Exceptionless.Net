@@ -23,10 +23,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup Label="Build">
-    <Compile Include="..\GlobalAssemblyInfo.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
-  </ItemGroup>
-
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>

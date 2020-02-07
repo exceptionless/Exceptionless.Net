@@ -22,10 +22,6 @@
       <Pack>true</Pack>
     </None>
   </ItemGroup>
-
-  <ItemGroup Label="Build">
-    <Compile Include="..\GlobalAssemblyInfo.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
-  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\Exceptionless.Signed\Exceptionless.Signed.csproj" />

@@ -14,10 +14,6 @@
     <None Include="readme.txt" />
   </ItemGroup>
 
-  <ItemGroup Label="Build">
-    <Compile Include="..\..\GlobalAssemblyInfo.cs" Link="Properties\GlobalAssemblyInfo.cs" />
-  </ItemGroup>
-
   <ItemGroup Label="Package References">
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
   </ItemGroup>
