@@ -18,7 +18,14 @@ namespace Exceptionless {
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
         private const string DEFAULT_CONFIG_SERVER_URL = "https://config.exceptionless.io";
         private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";
-        private const string DEFAULT_USER_AGENT = "exceptionless/" + ThisAssembly.AssemblyFileVersion;
+        private const string DEFAULT_USER_AGENT = "exceptionless/";
+        private static Lazy<string> _version = new Lazy<string>(() => {
+            #if !PORTABLE
+            return Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+            #else
+            return "";
+            #endif
+        });
         private const int DEFAULT_SUBMISSION_BATCH_SIZE = 50;
 
         private readonly IDependencyResolver _resolver;
@@ -42,7 +49,7 @@ namespace Exceptionless {
             ServerUrl = DEFAULT_SERVER_URL;
             ConfigServerUrl = DEFAULT_CONFIG_SERVER_URL;
             HeartbeatServerUrl = DEFAULT_HEARTBEAT_SERVER_URL;
-            UserAgent = DEFAULT_USER_AGENT;
+            UserAgent = DEFAULT_USER_AGENT + _version.Value;
             SubmissionBatchSize = DEFAULT_SUBMISSION_BATCH_SIZE;
             Enabled = true;
             QueueMaxAge = TimeSpan.FromDays(7);

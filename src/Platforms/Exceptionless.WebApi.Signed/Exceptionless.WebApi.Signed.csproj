@@ -25,11 +25,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup Label="Build">
-    <Compile Remove="..\Exceptionless.WebApi\obj\**\*" />
-    <Compile Include="..\Exceptionless.WebApi\**\*.cs;..\..\GlobalAssemblyInfo.cs" Exclude="..\Exceptionless.WebApi\obj\**\*;bin\**;obj\**;**\*.xproj;packages\**" />
-  </ItemGroup>
-
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Exceptionless.Signed\Exceptionless.Signed.csproj" />
   </ItemGroup>
