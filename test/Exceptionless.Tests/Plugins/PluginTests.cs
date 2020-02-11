@@ -800,7 +800,6 @@ namespace Exceptionless.Tests.Plugins {
                 }
             }
 
-            Thread.Sleep(100);
             Assert.Equal(9, mergedContext.Event.Count.GetValueOrDefault());
         }
 

@@ -158,7 +158,7 @@ namespace Exceptionless.Tests.Configuration {
             });
 
             while (!result.IsCompleted)
-                Thread.Sleep(1);
+                Thread.Yield();
         }
 
         [Fact]
@@ -177,7 +177,7 @@ namespace Exceptionless.Tests.Configuration {
             });
 
             while (!result.IsCompleted)
-                Thread.Sleep(1);
+                Thread.Yield();
         }
     }
 }
