@@ -50,7 +50,7 @@ namespace Exceptionless.Plugins.Default {
                     return;
                 }
 
-                DateTimeOffset repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
+                var repeatWindow = DateTimeOffset.UtcNow.Subtract(_interval);
                 if (_processed.Any(s => s.Item1 == hashCode && s.Item2 >= repeatWindow)) {
                     context.Log.FormattedTrace(_logSourceType, "Adding duplicate event: {0} with hash: {1} to cache for later submission.", context.Event.Message, hashCode);
                     // This event is a duplicate for the first time, lets save it so we can delay it while keeping count

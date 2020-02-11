@@ -844,8 +844,9 @@ namespace Exceptionless.Tests.Plugins {
                     duplicateCheckerPlugin.Run(context);
                 });
 
-                while (!result.IsCompleted)
-                    Thread.Sleep(1);
+                while (!result.IsCompleted) {
+                    Thread.Yield();
+                }
             }
 
             Thread.Sleep(150);
