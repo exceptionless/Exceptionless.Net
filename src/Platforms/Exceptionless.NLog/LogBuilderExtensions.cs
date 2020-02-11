@@ -76,7 +76,11 @@ namespace Exceptionless.NLog {
             if (tags == null || tags.Length == 0)
                 return;
 
+#if PORTABLE
             var list = ev.GetTags() ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+#else
+            var list = ev.GetTags() ?? new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+#endif
             foreach (string tag in tags)
                 list.Add(tag);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Exceptionless.Models.Data {
     public class Method : IData {
@@ -33,13 +34,19 @@ namespace Exceptionless.Models.Data {
             return Equals((Method)obj);
         }
 
+#if PORTABLE
+        private static readonly ISet<string> _exclusions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ILOffset", "NativeOffset" };
+#else
+        private static readonly ISet<string> _exclusions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "ILOffset", "NativeOffset" };
+#endif
+
         public override int GetHashCode() {
             unchecked {
                 var hashCode = IsSignatureTarget.GetHashCode();
                 hashCode = (hashCode * 397) ^ (DeclaringNamespace == null ? 0 : DeclaringNamespace.GetHashCode());
                 hashCode = (hashCode * 397) ^ (DeclaringType == null ? 0 : DeclaringType.GetHashCode());
                 hashCode = (hashCode * 397) ^ (Name == null ? 0 : Name.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode(new[] { "ILOffset", "NativeOffset" }));
+                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode(_exclusions));
                 hashCode = (hashCode * 397) ^ (GenericArguments == null ? 0 : GenericArguments.GetCollectionHashCode());
                 hashCode = (hashCode * 397) ^ (Parameters == null ? 0 : Parameters.GetCollectionHashCode());
                 return hashCode;
