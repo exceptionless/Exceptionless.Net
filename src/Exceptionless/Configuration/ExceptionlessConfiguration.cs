@@ -19,11 +19,14 @@ namespace Exceptionless {
         private const string DEFAULT_CONFIG_SERVER_URL = "https://config.exceptionless.io";
         private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";
         private const string DEFAULT_USER_AGENT = "exceptionless/";
-        private static Lazy<string> _version = new Lazy<string>(() => {
+        private static readonly Lazy<string> _version = new Lazy<string>(() => {
             #if !PORTABLE
-            return Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+            var assembly = Assembly.GetExecutingAssembly();
+            var attribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+            return attribute.Version;
             #else
-            return "";
+            // NOTE: This is hard coded for a single release. The next release will deprecate portable.
+            return "4.4.0.0";
             #endif
         });
         private const int DEFAULT_SUBMISSION_BATCH_SIZE = 50;
