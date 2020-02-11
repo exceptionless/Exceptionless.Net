@@ -73,28 +73,41 @@ namespace Exceptionless {
             return source.SetEquals(other);
         }
 
+        /// <summary>
+        /// The hashcode is calculated based on hash of each item regardless of order.
+        /// </summary>
         public static int GetCollectionHashCode<T>(this IEnumerable<T> source) {
-            var assemblyQualifiedName = typeof(T).AssemblyQualifiedName;
+            string assemblyQualifiedName = typeof(T).AssemblyQualifiedName;
             int hashCode = assemblyQualifiedName == null ? 0 : assemblyQualifiedName.GetHashCode();
-
+            
+            var itemHashes = new List<int>();
             foreach (var item in source) {
                 if (item == null)
                     continue;
 
+                itemHashes.Add(item.GetHashCode());
+            }
+
+            // Sort the hashes
+            itemHashes.Sort();
+            foreach (int itemHash in itemHashes) {
                 unchecked {
-                    hashCode = (hashCode * 397) ^ item.GetHashCode();
+                    hashCode = (hashCode * 397) ^ itemHash;
                 }
             }
             return hashCode;
         }
 
-        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source, IList<string> exclusions = null) {
-            var assemblyQualifiedName = typeof(TValue).AssemblyQualifiedName;
+        /// <summary>
+        /// The hashcode is calculated based on hash of each item regardless of order.
+        /// </summary>
+        public static int GetCollectionHashCode<TValue>(this IDictionary<string, TValue> source, ISet<string> exclusions = null) {
+            string assemblyQualifiedName = typeof(TValue).AssemblyQualifiedName;
             int hashCode = assemblyQualifiedName == null ? 0 : assemblyQualifiedName.GetHashCode();
 
             var keyValuePairHashes = new List<int>(source.Keys.Count);
 
-            foreach (var key in source.Keys.OrderBy(x => x)) {
+            foreach (string key in source.Keys) {
                 if (exclusions != null && exclusions.Contains(key))
                     continue;
 
@@ -107,7 +120,7 @@ namespace Exceptionless {
             }
 
             keyValuePairHashes.Sort();
-            foreach (var kvpHash in keyValuePairHashes) {
+            foreach (int kvpHash in keyValuePairHashes) {
                 unchecked {
                     hashCode = (hashCode * 397) ^ kvpHash;
                 }
