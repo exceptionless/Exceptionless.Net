@@ -22,7 +22,11 @@ namespace Exceptionless.Tests.Utility {
         }
         
         public static IEnumerable<Event> GetEvents() {
-            return Directory.EnumerateFiles(Path.GetFullPath(Path.Combine("..", "..", "..", "ErrorData")), "*.json").Select(GetEvent);
+            string path = Path.GetFullPath(Path.Combine("..", "..", "..", "ErrorData"));
+            if (!Directory.Exists(path))
+                path = Path.GetFullPath(Path.Combine("..", "..", "..", "..", "..", "..", "..", "ErrorData"));
+            
+            return Directory.EnumerateFiles(path, "*.json").Select(GetEvent);
         }
     }
 }
