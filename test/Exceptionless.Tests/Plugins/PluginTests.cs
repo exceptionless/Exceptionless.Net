@@ -906,7 +906,7 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Fact]
+        [Fact(Skip="Skip until we report benchmark results and look at them over time")]
         public void RunBenchmark() {
             var summary = BenchmarkRunner.Run<DeduplicationBenchmarks>();
 
