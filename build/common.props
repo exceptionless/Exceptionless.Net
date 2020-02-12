@@ -1,6 +1,4 @@
 <Project ToolsVersion="15.0">
-
-
   <PropertyGroup>
     <Product>Exceptionless</Product>
     <Description>Exceptionless is a cloud based error reporting service that sends your exceptions to https://exceptionless.com and provides aggregated views and analytics.</Description>
@@ -46,8 +44,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../LICENSE.txt" Pack="true" Visible="false" PackagePath="$(PackageLicenseFile)" />
-    <None Include="../../build/exceptionless-icon.png" Pack="true" PackagePath="$(PackageIcon)" />
+    <None Include="(SolutionDir)LICENSE.txt" Pack="true" Visible="false" PackagePath="$(PackageLicenseFile)" />
+    <None Include="(SolutionDir)build/exceptionless-icon.png" Pack="true" PackagePath="$(PackageIcon)" />
   </ItemGroup>
 
 </Project>
