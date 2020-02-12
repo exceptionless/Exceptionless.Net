@@ -778,7 +778,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void VerifyDeduplication() {
             var client = CreateClient();
-            var errorPlugin = new ErrorPlugin();
+            var errorPlugin = new SimpleErrorPlugin();
 
             EventPluginContext mergedContext = null;
             using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
