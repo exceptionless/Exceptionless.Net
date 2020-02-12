@@ -36,7 +36,7 @@ jobs:
 
           # GPR
           # workaround for GPR push issue
-          curl -sX PUT -u "foundatiofx:${{ secrets.GITHUB_TOKEN }}" -F package=@$package https://nuget.pkg.github.com/exceptionless/
+          curl -sX PUT -u "exceptionless:${{ secrets.GITHUB_TOKEN }}" -F package=@$package https://nuget.pkg.github.com/exceptionless/
 
           # feedz (remove once GPR supports anonymous access)
           dotnet nuget push $package --source https://f.feedz.io/exceptionless/exceptionless/nuget --api-key ${{ secrets.FEEDZ_KEY }}
