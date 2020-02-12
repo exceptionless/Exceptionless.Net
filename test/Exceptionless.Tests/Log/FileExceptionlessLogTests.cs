@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Exceptionless.Logging;
 using Xunit;
 
@@ -16,8 +17,8 @@ namespace Exceptionless.Tests.Log {
         }
 
         [Fact]
-        public override void LogFlushTimerWorks() {
-            base.LogFlushTimerWorks();
+        public override Task LogFlushTimerWorks() {
+            return base.LogFlushTimerWorks();
         }
 
         [Fact]
