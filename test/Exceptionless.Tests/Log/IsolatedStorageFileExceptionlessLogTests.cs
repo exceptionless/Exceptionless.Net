@@ -28,8 +28,8 @@ namespace Exceptionless.Tests.Log {
         }
 
         [Fact]
-        public override void LogFlushTimerWorks() {
-            base.LogFlushTimerWorks();
+        public override Task LogFlushTimerWorks() {
+            return base.LogFlushTimerWorks();
         }
 
         [Fact]

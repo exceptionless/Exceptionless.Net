@@ -22,7 +22,7 @@ namespace Exceptionless.Tests.Log {
             }
         }
 
-        public virtual void LogFlushTimerWorks() {
+        public virtual async Task LogFlushTimerWorks() {
             DeleteLog();
 
             using (var log = GetLog(LOG_FILE)) {
@@ -31,7 +31,7 @@ namespace Exceptionless.Tests.Log {
                 string contents = log.GetFileContents();
                 Assert.Equal("", contents);
 
-                Thread.Sleep(1010 * 3);
+                await Task.Delay(TimeSpan.FromMilliseconds(3050));
 
                 Assert.True(LogExists(log.FilePath));
                 contents = log.GetFileContents();
