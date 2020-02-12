@@ -29,5 +29,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
-
 </Project>
