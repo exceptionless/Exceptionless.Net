@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <IsTestProject>false</IsTestProject>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RootNamespace>Exceptionless.TestHarness</RootNamespace>
   </PropertyGroup>

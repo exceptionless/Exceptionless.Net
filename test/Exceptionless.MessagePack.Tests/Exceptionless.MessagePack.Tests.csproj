@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyName>Exceptionless.MessagePack.Tests</AssemblyName>
   </PropertyGroup>
