@@ -218,7 +218,7 @@ namespace Exceptionless.Models {
             if (_minLogLevels.TryGetValue(loggerName, out minLogLevel))
                 return minLogLevel;
 
-            var setting = GetTypeAndSourceSetting("log", loggerName, "Trace");
+            string setting = GetTypeAndSourceSetting("log", loggerName, "Trace");
             if (setting == null) {
 #if !PORTABLE
                 _minLogLevels.AddOrUpdate(loggerName, LogLevel.Trace, (logName, level) => LogLevel.Trace);
@@ -284,13 +284,12 @@ namespace Exceptionless.Models {
                 _typeSourceEnabled.Add(type, sourceDictionary);
 #endif
                 sourcePrefix = "@@" + type + ":";
-                if (!_eventTypes.ContainsKey(type)) {
 #if !PORTABLE
-                    _eventTypes.TryAdd(type, sourcePrefix);
+                _eventTypes.TryAdd(type, sourcePrefix);
 #else
+                if (!_eventTypes.ContainsKey(type))
                     _eventTypes.Add(type, sourcePrefix);
 #endif
-                }
             } else {
                 sourcePrefix = _eventTypes[type];
             }
