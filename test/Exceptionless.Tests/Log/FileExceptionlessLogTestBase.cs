@@ -31,7 +31,7 @@ namespace Exceptionless.Tests.Log {
                 string contents = log.GetFileContents();
                 Assert.Equal("", contents);
 
-                await Task.Delay(TimeSpan.FromMilliseconds(3050));
+                await Task.Delay(TimeSpan.FromMilliseconds(3100));
 
                 Assert.True(LogExists(log.FilePath));
                 contents = log.GetFileContents();

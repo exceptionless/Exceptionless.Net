@@ -117,13 +117,14 @@ namespace Exceptionless.Logging {
         }
 
         public void Flush() {
-            if (_isFlushing || _buffer.Count == 0)
+            if (_isFlushing || _buffer.IsEmpty)
                 return;
 
-            if (DateTime.UtcNow.Subtract(_lastSizeCheck).TotalSeconds > 120)
+            // Only check if appending file and size hasn't been checked in 2 minutes
+            if ((_append || !_firstWrite) && DateTime.UtcNow.Subtract(_lastSizeCheck).TotalSeconds > 120)
                 CheckFileSize();
 
-            if (_isFlushing)
+            if (_isFlushing || _buffer.IsEmpty)
                 return;
             
             try {
