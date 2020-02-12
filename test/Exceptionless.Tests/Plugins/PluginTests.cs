@@ -781,7 +781,7 @@ namespace Exceptionless.Tests.Plugins {
             var errorPlugin = new SimpleErrorPlugin();
 
             EventPluginContext mergedContext = null;
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(40))) {
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromSeconds(1))) {
                 for (int index = 0; index < 10; index++) {
                     var builder = GetException().ToExceptionless();
                     var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
@@ -808,22 +808,24 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             foreach (var plugin in client.Configuration.Plugins)
                 client.Configuration.RemovePlugin(plugin.Key);
-            client.Configuration.AddPlugin(new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(75)));
 
             int submittingEventHandlerCalls = 0;
-            client.SubmittingEvent += (sender, args) => {
-                Interlocked.Increment(ref submittingEventHandlerCalls);
-            };
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromSeconds(1))) {
+                client.Configuration.AddPlugin(duplicateCheckerPlugin);
 
-            for (int index = 0; index < 3; index++) {
-                client.SubmitLog("test");
-                if (index > 0)
-                    continue;
+                client.SubmittingEvent += (sender, args) => {
+                    Interlocked.Increment(ref submittingEventHandlerCalls);
+                };
 
-                Assert.Equal(1, submittingEventHandlerCalls);
+                for (int index = 0; index < 3; index++) {
+                    client.SubmitLog("test");
+                    if (index > 0)
+                        continue;
+
+                    Assert.Equal(1, submittingEventHandlerCalls);
+                }
             }
 
-            Thread.Sleep(100);
             Assert.Equal(2, submittingEventHandlerCalls);
         }
 
