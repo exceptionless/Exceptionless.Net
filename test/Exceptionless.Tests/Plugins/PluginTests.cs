@@ -862,8 +862,7 @@ namespace Exceptionless.Tests.Plugins {
             var errorPlugin = new ErrorPlugin();
 
             foreach (var ev in ErrorDataReader.GetEvents()) {
-                using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(20))) {
-
+                using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromMilliseconds(30))) {
                     for (int index = 0; index < 2; index++) {
                         var contextData = new ContextData();
                         var context = new EventPluginContext(client, ev, contextData);
@@ -876,7 +875,7 @@ namespace Exceptionless.Tests.Plugins {
                             Assert.Null(context.Event.Count);
                         } else {
                             Assert.True(context.Cancel);
-                            Thread.Sleep(50);
+                            Thread.Sleep(60);
                             Assert.Equal(1, context.Event.Count);
                         }
                     }
