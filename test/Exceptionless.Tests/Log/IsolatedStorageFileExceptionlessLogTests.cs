@@ -1,5 +1,6 @@
 ﻿#if NET45
 using System;
+using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Serializer;
