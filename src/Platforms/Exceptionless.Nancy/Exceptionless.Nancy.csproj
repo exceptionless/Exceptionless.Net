@@ -19,10 +19,7 @@
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Include="readme.txt">
-      <PackagePath></PackagePath>
-      <Pack>true</Pack>
-    </None>
+    <None Include="readme.txt" pack="true" PackagePath="." />
   </ItemGroup>
 
   <ItemGroup Label="Project References">
