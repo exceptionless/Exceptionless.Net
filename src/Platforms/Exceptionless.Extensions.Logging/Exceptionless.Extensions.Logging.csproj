@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Package">
-    <None Include="readme.txt" />
+    <None Include="readme.txt" pack="true" PackagePath="." />
   </ItemGroup>
 
   <ItemGroup Label="Package References">
