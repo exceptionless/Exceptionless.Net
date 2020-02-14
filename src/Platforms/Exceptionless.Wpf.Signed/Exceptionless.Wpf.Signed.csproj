@@ -45,14 +45,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\ErrorFeedback.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Images\ErrorFeedback.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
 </Project>

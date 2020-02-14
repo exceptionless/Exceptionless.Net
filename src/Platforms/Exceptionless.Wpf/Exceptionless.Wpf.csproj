@@ -45,16 +45,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\ErrorFeedback.png" />
-    <None Remove="readme.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Images\ErrorFeedback.png" />
-    <Resource Include="readme.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
