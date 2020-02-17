@@ -21,7 +21,6 @@ namespace Exceptionless {
             client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
             client.Startup();
             
-            client.RegisterApplicationThreadExceptionHandler();
             client.RegisterApplicationDispatcherUnhandledExceptionHandler();
 
             if (!showDialog)
@@ -40,7 +39,6 @@ namespace Exceptionless {
                 throw new ArgumentNullException(nameof(client));
 
             client.Shutdown();
-            client.UnregisterApplicationThreadExceptionHandler();
             client.UnregisterApplicationDispatcherUnhandledExceptionHandler();
         
             client.SubmittingEvent -= OnSubmittingEvent;
