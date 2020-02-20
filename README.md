@@ -1,5 +1,5 @@
 # Exceptionless .NET Clients
-[![Build status](https://github.com/Exceptionless/Exceptionless.Net/workflows/Build/badge.svg)]
+[![Build status](https://github.com/Exceptionless/Exceptionless.Net/workflows/Build/badge.svg)](https://github.com/Exceptionless/Exceptionless.Net/actions)
 [![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.svg?style=flat)](https://www.nuget.org/packages/Exceptionless/)
 [![Slack Status](https://slack.exceptionless.com/badge.svg)](https://slack.exceptionless.com)
 [![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless)
