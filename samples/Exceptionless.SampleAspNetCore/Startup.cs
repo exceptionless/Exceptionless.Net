@@ -22,7 +22,8 @@ namespace Exceptionless.SampleAspNetCore {
             services.AddLogging(b => b
                 .AddConfiguration(Configuration.GetSection("Logging"))
                 .AddDebug()
-                .AddConsole());
+                .AddConsole()
+                .AddExceptionless());
             services.AddHttpContextAccessor();
             services.AddMvc();
         }
@@ -38,7 +39,7 @@ namespace Exceptionless.SampleAspNetCore {
             //OR
             //loggerFactory.AddExceptionless((c) => c.ReadFromConfiguration(Configuration));
 
-            loggerFactory.AddExceptionless();
+            //loggerFactory.AddExceptionless();
             app.UseRouting();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
