@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using Exceptionless.Logging;
@@ -22,14 +21,13 @@ namespace Exceptionless.Plugins.Default {
 
             if (_checkedForVersion)
                 return;
-            
+
             _checkedForVersion = true;
 
             string version = GetVersionFromRuntimeInfo(context.Log);
-#if !PORTABLE && !NETSTANDARD1_2
             if (String.IsNullOrEmpty(version))
                 version = GetVersionFromLoadedAssemblies(context.Log);
-#endif
+
             if (String.IsNullOrEmpty(version))
                 return;
 
@@ -37,7 +35,7 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private string GetVersionFromRuntimeInfo(IExceptionlessLog log) {
-#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD2_0
+#if NETSTANDARD2_0
             try {
                 var platformService = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
                 return platformService.Application.ApplicationVersion;
@@ -48,7 +46,6 @@ namespace Exceptionless.Plugins.Default {
             return null;
         }
 
-#if !PORTABLE && !NETSTANDARD1_2
         private string GetVersionFromLoadedAssemblies(IExceptionlessLog log) {
             try {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).GetTypeInfo().Assembly && a != GetType().GetTypeInfo().Assembly && a != typeof(object).GetTypeInfo().Assembly)) {
@@ -59,10 +56,8 @@ namespace Exceptionless.Plugins.Default {
                     if (!String.IsNullOrEmpty(company) && (String.Equals(company, "Exceptionless", StringComparison.OrdinalIgnoreCase) || String.Equals(company, "Microsoft Corporation", StringComparison.OrdinalIgnoreCase)))
                         continue;
 
-#if !NETSTANDARD1_3 && !NETSTANDARD1_4
                     if (!assembly.GetReferencedAssemblies().Any(an => String.Equals(an.FullName, typeof(ExceptionlessClient).GetTypeInfo().Assembly.FullName)))
                         continue;
-#endif
 
                     string version = GetVersionFromAssembly(assembly);
                     if (!String.IsNullOrEmpty(version))
@@ -93,7 +88,5 @@ namespace Exceptionless.Plugins.Default {
 
             return !String.IsNullOrEmpty(version) && !String.Equals(version, "0.0.0.0") ? version : null;
         }
-#endif
-                }
-            }
-#endif
+    }
+}

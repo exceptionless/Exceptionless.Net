@@ -1,5 +1,4 @@
-﻿#if NET45 || NETSTANDARD2_0
-using System;
+﻿using System;
 using Exceptionless.Dependency;
 
 namespace Exceptionless.Plugins.Default {
@@ -15,4 +14,3 @@ namespace Exceptionless.Plugins.Default {
         }
     }
 }
-#endif

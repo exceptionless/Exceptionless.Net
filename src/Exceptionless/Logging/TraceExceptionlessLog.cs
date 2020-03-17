@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 
 namespace Exceptionless.Logging {
     public class TraceExceptionlessLog : IExceptionlessLog {
@@ -33,4 +32,3 @@ namespace Exceptionless.Logging {
         public void Flush() { }
     }
 }
-#endif

@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 
@@ -14,7 +13,7 @@ namespace Exceptionless {
         }
 
         public static DateTime? GetCreationTime(this Assembly assembly) {
-#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
+#if NET45 || NETSTANDARD2_0
             try {
                 return File.GetCreationTimeUtc(assembly.Location);
             } catch {}
@@ -24,7 +23,7 @@ namespace Exceptionless {
         }
 
         public static DateTime? GetLastWriteTime(this Assembly assembly) {
-#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
+#if NET45 || NETSTANDARD2_0
             try {
                 return File.GetLastWriteTimeUtc(assembly.Location);
             } catch {}
@@ -50,11 +49,10 @@ namespace Exceptionless {
             var attr = assembly.GetCustomAttribute(typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
             return attr != null ? attr.InformationalVersion : null;
         }
-        
+
         public static string GetCompany(this Assembly assembly) {
             var attr = assembly.GetCustomAttribute(typeof(AssemblyCompanyAttribute)) as AssemblyCompanyAttribute;
             return attr != null ? attr.Company : null;
         }
     }
 }
-#endif

@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Exceptionless.Dependency;
@@ -147,4 +146,3 @@ namespace Exceptionless.Storage {
         public void Dispose() {}
     }
 }
-#endif

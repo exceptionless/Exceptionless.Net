@@ -27,16 +27,10 @@ namespace Exceptionless.Plugins {
             config.AddPlugin<HandleAggregateExceptionsPlugin>();
             config.AddPlugin<EventExclusionPlugin>();
             config.AddPlugin<ConfigurationDefaultsPlugin>();
-#if !PORTABLE && !NETSTANDARD1_2
             config.AddPlugin<ErrorPlugin>();
-#else
-            config.AddPlugin<SimpleErrorPlugin>();
-#endif
             config.AddPlugin<DuplicateCheckerPlugin>();
             config.AddPlugin<EnvironmentInfoPlugin>();
-#if !PORTABLE && !NETSTANDARD1_2
             config.AddPlugin<VersionPlugin>();
-#endif
             config.AddPlugin<SubmissionMethodPlugin>();
             config.AddPlugin<CancelSessionsWithNoUserPlugin>();
         }

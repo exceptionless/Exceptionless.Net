@@ -1,7 +1,5 @@
 ﻿using System;
-#if !PORTABLE
 using System.Collections.Concurrent;
-#endif
 using System.Collections.Generic;
 using System.Linq;
 using Exceptionless.Extensions;
@@ -38,10 +36,10 @@ namespace Exceptionless.Models {
             string temp = null;
             if (String.IsNullOrWhiteSpace(name) || !TryGetValue(name, out temp))
                 return @default;
-            
+
             if (String.IsNullOrEmpty(temp))
                 return @default;
-            
+
             return temp.ToBoolean(@default);
         }
 
@@ -165,21 +163,13 @@ namespace Exceptionless.Models {
                 }
 
                 foreach (var logger in logLevelKeysToRemove) {
-#if !PORTABLE
                     LogLevel value;
                     _minLogLevels.TryRemove(logger, out value);
-#else
-                    _minLogLevels.Remove(logger);
-#endif
                 }
 }
 
             foreach (var eventType in _eventTypes) {
-#if !PORTABLE
                 ConcurrentDictionary<string, bool> sourceDictionary;
-#else
-                Dictionary<string, bool> sourceDictionary;
-#endif
                 if (eventType.Key == null || !_typeSourceEnabled.TryGetValue(eventType.Key, out sourceDictionary))
                     continue;
 
@@ -193,23 +183,16 @@ namespace Exceptionless.Models {
                 }
 
                 foreach (var logger in sourceKeysToRemove) {
-#if !PORTABLE
                     bool value;
                     sourceDictionary.TryRemove(logger, out value);
-#else
-                    sourceDictionary.Remove(logger);
-#endif
                 }
             }
 
             base.OnChanged(args);
         }
 
-#if !PORTABLE
         private readonly ConcurrentDictionary<string, LogLevel> _minLogLevels = new ConcurrentDictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
-#else
-        private readonly Dictionary<string, LogLevel> _minLogLevels = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
-#endif
+
         public LogLevel GetMinLogLevel(string loggerName) {
             if (String.IsNullOrEmpty(loggerName))
                 loggerName = "*";
@@ -220,37 +203,22 @@ namespace Exceptionless.Models {
 
             string setting = GetTypeAndSourceSetting("log", loggerName, "Trace");
             if (setting == null) {
-#if !PORTABLE
                 _minLogLevels.AddOrUpdate(loggerName, LogLevel.Trace, (logName, level) => LogLevel.Trace);
-#else
-                _minLogLevels[loggerName] = LogLevel.Trace;
-#endif
                 return LogLevel.Trace;
             }
 
             minLogLevel = LogLevel.FromString(setting);
-#if !PORTABLE
             _minLogLevels.AddOrUpdate(loggerName, minLogLevel, (logName, level) => minLogLevel);
-#else
-            _minLogLevels[loggerName] = minLogLevel;
-#endif
             return minLogLevel;
         }
 
-#if !PORTABLE
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _typeSourceEnabled = new ConcurrentDictionary<string, ConcurrentDictionary<string, bool>>(StringComparer.OrdinalIgnoreCase);
-#else
-        private readonly Dictionary<string, Dictionary<string, bool>> _typeSourceEnabled = new Dictionary<string, Dictionary<string, bool>>(StringComparer.OrdinalIgnoreCase);
-#endif
+
         public bool GetTypeAndSourceEnabled(string type, string source) {
             if (type == null)
                 return true;
 
-#if !PORTABLE
             ConcurrentDictionary<string, bool> sourceDictionary;
-#else
-            Dictionary<string, bool> sourceDictionary;
-#endif
             if (source != null && _typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
                 bool sourceEnabled;
                 if (sourceDictionary.TryGetValue(source, out sourceEnabled))
@@ -260,36 +228,21 @@ namespace Exceptionless.Models {
             return GetTypeAndSourceSetting(type, source, "true").ToBoolean(true);
         }
 
-#if !PORTABLE
         private readonly ConcurrentDictionary<string, string> _eventTypes = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-#else
-        private readonly Dictionary<string, string> _eventTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-#endif
+
         private string GetTypeAndSourceSetting(string type, string source, string defaultValue) {
             if (type == null)
                 return defaultValue;
 
-#if !PORTABLE
             ConcurrentDictionary<string, bool> sourceDictionary;
-#else
-            Dictionary<string, bool> sourceDictionary;
-#endif
             string sourcePrefix;
             if (!_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
-#if !PORTABLE
+
                 sourceDictionary = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 _typeSourceEnabled.TryAdd(type, sourceDictionary);
-#else
-                sourceDictionary = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-                _typeSourceEnabled.Add(type, sourceDictionary);
-#endif
                 sourcePrefix = "@@" + type + ":";
-#if !PORTABLE
+
                 _eventTypes.TryAdd(type, sourcePrefix);
-#else
-                if (!_eventTypes.ContainsKey(type))
-                    _eventTypes.Add(type, sourcePrefix);
-#endif
             } else {
                 sourcePrefix = _eventTypes[type];
             }
@@ -298,7 +251,7 @@ namespace Exceptionless.Models {
             string settingValue;
             if (TryGetValue(sourcePrefix + source, out settingValue))
                 return settingValue;
-            
+
             // check for wildcard match
             var sourceSettings = this
                 .Where(kvp => kvp.Key.StartsWith(sourcePrefix))

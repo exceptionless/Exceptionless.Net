@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -32,7 +31,7 @@ namespace Exceptionless.Diagnostics {
             get { return _maxEntriesToStore; }
             set {
                 _maxEntriesToStore = value;
-                
+
                 if (_maxEntriesToStore <= 0)
                     InnerList.Clear();
             }
@@ -68,4 +67,3 @@ namespace Exceptionless.Diagnostics {
         }
     }
 }
-#endif

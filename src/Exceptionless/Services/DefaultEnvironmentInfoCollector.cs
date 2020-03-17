@@ -3,9 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-#if !PORTABLE && !NETSTANDARD1_2
 using System.Net.Sockets;
-#endif
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -41,15 +39,12 @@ namespace Exceptionless.Services {
         }
 
         private void PopulateApplicationInfo(EnvironmentInfo info) {
-#if !PORTABLE && !NETSTANDARD1_2
             try {
                 info.Data.Add("AppDomainName", AppDomain.CurrentDomain.FriendlyName);
             } catch (Exception ex) {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
             }
-#endif
 
-#if !PORTABLE && !NETSTANDARD1_2
             if (_config.IncludeIpAddress) {
                 try {
                     IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -59,7 +54,6 @@ namespace Exceptionless.Services {
                     _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
                 }
             }
-#endif
         }
 
         private void PopulateProcessInfo(EnvironmentInfo info) {
@@ -69,7 +63,6 @@ namespace Exceptionless.Services {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get processor count. Error message: {0}", ex.Message);
             }
 
-#if !PORTABLE && !NETSTANDARD1_2
             try {
                 Process process = Process.GetCurrentProcess();
                 info.ProcessName = process.ProcessName;
@@ -79,19 +72,13 @@ namespace Exceptionless.Services {
             }
 
             try {
-#if NETSTANDARD1_5
-                info.CommandLine = String.Join(" ", Environment.GetCommandLineArgs());
-#elif NET45 || NETSTANDARD2_0
                 info.CommandLine = Environment.CommandLine;
-#endif
             } catch (Exception ex) {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get command line. Error message: {0}", ex.Message);
             }
-#endif
         }
 
         private void PopulateThreadInfo(EnvironmentInfo info) {
-#if !PORTABLE && !NETSTANDARD1_2
             try {
                 info.ThreadId = Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
             } catch (Exception ex) {
@@ -103,18 +90,15 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get current thread name. Error message: {0}", ex.Message);
             }
-#endif
         }
 
         private void PopulateMemoryInfo(EnvironmentInfo info) {
-#if !PORTABLE && !NETSTANDARD1_2
             try {
                 Process process = Process.GetCurrentProcess();
                 info.ProcessMemorySize = process.PrivateMemorySize64;
             } catch (Exception ex) {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process memory size. Error message: {0}", ex.Message);
             }
-#endif
 
 #if NET45
             try {
@@ -160,20 +144,14 @@ namespace Exceptionless.Services {
 
             if (_config.IncludeMachineName) {
                 try {
-#if NET45 || NETSTANDARD1_5 || NETSTANDARD2_0
                     info.MachineName = Environment.MachineName;
-#elif !PORTABLE && !NETSTANDARD1_2
-                Process process = Process.GetCurrentProcess();
-                info.MachineName = process.MachineName;
-#else
-                info.MachineName = Guid.NewGuid().ToString("N");
-#endif
+                    Process process = Process.GetCurrentProcess();
+                    info.MachineName = process.MachineName;
                 } catch (Exception ex) {
                     _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
                 }
             }
 
-#if !PORTABLE && !NETSTANDARD1_2
 #if NETSTANDARD
             Microsoft.Extensions.PlatformAbstractions.PlatformServices computerInfo = null;
 #elif NET45
@@ -190,10 +168,8 @@ namespace Exceptionless.Services {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);
             }
 
-#if NETSTANDARD || NET45
             if (computerInfo == null)
                 return;
-#endif
 
             try {
 #if NETSTANDARD
@@ -210,7 +186,6 @@ namespace Exceptionless.Services {
             } catch (Exception ex) {
                 _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
             }
-#endif
         }
 
 #if NETSTANDARD

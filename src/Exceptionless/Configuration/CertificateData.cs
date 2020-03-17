@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
@@ -45,7 +44,7 @@ namespace Exceptionless {
         public object Sender { get; }
 #endif
 
-#if !NET45 && !PORTABLE && !NETSTANDARD1_2
+#if !NET45
         /// <summary>
         /// The request which was sent to the remore party
         /// </summary>
@@ -53,4 +52,3 @@ namespace Exceptionless {
 #endif
     }
 }
-#endif

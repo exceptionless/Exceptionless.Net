@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Exceptionless.Models.Data;
-
-#if !PORTABLE && !NETSTANDARD1_2
 using Exceptionless.Plugins.Default;
-#endif
 
 namespace Exceptionless {
     public static class EventBuilderExtensions {
@@ -102,7 +99,6 @@ namespace Exceptionless {
             return builder;
         }
 
-#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Adds the recent trace log entries to the event.
         /// </summary>
@@ -113,6 +109,5 @@ namespace Exceptionless {
             TraceLogPlugin.AddRecentTraceLogEntries(builder.Target, listener, maxEntriesToInclude);
             return builder;
         }
-#endif
     }
 }

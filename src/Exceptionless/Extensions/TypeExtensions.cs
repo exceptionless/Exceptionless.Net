@@ -5,89 +5,6 @@ using System.Reflection;
 
 namespace Exceptionless.Extensions {
     internal static class TypeExtensions {
-#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
-        [Flags]
-        internal enum BindingFlags {
-            Default = 0,
-            IgnoreCase = 1,
-            DeclaredOnly = 2,
-            Instance = 4,
-            Static = 8,
-            Public = 16,
-            NonPublic = 32,
-            FlattenHierarchy = 64,
-            InvokeMethod = 256,
-            CreateInstance = 512,
-            GetField = 1024,
-            SetField = 2048,
-            GetProperty = 4096,
-            SetProperty = 8192,
-            PutDispProperty = 16384,
-            ExactBinding = 65536,
-            PutRefDispProperty = 32768,
-            SuppressChangeType = 131072,
-            OptionalParamBinding = 262144,
-            IgnoreReturn = 16777216
-        }
-
-        public static Type[] GetGenericArguments(this Type type) {
-            return type.GetTypeInfo().GenericTypeArguments;
-        }
-
-        public static IEnumerable<Type> GetInterfaces(this Type type) {
-            return type.GetTypeInfo().ImplementedInterfaces;
-        }
-
-        public static PropertyInfo GetProperty(this Type type, string name) {
-            return type.GetTypeInfo().GetDeclaredProperty(name);
-        }
-
-        public static IEnumerable<PropertyInfo> GetProperties(this Type type, BindingFlags bindingFlags) {
-            IList<PropertyInfo> properties = (bindingFlags.HasFlag(BindingFlags.DeclaredOnly))
-                ? type.GetTypeInfo().DeclaredProperties.ToList()
-                : type.GetTypeInfo().GetPropertiesRecursive();
-
-            return properties.Where(p => TestAccessibility(p, bindingFlags));
-        }
-        
-        private static IList<PropertyInfo> GetPropertiesRecursive(this TypeInfo type) {
-            TypeInfo t = type;
-            IList<PropertyInfo> properties = new List<PropertyInfo>();
-            while (t != null) {
-                foreach (PropertyInfo member in t.DeclaredProperties) {
-                    if (!properties.Any(p => p.Name == member.Name)) {
-                        properties.Add(member);
-                    }
-                }
-                t = (t.BaseType != null) ? t.BaseType.GetTypeInfo() : null;
-            }
-
-            return properties;
-        }
-
-        private static bool TestAccessibility(PropertyInfo member, BindingFlags bindingFlags) {
-            if (member.GetMethod != null && TestAccessibility(member.GetMethod, bindingFlags)) {
-                return true;
-            }
-
-            if (member.SetMethod != null && TestAccessibility(member.SetMethod, bindingFlags)) {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TestAccessibility(MethodBase member, BindingFlags bindingFlags) {
-            bool visibility = (member.IsPublic && bindingFlags.HasFlag(BindingFlags.Public)) ||
-                              (!member.IsPublic && bindingFlags.HasFlag(BindingFlags.NonPublic));
-
-            bool instance = (member.IsStatic && bindingFlags.HasFlag(BindingFlags.Static)) ||
-                            (!member.IsStatic && bindingFlags.HasFlag(BindingFlags.Instance));
-
-            return visibility && instance;
-        }
-#endif
-
         public static PropertyInfo[] GetPublicProperties(this Type type) {
             if (type.GetTypeInfo().IsInterface) {
                 var propertyInfos = new List<PropertyInfo>();
@@ -118,7 +35,7 @@ namespace Exceptionless.Extensions {
 
             return type.GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).ToArray();
         }
-        
+
         public static object GetDefaultValue(this Type type) {
             if (type == null || type.IsNullable())
                 return null;
@@ -184,12 +101,12 @@ namespace Exceptionless.Extensions {
 
             return false;
         }
-        
+
         public static bool IsNumeric(this Type type) {
             if (type.IsArray)
                 return false;
 
-            return type == typeof(sbyte) 
+            return type == typeof(sbyte)
                 || type == typeof(short)
                 || type == typeof(ushort)
                 || type == typeof(int)

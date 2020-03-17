@@ -34,11 +34,7 @@ namespace Exceptionless.Models.Data {
             return Equals((Method)obj);
         }
 
-#if PORTABLE
-        private static readonly ISet<string> _exclusions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ILOffset", "NativeOffset" };
-#else
         private static readonly ISet<string> _exclusions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "ILOffset", "NativeOffset" };
-#endif
 
         public override int GetHashCode() {
             unchecked {

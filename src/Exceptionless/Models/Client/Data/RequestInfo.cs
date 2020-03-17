@@ -83,11 +83,7 @@ namespace Exceptionless.Models.Data {
             return Equals((RequestInfo)obj);
         }
 
-#if PORTABLE
-        private static readonly ISet<string> _cookieHashCodeExclusions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "__LastReferenceId" };
-#else
         private static readonly ISet<string> _cookieHashCodeExclusions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "__LastReferenceId" };
-#endif
 
         public override int GetHashCode() {
             unchecked {
