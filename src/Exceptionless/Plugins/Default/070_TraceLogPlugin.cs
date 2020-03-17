@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace Exceptionless.Plugins.Default {
         public const int DefaultMaxEntriesToInclude = 25;
 
         private readonly ExceptionlessConfiguration _configuration;
-        private readonly ExceptionlessTraceListener _listener; 
+        private readonly ExceptionlessTraceListener _listener;
 
         public TraceLogPlugin(ExceptionlessConfiguration config, ExceptionlessTraceListener listener = null) {
             _configuration = config;
@@ -54,7 +53,7 @@ namespace Exceptionless.Plugins.Default {
 
         public void Dispose() {
             if (_configuration != null && _configuration.Settings != null)
-                _configuration.Settings.Changed -= OnSettingsChanged; 
+                _configuration.Settings.Changed -= OnSettingsChanged;
         }
 
         private void OnSettingsChanged(object sender, ChangedEventArgs<KeyValuePair<string, string>> e) {
@@ -65,4 +64,3 @@ namespace Exceptionless.Plugins.Default {
         }
     }
 }
-#endif

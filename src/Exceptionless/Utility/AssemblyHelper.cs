@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,11 +7,7 @@ using Exceptionless.Logging;
 namespace Exceptionless.Utility {
     public class AssemblyHelper {
         public static Assembly GetRootAssembly() {
-#if NET45 || NETSTANDARD2_0 ||NETSTANDARD1_5
             return Assembly.GetEntryAssembly();
-#else
-            return null;
-#endif
         }
 
         public static string GetAssemblyTitle() {
@@ -29,11 +24,10 @@ namespace Exceptionless.Utility {
             // If there is an attribute, return its value
             return ((AssemblyTitleAttribute)attributes[0]).Title;
         }
-        
+
         public static List<Type> GetTypes(IExceptionlessLog log) {
             var types = new List<Type>();
 
-#if !PORTABLE && !NETSTANDARD1_2
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies) {
                 try {
@@ -45,10 +39,8 @@ namespace Exceptionless.Utility {
                     log.Error(typeof(AssemblyHelper), ex, String.Format("An error occurred while getting types for assembly \"{0}\".", assembly));
                 }
             }
-#endif
 
             return types;
         }
     }
 }
-#endif

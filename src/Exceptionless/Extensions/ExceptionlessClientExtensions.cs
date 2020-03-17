@@ -23,20 +23,15 @@ namespace Exceptionless {
                 client.Configuration.ApiKey = apiKey;
 
             client.Configuration.ReadAllConfig();
-
-#if !PORTABLE && !NETSTANDARD1_2
             client.Configuration.UseTraceLogEntriesPlugin();
-#endif
 
             if (client.Configuration.UpdateSettingsWhenIdleInterval == null)
                 client.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromMinutes(2);
 
-#if !PORTABLE && !NETSTANDARD1_2
             client.RegisterAppDomainUnhandledExceptionHandler();
 
             // make sure that queued events are sent when the app exits
             client.RegisterOnProcessExitHandler();
-#endif
             client.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
 
             if (client.Configuration.SessionsEnabled)
@@ -51,10 +46,8 @@ namespace Exceptionless {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-#if !PORTABLE && !NETSTANDARD1_2
             client.UnregisterAppDomainUnhandledExceptionHandler();
             client.UnregisterOnProcessExitHandler();
-#endif
             client.UnregisterTaskSchedulerUnobservedTaskExceptionHandler();
 
             client.ProcessQueue();
@@ -349,7 +342,6 @@ namespace Exceptionless {
 
 namespace Exceptionless.Extensions {
     public static class ExceptionlessClientExtensions {
-#if !PORTABLE && !NETSTANDARD1_2
         private static UnhandledExceptionEventHandler _onAppDomainUnhandledException;
         public static void RegisterAppDomainUnhandledExceptionHandler(this ExceptionlessClient client) {
             if (client == null)
@@ -426,7 +418,6 @@ namespace Exceptionless.Extensions {
             AppDomain.CurrentDomain.ProcessExit -= _onProcessExit;
             _onProcessExit = null;
         }
-#endif
 
         private static EventHandler<UnobservedTaskExceptionEventArgs> _onTaskSchedulerOnUnobservedTaskException;
         public static void RegisterTaskSchedulerUnobservedTaskExceptionHandler(this ExceptionlessClient client) {

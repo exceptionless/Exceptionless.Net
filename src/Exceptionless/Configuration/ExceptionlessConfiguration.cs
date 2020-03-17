@@ -1,7 +1,5 @@
 ﻿using System;
-#if !PORTABLE
 using System.Collections.Concurrent;
-#endif
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,14 +18,9 @@ namespace Exceptionless {
         private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";
         private const string DEFAULT_USER_AGENT = "exceptionless/";
         private static readonly Lazy<string> _version = new Lazy<string>(() => {
-            #if !PORTABLE
             var assembly = Assembly.GetExecutingAssembly();
             var attribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
             return attribute.Version;
-            #else
-            // NOTE: This is hard coded for a single release. The next release will deprecate portable.
-            return "4.4.0.0";
-            #endif
         });
         private const int DEFAULT_SUBMISSION_BATCH_SIZE = 50;
 
@@ -167,7 +160,7 @@ namespace Exceptionless {
         /// Whether the client is currently enabled or not. If it is disabled, submitted errors will be discarded and no data will be sent to the server.
         /// </summary>
         public bool Enabled { get; set; }
-        
+
         /// <summary>
         /// Maximum time (provided in days) that the queue will persist events
         /// </summary>
@@ -194,7 +187,7 @@ namespace Exceptionless {
         public SettingsDictionary Settings { get; private set; }
 
         /// <summary>
-        /// How often the client should check for updated server settings when idle. The default is every 2 minutes. 
+        /// How often the client should check for updated server settings when idle. The default is every 2 minutes.
         /// </summary>
         public TimeSpan? UpdateSettingsWhenIdleInterval {
             get { return _updateSettingsWhenIdleInterval; }
@@ -287,12 +280,10 @@ namespace Exceptionless {
             }
         }
 
-#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Callback which is invoked to validate the exceptionless server certificate.
         /// </summary>
         public Func<CertificateData, bool> ServerCertificateValidationCallback { get; set; }
-#endif
 
         /// <summary>
         /// A list of exclusion patterns that will automatically remove any data that matches them from any data submitted to the server.
@@ -372,11 +363,7 @@ namespace Exceptionless {
 
         #region Plugins
 
-#if !PORTABLE
         private readonly ConcurrentDictionary<string, PluginRegistration> _plugins = new ConcurrentDictionary<string, PluginRegistration>();
-#else
-        private readonly Dictionary<string, PluginRegistration> _plugins = new Dictionary<string, PluginRegistration>();
-#endif
 
         /// <summary>
         /// The list of plugins that will be used in this configuration.
@@ -394,12 +381,8 @@ namespace Exceptionless {
             string key = typeof(T).FullName;
             RemovePlugin(key);
 
-#if !PORTABLE
             if (!_plugins.TryAdd(key, new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin))))
                 Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
-#else
-            _plugins[key] = new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin));
-#endif
         }
 
         /// <summary>
@@ -419,12 +402,8 @@ namespace Exceptionless {
             RemovePlugin(key);
 
             var plugin = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));
-#if !PORTABLE
             if (!_plugins.TryAdd(key, plugin))
                 Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
-#else
-            _plugins[key] = plugin;
-#endif
         }
 
         /// <summary>
@@ -446,12 +425,8 @@ namespace Exceptionless {
             RemovePlugin(key);
 
             var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => factory(this)));
-#if !PORTABLE
             if (!_plugins.TryAdd(key, plugin))
                 Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
-#else
-            _plugins[key] = plugin;
-#endif
         }
 
         /// <summary>
@@ -479,14 +454,10 @@ namespace Exceptionless {
         /// <param name="pluginAction">The plugin action to run.</param>
         public void AddPlugin(string key, int priority, Action<EventPluginContext> pluginAction) {
             RemovePlugin(key);
-            
+
             var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => new ActionPlugin(pluginAction)));
-#if !PORTABLE
             if (!_plugins.TryAdd(key, plugin))
                 Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
-#else
-            _plugins[key] = plugin;
-#endif
         }
 
         /// <summary>
@@ -502,16 +473,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key for the plugin to be removed.</param>
         public void RemovePlugin(string key) {
-#if !PORTABLE
             PluginRegistration plugin;
             if (_plugins.TryRemove(key, out plugin))
                 plugin.Dispose();
-#else
-            if (_plugins.ContainsKey(key)) {
-                _plugins[key].Dispose();
-                _plugins.Remove(key);
-            }
-#endif
         }
 
         private int GetPriority(Type type) {

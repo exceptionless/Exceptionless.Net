@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Security;
 using System.Reflection;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
@@ -12,11 +13,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
-
-#if !PORTABLE && !NETSTANDARD1_2
 using Exceptionless.Diagnostics;
-using System.Net.Security;
-#endif
 
 #if NET45
 using System.Configuration;
@@ -155,11 +152,10 @@ namespace Exceptionless {
 
             if (assemblies == null) {
                 Assembly callingAssembly = null;
-#if NET45 || NETSTANDARD2_0
                 try {
                     callingAssembly = Assembly.GetCallingAssembly();
                 } catch (PlatformNotSupportedException) { }
-#endif
+
                 assemblies = new List<Assembly> { callingAssembly };
             }
 
@@ -213,7 +209,6 @@ namespace Exceptionless {
             config.Resolver.Register<IObjectStorage, InMemoryObjectStorage>();
         }
 
-#if !PORTABLE && !NETSTANDARD1_2
         public static void UseTraceLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
             config.Resolver.Register<IExceptionlessLog>(new TraceExceptionlessLog { MinimumLogLevel = minLogLevel ?? LogLevel.Info });
         }
@@ -242,7 +237,6 @@ namespace Exceptionless {
                 config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Concat("Error adding ExceptionlessTraceListener: ", ex.Message));
             }
         }
-#endif
 
 #if NET45
         public static void UseIsolatedStorageLogger(this ExceptionlessConfiguration config, LogLevel minLogLevel = null) {
@@ -257,28 +251,22 @@ namespace Exceptionless {
 
         public static void ReadAllConfig(this ExceptionlessConfiguration config, params Assembly[] configAttributesAssemblies) {
             if (configAttributesAssemblies == null || configAttributesAssemblies.Length == 0) {
-#if NETSTANDARD1_5
-                config.ReadFromAttributes(Assembly.GetEntryAssembly());
-#elif NET45 || NETSTANDARD2_0
                 Assembly callingAssembly = null;
                 try {
                     callingAssembly = Assembly.GetCallingAssembly();
                 } catch (PlatformNotSupportedException) { }
 
                 config.ReadFromAttributes(Assembly.GetEntryAssembly(), callingAssembly);
-#endif
             } else {
                 config.ReadFromAttributes(configAttributesAssemblies);
             }
 
-#if !PORTABLE && !NETSTANDARD
+#if !NETSTANDARD
             config.ReadFromConfigSection();
             config.ReadFromAppSettings();
 #endif
 
-#if !PORTABLE && !NETSTANDARD1_2
             config.ReadFromEnvironmentalVariables();
-#endif
             config.ApplySavedServerSettings();
         }
 
@@ -402,7 +390,6 @@ namespace Exceptionless {
         }
 #endif
 
-#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Reads the Exceptionless configuration from Environment Variables.
         /// </summary>
@@ -441,9 +428,7 @@ namespace Exceptionless {
 
             return _environmentVariables[name];
         }
-#endif
 
-#if !PORTABLE && !NETSTANDARD1_2
         /// <summary>
         /// Add a custom server certificate validation against the thumbprint of the server certificate.
         /// </summary>
@@ -481,7 +466,6 @@ namespace Exceptionless {
         public static void SkipCertificateValidation(this ExceptionlessConfiguration config) {
             config.ServerCertificateValidationCallback = x => true;
         }
-#endif
 
         private static bool IsValidApiKey(string apiKey) {
             return !String.IsNullOrEmpty(apiKey) && apiKey != "API_KEY_HERE";

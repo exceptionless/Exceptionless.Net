@@ -72,11 +72,7 @@ namespace Exceptionless.Models {
             return Equals((Event)obj);
         }
 
-#if PORTABLE
-        private static readonly ISet<string> _exclusions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { KnownDataKeys.TraceLog }; 
-#else
         private static readonly ISet<string> _exclusions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { KnownDataKeys.TraceLog };
-#endif
 
         public override int GetHashCode() {
             unchecked {

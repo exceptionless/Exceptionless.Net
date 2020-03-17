@@ -1,4 +1,4 @@
-#if !PORTABLE && !NETSTANDARD
+#if !NETSTANDARD
 using System;
 using System.ComponentModel;
 using System.Configuration;
@@ -10,7 +10,7 @@ namespace Exceptionless {
 
         [ConfigurationProperty("apiKey", IsRequired = true)]
         public string ApiKey { get { return base["apiKey"] as string; } set { base["apiKey"] = value; } }
-        
+
         [ConfigurationProperty("serverUrl")]
         public string ServerUrl { get { return base["serverUrl"] as string; } set { base["serverUrl"] = value; } }
 

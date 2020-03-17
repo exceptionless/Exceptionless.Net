@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
@@ -126,7 +125,7 @@ namespace Exceptionless.Logging {
 
             if (_isFlushing || _buffer.IsEmpty)
                 return;
-            
+
             try {
                 _isFlushing = true;
 
@@ -239,7 +238,7 @@ namespace Exceptionless.Logging {
             } catch (Exception ex) {
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error rewriting the log file after trimming it: {0}", ex.Message);
             }
-            
+
             _isCheckingFileSize = false;
         }
 
@@ -303,4 +302,3 @@ namespace Exceptionless.Logging {
         }
     }
 }
-#endif

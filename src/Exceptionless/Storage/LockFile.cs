@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -72,7 +71,7 @@ namespace Exceptionless.Storage {
                 }
             }
 
-            // create file 
+            // create file
             try {
                 using (var fs = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                     fs.Dispose();
@@ -142,7 +141,7 @@ namespace Exceptionless.Storage {
             if (String.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
 
-            return (!_lockStatus.ContainsKey(path) || !_lockStatus[path]) 
+            return (!_lockStatus.ContainsKey(path) || !_lockStatus[path])
                 && GetCreationTimeUtc(path) < DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(DefaultTimeOutInSeconds * 10));
         }
 
@@ -164,4 +163,3 @@ namespace Exceptionless.Storage {
         }
     }
 }
-#endif

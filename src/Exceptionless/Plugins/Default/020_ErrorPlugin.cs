@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
 
@@ -24,4 +23,3 @@ namespace Exceptionless.Plugins.Default {
         }
     }
 }
-#endif

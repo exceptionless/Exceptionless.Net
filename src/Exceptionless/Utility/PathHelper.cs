@@ -1,5 +1,4 @@
-﻿#if !PORTABLE && !NETSTANDARD1_2
-using System;
+﻿using System;
 using System.IO;
 
 namespace Exceptionless.Utility {
@@ -21,7 +20,6 @@ namespace Exceptionless.Utility {
             if (!sourceFile.StartsWith(DATA_DIRECTORY, StringComparison.OrdinalIgnoreCase))
                 return Path.GetFullPath(sourceFile);
 
-#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4)
             string dataDirectory = GetDataDirectory();
             int length = DATA_DIRECTORY.Length;
 
@@ -38,12 +36,8 @@ namespace Exceptionless.Utility {
             fullPath = Path.GetFullPath(fullPath);
 
             return fullPath;
-#else
-            return sourceFile;
-#endif
         }
 
-#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
         /// <summary>
         /// Gets the data directory for the |DataDirectory| macro.
         /// </summary>
@@ -55,7 +49,5 @@ namespace Exceptionless.Utility {
 
             return Path.GetFullPath(dataDirectory);
         }
-#endif
     }
 }
-#endif
