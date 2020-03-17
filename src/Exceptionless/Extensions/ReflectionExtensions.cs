@@ -13,21 +13,17 @@ namespace Exceptionless {
         }
 
         public static DateTime? GetCreationTime(this Assembly assembly) {
-#if NET45 || NETSTANDARD2_0
             try {
                 return File.GetCreationTimeUtc(assembly.Location);
             } catch {}
-#endif
 
             return null;
         }
 
         public static DateTime? GetLastWriteTime(this Assembly assembly) {
-#if NET45 || NETSTANDARD2_0
             try {
                 return File.GetLastWriteTimeUtc(assembly.Location);
             } catch {}
-#endif
 
             return null;
         }

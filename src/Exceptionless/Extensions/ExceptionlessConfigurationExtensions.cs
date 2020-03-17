@@ -152,11 +152,10 @@ namespace Exceptionless {
 
             if (assemblies == null) {
                 Assembly callingAssembly = null;
-#if NET45 || NETSTANDARD2_0
                 try {
                     callingAssembly = Assembly.GetCallingAssembly();
                 } catch (PlatformNotSupportedException) { }
-#endif
+
                 assemblies = new List<Assembly> { callingAssembly };
             }
 
