@@ -1,1 +1,0 @@
-﻿The Exceptionless.Portable.Signed package has been deprecated. Please install the Exceptionless.Signed package.

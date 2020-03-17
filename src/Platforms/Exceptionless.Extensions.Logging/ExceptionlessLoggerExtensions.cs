@@ -111,6 +111,6 @@ namespace Exceptionless {
         public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, Action<ExceptionlessConfiguration> configure) {
             factory.AddProvider(new ExceptionlessLoggerProvider(configure));
             return factory;
-        } 
+        }
     }
 }
