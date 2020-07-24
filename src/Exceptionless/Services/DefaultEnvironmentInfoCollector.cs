@@ -145,8 +145,6 @@ namespace Exceptionless.Services {
             if (_config.IncludeMachineName) {
                 try {
                     info.MachineName = Environment.MachineName;
-                    Process process = Process.GetCurrentProcess();
-                    info.MachineName = process.MachineName;
                 } catch (Exception ex) {
                     _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
                 }
