@@ -21,3 +21,9 @@ All of our [.NET clients can be installed](https://www.nuget.org/profiles/except
 2. Open the `Exceptionless.Net.sln` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
 4. Run the project by pressing `F5` to start the console.
+
+## Thanks
+
+Thanks to all the people who have contributed!
+
+[![contributors](https://contributors-img.web.app/image?repo=exceptionless/exceptionless.net)](https://github.com/exceptionless/exceptionless.net/graphs/contributors)
