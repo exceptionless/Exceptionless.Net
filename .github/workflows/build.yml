@@ -17,6 +17,7 @@ jobs:
     - name: Build Reason
       run: "echo ref: ${{github.ref}} event: ${{github.event_name}}"
     - name: Build Version
+      shell: bash
       run: |
         dotnet tool install --global minver-cli --version 2.3.0
         version=$(minver --tag-prefix v)
