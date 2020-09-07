@@ -17,6 +17,9 @@ namespace Exceptionless.AspNetCore {
             try {
                 await _next(context);
             } catch (Exception ex) {
+                if (context.RequestAborted.IsCancellationRequested)
+                    return;
+
                 var contextData = new ContextData();
                 contextData.MarkAsUnhandledError();
                 contextData.SetSubmissionMethod(nameof(ExceptionlessMiddleware));
