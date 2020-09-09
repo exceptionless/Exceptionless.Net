@@ -139,7 +139,7 @@ namespace Exceptionless.Services {
             info.OSVersion = GetVersion(RuntimeInformation.OSDescription)?.ToString();
             info.Architecture = RuntimeInformation.OSArchitecture.ToString();
             info.Data["FrameworkDescription"] = RuntimeInformation.FrameworkDescription;
-            info.Data["ProcessArchitecture"] = RuntimeInformation.ProcessArchitecture;
+            info.Data["ProcessArchitecture"] = RuntimeInformation.ProcessArchitecture.ToString();
 #endif
 
             if (_config.IncludeMachineName) {
