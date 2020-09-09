@@ -46,7 +46,14 @@ namespace Exceptionless.Plugins.Default {
             return null;
         }
 
-        private string GetVersionFromLoadedAssemblies(IExceptionlessLog log) {
+        private Assembly GetEntryAssembly(IExceptionlessLog log) {
+            var getEntryAssembly = TypeExtensions.GetMethod(typeof(Assembly), "GetEntryAssembly", BindingFlags.NonPublic | BindingFlags.Static);
+            if (getEntryAssembly == null)
+                getEntryAssembly = TypeExtensions.GetMethod(typeof(Assembly), "GetEntryAssembly", BindingFlags.Public | BindingFlags.Static);
+
+            if (getEntryAssembly != null)
+                return getEntryAssembly.Invoke(null, Array.Empty<object>()) as Assembly;
+
             try {
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic && a != typeof(ExceptionlessClient).GetTypeInfo().Assembly && a != GetType().GetTypeInfo().Assembly && a != typeof(object).GetTypeInfo().Assembly)) {
                     if (String.IsNullOrEmpty(assembly.FullName) || assembly.FullName.StartsWith("System.") || assembly.FullName.StartsWith("Microsoft."))
@@ -59,10 +66,22 @@ namespace Exceptionless.Plugins.Default {
                     if (!assembly.GetReferencedAssemblies().Any(an => String.Equals(an.FullName, typeof(ExceptionlessClient).GetTypeInfo().Assembly.FullName)))
                         continue;
 
-                    string version = GetVersionFromAssembly(assembly);
-                    if (!String.IsNullOrEmpty(version))
-                        return version;
+                    return assembly;
                 }
+            } catch (Exception ex) {
+                log.FormattedError(typeof(VersionPlugin), ex, "Unable to get entry assembly. Error: {0}", ex.Message);
+            }
+
+            return null;
+        }
+
+        private string GetVersionFromLoadedAssemblies(IExceptionlessLog log) {
+            var entryAssembly = GetEntryAssembly(log);
+
+            try {
+                string version = GetVersionFromAssembly(entryAssembly);
+                if (!String.IsNullOrEmpty(version))
+                    return version;
             } catch (Exception ex) {
                 log.FormattedError(typeof(VersionPlugin), ex, "Unable to get version from loaded assemblies. Error: {0}", ex.Message);
             }
