@@ -20,6 +20,7 @@ namespace Exceptionless.Tests.Serializer {
             _resolver.Register<IJsonSerializer, DefaultJsonSerializer>();
             _resolver.Register<IExceptionlessLog, InMemoryExceptionlessLog>();
             _resolver.Register<IEnvironmentInfoCollector, DefaultEnvironmentInfoCollector>();
+            _resolver.Register<ExceptionlessConfiguration>(new ExceptionlessConfiguration(_resolver));
             Initialize(_resolver);
         }
 
@@ -54,7 +55,11 @@ namespace Exceptionless.Tests.Serializer {
                 newEvent = serializer.Deserialize<Event>(memory);
             }
 
-            Assert.Equal(evt, newEvent);
+            var jsonSerializer = _resolver.GetJsonSerializer();
+            var expected = jsonSerializer.Serialize(evt);
+            var actual = jsonSerializer.Serialize(newEvent);
+
+            Assert.Equal(expected, actual);
         }
 
         public virtual void CanSerializeSimpleEvent() {

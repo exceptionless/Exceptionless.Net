@@ -1,38 +1,18 @@
 ﻿using System;
 
 namespace Exceptionless.Models.Data {
-    public class SimpleError : IData {
+    public class SimpleError : SimpleInnerError {
         public SimpleError() {
-            Data = new DataDictionary();
+            Modules = new ModuleCollection();
         }
 
         /// <summary>
-        /// The error message.
+        /// Any modules that were loaded / referenced when the error occurred.
         /// </summary>
-        public string Message { get; set; }
-
-        /// <summary>
-        /// The error type.
-        /// </summary>
-        public string Type { get; set; }
-
-        /// <summary>
-        /// The stack trace for the error.
-        /// </summary>
-        public string StackTrace { get; set; }
-
-        /// <summary>
-        /// Extended data entries for this error.
-        /// </summary>
-        public DataDictionary Data { get; set; }
-
-        /// <summary>
-        /// An inner (nested) error.
-        /// </summary>
-        public SimpleError Inner { get; set; }
+        public ModuleCollection Modules { get; set; }
 
         protected bool Equals(SimpleError other) {
-            return string.Equals(Message, other.Message) && string.Equals(Type, other.Type) && string.Equals(StackTrace, other.StackTrace) && Equals(Data, other.Data) && Equals(Inner, other.Inner);
+            return base.Equals(other) && Modules.CollectionEquals(other.Modules);
         }
 
         public override bool Equals(object obj) {
@@ -47,12 +27,7 @@ namespace Exceptionless.Models.Data {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = Message == null ? 0 : Message.GetHashCode();
-                hashCode = (hashCode * 397) ^ (Type == null ? 0 : Type.GetHashCode());
-                hashCode = (hashCode * 397) ^ (StackTrace == null ? 0 : StackTrace.GetHashCode());
-                hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode());
-                hashCode = (hashCode * 397) ^ (Inner == null ? 0 : Inner.GetHashCode());
-                return hashCode;
+                return (base.GetHashCode() * 397) ^ (Modules != null ? Modules.GetCollectionHashCode() : 0);
             }
         }
 

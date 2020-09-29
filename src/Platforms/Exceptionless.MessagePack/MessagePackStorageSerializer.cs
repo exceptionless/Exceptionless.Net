@@ -5,18 +5,20 @@ using MessagePack;
 
 namespace Exceptionless.MessagePack {
     public class MessagePackStorageSerializer : IStorageSerializer {
-        private readonly IFormatterResolver _formatterResolver;
+        private readonly MessagePackSerializerOptions _options;
 
         public MessagePackStorageSerializer(IDependencyResolver resolver) {
-            _formatterResolver = new ExceptionlessFormatterResolver(resolver);
+            _options = MessagePackSerializerOptions.Standard
+                .WithCompression(MessagePackCompression.Lz4BlockArray)
+                .WithResolver(new ExceptionlessFormatterResolver(resolver));
         }
 
         public void Serialize<T>(T data, Stream output) {
-            MessagePackSerializer.Serialize(output, data, _formatterResolver);
+            MessagePackSerializer.Serialize(output, data, _options);
         }
 
         public T Deserialize<T>(Stream input) {
-            return MessagePackSerializer.Deserialize<T>(input, _formatterResolver);
+            return MessagePackSerializer.Deserialize<T>(input, _options);
         }
     }
 }

@@ -138,7 +138,7 @@ namespace Exceptionless {
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
         }
 
-        private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
+        internal static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
             var modules = new ModuleCollection();
             try {
                 int id = 1;
@@ -182,7 +182,7 @@ namespace Exceptionless {
         private static void PopulateStackTrace(this Error error, Error root, Exception exception, IExceptionlessLog log) {
             StackFrame[] frames = null;
             try {
-                var st = new StackTrace(exception, true);
+                var st = new EnhancedStackTrace(exception);
                 frames = st.GetFrames();
             } catch {}
 
@@ -275,20 +275,25 @@ namespace Exceptionless {
 
             return _moduleCache.GetOrAdd(assembly.FullName, k => {
                 var mod = new Module();
-                AssemblyName name = assembly.GetAssemblyName();
+                var name = assembly.GetAssemblyName();
+                string infoVersion = assembly.GetInformationalVersion();
+                string fileVersion = assembly.GetFileVersion();
+
                 if (name != null) {
                     mod.Name = name.Name;
-                    mod.Version = name.Version.ToString();
+                    mod.Version = infoVersion ?? fileVersion ?? name.Version.ToString();
                     byte[] pkt = name.GetPublicKeyToken();
                     if (pkt.Length > 0)
                         mod.Data["PublicKeyToken"] = pkt.ToHex();
+
+                    var version = name.Version.ToString();
+                    if (!String.IsNullOrEmpty(version) && version != mod.Version)
+                        mod.Data["Version"] = name.Version.ToString();
                 }
 
-                string infoVersion = assembly.GetInformationalVersion();
                 if (!String.IsNullOrEmpty(infoVersion) && infoVersion != mod.Version)
                     mod.Data["ProductVersion"] = infoVersion;
 
-                string fileVersion = assembly.GetFileVersion();
                 if (!String.IsNullOrEmpty(fileVersion) && fileVersion != mod.Version)
                     mod.Data["FileVersion"] = fileVersion;
 
