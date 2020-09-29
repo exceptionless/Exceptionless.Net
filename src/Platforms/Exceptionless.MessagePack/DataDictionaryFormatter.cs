@@ -6,162 +6,144 @@ using MessagePack.Formatters;
 
 namespace Exceptionless.MessagePack {
     internal class DataDictionaryFormatter : IMessagePackFormatter<DataDictionary> {
-        public int Serialize(ref byte[] bytes, int offset, DataDictionary value, IFormatterResolver formatterResolver) {
+        public void Serialize(ref MessagePackWriter writer, DataDictionary value, MessagePackSerializerOptions options) {
             if (value == null) {
-                return MessagePackBinary.WriteNil(ref bytes, offset);
+                writer.WriteNil();
+                return;
             }
-            var startOffset = offset;
-            offset += MessagePackBinary.WriteMapHeader(ref bytes, offset, value.Count);
+
+            writer.WriteMapHeader(value.Count);
             foreach (var item in value) {
-                offset += MessagePackBinary.WriteString(ref bytes, offset, item.Key);
+                writer.Write(item.Key);
                 switch (item.Key) {
                     case Event.KnownDataKeys.EnvironmentInfo:
-                        offset += formatterResolver.GetFormatter<EnvironmentInfo>()
-                            .Serialize(ref bytes, offset, (EnvironmentInfo)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<EnvironmentInfo>()
+                            .Serialize(ref writer, (EnvironmentInfo)item.Value, options);
                         break;
                     case Event.KnownDataKeys.Error:
-                        offset += formatterResolver.GetFormatter<Error>()
-                            .Serialize(ref bytes, offset, (Error)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<Error>()
+                            .Serialize(ref writer, (Error)item.Value, options);
                         break;
                     case Event.KnownDataKeys.Level:
-                        offset += MessagePackBinary.WriteString(ref bytes, offset, (string)item.Value);
+                        writer.Write((string)item.Value);
                         break;
                     case Event.KnownDataKeys.ManualStackingInfo:
-                        offset += formatterResolver.GetFormatter<ManualStackingInfo>()
-                            .Serialize(ref bytes, offset, (ManualStackingInfo)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<ManualStackingInfo>()
+                            .Serialize(ref writer, (ManualStackingInfo)item.Value, options);
                         break;
                     case Event.KnownDataKeys.RequestInfo:
-                        offset += formatterResolver.GetFormatter<RequestInfo>()
-                            .Serialize(ref bytes, offset, (RequestInfo)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<RequestInfo>()
+                            .Serialize(ref writer, (RequestInfo)item.Value, options);
                         break;
                     case Event.KnownDataKeys.SimpleError:
-                        offset += formatterResolver.GetFormatter<SimpleError>()
-                            .Serialize(ref bytes, offset, (SimpleError)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<SimpleError>()
+                            .Serialize(ref writer, (SimpleError)item.Value, options);
                         break;
                     case Event.KnownDataKeys.SubmissionMethod:
-                        offset += MessagePackBinary.WriteString(ref bytes, offset, (string)item.Value);
+                        writer.Write((string)item.Value);
                         break;
                     case Event.KnownDataKeys.TraceLog:
-                        offset += formatterResolver.GetFormatter<List<string>>()
-                            .Serialize(ref bytes, offset, (List<string>)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<List<string>>()
+                            .Serialize(ref writer, (List<string>)item.Value, options);
                         break;
                     case Event.KnownDataKeys.UserDescription:
-                        offset += formatterResolver.GetFormatter<UserDescription>()
-                            .Serialize(ref bytes, offset, (UserDescription)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<UserDescription>()
+                            .Serialize(ref writer, (UserDescription)item.Value, options);
                         break;
                     case Event.KnownDataKeys.UserInfo:
-                        offset += formatterResolver.GetFormatter<UserInfo>()
-                            .Serialize(ref bytes, offset, (UserInfo)item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<UserInfo>()
+                            .Serialize(ref writer, (UserInfo)item.Value, options);
                         break;
                     case Event.KnownDataKeys.Version:
-                        offset += MessagePackBinary.WriteString(ref bytes, offset, (string)item.Value);
+                        writer.Write((string)item.Value);
                         break;
                     default:
-                        offset += formatterResolver.GetFormatter<object>()
-                            .Serialize(ref bytes, offset, item.Value, formatterResolver);
+                        options.Resolver.GetFormatter<object>()
+                            .Serialize(ref writer, item.Value, options);
                         break;
                 }
             }
-
-            return offset - startOffset;
         }
 
-        public DataDictionary Deserialize(byte[] bytes, int offset, IFormatterResolver formatterResolver, out int readSize) {
-            if (MessagePackBinary.IsNil(bytes, offset)) {
-                readSize = 1;
+        public DataDictionary Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) {
+            if (reader.IsNil)
                 return null;
-            }
-            var startOffset = offset;
-            var len = MessagePackBinary.ReadMapHeader(bytes, offset, out readSize);
-            offset += readSize;
+            
+            var len = reader.ReadMapHeader();
             var dic = new DataDictionary();
             for (int i = 0; i < len; i++) {
-                var key = MessagePackBinary.ReadString(bytes, offset, out readSize);
-                offset += readSize;
+                var key = reader.ReadString();
                 switch (key) {
                     case Event.KnownDataKeys.EnvironmentInfo: {
-                            var value = formatterResolver.GetFormatter<EnvironmentInfo>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<EnvironmentInfo>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.Error: {
-                            var value = formatterResolver.GetFormatter<Error>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<Error>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.Level: {
-                            var value = MessagePackBinary.ReadString(bytes, offset, out readSize);
-                            offset += readSize;
+                            var value = reader.ReadString();
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.ManualStackingInfo: {
-                            var value = formatterResolver.GetFormatter<ManualStackingInfo>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<ManualStackingInfo>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.RequestInfo: {
-                            var value = formatterResolver.GetFormatter<RequestInfo>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<RequestInfo>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.SimpleError: {
-                            var value = formatterResolver.GetFormatter<SimpleError>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<SimpleError>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.SubmissionMethod: {
-                            var value = MessagePackBinary.ReadString(bytes, offset, out readSize);
-                            offset += readSize;
+                            var value = reader.ReadString();
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.TraceLog: {
-                            var value = formatterResolver.GetFormatter<List<string>>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<List<string>>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.UserDescription: {
-                            var value = formatterResolver.GetFormatter<UserDescription>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<UserDescription>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.UserInfo: {
-                            var value = formatterResolver.GetFormatter<UserInfo>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<UserInfo>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                     case Event.KnownDataKeys.Version: {
-                            var value = MessagePackBinary.ReadString(bytes, offset, out readSize);
-                            offset += readSize;
+                            var value = reader.ReadString();
                             dic.Add(key, value);
                             break;
                         }
 #if NETSTANDARD
                     case "ProcessArchitecture": {
-                        var value = MessagePackBinary.ReadInt32(bytes, offset, out readSize);
-                        offset += readSize;
+                        var value = reader.ReadInt32();
                         dic.Add(key, (System.Runtime.InteropServices.Architecture)value);
                         break;
                     }
 #endif
                     default: {
-                            var value = formatterResolver.GetFormatter<object>().Deserialize(bytes, offset, formatterResolver, out readSize);
-                            offset += readSize;
+                            var value = options.Resolver.GetFormatter<object>().Deserialize(ref reader, options);
                             dic.Add(key, value);
                             break;
                         }
                 }
             }
-            readSize = offset - startOffset;
+            
             return dic;
         }
     }

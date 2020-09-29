@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Linq;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
@@ -25,14 +26,24 @@ namespace Exceptionless.Extensions {
             if (client == null)
                 client = ExceptionlessClient.Default;
 
+            return ToSimpleErrorModelInternal(exception, client);
+        }
+
+        private static SimpleError ToSimpleErrorModelInternal(this Exception exception, ExceptionlessClient client, bool isInner = false) {
+            if (client == null)
+                client = ExceptionlessClient.Default;
+
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
 
             var error = new SimpleError {
                 Message = GetMessage(exception),
                 Type = type.FullName,
-                StackTrace = exception.StackTrace
+                StackTrace = exception.Demystify().StackTrace
             };
+
+            if (!isInner)
+                error.Modules = ToErrorModelExtensions.GetLoadedModules(log);
 
             var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions).ToList();
             try {

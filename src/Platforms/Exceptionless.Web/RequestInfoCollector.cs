@@ -54,9 +54,8 @@ namespace Exceptionless.ExtendedData {
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
-            if (config.IncludePostData) {
+            if (config.IncludePostData && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
                 info.PostData = GetPostData(context, config, exclusionList);
-            }
 
             if (config.IncludeQueryString) {
                 try {

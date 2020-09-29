@@ -5,7 +5,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
@@ -24,11 +24,7 @@
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' " Label="Build">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup Label="Package References">
-    <PackageReference Include="MessagePack" Version="1.9.11" />
+    <PackageReference Include="MessagePack" Version="2.1.165" />
   </ItemGroup>
 </Project>
