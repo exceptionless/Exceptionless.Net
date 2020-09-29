@@ -13,33 +13,37 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.200
+        dotnet-version: 3.1.401
     - name: Build Reason
       run: "echo ref: ${{github.ref}} event: ${{github.event_name}}"
     - name: Build Version
-      id: version
-      uses: thefringeninja/action-minver@2.0.0-preview1
-      with:
-        tag-prefix: v
+      shell: bash
+      run: |
+        dotnet tool install --global minver-cli --version 2.3.0
+        version=$(minver --tag-prefix v)
+        echo "::set-env name=MINVERVERSIONOVERRIDE::$version"
     - name: Build
       run: dotnet build --configuration Release Exceptionless.Net.ClientsOnly.sln
     - name: Run Tests
-      run: dotnet test --configuration Release --results-directory artifacts --no-build --logger:trx Exceptionless.Net.ClientsOnly.sln
+      run: dotnet test --configuration Release --no-build Exceptionless.Net.ClientsOnly.sln
     - name: Package
       if: github.event_name != 'pull_request'
       run: dotnet pack --configuration Release --no-build Exceptionless.Net.ClientsOnly.sln
+    - name: Install GitHub Package Tool
+      if: github.event_name != 'pull_request'
+      run: dotnet tool install gpr -g
     - name: Publish CI Packages
       shell: bash
+      if: github.event_name != 'pull_request'
       run: |
         for package in $(find -name "*.nupkg" | grep "minver" -v); do
           echo "${0##*/}": Pushing $package...
-
-          # GPR
-          # workaround for GPR push issue
-          curl -sX PUT -u "exceptionless:${{ secrets.GITHUB_TOKEN }}" -F package=@$package https://nuget.pkg.github.com/exceptionless/
-
-          # feedz (remove once GPR supports anonymous access)
-          dotnet nuget push $package --source https://f.feedz.io/exceptionless/exceptionless/nuget --api-key ${{ secrets.FEEDZ_KEY }}
+          
+          # GitHub
+          gpr push $package -k ${{ secrets.GITHUB_TOKEN }} || true
+          
+          # Feedz (remove once GitHub supports anonymous access)
+          dotnet nuget push $package --source https://f.feedz.io/exceptionless/exceptionless/nuget --api-key ${{ secrets.FEEDZ_KEY }} --skip-duplicate
         done
     - name: Publish Release Packages
       shell: bash
@@ -47,10 +51,5 @@ jobs:
       run: |
         for package in $(find -name "*.nupkg" | grep "minver" -v); do
           echo "${0##*/}": Pushing $package...
-          dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_KEY }} --skip-duplicate
         done
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: artifacts
-        path: artifacts

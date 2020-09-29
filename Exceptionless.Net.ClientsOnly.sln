@@ -23,8 +23,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.NLog", "src\P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Mvc", "src\Platforms\Exceptionless.Mvc\Exceptionless.Mvc.csproj", "{A3139129-3FB8-451D-90D6-4BF6A5C8B479}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Nancy", "src\Platforms\Exceptionless.Nancy\Exceptionless.Nancy.csproj", "{76CC2F27-1B94-4375-A082-A167CFC5E6CB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Web", "src\Platforms\Exceptionless.Web\Exceptionless.Web.csproj", "{D4265DE5-6AA5-4566-8B51-4FC2158C8539}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.WebApi", "src\Platforms\Exceptionless.WebApi\Exceptionless.WebApi.csproj", "{E29380A2-85E5-468E-8D09-4E1CFDF5E90E}"

@@ -26,19 +26,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.NLog", "src\P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Mvc", "src\Platforms\Exceptionless.Mvc\Exceptionless.Mvc.csproj", "{A3139129-3FB8-451D-90D6-4BF6A5C8B479}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Nancy", "src\Platforms\Exceptionless.Nancy\Exceptionless.Nancy.csproj", "{76CC2F27-1B94-4375-A082-A167CFC5E6CB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Web", "src\Platforms\Exceptionless.Web\Exceptionless.Web.csproj", "{D4265DE5-6AA5-4566-8B51-4FC2158C8539}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.WebApi", "src\Platforms\Exceptionless.WebApi\Exceptionless.WebApi.csproj", "{E29380A2-85E5-468E-8D09-4E1CFDF5E90E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleWebApi", "samples\Exceptionless.SampleWebApi\Exceptionless.SampleWebApi.csproj", "{02EBBB5A-0F11-461E-9778-010F69C36545}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleNancy", "samples\Exceptionless.SampleNancy\Exceptionless.SampleNancy.csproj", "{887A8565-4A10-44C8-82EF-F2F2D1D2BFBF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{76CC2F27-1B94-4375-A082-A167CFC5E6CB} = {76CC2F27-1B94-4375-A082-A167CFC5E6CB}
-		{C3664CAF-6DE9-4049-951F-516C10FBA012} = {C3664CAF-6DE9-4049-951F-516C10FBA012}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleWcf", "samples\Exceptionless.SampleWcf\Exceptionless.SampleWcf.csproj", "{D03FB8BA-EE59-42DD-840F-E7791B4609F0}"
 	ProjectSection(ProjectDependencies) = postProject
