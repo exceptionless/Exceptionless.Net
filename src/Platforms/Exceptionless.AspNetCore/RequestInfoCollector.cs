@@ -45,7 +45,7 @@ namespace Exceptionless.AspNetCore {
             if (config.IncludeQueryString)
                 info.QueryString = context.Request.Query.ToDictionary(exclusionList);
 
-            if (!context.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase) && config.IncludePostData)
+            if (config.IncludePostData && !String.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
                 info.PostData = GetPostData(context, config, exclusionList);
 
             return info;
