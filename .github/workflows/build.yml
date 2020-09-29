@@ -36,7 +36,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: dotnet test --configuration Release --no-build Exceptionless.Net.Windows.sln
     - name: Run Tests Non-Windows
-      if: matrix.os == 'windows-latest'
+      if: matrix.os != 'windows-latest'
       run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.sln
     - name: Package
       if: github.event_name != 'pull_request' && matrix.os == 'windows-latest'
