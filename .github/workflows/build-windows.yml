@@ -1,4 +1,4 @@
-name: Build
+name: Build Windows
 on: [push, pull_request]
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
