@@ -1,27 +1,39 @@
 ﻿<h1>Hello World!</h1>
 
-@Html.ActionLink("Boom!", "Boom")
-@Html.ActionLink("Custom Boom!", "CustomBoom")
-@Html.ActionLink("Boom 25!", "Boom25")
-@Html.ActionLink("Manual Stacking", "ManualStacking", new { myId = "123456789" })
+<hr />
 
-<a href="javascript:doAjax()">Ajax Boom</a>
+@Html.ActionLink("Boom!", "Boom", null, new { @class = "btn btn-primary" })
+@Html.ActionLink("Custom Boom!", "CustomBoom", null, new { @class = "btn btn-primary" })
+@Html.ActionLink("Boom 25!", "Boom25", null, new { @class = "btn btn-primary" })
+@Html.ActionLink("Manual Stacking", "ManualStacking", new { myId = "123456789" }, new { @class = "btn btn-primary" })
 
-<a href="javascript:doHugeAjax()">Huge Ajax Boom</a>
+<hr />
 
-<a href="javascript:doApiAjax()">Api GET Boom</a>
+<a href="javascript:doAjax()" class="btn btn-primary">Ajax Boom</a>
 
-<a href="javascript:doApiPostAjax()">Api POST Boom</a>
+<a href="javascript:doHugeAjax()" class="btn btn-primary">Huge Ajax Boom</a>
 
-@using (Html.BeginForm("CreateRequestValidationException", "Home", FormMethod.Post)) { 
-    @Html.Hidden("value", "&#134") 
-    <input type="submit" class="btn btn-primary" value="Create HttpRequestValidationException" /> 
+<a href="javascript:doApiAjax()" class="btn btn-primary">Api GET Boom</a>
+
+<a href="javascript:doApiPostAjax()" class="btn btn-primary">Api POST Boom</a>
+
+<hr />
+
+@using (Html.BeginForm("CreateRequestValidationException", "Home", FormMethod.Post))
+{
+    @Html.Hidden("value", "&#134")
+    <input type="submit" class="btn btn-primary" value="Create HttpRequestValidationException" />
+
 }
 
-@using (Html.BeginForm("Index", "Home", FormMethod.Post)) { 
-    @Html.Hidden("Test", "test value") 
-    @Html.Hidden("Blah", "blah value") 
-    <input type="submit" class="btn btn-primary" value="Form Boom" /> 
+<hr />
+
+@using (Html.BeginForm("Index", "Home", FormMethod.Post))
+{
+    @Html.Hidden("Test", "test value")
+    @Html.Hidden("Blah", "blah value")
+    <input type="submit" class="btn btn-primary" value="Form Boom" />
+
 }
 
 <script type="text/javascript">
@@ -38,7 +50,7 @@
             }
         });
     }
-    
+
     function doHugeAjax() {
         var data = repeat('01234567890', 5000);
         $.ajax({
@@ -53,7 +65,7 @@
             }
         });
     }
-    
+
     function repeat(str, num) {
         return (new Array(num + 1)).join(str);
     }
