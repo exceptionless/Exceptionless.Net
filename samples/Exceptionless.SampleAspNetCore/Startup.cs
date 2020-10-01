@@ -31,13 +31,13 @@ namespace Exceptionless.SampleAspNetCore {
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory) {
             app.UseExceptionless(Configuration);
             //OR
-            //app.UseExceptionless(new ExceptionlessClient(c => c.ReadFromConfiguration(Configuration)));
+            //app.UseExceptionless(c => c.ReadFromConfiguration(Configuration));
             //OR
             //app.UseExceptionless("API_KEY_HERE");
             //OR
             //loggerFactory.AddExceptionless("API_KEY_HERE");
             //OR
-            //loggerFactory.AddExceptionless((c) => c.ReadFromConfiguration(Configuration));
+            //loggerFactory.AddExceptionless(c => c.ReadFromConfiguration(Configuration));
 
             //loggerFactory.AddExceptionless();
             app.UseRouting();

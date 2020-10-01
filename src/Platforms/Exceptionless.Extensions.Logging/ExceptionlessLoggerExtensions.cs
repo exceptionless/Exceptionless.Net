@@ -23,6 +23,7 @@ namespace Exceptionless {
 
             return ExceptionlessLogLevel.Off;
         }
+
         /// <summary>
         /// Adds Exceptionless to the logging pipeline using the <see cref="ExceptionlessClient.Default"/>.
         /// </summary>
@@ -33,6 +34,7 @@ namespace Exceptionless {
             builder.AddProvider(new ExceptionlessLoggerProvider(client ?? ExceptionlessClient.Default));
             return builder;
         }
+
         /// <summary>
         /// Adds Exceptionless to the logging pipeline using a new client with the provided api key.
         /// </summary>
@@ -55,6 +57,7 @@ namespace Exceptionless {
 
             return builder;
         }
+
         /// <summary>
         /// Adds Exceptionless to the logging pipeline using a new client configured with the provided action.
         /// </summary>
@@ -65,6 +68,7 @@ namespace Exceptionless {
             builder.AddProvider(new ExceptionlessLoggerProvider(configure));
             return builder;
         }
+
         /// <summary>
         /// Adds Exceptionless to the logging pipeline using the <see cref="ExceptionlessClient.Default"/>.
         /// </summary>

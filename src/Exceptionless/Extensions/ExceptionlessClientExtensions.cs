@@ -5,8 +5,6 @@ using Exceptionless.Extensions;
 using Exceptionless.Plugins;
 using Exceptionless.Logging;
 using Exceptionless.Models;
-using Exceptionless.Services;
-using Exceptionless.Submission;
 
 namespace Exceptionless {
     public static class ExceptionlessClientExtensions {

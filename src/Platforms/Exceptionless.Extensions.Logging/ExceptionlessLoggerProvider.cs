@@ -18,10 +18,8 @@ namespace Exceptionless.Extensions.Logging {
         /// </summary>
         /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> which will be used to configure created loggers.</param>
         public ExceptionlessLoggerProvider(Action<ExceptionlessConfiguration> configure) {
-            if (configure == null)
-                throw new ArgumentNullException(nameof(configure));
-
-            _client = new ExceptionlessClient(configure);
+            configure?.Invoke(ExceptionlessClient.Default.Configuration);
+            _client = ExceptionlessClient.Default;
             _shouldDispose = true;
         }
 

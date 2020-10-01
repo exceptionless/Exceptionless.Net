@@ -20,7 +20,7 @@ namespace Exceptionless {
     public static class ExceptionlessExtensions {
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, ExceptionlessClient client = null) {
             if (client == null)
-                client = ExceptionlessClient.Default;
+                client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
 
             // Can be registered in Startup.ConfigureServices via services.AddHttpContextAccessor();
             // this is necessary to obtain Session and Request information outside of ExceptionlessMiddleware
@@ -38,6 +38,11 @@ namespace Exceptionless {
             lifetime.ApplicationStopping.Register(() => client.ProcessQueue());
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
+        }
+
+        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, Action<ExceptionlessConfiguration> configure) {
+            configure?.Invoke(ExceptionlessClient.Default.Configuration);
+            return app.UseExceptionless(ExceptionlessClient.Default);
         }
 
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, IConfiguration configuration) {

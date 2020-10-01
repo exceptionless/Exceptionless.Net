@@ -114,10 +114,13 @@ namespace Exceptionless.Plugins.Default {
         }
 
         private bool IsUserAssembly(Assembly assembly) {
+            if (assembly == null)
+                return false;
+
             if (!String.IsNullOrEmpty(assembly.FullName) && (assembly.FullName.StartsWith("System.") || assembly.FullName.StartsWith("Microsoft.")))
                 return false;
 
-            string company = assembly.GetCompany();
+            string company = assembly.GetCompany() ?? String.Empty;
             string[] nonUserCompanies = new[] { "Exceptionless", "Microsoft" };
             if (nonUserCompanies.Any(c => company.IndexOf(c, StringComparison.OrdinalIgnoreCase) >= 0))
                 return false;
