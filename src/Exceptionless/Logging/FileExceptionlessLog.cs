@@ -3,11 +3,12 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Exceptionless.Storage;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Logging {
     public class FileExceptionlessLog : IExceptionlessLog, IDisposable {
+        private static Mutex _flushLock = new Mutex(false, nameof(FileExceptionlessLog));
+
         private Timer _flushTimer;
         private readonly bool _append;
         private bool _firstWrite = true;
@@ -126,34 +127,40 @@ namespace Exceptionless.Logging {
             if (_isFlushing || _buffer.IsEmpty)
                 return;
 
+            bool hasFlushLock = false;
             try {
                 _isFlushing = true;
 
                 Run.WithRetries(() => {
-                    using (var logFileLock = LockFile.Acquire(FilePath + ".lock", TimeSpan.FromMilliseconds(500))) {
-                        bool append = _append || !_firstWrite;
-                        _firstWrite = false;
+                    if (!_flushLock.WaitOne(TimeSpan.FromSeconds(5)))
+                        return;
 
-                        try {
-                            using (var writer = GetWriter(append)) {
-                                LogEntry entry;
-                                while (_buffer.TryDequeue(out entry)) {
-                                    if (entry != null && entry.LogLevel >= MinimumLogLevel)
-                                        writer.Value.WriteLine($"{FormatLongDate(entry.Timestamp)} {entry.LogLevel.ToString().PadRight(5)} {entry.Message}");
-                                }
-                            }
-                        } catch (Exception ex) {
-                            System.Diagnostics.Trace.TraceError("Unable flush the logs. " + ex.Message);
+                    hasFlushLock = true;
+
+                    bool append = _append || !_firstWrite;
+                    _firstWrite = false;
+
+                    try {
+                        using (var writer = GetWriter(append)) {
                             LogEntry entry;
                             while (_buffer.TryDequeue(out entry)) {
-                                System.Diagnostics.Trace.WriteLine(entry);
+                                if (entry != null && entry.LogLevel >= MinimumLogLevel)
+                                    writer.Value.WriteLine($"{FormatLongDate(entry.Timestamp)} {entry.LogLevel.ToString().PadRight(5)} {entry.Message}");
                             }
+                        }
+                    } catch (Exception ex) {
+                        System.Diagnostics.Trace.TraceError("Unable flush the logs. " + ex.Message);
+                        LogEntry entry;
+                        while (_buffer.TryDequeue(out entry)) {
+                            System.Diagnostics.Trace.WriteLine(entry);
                         }
                     }
                 });
             } catch (Exception ex) {
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error flushing log contents to disk: {0}", ex.Message);
             } finally {
+                if (hasFlushLock)
+                    _flushLock.ReleaseMutex();
                 _isFlushing = false;
             }
         }
@@ -212,11 +219,12 @@ namespace Exceptionless.Logging {
             string lastLines = String.Empty;
             try {
                 Run.WithRetries(() => {
-                    using (var logFileLock = LockFile.Acquire(FilePath + ".lock", TimeSpan.FromMilliseconds(500))) {
-                        try {
-                            lastLines = GetLastLinesFromFile(FilePath);
-                        } catch {}
-                    }
+                    if (!_flushLock.WaitOne(TimeSpan.FromSeconds(5)))
+                        return;
+
+                    lastLines = GetLastLinesFromFile(FilePath);
+
+                    _flushLock.ReleaseMutex();
                 });
             } catch (Exception ex) {
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting last X lines from the log file: {0}", ex.Message);
@@ -230,10 +238,13 @@ namespace Exceptionless.Logging {
             // overwrite the log file and initialize it with the last X lines it had
             try {
                 Run.WithRetries(() => {
-                    using (var logFileLock = LockFile.Acquire(FilePath + ".lock", TimeSpan.FromMilliseconds(500))) {
-                        using (var writer = GetWriter(true))
-                            writer.Value.Write(lastLines);
-                    }
+                    if (!_flushLock.WaitOne(TimeSpan.FromSeconds(5)))
+                        return;
+
+                    using (var writer = GetWriter(true))
+                        writer.Value.Write(lastLines);
+
+                    _flushLock.ReleaseMutex();
                 });
             } catch (Exception ex) {
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error rewriting the log file after trimming it: {0}", ex.Message);

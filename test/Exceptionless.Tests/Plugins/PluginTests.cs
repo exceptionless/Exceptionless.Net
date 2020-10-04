@@ -17,6 +17,8 @@ using Exceptionless.Tests.Utility;
 using Xunit;
 using Xunit.Abstractions;
 using LogLevel = Exceptionless.Logging.LogLevel;
+using Exceptionless.Json;
+using Exceptionless.Extensions;
 
 namespace Exceptionless.Tests.Plugins {
     public class PluginTests {
@@ -834,22 +836,34 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             // TODO: We need to look into why the ErrorPlugin causes data to sometimes calculate invalid hashcodes
             var errorPlugin = new SimpleErrorPlugin();
+            var simpleError = GetException().ToSimpleErrorModel(client);
 
             var contexts = new ConcurrentBag<EventPluginContext>();
-            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromSeconds(1))) {
+            using (var duplicateCheckerPlugin = new DuplicateCheckerPlugin(TimeSpan.FromSeconds(60))) {
+                int hashCode = 0;
                 var result = Parallel.For(0, 10, index => {
-                    var builder = GetException().ToExceptionless();
+                    var builder = client.CreateEvent();
+                    builder.SetType(Event.KnownTypes.Error);
+                    builder.Target.Data[Event.KnownDataKeys.SimpleError] = simpleError;
+
                     var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
                     contexts.Add(context);
 
-                    errorPlugin.Run(context);
                     duplicateCheckerPlugin.Run(context);
+
+                    if (hashCode == 0)
+                        hashCode = builder.Target.GetHashCode();
+                    else if (hashCode != builder.Target.GetHashCode())
+                        throw new ApplicationException();
                 });
 
                 while (!result.IsCompleted) {
                     Thread.Yield();
                 }
             }
+
+            var nonCancelled = contexts.Where(c => !c.Cancel).Select(c => (Context: c, Event: c.Event.GetHashCode(), Json: JsonConvert.SerializeObject(c.Event))).ToList();
+            var all = contexts.Select(c => (Context: c, Event: c.Event.GetHashCode())).ToList();
 
             Assert.Equal(1, contexts.Count(c => !c.Cancel));
             Assert.Equal(9, contexts.Count(c => c.Cancel));
