@@ -152,6 +152,10 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("Test", "Trace", null, null, false)]
         [InlineData("Test", "Off", null, null, true)]
         [InlineData("Test", "Abc", null, null, false)]
+        [InlineData(null, "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix, "Off", false)]
+        [InlineData(null, "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Off", true)]
+        [InlineData("", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix, "Off", true)] // Becomes Global Log Level
+        [InlineData("", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Off", true)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", true)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "false", true)]
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "no", true)]
@@ -178,6 +182,43 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal(cancelled, context.Cancel);
         }
 
+        [Fact]
+        public void EventExclusionPlugin_LogLevels_GetMinLogLevel_Settings_Order() {
+            var settings = new SettingsDictionary {{"@@log:", "Info"}, {"@@log:*", "Debug"}};
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(null));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(String.Empty));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel("*"));
+            
+            settings = new SettingsDictionary {{"@@log:*", "Debug"}, {"@@log:", "Info"}};
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(String.Empty));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel("*"));
+            
+            settings = new SettingsDictionary {
+                { "@@log:*", "Fatal" }, 
+                { "@@log:", "Debug" }, 
+                { "@@log:abc*", "Off" }, 
+                { "@@log:abc.de*", "Debug" }, 
+                { "@@log:abc.def*", "Info" }, 
+                { "@@log:abc.def.ghi", "Trace" }
+            };
+            
+            Assert.Equal(LogLevel.Fatal, settings.GetMinLogLevel(null));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(String.Empty));
+            Assert.Equal(LogLevel.Off, settings.GetMinLogLevel("abc"));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));
+            Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("abc.def.ghi"));
+            
+            settings = new SettingsDictionary {
+                { "@@log:abc.def.ghi", "Trace" },
+                { "@@log:abc.def*", "Info" }, 
+                { "@@log:abc*", "Off" }
+            };
+            
+            Assert.Equal(LogLevel.Off, settings.GetMinLogLevel("abc"));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));
+            Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("abc.def.ghi"));
+        }
+
         [Theory]
         [InlineData(null, null, null, null, false)]
         [InlineData("usage", null, null, null, false)]
@@ -186,6 +227,9 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("usage", "test", "@@usage:Test", "false", true)]
         [InlineData("usage", "EX-FEAT: 1234567890", "@@usage:EX-FEAT: 1234567890", "false", true)]
         [InlineData("usage", "test", "@@usage:*", "false", true)]
+        [InlineData("404", null, "@@404:*", "false", true)]
+        [InlineData("404", null, "@@404:", "false", true)]
+        [InlineData("404", "", "@@404:", "false", true)]
         [InlineData("404", "/unknown", "@@404:*", "false", true)]
         [InlineData("404", "/unknown", "@@404:/unknown", "false", true)]
         [InlineData("404", "/unknown", "@@404:/unknown", "true", false)]
@@ -200,6 +244,7 @@ namespace Exceptionless.Tests.Plugins {
             var plugin = new EventExclusionPlugin();
             plugin.Run(context);
             Assert.Equal(cancelled, context.Cancel);
+            Assert.Equal(source, ev.Source);
         }
 
         [Theory]

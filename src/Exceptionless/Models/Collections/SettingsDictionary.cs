@@ -194,7 +194,7 @@ namespace Exceptionless.Models {
         private readonly ConcurrentDictionary<string, LogLevel> _minLogLevels = new ConcurrentDictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
 
         public LogLevel GetMinLogLevel(string loggerName) {
-            if (String.IsNullOrEmpty(loggerName))
+            if (loggerName == null)
                 loggerName = "*";
 
             LogLevel minLogLevel;
@@ -237,7 +237,6 @@ namespace Exceptionless.Models {
             ConcurrentDictionary<string, bool> sourceDictionary;
             string sourcePrefix;
             if (!_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
-
                 sourceDictionary = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 _typeSourceEnabled.TryAdd(type, sourceDictionary);
                 sourcePrefix = "@@" + type + ":";
@@ -256,6 +255,7 @@ namespace Exceptionless.Models {
             var sourceSettings = this
                 .Where(kvp => kvp.Key.StartsWith(sourcePrefix))
                 .Select(kvp => new KeyValuePair<string, string>(kvp.Key.Substring(sourcePrefix.Length), kvp.Value))
+                .OrderByDescending(s => s.Key.Length).ThenByDescending(s => s.Key) // sort by most qualified and ensure * comes after a-z.
                 .ToList();
 
             foreach (var kvp in sourceSettings) {

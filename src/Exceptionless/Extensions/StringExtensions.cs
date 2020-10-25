@@ -33,11 +33,14 @@ namespace Exceptionless.Extensions {
         }
 
         public static bool IsPatternMatch(this string value, string pattern, bool ignoreCase = true) {
-            if (pattern == null || value == null)
-                return false;
+            if (pattern == null)
+                return value == null;
 
             if (pattern.Equals("*"))
                 return true;
+
+            if (value == null)
+                return false;
 
             bool startsWithWildcard = pattern.StartsWith("*");
             if (startsWithWildcard)
