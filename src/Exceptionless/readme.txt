@@ -20,7 +20,7 @@ and viewing your project configuration page.
 By default the Exceptionless Client will report all available metadata including potential PII data.
 You can fine tune the collection of information via Data Exclusions or turning off collection completely.
 
-Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Configuration#general-data-protection-regulation
+Please visit the documentation https://exceptionless.com/docs/clients/dotnet/private-information/
 for detailed information on how to configure the client to meet your requirements.
 
 -------------------------------------
@@ -31,14 +31,14 @@ referenced runtime, Exceptionless will attempt to wire up to available error han
 discover configuration settings available to that runtime. For these reasons if you are on a known
 platform then use the platform specific package to save you time configuring while giving you more
 contextual information. For more information and configuration examples please read the Exceptionless
-Configuration documentation on https://github.com/exceptionless/Exceptionless.Net/wiki/Configuration
+Configuration documentation on https://exceptionless.com/docs/clients/dotnet/configuration/
 
 On app startup, import the Exceptionless namespace and call the client.Startup() extension method
 to wire up to any runtime specific error handlers and read any available configuration.
 
 Exceptionless.ExceptionlessClient.Default.Startup("API_KEY_HERE")
 
-Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
+Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.
 
 -------------------------------------
@@ -61,7 +61,7 @@ of code to start reporting unhandled exceptions.
 
 Exceptionless.ExceptionlessClient.Default.Startup()
 
-Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
+Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.
 
 -------------------------------------

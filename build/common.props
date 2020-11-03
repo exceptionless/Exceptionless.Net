@@ -2,8 +2,8 @@
   <PropertyGroup>
     <Product>Exceptionless</Product>
     <Description>Exceptionless is a cloud based error reporting service that sends your exceptions to https://exceptionless.com and provides aggregated views and analytics.</Description>
-    <PackageProjectUrl>https://github.com/exceptionless/Exceptionless</PackageProjectUrl>
-    <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless/releases</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/exceptionless/Exceptionless.Net</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</PackageReleaseNotes>
     <MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
     <MinVerTagPrefix>v</MinVerTagPrefix>
 

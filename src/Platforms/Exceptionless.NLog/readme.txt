@@ -1,8 +1,8 @@
 ﻿-------------------------------------
 		Exceptionless Readme
 -------------------------------------
-Exceptionless provides real-time error reporting for your apps. It organizes the 
-gathered information into simple actionable data that will help your app become 
+Exceptionless provides real-time error reporting for your apps. It organizes the
+gathered information into simple actionable data that will help your app become
 exceptionless!
 
 Learn more at http://exceptionless.io.
@@ -10,8 +10,8 @@ Learn more at http://exceptionless.io.
 -------------------------------------
 		How to get an api key
 -------------------------------------
-The Exceptionless client requires an api key to use the Exceptionless service. 
-You can get your Exceptionless api key by logging into http://exceptionless.io 
+The Exceptionless client requires an api key to use the Exceptionless service.
+You can get your Exceptionless api key by logging into http://exceptionless.io
 and viewing your project configuration page.
 
 -------------------------------------
@@ -20,7 +20,7 @@ and viewing your project configuration page.
 By default the Exceptionless Client will report all available metadata including potential PII data.
 You can fine tune the collection of information via Data Exclusions or turning off collection completely.
 
-Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Configuration#general-data-protection-regulation
+Please visit the documentation https://exceptionless.com/docs/clients/dotnet/private-information/
 for detailed information on how to configure the client to meet your requirements.
 
 -------------------------------------
@@ -39,7 +39,7 @@ minimum log level that will be used until the client retrieves settings from the
   <extensions>
     <add assembly="Exceptionless.NLog"/>
   </extensions>
-  
+
   <targets async="true">
     <target xsi:type="Exceptionless" name="exceptionless" apiKey="API_KEY_HERE">
       <field name="host" layout="${machinename}" />
@@ -48,7 +48,7 @@ minimum log level that will be used until the client retrieves settings from the
       <field name="process" layout="${processname}" />
     </target>
   </targets>
-  
+
   <rules>
     <logger name="*" minlevel="Trace" writeTo="exceptionless" />
   </rules>

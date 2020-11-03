@@ -20,7 +20,7 @@ and viewing your project configuration page.
 By default the Exceptionless Client will report all available metadata including potential PII data.
 You can fine tune the collection of information via Data Exclusions or turning off collection completely.
 
-Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Configuration#general-data-protection-regulation
+Please visit the documentation https://exceptionless.com/docs/clients/dotnet/private-information/
 for detailed information on how to configure the client to meet your requirements.
 
 -------------------------------------
@@ -43,7 +43,7 @@ If you are hosting Web API inside of ASP.NET, you would register Exceptionless l
 
 Exceptionless.ExceptionlessClient.Default.RegisterWebApi(GlobalConfiguration.Configuration)
 
-Please visit the wiki https://github.com/exceptionless/Exceptionless.Net/wiki/Sending-Events
+Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.
 
 -------------------------------------
