@@ -64,7 +64,7 @@ namespace Exceptionless.Extensions {
             if (endsWithWildcard)
                 return value.StartsWith(pattern);
 
-            return value.Equals(pattern);
+            return String.Equals(value, pattern);
         }
 
         public static string[] SplitAndTrim(this string input, params char[] separator) {

@@ -152,7 +152,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("Test", "Trace", null, null, false)]
         [InlineData("Test", "Off", null, null, true)]
         [InlineData("Test", "Abc", null, null, false)]
-        [InlineData(null, "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix, "Off", false)]
+        [InlineData(null, "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix, "Off", true)]
         [InlineData(null, "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Off", true)]
         [InlineData("", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix, "Off", true)] // Becomes Global Log Level
         [InlineData("", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Off", true)]
@@ -185,7 +185,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public void EventExclusionPlugin_LogLevels_GetMinLogLevel_Settings_Order() {
             var settings = new SettingsDictionary {{"@@log:", "Info"}, {"@@log:*", "Debug"}};
-            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(null));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(null));
             Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(String.Empty));
             Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel("*"));
             
@@ -202,7 +202,8 @@ namespace Exceptionless.Tests.Plugins {
                 { "@@log:abc.def.ghi", "Trace" }
             };
             
-            Assert.Equal(LogLevel.Fatal, settings.GetMinLogLevel(null));
+            Assert.Equal(LogLevel.Fatal, settings.GetMinLogLevel("other"));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(null));
             Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(String.Empty));
             Assert.Equal(LogLevel.Off, settings.GetMinLogLevel("abc"));
             Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));

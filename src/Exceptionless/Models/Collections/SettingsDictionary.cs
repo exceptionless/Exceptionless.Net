@@ -193,22 +193,22 @@ namespace Exceptionless.Models {
 
         private readonly ConcurrentDictionary<string, LogLevel> _minLogLevels = new ConcurrentDictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
 
-        public LogLevel GetMinLogLevel(string loggerName) {
-            if (loggerName == null)
-                loggerName = "*";
+        public LogLevel GetMinLogLevel(string source) {
+            if (source == null)
+                source = String.Empty;
 
             LogLevel minLogLevel;
-            if (_minLogLevels.TryGetValue(loggerName, out minLogLevel))
+            if (_minLogLevels.TryGetValue(source, out minLogLevel))
                 return minLogLevel;
 
-            string setting = GetTypeAndSourceSetting("log", loggerName, "Trace");
+            string setting = GetTypeAndSourceSetting("log", source, "Trace");
             if (setting == null) {
-                _minLogLevels.AddOrUpdate(loggerName, LogLevel.Trace, (logName, level) => LogLevel.Trace);
+                _minLogLevels.AddOrUpdate(source, LogLevel.Trace, (logName, level) => LogLevel.Trace);
                 return LogLevel.Trace;
             }
 
             minLogLevel = LogLevel.FromString(setting);
-            _minLogLevels.AddOrUpdate(loggerName, minLogLevel, (logName, level) => minLogLevel);
+            _minLogLevels.AddOrUpdate(source, minLogLevel, (logName, level) => minLogLevel);
             return minLogLevel;
         }
 
