@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
+using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Storage;
 using Exceptionless.Submission;
@@ -178,6 +179,44 @@ namespace Exceptionless.Tests.Configuration {
 
             while (!result.IsCompleted)
                 Thread.Yield();
+        }
+        
+        [Fact]
+        public void LogLevels_GetMinLogLevel_Settings_Order() {
+            var settings = new SettingsDictionary {{"@@log:", "Info"}, {"@@log:*", "Debug"}};
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(null));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(String.Empty));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel("*"));
+            
+            settings = new SettingsDictionary {{"@@log:*", "Debug"}, {"@@log:", "Info"}};
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel(String.Empty));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel("*"));
+            
+            settings = new SettingsDictionary {
+                { "@@log:*", "Fatal" }, 
+                { "@@log:", "Debug" }, 
+                { "@@log:abc*", "Off" }, 
+                { "@@log:abc.de*", "Debug" }, 
+                { "@@log:abc.def*", "Info" }, 
+                { "@@log:abc.def.ghi", "Trace" }
+            };
+            
+            Assert.Equal(LogLevel.Fatal, settings.GetMinLogLevel("other"));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(null));
+            Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel(String.Empty));
+            Assert.Equal(LogLevel.Off, settings.GetMinLogLevel("abc"));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));
+            Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("abc.def.ghi"));
+            
+            settings = new SettingsDictionary {
+                { "@@log:abc.def.ghi", "Trace" },
+                { "@@log:abc.def*", "Info" }, 
+                { "@@log:abc*", "Off" }
+            };
+            
+            Assert.Equal(LogLevel.Off, settings.GetMinLogLevel("abc"));
+            Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));
+            Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("abc.def.ghi"));
         }
     }
 }

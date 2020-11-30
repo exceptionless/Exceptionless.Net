@@ -2,7 +2,7 @@
 using Exceptionless.Dependency;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(1000)]
+    [Priority(900)]
     public class CancelSessionsWithNoUserPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             if (!context.Event.IsSessionStart())

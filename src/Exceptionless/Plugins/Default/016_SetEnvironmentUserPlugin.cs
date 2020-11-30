@@ -2,7 +2,7 @@
 using Exceptionless.Dependency;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(15)]
+    [Priority(16)]
     public class SetEnvironmentUserPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
             if (!context.Client.Configuration.IncludeUserName)

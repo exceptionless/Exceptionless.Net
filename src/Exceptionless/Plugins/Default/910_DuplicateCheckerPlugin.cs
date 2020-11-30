@@ -7,7 +7,7 @@ using System.Linq;
 using Exceptionless.Models;
 
 namespace Exceptionless.Plugins.Default {
-    [Priority(1010)]
+    [Priority(910)]
     public class DuplicateCheckerPlugin : IEventPlugin, IDisposable {
         private const string LOG_SOURCE = nameof(DuplicateCheckerPlugin);
         private static readonly Type _logSourceType = typeof(DuplicateCheckerPlugin);
