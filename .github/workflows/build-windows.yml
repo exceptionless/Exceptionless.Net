@@ -21,7 +21,7 @@ jobs:
       run: |
         dotnet tool install --global minver-cli --version 2.3.1
         version=$(minver --tag-prefix v)
-        echo "::set-env name=MINVERVERSIONOVERRIDE::$version"
+        echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
       run: dotnet build --configuration Release Exceptionless.Net.Windows.sln
     - name: Run Tests
@@ -38,10 +38,10 @@ jobs:
       run: |
         for package in $(find -name "*.nupkg" | grep "minver" -v); do
           echo "${0##*/}": Pushing $package...
-          
+
           # GitHub
           gpr push $package -k ${{ secrets.GITHUB_TOKEN }} || true
-          
+
           # Feedz (remove once GitHub supports anonymous access)
           dotnet nuget push $package --source https://f.feedz.io/exceptionless/exceptionless/nuget --api-key ${{ secrets.FEEDZ_KEY }} --skip-duplicate
         done
