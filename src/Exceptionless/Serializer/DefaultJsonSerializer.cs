@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -69,7 +69,7 @@ namespace Exceptionless.Serializer {
             return JsonConvert.DeserializeObject(json, type, _serializerSettings);
         }
 
-        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, IEnumerable<string> excludedPropertyNames) {
+        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, IList<string> excludedPropertyNames) {
             try {
                 if (excludedPropertyNames != null && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, true)))
                     return false;
