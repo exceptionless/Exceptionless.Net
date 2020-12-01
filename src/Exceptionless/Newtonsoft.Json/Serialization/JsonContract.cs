@@ -67,13 +67,13 @@ namespace Exceptionless.Json.Serialization
     /// <param name="o">The object to set extension data on.</param>
     /// <param name="key">The extension data key.</param>
     /// <param name="value">The extension data value.</param>
-    internal delegate void ExtensionDataSetter(object o, string key, object value);
+    internal delegate void ExtensionDataSetter(object o, string key, object? value);
 
     /// <summary>
     /// Gets extension data for an object during serialization.
     /// </summary>
     /// <param name="o">The object to set extension data on.</param>
-    internal delegate IEnumerable<KeyValuePair<object, object>> ExtensionDataGetter(object o);
+    public delegate IEnumerable<KeyValuePair<object, object>>? ExtensionDataGetter(object o);
 
     /// <summary>
     /// Contract details for a <see cref="System.Type"/> used by the <see cref="JsonSerializer"/>.
@@ -90,18 +90,18 @@ namespace Exceptionless.Json.Serialization
         internal bool IsSealed;
         internal bool IsInstantiable;
 
-        private List<SerializationCallback> _onDeserializedCallbacks;
-        private IList<SerializationCallback> _onDeserializingCallbacks;
-        private IList<SerializationCallback> _onSerializedCallbacks;
-        private IList<SerializationCallback> _onSerializingCallbacks;
-        private IList<SerializationErrorCallback> _onErrorCallbacks;
+        private List<SerializationCallback>? _onDeserializedCallbacks;
+        private List<SerializationCallback>? _onDeserializingCallbacks;
+        private List<SerializationCallback>? _onSerializedCallbacks;
+        private List<SerializationCallback>? _onSerializingCallbacks;
+        private List<SerializationErrorCallback>? _onErrorCallbacks;
         private Type _createdType;
 
         /// <summary>
         /// Gets the underlying type for the contract.
         /// </summary>
         /// <value>The underlying type for the contract.</value>
-        public Type UnderlyingType { get; private set; }
+        public Type UnderlyingType { get; }
 
         /// <summary>
         /// Gets or sets the type created during deserialization.
@@ -109,9 +109,10 @@ namespace Exceptionless.Json.Serialization
         /// <value>The type created during deserialization.</value>
         public Type CreatedType
         {
-            get { return _createdType; }
+            get => _createdType;
             set
             {
+                ValidationUtils.ArgumentNotNull(value, nameof(value));
                 _createdType = value;
 
                 IsSealed = _createdType.IsSealed();
@@ -129,11 +130,14 @@ namespace Exceptionless.Json.Serialization
         /// Gets or sets the default <see cref="JsonConverter" /> for this contract.
         /// </summary>
         /// <value>The converter.</value>
-        public JsonConverter Converter { get; set; }
+        public JsonConverter? Converter { get; set; }
 
-        // internally specified JsonConverter's to override default behavour
-        // checked for after passed in converters and attribute specified converters
-        internal JsonConverter InternalConverter { get; set; }
+        /// <summary>
+        /// Gets the internally resolved <see cref="JsonConverter"/> for the contract's type.
+        /// This converter is used as a fallback converter when no other converter is resolved.
+        /// Setting <see cref="Converter"/> will always override this converter.
+        /// </summary>
+        public JsonConverter? InternalConverter { get; internal set; }
 
         /// <summary>
         /// Gets or sets all methods called immediately after deserialization of the object.
@@ -221,88 +225,13 @@ namespace Exceptionless.Json.Serialization
         }
 
         /// <summary>
-        /// Gets or sets the method called immediately after deserialization of the object.
-        /// </summary>
-        /// <value>The method called immediately after deserialization of the object.</value>
-        [Obsolete("This property is obsolete and has been replaced by the OnDeserializedCallbacks collection.")]
-        public MethodInfo OnDeserialized
-        {
-            get { return (OnDeserializedCallbacks.Count > 0) ? OnDeserializedCallbacks[0].Method() : null; }
-            set
-            {
-                OnDeserializedCallbacks.Clear();
-                OnDeserializedCallbacks.Add(CreateSerializationCallback(value));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the method called during deserialization of the object.
-        /// </summary>
-        /// <value>The method called during deserialization of the object.</value>
-        [Obsolete("This property is obsolete and has been replaced by the OnDeserializingCallbacks collection.")]
-        public MethodInfo OnDeserializing
-        {
-            get { return (OnDeserializingCallbacks.Count > 0) ? OnDeserializingCallbacks[0].Method() : null; }
-            set
-            {
-                OnDeserializingCallbacks.Clear();
-                OnDeserializingCallbacks.Add(CreateSerializationCallback(value));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the method called after serialization of the object graph.
-        /// </summary>
-        /// <value>The method called after serialization of the object graph.</value>
-        [Obsolete("This property is obsolete and has been replaced by the OnSerializedCallbacks collection.")]
-        public MethodInfo OnSerialized
-        {
-            get { return (OnSerializedCallbacks.Count > 0) ? OnSerializedCallbacks[0].Method() : null; }
-            set
-            {
-                OnSerializedCallbacks.Clear();
-                OnSerializedCallbacks.Add(CreateSerializationCallback(value));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the method called before serialization of the object.
-        /// </summary>
-        /// <value>The method called before serialization of the object.</value>
-        [Obsolete("This property is obsolete and has been replaced by the OnSerializingCallbacks collection.")]
-        public MethodInfo OnSerializing
-        {
-            get { return (OnSerializingCallbacks.Count > 0) ? OnSerializingCallbacks[0].Method() : null; }
-            set
-            {
-                OnSerializingCallbacks.Clear();
-                OnSerializingCallbacks.Add(CreateSerializationCallback(value));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the method called when an error is thrown during the serialization of the object.
-        /// </summary>
-        /// <value>The method called when an error is thrown during the serialization of the object.</value>
-        [Obsolete("This property is obsolete and has been replaced by the OnErrorCallbacks collection.")]
-        public MethodInfo OnError
-        {
-            get { return (OnErrorCallbacks.Count > 0) ? OnErrorCallbacks[0].Method() : null; }
-            set
-            {
-                OnErrorCallbacks.Clear();
-                OnErrorCallbacks.Add(CreateSerializationErrorCallback(value));
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the default creator method used to create the object.
         /// </summary>
         /// <value>The default creator method used to create the object.</value>
-        public Func<object> DefaultCreator { get; set; }
+        public Func<object>? DefaultCreator { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the default creator is non public.
+        /// Gets or sets a value indicating whether the default creator is non-public.
         /// </summary>
         /// <value><c>true</c> if the default object creator is non-public; otherwise, <c>false</c>.</value>
         public bool DefaultCreatorNonPublic { get; set; }
@@ -313,10 +242,15 @@ namespace Exceptionless.Json.Serialization
 
             UnderlyingType = underlyingType;
 
+            // resolve ByRef types
+            // typically comes from in and ref parameters on methods/ctors
+            underlyingType = ReflectionUtils.EnsureNotByRefType(underlyingType);
+
             IsNullable = ReflectionUtils.IsNullable(underlyingType);
+             
             NonNullableUnderlyingType = (IsNullable && ReflectionUtils.IsNullableType(underlyingType)) ? Nullable.GetUnderlyingType(underlyingType) : underlyingType;
 
-            CreatedType = NonNullableUnderlyingType;
+            _createdType = CreatedType = NonNullableUnderlyingType;
 
             IsConvertable = ConvertUtils.IsConvertible(NonNullableUnderlyingType);
             IsEnum = NonNullableUnderlyingType.IsEnum();

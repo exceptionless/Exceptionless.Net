@@ -23,13 +23,13 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
-#if !(PORTABLE)
+#if !HAVE_REFLECTION_BINDER
 using System.Reflection;
 #else
 using Microsoft.CSharp.RuntimeBinder;
@@ -38,6 +38,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Globalization;
 using Exceptionless.Json.Serialization;
+using System.Diagnostics;
 
 namespace Exceptionless.Json.Utilities
 {
@@ -45,7 +46,7 @@ namespace Exceptionless.Json.Utilities
     {
         internal static class BinderWrapper
         {
-#if !(PORTABLE)
+#if !HAVE_REFLECTION_BINDER
             public const string CSharpAssemblyName = "Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
             private const string BinderTypeName = "Microsoft.CSharp.RuntimeBinder.Binder, " + CSharpAssemblyName;
@@ -53,10 +54,10 @@ namespace Exceptionless.Json.Utilities
             private const string CSharpArgumentInfoFlagsTypeName = "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, " + CSharpAssemblyName;
             private const string CSharpBinderFlagsTypeName = "Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, " + CSharpAssemblyName;
 
-            private static object _getCSharpArgumentInfoArray;
-            private static object _setCSharpArgumentInfoArray;
-            private static MethodCall<object, object> _getMemberCall;
-            private static MethodCall<object, object> _setMemberCall;
+            private static object? _getCSharpArgumentInfoArray;
+            private static object? _setCSharpArgumentInfoArray;
+            private static MethodCall<object?, object?>? _getMemberCall;
+            private static MethodCall<object?, object?>? _setMemberCall;
             private static bool _init;
 
             private static void Init()
@@ -89,7 +90,7 @@ namespace Exceptionless.Json.Utilities
                 for (int i = 0; i < values.Length; i++)
                 {
                     MethodInfo createArgumentInfoMethod = csharpArgumentInfoType.GetMethod("Create", new[] { csharpArgumentInfoFlags, typeof(string) });
-                    object arg = createArgumentInfoMethod.Invoke(null, new object[] { 0, null });
+                    object arg = createArgumentInfoMethod.Invoke(null, new object?[] { 0, null });
                     a.SetValue(arg, i);
                 }
 
@@ -105,18 +106,20 @@ namespace Exceptionless.Json.Utilities
                 Type csharpArgumentInfoTypeEnumerableType = typeof(IEnumerable<>).MakeGenericType(csharpArgumentInfoType);
 
                 MethodInfo getMemberMethod = binderType.GetMethod("GetMember", new[] { csharpBinderFlagsType, typeof(string), typeof(Type), csharpArgumentInfoTypeEnumerableType });
-                _getMemberCall = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object>(getMemberMethod);
+                _getMemberCall = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object?>(getMemberMethod);
 
                 MethodInfo setMemberMethod = binderType.GetMethod("SetMember", new[] { csharpBinderFlagsType, typeof(string), typeof(Type), csharpArgumentInfoTypeEnumerableType });
-                _setMemberCall = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object>(setMemberMethod);
+                _setMemberCall = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object?>(setMemberMethod);
             }
 #endif
 
             public static CallSiteBinder GetMember(string name, Type context)
             {
-#if !(PORTABLE)
+#if !HAVE_REFLECTION_BINDER
                 Init();
-                return (CallSiteBinder)_getMemberCall(null, 0, name, context, _getCSharpArgumentInfoArray);
+                MiscellaneousUtils.Assert(_getMemberCall != null);
+                MiscellaneousUtils.Assert(_getCSharpArgumentInfoArray != null);
+                return (CallSiteBinder)_getMemberCall(null, 0, name, context, _getCSharpArgumentInfoArray)!;
 #else
                 return Binder.GetMember(
                     CSharpBinderFlags.None, name, context, new[] {CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null)});
@@ -125,9 +128,11 @@ namespace Exceptionless.Json.Utilities
 
             public static CallSiteBinder SetMember(string name, Type context)
             {
-#if !(PORTABLE)
+#if !HAVE_REFLECTION_BINDER
                 Init();
-                return (CallSiteBinder)_setMemberCall(null, 0, name, context, _setCSharpArgumentInfoArray);
+                MiscellaneousUtils.Assert(_setMemberCall != null);
+                MiscellaneousUtils.Assert(_setCSharpArgumentInfoArray != null);
+                return (CallSiteBinder)_setMemberCall(null, 0, name, context, _setCSharpArgumentInfoArray)!;
 #else
                 return Binder.SetMember(
                     CSharpBinderFlags.None, name, context, new[]
@@ -158,7 +163,7 @@ namespace Exceptionless.Json.Utilities
 
         public override DynamicMetaObject FallbackGetMember(DynamicMetaObject target, DynamicMetaObject errorSuggestion)
         {
-            DynamicMetaObject retMetaObject = _innerBinder.Bind(target, new DynamicMetaObject[] { });
+            DynamicMetaObject retMetaObject = _innerBinder.Bind(target, CollectionUtils.ArrayEmpty<DynamicMetaObject>());
 
             NoThrowExpressionVisitor noThrowVisitor = new NoThrowExpressionVisitor();
             Expression resultExpression = noThrowVisitor.Visit(retMetaObject.Expression);

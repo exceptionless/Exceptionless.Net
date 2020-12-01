@@ -24,6 +24,7 @@
 #endregion
 
 using System;
+using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Json
 {
@@ -48,21 +49,42 @@ namespace Exceptionless.Json
         internal TypeNameHandling? _itemTypeNameHandling;
 
         /// <summary>
-        /// Gets or sets the converter used when serializing the property's collection items.
+        /// Gets or sets the <see cref="JsonConverter"/> type used when serializing the property's collection items.
         /// </summary>
-        /// <value>The collection's items converter.</value>
-        public Type ItemConverterType { get; set; }
+        /// <value>The collection's items <see cref="JsonConverter"/> type.</value>
+        public Type? ItemConverterType { get; set; }
 
         /// <summary>
-        /// The parameter list to use when constructing the JsonConverter described by ItemConverterType.
-        /// If null, the default constructor is used.
-        /// When non-null, there must be a constructor defined in the JsonConverter that exactly matches the number,
+        /// The parameter list to use when constructing the <see cref="JsonConverter"/> described by <see cref="ItemConverterType"/>.
+        /// If <c>null</c>, the default constructor is used.
+        /// When non-<c>null</c>, there must be a constructor defined in the <see cref="JsonConverter"/> that exactly matches the number,
         /// order, and type of these parameters.
         /// </summary>
         /// <example>
+        /// <code>
         /// [JsonProperty(ItemConverterType = typeof(MyContainerConverter), ItemConverterParameters = new object[] { 123, "Four" })]
+        /// </code>
         /// </example>
-        public object[] ItemConverterParameters { get; set; }
+        public object[]? ItemConverterParameters { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="Type"/> of the <see cref="NamingStrategy"/>.
+        /// </summary>
+        /// <value>The <see cref="Type"/> of the <see cref="NamingStrategy"/>.</value>
+        public Type? NamingStrategyType { get; set; }
+
+        /// <summary>
+        /// The parameter list to use when constructing the <see cref="NamingStrategy"/> described by <see cref="JsonPropertyAttribute.NamingStrategyType"/>.
+        /// If <c>null</c>, the default constructor is used.
+        /// When non-<c>null</c>, there must be a constructor defined in the <see cref="NamingStrategy"/> that exactly matches the number,
+        /// order, and type of these parameters.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// [JsonProperty(NamingStrategyType = typeof(MyNamingStrategy), NamingStrategyParameters = new object[] { 123, "Four" })]
+        /// </code>
+        /// </example>
+        public object[]? NamingStrategyParameters { get; set; }
 
         /// <summary>
         /// Gets or sets the null value handling used when serializing this property.
@@ -70,8 +92,8 @@ namespace Exceptionless.Json
         /// <value>The null value handling.</value>
         public NullValueHandling NullValueHandling
         {
-            get { return _nullValueHandling ?? default(NullValueHandling); }
-            set { _nullValueHandling = value; }
+            get => _nullValueHandling ?? default;
+            set => _nullValueHandling = value;
         }
 
         /// <summary>
@@ -80,8 +102,8 @@ namespace Exceptionless.Json
         /// <value>The default value handling.</value>
         public DefaultValueHandling DefaultValueHandling
         {
-            get { return _defaultValueHandling ?? default(DefaultValueHandling); }
-            set { _defaultValueHandling = value; }
+            get => _defaultValueHandling ?? default;
+            set => _defaultValueHandling = value;
         }
 
         /// <summary>
@@ -90,8 +112,8 @@ namespace Exceptionless.Json
         /// <value>The reference loop handling.</value>
         public ReferenceLoopHandling ReferenceLoopHandling
         {
-            get { return _referenceLoopHandling ?? default(ReferenceLoopHandling); }
-            set { _referenceLoopHandling = value; }
+            get => _referenceLoopHandling ?? default;
+            set => _referenceLoopHandling = value;
         }
 
         /// <summary>
@@ -100,8 +122,8 @@ namespace Exceptionless.Json
         /// <value>The object creation handling.</value>
         public ObjectCreationHandling ObjectCreationHandling
         {
-            get { return _objectCreationHandling ?? default(ObjectCreationHandling); }
-            set { _objectCreationHandling = value; }
+            get => _objectCreationHandling ?? default;
+            set => _objectCreationHandling = value;
         }
 
         /// <summary>
@@ -110,8 +132,8 @@ namespace Exceptionless.Json
         /// <value>The type name handling.</value>
         public TypeNameHandling TypeNameHandling
         {
-            get { return _typeNameHandling ?? default(TypeNameHandling); }
-            set { _typeNameHandling = value; }
+            get => _typeNameHandling ?? default;
+            set => _typeNameHandling = value;
         }
 
         /// <summary>
@@ -120,8 +142,8 @@ namespace Exceptionless.Json
         /// <value>Whether this property's value is serialized as a reference.</value>
         public bool IsReference
         {
-            get { return _isReference ?? default(bool); }
-            set { _isReference = value; }
+            get => _isReference ?? default;
+            set => _isReference = value;
         }
 
         /// <summary>
@@ -130,8 +152,8 @@ namespace Exceptionless.Json
         /// <value>The numeric order of serialization.</value>
         public int Order
         {
-            get { return _order ?? default(int); }
-            set { _order = value; }
+            get => _order ?? default;
+            set => _order = value;
         }
 
         /// <summary>
@@ -142,34 +164,34 @@ namespace Exceptionless.Json
         /// </value>
         public Required Required
         {
-            get { return _required ?? Required.Default; }
-            set { _required = value; }
+            get => _required ?? Required.Default;
+            set => _required = value;
         }
 
         /// <summary>
         /// Gets or sets the name of the property.
         /// </summary>
         /// <value>The name of the property.</value>
-        public string PropertyName { get; set; }
+        public string? PropertyName { get; set; }
 
         /// <summary>
-        /// Gets or sets the the reference loop handling used when serializing the property's collection items.
+        /// Gets or sets the reference loop handling used when serializing the property's collection items.
         /// </summary>
         /// <value>The collection's items reference loop handling.</value>
         public ReferenceLoopHandling ItemReferenceLoopHandling
         {
-            get { return _itemReferenceLoopHandling ?? default(ReferenceLoopHandling); }
-            set { _itemReferenceLoopHandling = value; }
+            get => _itemReferenceLoopHandling ?? default;
+            set => _itemReferenceLoopHandling = value;
         }
 
         /// <summary>
-        /// Gets or sets the the type name handling used when serializing the property's collection items.
+        /// Gets or sets the type name handling used when serializing the property's collection items.
         /// </summary>
         /// <value>The collection's items type name handling.</value>
         public TypeNameHandling ItemTypeNameHandling
         {
-            get { return _itemTypeNameHandling ?? default(TypeNameHandling); }
-            set { _itemTypeNameHandling = value; }
+            get => _itemTypeNameHandling ?? default;
+            set => _itemTypeNameHandling = value;
         }
 
         /// <summary>
@@ -178,8 +200,8 @@ namespace Exceptionless.Json
         /// <value>Whether this property's collection items are serialized as a reference.</value>
         public bool ItemIsReference
         {
-            get { return _itemIsReference ?? default(bool); }
-            set { _itemIsReference = value; }
+            get => _itemIsReference ?? default;
+            set => _itemIsReference = value;
         }
 
         /// <summary>

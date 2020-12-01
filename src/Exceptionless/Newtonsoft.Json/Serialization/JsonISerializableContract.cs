@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if HAVE_BINARY_SERIALIZATION
 using System;
 using System.Runtime.Serialization;
 
@@ -35,10 +35,10 @@ namespace Exceptionless.Json.Serialization
     internal class JsonISerializableContract : JsonContainerContract
     {
         /// <summary>
-        /// Gets or sets the ISerializable object constructor.
+        /// Gets or sets the <see cref="ISerializable"/> object constructor.
         /// </summary>
-        /// <value>The ISerializable object constructor.</value>
-        public ObjectConstructor<object> ISerializableCreator { get; set; }
+        /// <value>The <see cref="ISerializable"/> object constructor.</value>
+        public ObjectConstructor<object>? ISerializableCreator { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonISerializableContract"/> class.

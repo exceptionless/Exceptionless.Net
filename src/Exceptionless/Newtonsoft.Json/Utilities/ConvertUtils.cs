@@ -27,18 +27,23 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.ComponentModel;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE || NETSTANDARD1_0)
+using System.Runtime.CompilerServices;
+#if HAVE_BIG_INTEGER
 using System.Numerics;
 #endif
+#if !HAVE_GUID_TRY_PARSE
 using System.Text;
 using System.Text.RegularExpressions;
+#endif
 using Exceptionless.Json.Serialization;
 using System.Reflection;
-#if NET20
+using System.Diagnostics.CodeAnalysis;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NO_SQL_CLIENT)
+#if HAVE_ADO_NET
 using System.Data.SqlTypes;
+
 #endif
 
 namespace Exceptionless.Json.Utilities
@@ -91,8 +96,14 @@ namespace Exceptionless.Json.Utilities
 
     internal class TypeInformation
     {
-        public Type Type { get; set; }
-        public PrimitiveTypeCode TypeCode { get; set; }
+        public Type Type { get; }
+        public PrimitiveTypeCode TypeCode { get; }
+
+        public TypeInformation(Type type, PrimitiveTypeCode typeCode)
+        {
+            Type = type;
+            TypeCode = typeCode;
+        }
     }
 
     internal enum ParseResult
@@ -134,7 +145,7 @@ namespace Exceptionless.Json.Utilities
                 { typeof(double?), PrimitiveTypeCode.DoubleNullable },
                 { typeof(DateTime), PrimitiveTypeCode.DateTime },
                 { typeof(DateTime?), PrimitiveTypeCode.DateTimeNullable },
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
                 { typeof(DateTimeOffset), PrimitiveTypeCode.DateTimeOffset },
                 { typeof(DateTimeOffset?), PrimitiveTypeCode.DateTimeOffsetNullable },
 #endif
@@ -144,54 +155,52 @@ namespace Exceptionless.Json.Utilities
                 { typeof(Guid?), PrimitiveTypeCode.GuidNullable },
                 { typeof(TimeSpan), PrimitiveTypeCode.TimeSpan },
                 { typeof(TimeSpan?), PrimitiveTypeCode.TimeSpanNullable },
-#if !(PORTABLE || PORTABLE40 || NET35 || NET20)
+#if HAVE_BIG_INTEGER
                 { typeof(BigInteger), PrimitiveTypeCode.BigInteger },
                 { typeof(BigInteger?), PrimitiveTypeCode.BigIntegerNullable },
 #endif
                 { typeof(Uri), PrimitiveTypeCode.Uri },
                 { typeof(string), PrimitiveTypeCode.String },
                 { typeof(byte[]), PrimitiveTypeCode.Bytes },
-#if !(PORTABLE || PORTABLE40 || DOTNET)
+#if HAVE_ADO_NET
                 { typeof(DBNull), PrimitiveTypeCode.DBNull }
 #endif
             };
 
-#if !PORTABLE
+#if HAVE_ICONVERTIBLE
         private static readonly TypeInformation[] PrimitiveTypeCodes =
         {
             // need all of these. lookup against the index with TypeCode value
-            new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.Empty },
-            new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.Object },
-            new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.DBNull },
-            new TypeInformation { Type = typeof(bool), TypeCode = PrimitiveTypeCode.Boolean },
-            new TypeInformation { Type = typeof(char), TypeCode = PrimitiveTypeCode.Char },
-            new TypeInformation { Type = typeof(sbyte), TypeCode = PrimitiveTypeCode.SByte },
-            new TypeInformation { Type = typeof(byte), TypeCode = PrimitiveTypeCode.Byte },
-            new TypeInformation { Type = typeof(short), TypeCode = PrimitiveTypeCode.Int16 },
-            new TypeInformation { Type = typeof(ushort), TypeCode = PrimitiveTypeCode.UInt16 },
-            new TypeInformation { Type = typeof(int), TypeCode = PrimitiveTypeCode.Int32 },
-            new TypeInformation { Type = typeof(uint), TypeCode = PrimitiveTypeCode.UInt32 },
-            new TypeInformation { Type = typeof(long), TypeCode = PrimitiveTypeCode.Int64 },
-            new TypeInformation { Type = typeof(ulong), TypeCode = PrimitiveTypeCode.UInt64 },
-            new TypeInformation { Type = typeof(float), TypeCode = PrimitiveTypeCode.Single },
-            new TypeInformation { Type = typeof(double), TypeCode = PrimitiveTypeCode.Double },
-            new TypeInformation { Type = typeof(decimal), TypeCode = PrimitiveTypeCode.Decimal },
-            new TypeInformation { Type = typeof(DateTime), TypeCode = PrimitiveTypeCode.DateTime },
-            new TypeInformation { Type = typeof(object), TypeCode = PrimitiveTypeCode.Empty }, // no 17 in TypeCode for some reason
-            new TypeInformation { Type = typeof(string), TypeCode = PrimitiveTypeCode.String }
+            new TypeInformation(typeof(object), PrimitiveTypeCode.Empty), 
+            new TypeInformation(typeof(object), PrimitiveTypeCode.Object), 
+            new TypeInformation(typeof(object), PrimitiveTypeCode.DBNull), 
+            new TypeInformation(typeof(bool), PrimitiveTypeCode.Boolean), 
+            new TypeInformation(typeof(char), PrimitiveTypeCode.Char), 
+            new TypeInformation(typeof(sbyte), PrimitiveTypeCode.SByte), 
+            new TypeInformation(typeof(byte), PrimitiveTypeCode.Byte), 
+            new TypeInformation(typeof(short), PrimitiveTypeCode.Int16), 
+            new TypeInformation(typeof(ushort), PrimitiveTypeCode.UInt16), 
+            new TypeInformation(typeof(int), PrimitiveTypeCode.Int32), 
+            new TypeInformation(typeof(uint), PrimitiveTypeCode.UInt32), 
+            new TypeInformation(typeof(long), PrimitiveTypeCode.Int64), 
+            new TypeInformation(typeof(ulong), PrimitiveTypeCode.UInt64), 
+            new TypeInformation(typeof(float), PrimitiveTypeCode.Single), 
+            new TypeInformation(typeof(double), PrimitiveTypeCode.Double), 
+            new TypeInformation(typeof(decimal), PrimitiveTypeCode.Decimal), 
+            new TypeInformation(typeof(DateTime), PrimitiveTypeCode.DateTime), 
+            new TypeInformation(typeof(object), PrimitiveTypeCode.Empty), // no 17 in TypeCode for some reason
+            new TypeInformation(typeof(string), PrimitiveTypeCode.String)
         };
 #endif
 
         public static PrimitiveTypeCode GetTypeCode(Type t)
         {
-            bool isEnum;
-            return GetTypeCode(t, out isEnum);
+            return GetTypeCode(t, out _);
         }
 
         public static PrimitiveTypeCode GetTypeCode(Type t, out bool isEnum)
         {
-            PrimitiveTypeCode typeCode;
-            if (TypeCodeMap.TryGetValue(t, out typeCode))
+            if (TypeCodeMap.TryGetValue(t, out PrimitiveTypeCode typeCode))
             {
                 isEnum = false;
                 return typeCode;
@@ -219,7 +228,7 @@ namespace Exceptionless.Json.Utilities
             return PrimitiveTypeCode.Object;
         }
 
-#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if HAVE_ICONVERTIBLE
         public static TypeInformation GetTypeInformation(IConvertible convertable)
         {
             TypeInformation typeInformation = PrimitiveTypeCodes[(int)convertable.GetTypeCode()];
@@ -229,7 +238,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsConvertible(Type t)
         {
-#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if HAVE_ICONVERTIBLE
             return typeof(IConvertible).IsAssignableFrom(t);
 #else
             return (
@@ -240,118 +249,78 @@ namespace Exceptionless.Json.Utilities
 
         public static TimeSpan ParseTimeSpan(string input)
         {
-#if !(NET35 || NET20)
+#if HAVE_TIME_SPAN_PARSE_WITH_CULTURE
             return TimeSpan.Parse(input, CultureInfo.InvariantCulture);
 #else
             return TimeSpan.Parse(input);
 #endif
         }
 
-        internal struct TypeConvertKey : IEquatable<TypeConvertKey>
+        private static readonly ThreadSafeStore<StructMultiKey<Type, Type>, Func<object?, object?>?> CastConverters =
+            new ThreadSafeStore<StructMultiKey<Type, Type>, Func<object?, object?>?>(CreateCastConverter);
+
+        private static Func<object?, object?>? CreateCastConverter(StructMultiKey<Type, Type> t)
         {
-            private readonly Type _initialType;
-            private readonly Type _targetType;
-
-            public Type InitialType
-            {
-                get { return _initialType; }
-            }
-
-            public Type TargetType
-            {
-                get { return _targetType; }
-            }
-
-            public TypeConvertKey(Type initialType, Type targetType)
-            {
-                _initialType = initialType;
-                _targetType = targetType;
-            }
-
-            public override int GetHashCode()
-            {
-                return _initialType.GetHashCode() ^ _targetType.GetHashCode();
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (!(obj is TypeConvertKey))
-                {
-                    return false;
-                }
-
-                return Equals((TypeConvertKey)obj);
-            }
-
-            public bool Equals(TypeConvertKey other)
-            {
-                return (_initialType == other._initialType && _targetType == other._targetType);
-            }
-        }
-
-        private static readonly ThreadSafeStore<TypeConvertKey, Func<object, object>> CastConverters =
-            new ThreadSafeStore<TypeConvertKey, Func<object, object>>(CreateCastConverter);
-
-        private static Func<object, object> CreateCastConverter(TypeConvertKey t)
-        {
-            MethodInfo castMethodInfo = t.TargetType.GetMethod("op_Implicit", new[] { t.InitialType });
-            if (castMethodInfo == null)
-            {
-                castMethodInfo = t.TargetType.GetMethod("op_Explicit", new[] { t.InitialType });
-            }
+            Type initialType = t.Value1;
+            Type targetType = t.Value2;
+            MethodInfo castMethodInfo = targetType.GetMethod("op_Implicit", new[] { initialType })
+                ?? targetType.GetMethod("op_Explicit", new[] { initialType });
 
             if (castMethodInfo == null)
             {
                 return null;
             }
 
-            MethodCall<object, object> call = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object>(castMethodInfo);
+            MethodCall<object?, object?> call = JsonTypeReflector.ReflectionDelegateFactory.CreateMethodCall<object?>(castMethodInfo);
 
             return o => call(null, o);
         }
 
-#if !(NET20 || NET35 || PORTABLE || PORTABLE40 || NETSTANDARD1_0)
+#if HAVE_BIG_INTEGER
         internal static BigInteger ToBigInteger(object value)
         {
-            if (value is BigInteger)
+            if (value is BigInteger integer)
             {
-                return (BigInteger)value;
+                return integer;
             }
-            if (value is string)
+
+            if (value is string s)
             {
-                return BigInteger.Parse((string)value, CultureInfo.InvariantCulture);
+                return BigInteger.Parse(s, CultureInfo.InvariantCulture);
             }
-            if (value is float)
+
+            if (value is float f)
             {
-                return new BigInteger((float)value);
+                return new BigInteger(f);
             }
-            if (value is double)
+            if (value is double d)
             {
-                return new BigInteger((double)value);
+                return new BigInteger(d);
             }
-            if (value is decimal)
+            if (value is decimal @decimal)
             {
-                return new BigInteger((decimal)value);
+                return new BigInteger(@decimal);
             }
-            if (value is int)
+            if (value is int i)
             {
-                return new BigInteger((int)value);
+                return new BigInteger(i);
             }
-            if (value is long)
+            if (value is long l)
             {
-                return new BigInteger((long)value);
+                return new BigInteger(l);
             }
-            if (value is uint)
+            if (value is uint u)
             {
-                return new BigInteger((uint)value);
+                return new BigInteger(u);
             }
-            if (value is ulong)
+            if (value is ulong @ulong)
             {
-                return new BigInteger((ulong)value);
+                return new BigInteger(@ulong);
             }
-            if (value is byte[])
+
+            if (value is byte[] bytes)
             {
-                return new BigInteger((byte[])value);
+                return new BigInteger(bytes);
             }
 
             throw new InvalidCastException("Cannot convert {0} to BigInteger.".FormatWith(CultureInfo.InvariantCulture, value.GetType()));
@@ -391,7 +360,7 @@ namespace Exceptionless.Json.Utilities
         }
 #endif
 
-        #region TryConvert
+#region TryConvert
         internal enum ConvertResult
         {
             Success = 0,
@@ -402,11 +371,10 @@ namespace Exceptionless.Json.Utilities
 
         public static object Convert(object initialValue, CultureInfo culture, Type targetType)
         {
-            object value;
-            switch (TryConvertInternal(initialValue, culture, targetType, out value))
+            switch (TryConvertInternal(initialValue, culture, targetType, out object? value))
             {
                 case ConvertResult.Success:
-                    return value;
+                    return value!;
                 case ConvertResult.CannotConvertNull:
                     throw new Exception("Can not convert null {0} into non-nullable {1}.".FormatWith(CultureInfo.InvariantCulture, initialValue.GetType(), targetType));
                 case ConvertResult.NotInstantiableType:
@@ -418,7 +386,7 @@ namespace Exceptionless.Json.Utilities
             }
         }
 
-        private static bool TryConvert(object initialValue, CultureInfo culture, Type targetType, out object value)
+        private static bool TryConvert(object? initialValue, CultureInfo culture, Type targetType, out object? value)
         {
             try
             {
@@ -437,7 +405,7 @@ namespace Exceptionless.Json.Utilities
             }
         }
 
-        private static ConvertResult TryConvertInternal(object initialValue, CultureInfo culture, Type targetType, out object value)
+        private static ConvertResult TryConvertInternal(object? initialValue, CultureInfo culture, Type targetType, out object? value)
         {
             if (initialValue == null)
             {
@@ -458,7 +426,7 @@ namespace Exceptionless.Json.Utilities
             }
 
             // use Convert.ChangeType if both types are IConvertible
-            if (ConvertUtils.IsConvertible(initialValue.GetType()) && ConvertUtils.IsConvertible(targetType))
+            if (IsConvertible(initialValue.GetType()) && IsConvertible(targetType))
             {
                 if (targetType.IsEnum())
                 {
@@ -478,28 +446,27 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.Success;
             }
 
-#if !NET20
-            if (initialValue is DateTime && targetType == typeof(DateTimeOffset))
+#if HAVE_DATE_TIME_OFFSET
+            if (initialValue is DateTime dt && targetType == typeof(DateTimeOffset))
             {
-                value = new DateTimeOffset((DateTime)initialValue);
+                value = new DateTimeOffset(dt);
                 return ConvertResult.Success;
             }
 #endif
 
-            if (initialValue is byte[] && targetType == typeof(Guid))
+            if (initialValue is byte[] bytes && targetType == typeof(Guid))
             {
-                value = new Guid((byte[])initialValue);
+                value = new Guid(bytes);
                 return ConvertResult.Success;
             }
 
-            if (initialValue is Guid && targetType == typeof(byte[]))
+            if (initialValue is Guid guid && targetType == typeof(byte[]))
             {
-                value = ((Guid)initialValue).ToByteArray();
+                value = guid.ToByteArray();
                 return ConvertResult.Success;
             }
 
-            string s = initialValue as string;
-            if (s != null)
+            if (initialValue is string s)
             {
                 if (targetType == typeof(Guid))
                 {
@@ -523,8 +490,7 @@ namespace Exceptionless.Json.Utilities
                 }
                 if (targetType == typeof(Version))
                 {
-                    Version result;
-                    if (VersionTryParse(s, out result))
+                    if (VersionTryParse(s, out Version? result))
                     {
                         value = result;
                         return ConvertResult.Success;
@@ -539,22 +505,22 @@ namespace Exceptionless.Json.Utilities
                 }
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
             if (targetType == typeof(BigInteger))
             {
                 value = ToBigInteger(initialValue);
                 return ConvertResult.Success;
             }
-            if (initialValue is BigInteger)
+            if (initialValue is BigInteger integer)
             {
-                value = FromBigInteger((BigInteger)initialValue, targetType);
+                value = FromBigInteger(integer, targetType);
                 return ConvertResult.Success;
             }
 #endif
 
-#if !(PORTABLE40 || PORTABLE)
+#if HAVE_TYPE_DESCRIPTOR
             // see if source or target types have a TypeConverter that converts between the two
-            TypeConverter toConverter = GetConverter(initialType);
+            TypeConverter toConverter = TypeDescriptor.GetConverter(initialType);
 
             if (toConverter != null && toConverter.CanConvertTo(targetType))
             {
@@ -562,7 +528,7 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.Success;
             }
 
-            TypeConverter fromConverter = GetConverter(targetType);
+            TypeConverter fromConverter = TypeDescriptor.GetConverter(targetType);
 
             if (fromConverter != null && fromConverter.CanConvertFrom(initialType))
             {
@@ -570,8 +536,8 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.Success;
             }
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE)
-            // handle DBNull and INullable
+#if HAVE_ADO_NET
+            // handle DBNull
             if (initialValue == DBNull.Value)
             {
                 if (ReflectionUtils.IsNullable(targetType))
@@ -585,13 +551,6 @@ namespace Exceptionless.Json.Utilities
                 return ConvertResult.CannotConvertNull;
             }
 #endif
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NO_SQL_CLIENT)
-            if (initialValue is INullable)
-            {
-                value = EnsureTypeAssignable(ToValue((INullable)initialValue), initialType, targetType);
-                return ConvertResult.Success;
-            }
-#endif
 
             if (targetType.IsInterface() || targetType.IsGenericTypeDefinition() || targetType.IsAbstract())
             {
@@ -602,9 +561,9 @@ namespace Exceptionless.Json.Utilities
             value = null;
             return ConvertResult.NoValidConversion;
         }
-        #endregion
+#endregion
 
-        #region ConvertOrCast
+#region ConvertOrCast
         /// <summary>
         /// Converts the value to the specified type. If the value is unable to be converted, the
         /// value is checked whether it assignable to the specified type.
@@ -616,10 +575,8 @@ namespace Exceptionless.Json.Utilities
         /// The converted type. If conversion was unsuccessful, the initial value
         /// is returned if assignable to the target type.
         /// </returns>
-        public static object ConvertOrCast(object initialValue, CultureInfo culture, Type targetType)
+        public static object? ConvertOrCast(object? initialValue, CultureInfo culture, Type targetType)
         {
-            object convertedValue;
-
             if (targetType == typeof(object))
             {
                 return initialValue;
@@ -630,27 +587,27 @@ namespace Exceptionless.Json.Utilities
                 return null;
             }
 
-            if (TryConvert(initialValue, culture, targetType, out convertedValue))
+            if (TryConvert(initialValue, culture, targetType, out object? convertedValue))
             {
                 return convertedValue;
             }
 
-            return EnsureTypeAssignable(initialValue, ReflectionUtils.GetObjectType(initialValue), targetType);
+            return EnsureTypeAssignable(initialValue, ReflectionUtils.GetObjectType(initialValue)!, targetType);
         }
-        #endregion
+#endregion
 
-        private static object EnsureTypeAssignable(object value, Type initialType, Type targetType)
+        private static object? EnsureTypeAssignable(object? value, Type initialType, Type targetType)
         {
-            Type valueType = (value != null) ? value.GetType() : null;
-
             if (value != null)
             {
+                Type valueType = value.GetType();
+
                 if (targetType.IsAssignableFrom(valueType))
                 {
                     return value;
                 }
 
-                Func<object, object> castConverter = CastConverters.Get(new TypeConvertKey(valueType, targetType));
+                Func<object?, object?>? castConverter = CastConverters.Get(new StructMultiKey<Type, Type>(valueType, targetType));
                 if (castConverter != null)
                 {
                     return castConverter(value);
@@ -664,54 +621,15 @@ namespace Exceptionless.Json.Utilities
                 }
             }
 
-            throw new ArgumentException("Could not cast or convert from {0} to {1}.".FormatWith(CultureInfo.InvariantCulture, (initialType != null) ? initialType.ToString() : "{null}", targetType));
+            throw new ArgumentException("Could not cast or convert from {0} to {1}.".FormatWith(CultureInfo.InvariantCulture, initialType?.ToString() ?? "{null}", targetType));
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NO_SQL_CLIENT)
-        public static object ToValue(INullable nullableValue)
+        public static bool VersionTryParse(string input, [NotNullWhen(true)]out Version? result)
         {
-            if (nullableValue == null)
-            {
-                return null;
-            }
-            else if (nullableValue is SqlInt32)
-            {
-                return ToValue((SqlInt32)nullableValue);
-            }
-            else if (nullableValue is SqlInt64)
-            {
-                return ToValue((SqlInt64)nullableValue);
-            }
-            else if (nullableValue is SqlBoolean)
-            {
-                return ToValue((SqlBoolean)nullableValue);
-            }
-            else if (nullableValue is SqlString)
-            {
-                return ToValue((SqlString)nullableValue);
-            }
-            else if (nullableValue is SqlDateTime)
-            {
-                return ToValue((SqlDateTime)nullableValue);
-            }
-
-            throw new ArgumentException("Unsupported INullable type: {0}".FormatWith(CultureInfo.InvariantCulture, nullableValue.GetType()));
-        }
-#endif
-
-#if !(PORTABLE40 || PORTABLE)
-        internal static TypeConverter GetConverter(Type t)
-        {
-            return JsonTypeReflector.GetTypeConverter(t);
-        }
-#endif
-
-        public static bool VersionTryParse(string input, out Version result)
-        {
-#if !(NET20 || NET35)
+#if HAVE_VERSION_TRY_PARSE
             return Version.TryParse(input, out result);
 #else
-    // improve failure performance with regex?
+            // improve failure performance with regex?
             try
             {
                 result = new Version(input);
@@ -929,10 +847,680 @@ namespace Exceptionless.Json.Utilities
             return ParseResult.Success;
         }
 
+#if HAS_CUSTOM_DOUBLE_PARSE
+        private static class IEEE754
+        {
+            /// <summary>
+            /// Exponents for both powers of 10 and 0.1
+            /// </summary>
+            private static readonly int[] MultExp64Power10 = new int[]
+            {
+                4, 7, 10, 14, 17, 20, 24, 27, 30, 34, 37, 40, 44, 47, 50
+            };
+
+            /// <summary>
+            /// Normalized powers of 10
+            /// </summary>
+            private static readonly ulong[] MultVal64Power10 = new ulong[]
+            {
+                0xa000000000000000, 0xc800000000000000, 0xfa00000000000000,
+                0x9c40000000000000, 0xc350000000000000, 0xf424000000000000,
+                0x9896800000000000, 0xbebc200000000000, 0xee6b280000000000,
+                0x9502f90000000000, 0xba43b74000000000, 0xe8d4a51000000000,
+                0x9184e72a00000000, 0xb5e620f480000000, 0xe35fa931a0000000,
+            };
+
+            /// <summary>
+            /// Normalized powers of 0.1
+            /// </summary>
+            private static readonly ulong[] MultVal64Power10Inv = new ulong[]
+            {
+                0xcccccccccccccccd, 0xa3d70a3d70a3d70b, 0x83126e978d4fdf3c,
+                0xd1b71758e219652e, 0xa7c5ac471b478425, 0x8637bd05af6c69b7,
+                0xd6bf94d5e57a42be, 0xabcc77118461ceff, 0x89705f4136b4a599,
+                0xdbe6fecebdedd5c2, 0xafebff0bcb24ab02, 0x8cbccc096f5088cf,
+                0xe12e13424bb40e18, 0xb424dc35095cd813, 0x901d7cf73ab0acdc,
+            };
+
+            /// <summary>
+            /// Exponents for both powers of 10^16 and 0.1^16
+            /// </summary>
+            private static readonly int[] MultExp64Power10By16 = new int[]
+            {
+                54, 107, 160, 213, 266, 319, 373, 426, 479, 532, 585, 638,
+                691, 745, 798, 851, 904, 957, 1010, 1064, 1117,
+            };
+
+            /// <summary>
+            /// Normalized powers of 10^16
+            /// </summary>
+            private static readonly ulong[] MultVal64Power10By16 = new ulong[]
+            {
+                0x8e1bc9bf04000000, 0x9dc5ada82b70b59e, 0xaf298d050e4395d6,
+                0xc2781f49ffcfa6d4, 0xd7e77a8f87daf7fa, 0xefb3ab16c59b14a0,
+                0x850fadc09923329c, 0x93ba47c980e98cde, 0xa402b9c5a8d3a6e6,
+                0xb616a12b7fe617a8, 0xca28a291859bbf90, 0xe070f78d39275566,
+                0xf92e0c3537826140, 0x8a5296ffe33cc92c, 0x9991a6f3d6bf1762,
+                0xaa7eebfb9df9de8a, 0xbd49d14aa79dbc7e, 0xd226fc195c6a2f88,
+                0xe950df20247c83f8, 0x81842f29f2cce373, 0x8fcac257558ee4e2,
+            };
+
+            /// <summary>
+            /// Normalized powers of 0.1^16
+            /// </summary>
+            private static readonly ulong[] MultVal64Power10By16Inv = new ulong[]
+            {
+                0xe69594bec44de160, 0xcfb11ead453994c3, 0xbb127c53b17ec165,
+                0xa87fea27a539e9b3, 0x97c560ba6b0919b5, 0x88b402f7fd7553ab,
+                0xf64335bcf065d3a0, 0xddd0467c64bce4c4, 0xc7caba6e7c5382ed,
+                0xb3f4e093db73a0b7, 0xa21727db38cb0053, 0x91ff83775423cc29,
+                0x8380dea93da4bc82, 0xece53cec4a314f00, 0xd5605fcdcf32e217,
+                0xc0314325637a1978, 0xad1c8eab5ee43ba2, 0x9becce62836ac5b0,
+                0x8c71dcd9ba0b495c, 0xfd00b89747823938, 0xe3e27a444d8d991a,
+            };
+
+            /// <summary>
+            /// Packs <paramref name="val"/>*10^<paramref name="scale"/> as 64-bit floating point value according to IEEE 754 standard
+            /// </summary>
+            /// <param name="negative">Sign</param>
+            /// <param name="val">Mantissa</param>
+            /// <param name="scale">Exponent</param>
+            /// <remarks>
+            /// Adoption of native function NumberToDouble() from coreclr sources,
+            /// see https://github.com/dotnet/coreclr/blob/master/src/classlibnative/bcltype/number.cpp#L451
+            /// </remarks>
+            public static double PackDouble(bool negative, ulong val, int scale)
+            {
+                // handle zero value
+                if (val == 0)
+                {
+                    return negative ? -0.0 : 0.0;
+                }
+
+                // normalize the mantissa
+                int exp = 64;
+
+                if ((val & 0xFFFFFFFF00000000) == 0)
+                {
+                    val <<= 32;
+                    exp -= 32;
+                }
+                if ((val & 0xFFFF000000000000) == 0)
+                {
+                    val <<= 16;
+                    exp -= 16;
+                }
+                if ((val & 0xFF00000000000000) == 0)
+                {
+                    val <<= 8;
+                    exp -= 8;
+                }
+                if ((val & 0xF000000000000000) == 0)
+                {
+                    val <<= 4;
+                    exp -= 4;
+                }
+                if ((val & 0xC000000000000000) == 0)
+                {
+                    val <<= 2;
+                    exp -= 2;
+                }
+                if ((val & 0x8000000000000000) == 0)
+                {
+                    val <<= 1;
+                    exp -= 1;
+                }
+
+                if (scale < 0)
+                {
+                    scale = -scale;
+
+                    // check scale bounds
+                    if (scale >= 22 * 16)
+                    {
+                        // underflow
+                        return negative ? -0.0 : 0.0;
+                    }
+
+                    // perform scaling
+                    int index = scale & 15;
+                    if (index != 0)
+                    {
+                        exp -= MultExp64Power10[index - 1] - 1;
+                        val = Mul64Lossy(val, MultVal64Power10Inv[index - 1], ref exp);
+                    }
+
+                    index = scale >> 4;
+                    if (index != 0)
+                    {
+                        exp -= MultExp64Power10By16[index - 1] - 1;
+                        val = Mul64Lossy(val, MultVal64Power10By16Inv[index - 1], ref exp);
+                    }
+                }
+                else
+                {
+                    // check scale bounds
+                    if (scale >= 22 * 16)
+                    {
+                        // overflow
+                        return negative ? double.NegativeInfinity : double.PositiveInfinity;
+                    }
+
+                    // perform scaling
+                    int index = scale & 15;
+                    if (index != 0)
+                    {
+                        exp += MultExp64Power10[index - 1];
+                        val = Mul64Lossy(val, MultVal64Power10[index - 1], ref exp);
+                    }
+
+                    index = scale >> 4;
+                    if (index != 0)
+                    {
+                        exp += MultExp64Power10By16[index - 1];
+                        val = Mul64Lossy(val, MultVal64Power10By16[index - 1], ref exp);
+                    }
+                }
+
+                // round & scale down
+
+                if ((val & (1 << 10)) != 0)
+                {
+                    // IEEE round to even
+                    ulong tmp = val + ((1UL << 10) - 1 + ((val >> 11) & 1));
+                    if (tmp < val)
+                    {
+                        // overflow
+                        tmp = (tmp >> 1) | 0x8000000000000000;
+                        exp++;
+                    }
+                    val = tmp;
+                }
+
+                // return the exponent to a biased state
+
+                exp += 0x3FE;
+
+                // handle overflow, underflow, "Epsilon - 1/2 Epsilon", denormalized, and the normal case
+
+                if (exp <= 0)
+                {
+                    if (exp == -52 && (val >= 0x8000000000000058))
+                    {
+                        // round X where {Epsilon > X >= 2.470328229206232730000000E-324} up to Epsilon (instead of down to zero)
+                        val = 0x0000000000000001;
+                    }
+                    else if (exp <= -52)
+                    {
+                        // underflow
+                        val = 0;
+                    }
+                    else
+                    {
+                        // denormalized value
+                        val >>= (-exp + 12);
+                    }
+                }
+                else if (exp >= 0x7FF)
+                {
+                    // overflow
+                    val = 0x7FF0000000000000;
+                }
+                else
+                {
+                    // normal positive exponent case
+                    val = ((ulong)exp << 52) | ((val >> 11) & 0x000FFFFFFFFFFFFF);
+                }
+
+                // apply sign
+
+                if (negative)
+                {
+                    val |= 0x8000000000000000;
+                }
+
+                return BitConverter.Int64BitsToDouble((long)val);
+            }
+
+            private static ulong Mul64Lossy(ulong a, ulong b, ref int exp)
+            {
+                ulong a_hi = (a >> 32);
+                uint a_lo = (uint)a;
+                ulong b_hi = (b >> 32);
+                uint b_lo = (uint)b;
+
+                ulong result = a_hi * b_hi;
+
+                // save some multiplications if lo-parts aren't big enough to produce carry
+                // (hi-parts will be always big enough, since a and b are normalized)
+
+                if ((b_lo & 0xFFFF0000) != 0)
+                {
+                    result += (a_hi * b_lo) >> 32;
+                }
+
+                if ((a_lo & 0xFFFF0000) != 0)
+                {
+                    result += (a_lo * b_hi) >> 32;
+                }
+
+                // normalize
+                if ((result & 0x8000000000000000) == 0)
+                {
+                    result <<= 1;
+                    exp--;
+                }
+
+                return result;
+            }
+        }
+
+        public static ParseResult DoubleTryParse(char[] chars, int start, int length, out double value)
+        {
+            value = 0;
+
+            if (length == 0)
+            {
+                return ParseResult.Invalid;
+            }
+
+            bool isNegative = (chars[start] == '-');
+            if (isNegative)
+            {
+                // text just a negative sign
+                if (length == 1)
+                {
+                    return ParseResult.Invalid;
+                }
+
+                start++;
+                length--;
+            }
+
+            int i = start;
+            int end = start + length;
+            int numDecimalStart = end;
+            int numDecimalEnd = end;
+            int exponent = 0;
+            ulong mantissa = 0UL;
+            int mantissaDigits = 0;
+            int exponentFromMantissa = 0;
+            for (; i < end; i++)
+            {
+                char c = chars[i];
+                switch (c)
+                {
+                    case '.':
+                        if (i == start)
+                        {
+                            return ParseResult.Invalid;
+                        }
+                        if (i + 1 == end)
+                        {
+                            return ParseResult.Invalid;
+                        }
+
+                        if (numDecimalStart != end)
+                        {
+                            // multiple decimal points
+                            return ParseResult.Invalid;
+                        }
+
+                        numDecimalStart = i + 1;
+                        break;
+                    case 'e':
+                    case 'E':
+                        if (i == start)
+                        {
+                            return ParseResult.Invalid;
+                        }
+                        if (i == numDecimalStart)
+                        {
+                            // E follows decimal point
+                            return ParseResult.Invalid;
+                        }
+                        i++;
+                        if (i == end)
+                        {
+                            return ParseResult.Invalid;
+                        }
+
+                        if (numDecimalStart < end)
+                        {
+                            numDecimalEnd = i - 1;
+                        }
+
+                        c = chars[i];
+                        bool exponentNegative = false;
+                        switch (c)
+                        {
+                            case '-':
+                                exponentNegative = true;
+                                i++;
+                                break;
+                            case '+':
+                                i++;
+                                break;
+                        }
+
+                        // parse 3 digit
+                        for (; i < end; i++)
+                        {
+                            c = chars[i];
+                            if (c < '0' || c > '9')
+                            {
+                                return ParseResult.Invalid;
+                            }
+
+                            int newExponent = (10 * exponent) + (c - '0');
+                            // stops updating exponent when overflowing
+                            if (exponent < newExponent)
+                            {
+                                exponent = newExponent;
+                            }
+                        }
+
+                        if (exponentNegative)
+                        {
+                            exponent = -exponent;
+                        }
+                        break;
+                    default:
+                        if (c < '0' || c > '9')
+                        {
+                            return ParseResult.Invalid;
+                        }
+
+                        if (i == start && c == '0')
+                        {
+                            i++;
+                            if (i != end)
+                            {
+                                c = chars[i];
+                                if (c == '.')
+                                {
+                                    goto case '.';
+                                }
+                                if (c == 'e' || c == 'E')
+                                {
+                                    goto case 'E';
+                                }
+
+                                return ParseResult.Invalid;
+                            }
+                        }
+
+                        if (mantissaDigits < 19)
+                        {
+                            mantissa = (10 * mantissa) + (ulong)(c - '0');
+                            if (mantissa > 0)
+                            {
+                                ++mantissaDigits;
+                            }
+                        }
+                        else
+                        {
+                            ++exponentFromMantissa;
+                        }
+                        break;
+                }
+            }
+
+            exponent += exponentFromMantissa;
+
+            // correct the decimal point
+            exponent -= (numDecimalEnd - numDecimalStart);
+
+            value = IEEE754.PackDouble(isNegative, mantissa, exponent);
+            return double.IsInfinity(value) ? ParseResult.Overflow : ParseResult.Success;
+        }
+#endif
+
+        public static ParseResult DecimalTryParse(char[] chars, int start, int length, out decimal value)
+        {
+            value = 0M;
+            const decimal decimalMaxValueHi28 = 7922816251426433759354395033M;
+            const ulong decimalMaxValueHi19 = 7922816251426433759UL;
+            const ulong decimalMaxValueLo9 = 354395033UL;
+            const char decimalMaxValueLo1 = '5';
+
+            if (length == 0)
+            {
+                return ParseResult.Invalid;
+            }
+
+            bool isNegative = (chars[start] == '-');
+            if (isNegative)
+            {
+                // text just a negative sign
+                if (length == 1)
+                {
+                    return ParseResult.Invalid;
+                }
+
+                start++;
+                length--;
+            }
+
+            int i = start;
+            int end = start + length;
+            int numDecimalStart = end;
+            int numDecimalEnd = end;
+            int exponent = 0;
+            ulong hi19 = 0UL;
+            ulong lo10 = 0UL;
+            int mantissaDigits = 0;
+            int exponentFromMantissa = 0;
+            char? digit29 = null;
+            bool? storeOnly28Digits = null;
+            for (; i < end; i++)
+            {
+                char c = chars[i];
+                switch (c)
+                {
+                    case '.':
+                        if (i == start)
+                        {
+                            return ParseResult.Invalid;
+                        }
+                        if (i + 1 == end)
+                        {
+                            return ParseResult.Invalid;
+                        }
+
+                        if (numDecimalStart != end)
+                        {
+                            // multiple decimal points
+                            return ParseResult.Invalid;
+                        }
+
+                        numDecimalStart = i + 1;
+                        break;
+                    case 'e':
+                    case 'E':
+                        if (i == start)
+                        {
+                            return ParseResult.Invalid;
+                        }
+                        if (i == numDecimalStart)
+                        {
+                            // E follows decimal point		
+                            return ParseResult.Invalid;
+                        }
+                        i++;
+                        if (i == end)
+                        {
+                            return ParseResult.Invalid;
+                        }
+
+                        if (numDecimalStart < end)
+                        {
+                            numDecimalEnd = i - 1;
+                        }
+
+                        c = chars[i];
+                        bool exponentNegative = false;
+                        switch (c)
+                        {
+                            case '-':
+                                exponentNegative = true;
+                                i++;
+                                break;
+                            case '+':
+                                i++;
+                                break;
+                        }
+
+                        // parse 3 digit 
+                        for (; i < end; i++)
+                        {
+                            c = chars[i];
+                            if (c < '0' || c > '9')
+                            {
+                                return ParseResult.Invalid;
+                            }
+
+                            int newExponent = (10 * exponent) + (c - '0');
+                            // stops updating exponent when overflowing
+                            if (exponent < newExponent)
+                            {
+                                exponent = newExponent;
+                            }
+                        }
+
+                        if (exponentNegative)
+                        {
+                            exponent = -exponent;
+                        }
+                        break;
+                    default:
+                        if (c < '0' || c > '9')
+                        {
+                            return ParseResult.Invalid;
+                        }
+
+                        if (i == start && c == '0')
+                        {
+                            i++;
+                            if (i != end)
+                            {
+                                c = chars[i];
+                                if (c == '.')
+                                {
+                                    goto case '.';
+                                }
+                                if (c == 'e' || c == 'E')
+                                {
+                                    goto case 'E';
+                                }
+
+                                return ParseResult.Invalid;
+                            }
+                        }
+
+                        if (mantissaDigits < 29 && (mantissaDigits != 28 || !(storeOnly28Digits ?? (storeOnly28Digits = (hi19 > decimalMaxValueHi19 || (hi19 == decimalMaxValueHi19 && (lo10 > decimalMaxValueLo9 || (lo10 == decimalMaxValueLo9 && c > decimalMaxValueLo1))))).GetValueOrDefault())))
+                        {
+                            if (mantissaDigits < 19)
+                            {
+                                hi19 = (hi19 * 10UL) + (ulong)(c - '0');
+                            }
+                            else
+                            {
+                                lo10 = (lo10 * 10UL) + (ulong)(c - '0');
+                            }
+                            ++mantissaDigits;
+                        }
+                        else
+                        {
+                            if (!digit29.HasValue)
+                            {
+                                digit29 = c;
+                            }
+                            ++exponentFromMantissa;
+                        }
+                        break;
+                }
+            }
+
+            exponent += exponentFromMantissa;
+
+            // correct the decimal point
+            exponent -= (numDecimalEnd - numDecimalStart);
+
+            if (mantissaDigits <= 19)
+            {
+                value = hi19;
+            }
+            else
+            {
+                value = (hi19 / new decimal(1, 0, 0, false, (byte)(mantissaDigits - 19))) + lo10;
+            }
+
+            if (exponent > 0)
+            {
+                mantissaDigits += exponent;
+                if (mantissaDigits > 29)
+                {
+                    return ParseResult.Overflow;
+                }
+                if (mantissaDigits == 29)
+                {
+                    if (exponent > 1)
+                    {
+                        value /= new decimal(1, 0, 0, false, (byte)(exponent - 1));
+                        if (value > decimalMaxValueHi28)
+                        {
+                            return ParseResult.Overflow;
+                        }
+                    }
+                    else if (value == decimalMaxValueHi28 && digit29 > decimalMaxValueLo1)
+                    {
+                        return ParseResult.Overflow;
+                    }
+                    value *= 10M;
+                }
+                else
+                {
+                    value /= new decimal(1, 0, 0, false, (byte)exponent);
+                }
+            }
+            else
+            {
+                if (digit29 >= '5' && exponent >= -28)
+                {
+                    ++value;
+                }
+                if (exponent < 0)
+                {
+                    if (mantissaDigits + exponent + 28 <= 0)
+                    {
+                        value = isNegative ? -0M : 0M;
+                        return ParseResult.Success;
+                    }
+                    if (exponent >= -28)
+                    {
+                        value *= new decimal(1, 0, 0, false, (byte)(-exponent));
+                    }
+                    else
+                    {
+                        value /= 1e28M;
+                        value *= new decimal(1, 0, 0, false, (byte)(-exponent - 28));
+                    }
+                }
+            }
+
+            if (isNegative)
+            {
+                value = -value;
+            }
+
+            return ParseResult.Success;
+        }
+
         public static bool TryConvertGuid(string s, out Guid g)
         {
             // GUID has to have format 00000000-0000-0000-0000-000000000000
-#if NET20 || NET35
+#if !HAVE_GUID_TRY_PARSE
             if (s == null)
             {
                 throw new ArgumentNullException("s");
@@ -953,34 +1541,37 @@ namespace Exceptionless.Json.Utilities
 #endif
         }
 
-        public static int HexTextToInt(char[] text, int start, int end)
+        public static bool TryHexTextToInt(char[] text, int start, int end, out int value)
         {
-            int value = 0;
+            value = 0;
+
             for (int i = start; i < end; i++)
             {
-                value += HexCharToInt(text[i]) << ((end - 1 - i) * 4);
-            }
-            return value;
-        }
+                char ch = text[i];
+                int chValue;
 
-        private static int HexCharToInt(char ch)
-        {
-            if (ch <= 57 && ch >= 48)
-            {
-                return ch - 48;
+                if (ch <= 57 && ch >= 48)
+                {
+                    chValue = ch - 48;
+                }
+                else if (ch <= 70 && ch >= 65)
+                {
+                    chValue = ch - 55;
+                }
+                else if (ch <= 102 && ch >= 97)
+                {
+                    chValue = ch - 87;
+                }
+                else
+                {
+                    value = 0;
+                    return false;
+                }
+
+                value += chValue << ((end - 1 - i) * 4);
             }
 
-            if (ch <= 70 && ch >= 65)
-            {
-                return ch - 55;
-            }
-
-            if (ch <= 102 && ch >= 97)
-            {
-                return ch - 87;
-            }
-
-            throw new FormatException("Invalid hex character: " + ch);
+            return true;
         }
     }
 }

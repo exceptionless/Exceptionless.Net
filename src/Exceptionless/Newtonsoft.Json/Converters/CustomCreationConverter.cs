@@ -30,7 +30,7 @@ using Exceptionless.Json.Utilities;
 namespace Exceptionless.Json.Converters
 {
     /// <summary>
-    /// Create a custom object
+    /// Creates a custom object.
     /// </summary>
     /// <typeparam name="T">The object type to convert.</typeparam>
     internal abstract class CustomCreationConverter<T> : JsonConverter
@@ -41,7 +41,7 @@ namespace Exceptionless.Json.Converters
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             throw new NotSupportedException("CustomCreationConverter should only be used while deserializing.");
         }
@@ -54,7 +54,7 @@ namespace Exceptionless.Json.Converters
         /// <param name="existingValue">The existing value of object being read.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
             {
@@ -96,9 +96,6 @@ namespace Exceptionless.Json.Converters
         /// <value>
         /// 	<c>true</c> if this <see cref="JsonConverter"/> can write JSON; otherwise, <c>false</c>.
         /// </value>
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
+        public override bool CanWrite => false;
     }
 }

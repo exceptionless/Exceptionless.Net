@@ -33,18 +33,15 @@ namespace Exceptionless.Json.Linq
     /// </summary>
     internal class JTokenReader : JsonReader, IJsonLineInfo
     {
-        private readonly string _initialPath;
         private readonly JToken _root;
-        private JToken _parent;
-        private JToken _current;
+        private string? _initialPath;
+        private JToken? _parent;
+        private JToken? _current;
 
         /// <summary>
         /// Gets the <see cref="JToken"/> at the reader's current position.
         /// </summary>
-        public JToken CurrentToken
-        {
-            get { return _current; }
-        }
+        public JToken? CurrentToken => _current;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JTokenReader"/> class.
@@ -57,17 +54,22 @@ namespace Exceptionless.Json.Linq
             _root = token;
         }
 
-        internal JTokenReader(JToken token, string initialPath)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JTokenReader"/> class.
+        /// </summary>
+        /// <param name="token">The token to read from.</param>
+        /// <param name="initialPath">The initial path of the token. It is prepended to the returned <see cref="Path"/>.</param>
+        public JTokenReader(JToken token, string initialPath)
             : this(token)
         {
             _initialPath = initialPath;
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream.
+        /// Reads the next JSON token from the underlying <see cref="JToken"/>.
         /// </summary>
         /// <returns>
-        /// true if the next token was read successfully; false if there are no more tokens to read.
+        /// <c>true</c> if the next token was read successfully; <c>false</c> if there are no more tokens to read.
         /// </returns>
         public override bool Read()
         {
@@ -78,8 +80,7 @@ namespace Exceptionless.Json.Linq
                     return false;
                 }
 
-                JContainer container = _current as JContainer;
-                if (container != null && _parent != container)
+                if (_current is JContainer container && _parent != container)
                 {
                     return ReadInto(container);
                 }
@@ -87,6 +88,12 @@ namespace Exceptionless.Json.Linq
                 {
                     return ReadOver(_current);
                 }
+            }
+
+            // The current value could already be the root value if it is a comment
+            if (_current == _root)
+            {
+                return false;
             }
 
             _current = _root;
@@ -101,8 +108,8 @@ namespace Exceptionless.Json.Linq
                 return ReadToEnd();
             }
 
-            JToken next = t.Next;
-            if ((next == null || next == t) || t == t.Parent.Last)
+            JToken? next = t.Next;
+            if ((next == null || next == t) || t == t.Parent!.Last)
             {
                 if (t.Parent == null)
                 {
@@ -139,13 +146,13 @@ namespace Exceptionless.Json.Linq
                 case JTokenType.Property:
                     return null;
                 default:
-                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException("Type", c.Type, "Unexpected JContainer type.");
+                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException(nameof(c.Type), c.Type, "Unexpected JContainer type.");
             }
         }
 
         private bool ReadInto(JContainer c)
         {
-            JToken firstChild = c.First;
+            JToken? firstChild = c.First;
             if (firstChild == null)
             {
                 return SetEnd(c);
@@ -213,8 +220,16 @@ namespace Exceptionless.Json.Linq
                     SetToken(JsonToken.Undefined, ((JValue)token).Value);
                     break;
                 case JTokenType.Date:
-                    SetToken(JsonToken.Date, ((JValue)token).Value);
-                    break;
+                    {
+                        object? v = ((JValue)token).Value;
+                        if (v is DateTime dt)
+                        {
+                            v = DateTimeUtils.EnsureDateTime(dt, DateTimeZoneHandling);
+                        }
+
+                        SetToken(JsonToken.Date, v);
+                        break;
+                    }
                 case JTokenType.Raw:
                     SetToken(JsonToken.Raw, ((JValue)token).Value);
                     break;
@@ -225,27 +240,22 @@ namespace Exceptionless.Json.Linq
                     SetToken(JsonToken.String, SafeToString(((JValue)token).Value));
                     break;
                 case JTokenType.Uri:
-                    object v = ((JValue)token).Value;
-                    if (v is Uri)
                     {
-                        SetToken(JsonToken.String, ((Uri)v).OriginalString);
+                        object? v = ((JValue)token).Value;
+                        SetToken(JsonToken.String, v is Uri uri ? uri.OriginalString : SafeToString(v));
+                        break;
                     }
-                    else
-                    {
-                        SetToken(JsonToken.String, SafeToString(v));
-                    }
-                    break;
                 case JTokenType.TimeSpan:
                     SetToken(JsonToken.String, SafeToString(((JValue)token).Value));
                     break;
                 default:
-                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException("Type", token.Type, "Unexpected JTokenType.");
+                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException(nameof(token.Type), token.Type, "Unexpected JTokenType.");
             }
         }
 
-        private string SafeToString(object value)
+        private string? SafeToString(object? value)
         {
-            return (value != null) ? value.ToString() : null;
+            return value?.ToString();
         }
 
         bool IJsonLineInfo.HasLineInfo()
@@ -255,7 +265,7 @@ namespace Exceptionless.Json.Linq
                 return false;
             }
 
-            IJsonLineInfo info = _current;
+            IJsonLineInfo? info = _current;
             return (info != null && info.HasLineInfo());
         }
 
@@ -268,7 +278,7 @@ namespace Exceptionless.Json.Linq
                     return 0;
                 }
 
-                IJsonLineInfo info = _current;
+                IJsonLineInfo? info = _current;
                 if (info != null)
                 {
                     return info.LineNumber;
@@ -287,7 +297,7 @@ namespace Exceptionless.Json.Linq
                     return 0;
                 }
 
-                IJsonLineInfo info = _current;
+                IJsonLineInfo? info = _current;
                 if (info != null)
                 {
                     return info.LinePosition;
@@ -306,9 +316,14 @@ namespace Exceptionless.Json.Linq
             {
                 string path = base.Path;
 
-                if (!string.IsNullOrEmpty(_initialPath))
+                if (_initialPath == null)
                 {
-                    if (string.IsNullOrEmpty(path))
+                    _initialPath = _root.Path;
+                }
+
+                if (!StringUtils.IsNullOrEmpty(_initialPath))
+                {
+                    if (StringUtils.IsNullOrEmpty(path))
                     {
                         return _initialPath;
                     }

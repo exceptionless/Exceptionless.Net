@@ -41,8 +41,8 @@ namespace Exceptionless.Json
         /// <value><c>true</c> if null items are allowed in the collection; otherwise, <c>false</c>.</value>
         public bool AllowNullItems
         {
-            get { return _allowNullItems; }
-            set { _allowNullItems = value; }
+            get => _allowNullItems;
+            set => _allowNullItems = value;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JsonObjectAttribute"/> class with a flag indicating whether the array can contain null items
+        /// Initializes a new instance of the <see cref="JsonObjectAttribute"/> class with a flag indicating whether the array can contain null items.
         /// </summary>
         /// <param name="allowNullItems">A flag indicating whether the array can contain null items.</param>
         public JsonArrayAttribute(bool allowNullItems)

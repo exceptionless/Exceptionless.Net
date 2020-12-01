@@ -25,8 +25,11 @@
 
 using System;
 using System.Collections.Generic;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
+#endif
+#if HAVE_CONCURRENT_DICTIONARY
+using System.Collections.Concurrent;
 #endif
 using System.Threading;
 using Exceptionless.Json.Serialization;
@@ -35,32 +38,41 @@ namespace Exceptionless.Json.Utilities
 {
     internal class ThreadSafeStore<TKey, TValue>
     {
+#if HAVE_CONCURRENT_DICTIONARY
+        private readonly ConcurrentDictionary<TKey, TValue> _concurrentStore;
+#else
         private readonly object _lock = new object();
         private Dictionary<TKey, TValue> _store;
+#endif
         private readonly Func<TKey, TValue> _creator;
 
         public ThreadSafeStore(Func<TKey, TValue> creator)
         {
-            if (creator == null)
-            {
-                throw new ArgumentNullException(nameof(creator));
-            }
+            ValidationUtils.ArgumentNotNull(creator, nameof(creator));
 
             _creator = creator;
+#if HAVE_CONCURRENT_DICTIONARY
+            _concurrentStore = new ConcurrentDictionary<TKey, TValue>();
+#else
             _store = new Dictionary<TKey, TValue>();
+#endif
         }
 
         public TValue Get(TKey key)
         {
-            TValue value;
-            if (!_store.TryGetValue(key, out value))
+#if HAVE_CONCURRENT_DICTIONARY
+            return _concurrentStore.GetOrAdd(key, _creator);
+#else
+            if (!_store.TryGetValue(key, out TValue value))
             {
                 return AddValue(key);
             }
 
             return value;
+#endif
         }
 
+#if !HAVE_CONCURRENT_DICTIONARY
         private TValue AddValue(TKey key)
         {
             TValue value = _creator(key);
@@ -75,8 +87,7 @@ namespace Exceptionless.Json.Utilities
                 else
                 {
                     // double check locking
-                    TValue checkValue;
-                    if (_store.TryGetValue(key, out checkValue))
+                    if (_store.TryGetValue(key, out TValue checkValue))
                     {
                         return checkValue;
                     }
@@ -84,7 +95,7 @@ namespace Exceptionless.Json.Utilities
                     Dictionary<TKey, TValue> newStore = new Dictionary<TKey, TValue>(_store);
                     newStore[key] = value;
 
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_MEMORY_BARRIER
                     Thread.MemoryBarrier();
 #endif
                     _store = newStore;
@@ -93,5 +104,6 @@ namespace Exceptionless.Json.Utilities
                 return value;
             }
         }
+#endif
     }
 }

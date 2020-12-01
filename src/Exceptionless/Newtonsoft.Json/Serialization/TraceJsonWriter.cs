@@ -1,11 +1,34 @@
+#region License
+// Copyright (c) 2007 James Newton-King
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+#endregion
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-#if !(NET20 || NET35 || PORTABLE || PORTABLE40)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
 #endif
-using System.Text;
 
 namespace Exceptionless.Json.Serialization
 {
@@ -44,11 +67,39 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
+        public override void WriteValue(decimal? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
         public override void WriteValue(bool value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
             base.WriteValue(value);
+        }
+
+        public override void WriteValue(bool? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
         }
 
         public override void WriteValue(byte value)
@@ -62,7 +113,14 @@ namespace Exceptionless.Json.Serialization
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
-            base.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
         }
 
         public override void WriteValue(char value)
@@ -72,11 +130,32 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
-        public override void WriteValue(byte[] value)
+        public override void WriteValue(char? value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
-            base.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
+        public override void WriteValue(byte[]? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value == null)
+            {
+                base.WriteUndefined();
+            }
+            else
+            {
+                base.WriteValue(value);
+            }
         }
 
         public override void WriteValue(DateTime value)
@@ -86,12 +165,40 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
-#if !NET20
+        public override void WriteValue(DateTime? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
+#if HAVE_DATE_TIME_OFFSET
         public override void WriteValue(DateTimeOffset value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
             base.WriteValue(value);
+        }
+
+        public override void WriteValue(DateTimeOffset? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
         }
 #endif
 
@@ -100,6 +207,20 @@ namespace Exceptionless.Json.Serialization
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
             base.WriteValue(value);
+        }
+
+        public override void WriteValue(double? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
         }
 
         public override void WriteUndefined()
@@ -123,11 +244,39 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
+        public override void WriteValue(float? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
         public override void WriteValue(Guid value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
             base.WriteValue(value);
+        }
+
+        public override void WriteValue(Guid? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
         }
 
         public override void WriteValue(int value)
@@ -137,6 +286,20 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
+        public override void WriteValue(int? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
         public override void WriteValue(long value)
         {
             _textWriter.WriteValue(value);
@@ -144,9 +307,23 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
-        public override void WriteValue(object value)
+        public override void WriteValue(long? value)
         {
-#if !(NET20 || NET35 || PORTABLE || PORTABLE40)
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
+        public override void WriteValue(object? value)
+        {
+#if HAVE_BIG_INTEGER
             if (value is BigInteger)
             {
                 _textWriter.WriteValue(value);
@@ -158,7 +335,15 @@ namespace Exceptionless.Json.Serialization
             {
                 _textWriter.WriteValue(value);
                 _innerWriter.WriteValue(value);
-                base.WriteValue(value);
+                if (value == null)
+                {
+                    base.WriteUndefined();
+                }
+                else
+                {
+                    // base.WriteValue(value) will error
+                    InternalWriteValue(JsonToken.String);
+                }
             }
         }
 
@@ -169,6 +354,20 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
+        public override void WriteValue(sbyte? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
         public override void WriteValue(short value)
         {
             _textWriter.WriteValue(value);
@@ -176,7 +375,21 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
-        public override void WriteValue(string value)
+        public override void WriteValue(short? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
+        public override void WriteValue(string? value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
@@ -190,11 +403,39 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
+        public override void WriteValue(TimeSpan? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
         public override void WriteValue(uint value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
             base.WriteValue(value);
+        }
+
+        public override void WriteValue(uint? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
         }
 
         public override void WriteValue(ulong value)
@@ -204,11 +445,32 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
-        public override void WriteValue(Uri value)
+        public override void WriteValue(ulong? value)
         {
             _textWriter.WriteValue(value);
             _innerWriter.WriteValue(value);
-            base.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
+        public override void WriteValue(Uri? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value == null)
+            {
+                base.WriteUndefined();
+            }
+            else
+            {
+                base.WriteValue(value);
+            }
         }
 
         public override void WriteValue(ushort value)
@@ -218,6 +480,20 @@ namespace Exceptionless.Json.Serialization
             base.WriteValue(value);
         }
 
+        public override void WriteValue(ushort? value)
+        {
+            _textWriter.WriteValue(value);
+            _innerWriter.WriteValue(value);
+            if (value.HasValue)
+            {
+                base.WriteValue(value.GetValueOrDefault());
+            }
+            else
+            {
+                base.WriteUndefined();
+            }
+        }
+
         public override void WriteWhitespace(string ws)
         {
             _textWriter.WriteWhitespace(ws);
@@ -225,7 +501,7 @@ namespace Exceptionless.Json.Serialization
             base.WriteWhitespace(ws);
         }
 
-        public override void WriteComment(string text)
+        public override void WriteComment(string? text)
         {
             _textWriter.WriteComment(text);
             _innerWriter.WriteComment(text);
@@ -290,7 +566,7 @@ namespace Exceptionless.Json.Serialization
             base.WriteEndObject();
         }
 
-        public override void WriteRawValue(string json)
+        public override void WriteRawValue(string? json)
         {
             _textWriter.WriteRawValue(json);
             _innerWriter.WriteRawValue(json);
@@ -299,7 +575,7 @@ namespace Exceptionless.Json.Serialization
             InternalWriteValue(JsonToken.Undefined);
         }
 
-        public override void WriteRaw(string json)
+        public override void WriteRaw(string? json)
         {
             _textWriter.WriteRaw(json);
             _innerWriter.WriteRaw(json);

@@ -26,11 +26,8 @@
 using System;
 using System.IO;
 using System.Globalization;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
-#endif
-#if !(NET20 || NET35 || PORTABLE40)
-using System.Threading.Tasks;
 #endif
 using Exceptionless.Json.Linq;
 using Exceptionless.Json.Utilities;
@@ -38,15 +35,17 @@ using System.Xml;
 using Exceptionless.Json.Converters;
 using Exceptionless.Json.Serialization;
 using System.Text;
-#if !(NET20 || PORTABLE40)
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if HAVE_XLINQ
 using System.Xml.Linq;
-
 #endif
 
 namespace Exceptionless.Json
 {
     /// <summary>
-    /// Provides methods for converting between common language runtime types and JSON types.
+    /// Provides methods for converting between .NET types and JSON types.
     /// </summary>
     /// <example>
     ///   <code lang="cs" source="..\Src\Exceptionless.Json.Tests\Documentation\SerializationTests.cs" region="SerializeObject" title="Serializing and Deserializing JSON with JsonConvert" />
@@ -60,25 +59,25 @@ namespace Exceptionless.Json
         /// To serialize without using any default settings create a <see cref="JsonSerializer"/> with
         /// <see cref="JsonSerializer.Create()"/>.
         /// </summary>
-        public static Func<JsonSerializerSettings> DefaultSettings { get; set; }
+        public static Func<JsonSerializerSettings>? DefaultSettings { get; set; }
 
         /// <summary>
-        /// Represents JavaScript's boolean value true as a string. This field is read-only.
+        /// Represents JavaScript's boolean value <c>true</c> as a string. This field is read-only.
         /// </summary>
         public static readonly string True = "true";
 
         /// <summary>
-        /// Represents JavaScript's boolean value false as a string. This field is read-only.
+        /// Represents JavaScript's boolean value <c>false</c> as a string. This field is read-only.
         /// </summary>
         public static readonly string False = "false";
 
         /// <summary>
-        /// Represents JavaScript's null as a string. This field is read-only.
+        /// Represents JavaScript's <c>null</c> as a string. This field is read-only.
         /// </summary>
         public static readonly string Null = "null";
 
         /// <summary>
-        /// Represents JavaScript's undefined as a string. This field is read-only.
+        /// Represents JavaScript's <c>undefined</c> as a string. This field is read-only.
         /// </summary>
         public static readonly string Undefined = "undefined";
 
@@ -93,7 +92,7 @@ namespace Exceptionless.Json
         public static readonly string NegativeInfinity = "-Infinity";
 
         /// <summary>
-        /// Represents JavaScript's NaN as a string. This field is read-only.
+        /// Represents JavaScript's <c>NaN</c> as a string. This field is read-only.
         /// </summary>
         public static readonly string NaN = "NaN";
 
@@ -127,7 +126,7 @@ namespace Exceptionless.Json
             }
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
         /// Converts the <see cref="DateTimeOffset"/> to its JSON string representation.
         /// </summary>
@@ -238,7 +237,7 @@ namespace Exceptionless.Json
             return value.ToString(null, CultureInfo.InvariantCulture);
         }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
         private static string ToStringInternal(BigInteger value)
         {
             return value.ToString(null, CultureInfo.InvariantCulture);
@@ -346,7 +345,7 @@ namespace Exceptionless.Json
         /// Converts the <see cref="Decimal"/> to its JSON string representation.
         /// </summary>
         /// <param name="value">The value to convert.</param>
-        /// <returns>A JSON string representation of the <see cref="SByte"/>.</returns>
+        /// <returns>A JSON string representation of the <see cref="Decimal"/>.</returns>
         public static string ToString(decimal value)
         {
             return EnsureDecimalPlace(value.ToString(null, CultureInfo.InvariantCulture));
@@ -366,7 +365,7 @@ namespace Exceptionless.Json
         {
             string text;
             string qc;
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_CHAR_TO_STRING_WITH_CULTURE
             text = value.ToString("D", CultureInfo.InvariantCulture);
             qc = quoteChar.ToString(CultureInfo.InvariantCulture);
 #else
@@ -397,7 +396,7 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="Uri"/>.</returns>
-        public static string ToString(Uri value)
+        public static string ToString(Uri? value)
         {
             if (value == null)
             {
@@ -417,7 +416,7 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="String"/>.</returns>
-        public static string ToString(string value)
+        public static string ToString(string? value)
         {
             return ToString(value, '"');
         }
@@ -428,7 +427,7 @@ namespace Exceptionless.Json
         /// <param name="value">The value to convert.</param>
         /// <param name="delimiter">The string delimiter character.</param>
         /// <returns>A JSON string representation of the <see cref="String"/>.</returns>
-        public static string ToString(string value, char delimiter)
+        public static string ToString(string? value, char delimiter)
         {
             return ToString(value, delimiter, StringEscapeHandling.Default);
         }
@@ -440,7 +439,7 @@ namespace Exceptionless.Json
         /// <param name="delimiter">The string delimiter character.</param>
         /// <param name="stringEscapeHandling">The string escape handling.</param>
         /// <returns>A JSON string representation of the <see cref="String"/>.</returns>
-        public static string ToString(string value, char delimiter, StringEscapeHandling stringEscapeHandling)
+        public static string ToString(string? value, char delimiter, StringEscapeHandling stringEscapeHandling)
         {
             if (delimiter != '"' && delimiter != '\'')
             {
@@ -455,7 +454,7 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>A JSON string representation of the <see cref="Object"/>.</returns>
-        public static string ToString(object value)
+        public static string ToString(object? value)
         {
             if (value == null)
             {
@@ -496,11 +495,11 @@ namespace Exceptionless.Json
                     return ToString((DateTime)value);
                 case PrimitiveTypeCode.Decimal:
                     return ToString((decimal)value);
-#if !(DOTNET || PORTABLE)
+#if HAVE_DB_NULL_TYPE_CODE
                 case PrimitiveTypeCode.DBNull:
                     return Null;
 #endif
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
                 case PrimitiveTypeCode.DateTimeOffset:
                     return ToString((DateTimeOffset)value);
 #endif
@@ -510,7 +509,7 @@ namespace Exceptionless.Json
                     return ToString((Uri)value);
                 case PrimitiveTypeCode.TimeSpan:
                     return ToString((TimeSpan)value);
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
                 case PrimitiveTypeCode.BigInteger:
                     return ToStringInternal((BigInteger)value);
 #endif
@@ -525,33 +524,36 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The object to serialize.</param>
         /// <returns>A JSON string representation of the object.</returns>
-        public static string SerializeObject(object value)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value)
         {
-            return SerializeObject(value, null, (JsonSerializerSettings)null);
+            return SerializeObject(value, null, (JsonSerializerSettings?)null);
         }
 
         /// <summary>
         /// Serializes the specified object to a JSON string using formatting.
         /// </summary>
         /// <param name="value">The object to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
         /// <returns>
         /// A JSON string representation of the object.
         /// </returns>
-        public static string SerializeObject(object value, Formatting formatting)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, Formatting formatting)
         {
-            return SerializeObject(value, formatting, (JsonSerializerSettings)null);
+            return SerializeObject(value, formatting, (JsonSerializerSettings?)null);
         }
 
         /// <summary>
         /// Serializes the specified object to a JSON string using a collection of <see cref="JsonConverter"/>.
         /// </summary>
         /// <param name="value">The object to serialize.</param>
-        /// <param name="converters">A collection converters used while serializing.</param>
+        /// <param name="converters">A collection of converters used while serializing.</param>
         /// <returns>A JSON string representation of the object.</returns>
-        public static string SerializeObject(object value, params JsonConverter[] converters)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, params JsonConverter[] converters)
         {
-            JsonSerializerSettings settings = (converters != null && converters.Length > 0)
+            JsonSerializerSettings? settings = (converters != null && converters.Length > 0)
                 ? new JsonSerializerSettings { Converters = converters }
                 : null;
 
@@ -562,12 +564,13 @@ namespace Exceptionless.Json
         /// Serializes the specified object to a JSON string using formatting and a collection of <see cref="JsonConverter"/>.
         /// </summary>
         /// <param name="value">The object to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
-        /// <param name="converters">A collection converters used while serializing.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
+        /// <param name="converters">A collection of converters used while serializing.</param>
         /// <returns>A JSON string representation of the object.</returns>
-        public static string SerializeObject(object value, Formatting formatting, params JsonConverter[] converters)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, Formatting formatting, params JsonConverter[] converters)
         {
-            JsonSerializerSettings settings = (converters != null && converters.Length > 0)
+            JsonSerializerSettings? settings = (converters != null && converters.Length > 0)
                 ? new JsonSerializerSettings { Converters = converters }
                 : null;
 
@@ -579,11 +582,12 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The object to serialize.</param>
         /// <param name="settings">The <see cref="JsonSerializerSettings"/> used to serialize the object.
-        /// If this is null, default serialization settings will be used.</param>
+        /// If this is <c>null</c>, default serialization settings will be used.</param>
         /// <returns>
         /// A JSON string representation of the object.
         /// </returns>
-        public static string SerializeObject(object value, JsonSerializerSettings settings)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, JsonSerializerSettings settings)
         {
             return SerializeObject(value, null, settings);
         }
@@ -593,16 +597,17 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The object to serialize.</param>
         /// <param name="settings">The <see cref="JsonSerializerSettings"/> used to serialize the object.
-        /// If this is null, default serialization settings will be used.</param>
+        /// If this is <c>null</c>, default serialization settings will be used.</param>
         /// <param name="type">
         /// The type of the value being serialized.
-        /// This parameter is used when <see cref="TypeNameHandling"/> is Auto to write out the type name if the type of the value does not match.
-        /// Specifing the type is optional.
+        /// This parameter is used when <see cref="JsonSerializer.TypeNameHandling"/> is <see cref="TypeNameHandling.Auto"/> to write out the type name if the type of the value does not match.
+        /// Specifying the type is optional.
         /// </param>
         /// <returns>
         /// A JSON string representation of the object.
         /// </returns>
-        public static string SerializeObject(object value, Type type, JsonSerializerSettings settings)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, Type? type, JsonSerializerSettings? settings)
         {
             JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(settings);
 
@@ -613,13 +618,14 @@ namespace Exceptionless.Json
         /// Serializes the specified object to a JSON string using formatting and <see cref="JsonSerializerSettings"/>.
         /// </summary>
         /// <param name="value">The object to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
         /// <param name="settings">The <see cref="JsonSerializerSettings"/> used to serialize the object.
-        /// If this is null, default serialization settings will be used.</param>
+        /// If this is <c>null</c>, default serialization settings will be used.</param>
         /// <returns>
         /// A JSON string representation of the object.
         /// </returns>
-        public static string SerializeObject(object value, Formatting formatting, JsonSerializerSettings settings)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, Formatting formatting, JsonSerializerSettings? settings)
         {
             return SerializeObject(value, null, formatting, settings);
         }
@@ -628,18 +634,19 @@ namespace Exceptionless.Json
         /// Serializes the specified object to a JSON string using a type, formatting and <see cref="JsonSerializerSettings"/>.
         /// </summary>
         /// <param name="value">The object to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
         /// <param name="settings">The <see cref="JsonSerializerSettings"/> used to serialize the object.
-        /// If this is null, default serialization settings will be used.</param>
+        /// If this is <c>null</c>, default serialization settings will be used.</param>
         /// <param name="type">
         /// The type of the value being serialized.
-        /// This parameter is used when <see cref="TypeNameHandling"/> is Auto to write out the type name if the type of the value does not match.
-        /// Specifing the type is optional.
+        /// This parameter is used when <see cref="JsonSerializer.TypeNameHandling"/> is <see cref="TypeNameHandling.Auto"/> to write out the type name if the type of the value does not match.
+        /// Specifying the type is optional.
         /// </param>
         /// <returns>
         /// A JSON string representation of the object.
         /// </returns>
-        public static string SerializeObject(object value, Type type, Formatting formatting, JsonSerializerSettings settings)
+        [DebuggerStepThrough]
+        public static string SerializeObject(object? value, Type? type, Formatting formatting, JsonSerializerSettings? settings)
         {
             JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(settings);
             jsonSerializer.Formatting = formatting;
@@ -647,7 +654,7 @@ namespace Exceptionless.Json
             return SerializeObjectInternal(value, type, jsonSerializer);
         }
 
-        private static string SerializeObjectInternal(object value, Type type, JsonSerializer jsonSerializer)
+        private static string SerializeObjectInternal(object? value, Type? type, JsonSerializer jsonSerializer)
         {
             StringBuilder sb = new StringBuilder(256);
             StringWriter sw = new StringWriter(sb, CultureInfo.InvariantCulture);
@@ -660,54 +667,6 @@ namespace Exceptionless.Json
 
             return sw.ToString();
         }
-
-#if !(NET20 || NET35 || PORTABLE40)
-        /// <summary>
-        /// Asynchronously serializes the specified object to a JSON string.
-        /// Serialization will happen on a new thread.
-        /// </summary>
-        /// <param name="value">The object to serialize.</param>
-        /// <returns>
-        /// A task that represents the asynchronous serialize operation. The value of the <c>TResult</c> parameter contains a JSON string representation of the object.
-        /// </returns>
-        [ObsoleteAttribute("SerializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to serialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.SerializeObject(value))")]
-        public static Task<string> SerializeObjectAsync(object value)
-        {
-            return SerializeObjectAsync(value, Formatting.None, null);
-        }
-
-        /// <summary>
-        /// Asynchronously serializes the specified object to a JSON string using formatting.
-        /// Serialization will happen on a new thread.
-        /// </summary>
-        /// <param name="value">The object to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
-        /// <returns>
-        /// A task that represents the asynchronous serialize operation. The value of the <c>TResult</c> parameter contains a JSON string representation of the object.
-        /// </returns>
-        [ObsoleteAttribute("SerializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to serialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.SerializeObject(value, formatting))")]
-        public static Task<string> SerializeObjectAsync(object value, Formatting formatting)
-        {
-            return SerializeObjectAsync(value, formatting, null);
-        }
-
-        /// <summary>
-        /// Asynchronously serializes the specified object to a JSON string using formatting and a collection of <see cref="JsonConverter"/>.
-        /// Serialization will happen on a new thread.
-        /// </summary>
-        /// <param name="value">The object to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
-        /// <param name="settings">The <see cref="JsonSerializerSettings"/> used to serialize the object.
-        /// If this is null, default serialization settings will be used.</param>
-        /// <returns>
-        /// A task that represents the asynchronous serialize operation. The value of the <c>TResult</c> parameter contains a JSON string representation of the object.
-        /// </returns>
-        [ObsoleteAttribute("SerializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to serialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.SerializeObject(value, formatting, settings))")]
-        public static Task<string> SerializeObjectAsync(object value, Formatting formatting, JsonSerializerSettings settings)
-        {
-            return Task.Factory.StartNew(() => SerializeObject(value, formatting, settings));
-        }
-#endif
         #endregion
 
         #region Deserialize
@@ -716,9 +675,10 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The JSON to deserialize.</param>
         /// <returns>The deserialized object from the JSON string.</returns>
-        public static object DeserializeObject(string value)
+        [DebuggerStepThrough]
+        public static object? DeserializeObject(string value)
         {
-            return DeserializeObject(value, null, (JsonSerializerSettings)null);
+            return DeserializeObject(value, null, (JsonSerializerSettings?)null);
         }
 
         /// <summary>
@@ -727,10 +687,11 @@ namespace Exceptionless.Json
         /// <param name="value">The JSON to deserialize.</param>
         /// <param name="settings">
         /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
+        /// If this is <c>null</c>, default serialization settings will be used.
         /// </param>
         /// <returns>The deserialized object from the JSON string.</returns>
-        public static object DeserializeObject(string value, JsonSerializerSettings settings)
+        [DebuggerStepThrough]
+        public static object? DeserializeObject(string value, JsonSerializerSettings settings)
         {
             return DeserializeObject(value, null, settings);
         }
@@ -741,9 +702,10 @@ namespace Exceptionless.Json
         /// <param name="value">The JSON to deserialize.</param>
         /// <param name="type">The <see cref="Type"/> of object being deserialized.</param>
         /// <returns>The deserialized object from the JSON string.</returns>
-        public static object DeserializeObject(string value, Type type)
+        [DebuggerStepThrough]
+        public static object? DeserializeObject(string value, Type type)
         {
-            return DeserializeObject(value, type, (JsonSerializerSettings)null);
+            return DeserializeObject(value, type, (JsonSerializerSettings?)null);
         }
 
         /// <summary>
@@ -752,9 +714,10 @@ namespace Exceptionless.Json
         /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
         /// <param name="value">The JSON to deserialize.</param>
         /// <returns>The deserialized object from the JSON string.</returns>
+        [DebuggerStepThrough]
         public static T DeserializeObject<T>(string value)
         {
-            return DeserializeObject<T>(value, (JsonSerializerSettings)null);
+            return DeserializeObject<T>(value, (JsonSerializerSettings?)null);
         }
 
         /// <summary>
@@ -762,12 +725,13 @@ namespace Exceptionless.Json
         /// </summary>
         /// <typeparam name="T">
         /// The anonymous type to deserialize to. This can't be specified
-        /// traditionally and must be infered from the anonymous type passed
+        /// traditionally and must be inferred from the anonymous type passed
         /// as a parameter.
         /// </typeparam>
         /// <param name="value">The JSON to deserialize.</param>
         /// <param name="anonymousTypeObject">The anonymous type object.</param>
         /// <returns>The deserialized anonymous type from the JSON string.</returns>
+        [DebuggerStepThrough]
         public static T DeserializeAnonymousType<T>(string value, T anonymousTypeObject)
         {
             return DeserializeObject<T>(value);
@@ -778,16 +742,17 @@ namespace Exceptionless.Json
         /// </summary>
         /// <typeparam name="T">
         /// The anonymous type to deserialize to. This can't be specified
-        /// traditionally and must be infered from the anonymous type passed
+        /// traditionally and must be inferred from the anonymous type passed
         /// as a parameter.
         /// </typeparam>
         /// <param name="value">The JSON to deserialize.</param>
         /// <param name="anonymousTypeObject">The anonymous type object.</param>
         /// <param name="settings">
         /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
+        /// If this is <c>null</c>, default serialization settings will be used.
         /// </param>
         /// <returns>The deserialized anonymous type from the JSON string.</returns>
+        [DebuggerStepThrough]
         public static T DeserializeAnonymousType<T>(string value, T anonymousTypeObject, JsonSerializerSettings settings)
         {
             return DeserializeObject<T>(value, settings);
@@ -800,9 +765,13 @@ namespace Exceptionless.Json
         /// <param name="value">The JSON to deserialize.</param>
         /// <param name="converters">Converters to use while deserializing.</param>
         /// <returns>The deserialized object from the JSON string.</returns>
+        [DebuggerStepThrough]
+        [return: MaybeNull]
         public static T DeserializeObject<T>(string value, params JsonConverter[] converters)
         {
+#pragma warning disable CS8601 // Possible null reference assignment.
             return (T)DeserializeObject(value, typeof(T), converters);
+#pragma warning restore CS8601 // Possible null reference assignment.
         }
 
         /// <summary>
@@ -812,12 +781,16 @@ namespace Exceptionless.Json
         /// <param name="value">The object to deserialize.</param>
         /// <param name="settings">
         /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
+        /// If this is <c>null</c>, default serialization settings will be used.
         /// </param>
         /// <returns>The deserialized object from the JSON string.</returns>
-        public static T DeserializeObject<T>(string value, JsonSerializerSettings settings)
+        [DebuggerStepThrough]
+        [return: MaybeNull]
+        public static T DeserializeObject<T>(string value, JsonSerializerSettings? settings)
         {
+#pragma warning disable CS8601 // Possible null reference assignment.
             return (T)DeserializeObject(value, typeof(T), settings);
+#pragma warning restore CS8601 // Possible null reference assignment.
         }
 
         /// <summary>
@@ -827,9 +800,10 @@ namespace Exceptionless.Json
         /// <param name="type">The type of the object to deserialize.</param>
         /// <param name="converters">Converters to use while deserializing.</param>
         /// <returns>The deserialized object from the JSON string.</returns>
-        public static object DeserializeObject(string value, Type type, params JsonConverter[] converters)
+        [DebuggerStepThrough]
+        public static object? DeserializeObject(string value, Type type, params JsonConverter[] converters)
         {
-            JsonSerializerSettings settings = (converters != null && converters.Length > 0)
+            JsonSerializerSettings? settings = (converters != null && converters.Length > 0)
                 ? new JsonSerializerSettings { Converters = converters }
                 : null;
 
@@ -843,10 +817,10 @@ namespace Exceptionless.Json
         /// <param name="type">The type of the object to deserialize to.</param>
         /// <param name="settings">
         /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
+        /// If this is <c>null</c>, default serialization settings will be used.
         /// </param>
         /// <returns>The deserialized object from the JSON string.</returns>
-        public static object DeserializeObject(string value, Type type, JsonSerializerSettings settings)
+        public static object? DeserializeObject(string value, Type? type, JsonSerializerSettings? settings)
         {
             ValidationUtils.ArgumentNotNull(value, nameof(value));
 
@@ -858,80 +832,11 @@ namespace Exceptionless.Json
                 jsonSerializer.CheckAdditionalContent = true;
             }
 
-            using (var reader = new JsonTextReader(new StringReader(value)))
+            using (JsonTextReader reader = new JsonTextReader(new StringReader(value)))
             {
                 return jsonSerializer.Deserialize(reader, type);
             }
         }
-
-#if !(NET20 || NET35 || PORTABLE40)
-        /// <summary>
-        /// Asynchronously deserializes the JSON to the specified .NET type.
-        /// Deserialization will happen on a new thread.
-        /// </summary>
-        /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
-        /// <param name="value">The JSON to deserialize.</param>
-        /// <returns>
-        /// A task that represents the asynchronous deserialize operation. The value of the <c>TResult</c> parameter contains the deserialized object from the JSON string.
-        /// </returns>
-        [ObsoleteAttribute("DeserializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to deserialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(value))")]
-        public static Task<T> DeserializeObjectAsync<T>(string value)
-        {
-            return DeserializeObjectAsync<T>(value, null);
-        }
-
-        /// <summary>
-        /// Asynchronously deserializes the JSON to the specified .NET type using <see cref="JsonSerializerSettings"/>.
-        /// Deserialization will happen on a new thread.
-        /// </summary>
-        /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
-        /// <param name="value">The JSON to deserialize.</param>
-        /// <param name="settings">
-        /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous deserialize operation. The value of the <c>TResult</c> parameter contains the deserialized object from the JSON string.
-        /// </returns>
-        [ObsoleteAttribute("DeserializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to deserialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(value, settings))")]
-        public static Task<T> DeserializeObjectAsync<T>(string value, JsonSerializerSettings settings)
-        {
-            return Task.Factory.StartNew(() => DeserializeObject<T>(value, settings));
-        }
-
-        /// <summary>
-        /// Asynchronously deserializes the JSON to the specified .NET type.
-        /// Deserialization will happen on a new thread.
-        /// </summary>
-        /// <param name="value">The JSON to deserialize.</param>
-        /// <returns>
-        /// A task that represents the asynchronous deserialize operation. The value of the <c>TResult</c> parameter contains the deserialized object from the JSON string.
-        /// </returns>
-        [ObsoleteAttribute("DeserializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to deserialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.DeserializeObject(value))")]
-        public static Task<object> DeserializeObjectAsync(string value)
-        {
-            return DeserializeObjectAsync(value, null, null);
-        }
-
-        /// <summary>
-        /// Asynchronously deserializes the JSON to the specified .NET type using <see cref="JsonSerializerSettings"/>.
-        /// Deserialization will happen on a new thread.
-        /// </summary>
-        /// <param name="value">The JSON to deserialize.</param>
-        /// <param name="type">The type of the object to deserialize to.</param>
-        /// <param name="settings">
-        /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous deserialize operation. The value of the <c>TResult</c> parameter contains the deserialized object from the JSON string.
-        /// </returns>
-        [ObsoleteAttribute("DeserializeObjectAsync is obsolete. Use the Task.Factory.StartNew method to deserialize JSON asynchronously: Task.Factory.StartNew(() => JsonConvert.DeserializeObject(value, type, settings))")]
-        public static Task<object> DeserializeObjectAsync(string value, Type type, JsonSerializerSettings settings)
-        {
-            return Task.Factory.StartNew(() => DeserializeObject(value, type, settings));
-        }
-#endif
         #endregion
 
         #region Populate
@@ -940,6 +845,7 @@ namespace Exceptionless.Json
         /// </summary>
         /// <param name="value">The JSON to populate values from.</param>
         /// <param name="target">The target object to populate values onto.</param>
+        [DebuggerStepThrough]
         public static void PopulateObject(string value, object target)
         {
             PopulateObject(value, target, null);
@@ -952,9 +858,9 @@ namespace Exceptionless.Json
         /// <param name="target">The target object to populate values onto.</param>
         /// <param name="settings">
         /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
+        /// If this is <c>null</c>, default serialization settings will be used.
         /// </param>
-        public static void PopulateObject(string value, object target, JsonSerializerSettings settings)
+        public static void PopulateObject(string value, object target, JsonSerializerSettings? settings)
         {
             JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(settings);
 
@@ -962,53 +868,39 @@ namespace Exceptionless.Json
             {
                 jsonSerializer.Populate(jsonReader, target);
 
-                if (jsonReader.Read() && jsonReader.TokenType != JsonToken.Comment)
+                if (settings != null && settings.CheckAdditionalContent)
                 {
-                    throw new JsonSerializationException("Additional text found in JSON string after finishing deserializing object.");
+                    while (jsonReader.Read())
+                    {
+                        if (jsonReader.TokenType != JsonToken.Comment)
+                        {
+                            throw JsonSerializationException.Create(jsonReader, "Additional text found in JSON string after finishing deserializing object.");
+                        }
+                    }
                 }
             }
         }
-
-#if !(NET20 || NET35 || PORTABLE40)
-        /// <summary>
-        /// Asynchronously populates the object with values from the JSON string using <see cref="JsonSerializerSettings"/>.
-        /// </summary>
-        /// <param name="value">The JSON to populate values from.</param>
-        /// <param name="target">The target object to populate values onto.</param>
-        /// <param name="settings">
-        /// The <see cref="JsonSerializerSettings"/> used to deserialize the object.
-        /// If this is null, default serialization settings will be used.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous populate operation.
-        /// </returns>
-        [ObsoleteAttribute("PopulateObjectAsync is obsolete. Use the Task.Factory.StartNew method to populate an object with JSON values asynchronously: Task.Factory.StartNew(() => JsonConvert.PopulateObject(value, target, settings))")]
-        public static Task PopulateObjectAsync(string value, object target, JsonSerializerSettings settings)
-        {
-            return Task.Factory.StartNew(() => PopulateObject(value, target, settings));
-        }
-#endif
         #endregion
 
         #region Xml
-#if !(PORTABLE40 || PORTABLE || DOTNET || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if HAVE_XML_DOCUMENT
         /// <summary>
-        /// Serializes the XML node to a JSON string.
+        /// Serializes the <see cref="XmlNode"/> to a JSON string.
         /// </summary>
         /// <param name="node">The node to serialize.</param>
-        /// <returns>A JSON string of the XmlNode.</returns>
-        public static string SerializeXmlNode(XmlNode node)
+        /// <returns>A JSON string of the <see cref="XmlNode"/>.</returns>
+        public static string SerializeXmlNode(XmlNode? node)
         {
             return SerializeXmlNode(node, Formatting.None);
         }
 
         /// <summary>
-        /// Serializes the XML node to a JSON string using formatting.
+        /// Serializes the <see cref="XmlNode"/> to a JSON string using formatting.
         /// </summary>
         /// <param name="node">The node to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
-        /// <returns>A JSON string of the XmlNode.</returns>
-        public static string SerializeXmlNode(XmlNode node, Formatting formatting)
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
+        /// <returns>A JSON string of the <see cref="XmlNode"/>.</returns>
+        public static string SerializeXmlNode(XmlNode? node, Formatting formatting)
         {
             XmlNodeConverter converter = new XmlNodeConverter();
 
@@ -1016,13 +908,13 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Serializes the XML node to a JSON string using formatting and omits the root object if <paramref name="omitRootObject"/> is <c>true</c>.
+        /// Serializes the <see cref="XmlNode"/> to a JSON string using formatting and omits the root object if <paramref name="omitRootObject"/> is <c>true</c>.
         /// </summary>
         /// <param name="node">The node to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
         /// <param name="omitRootObject">Omits writing the root object.</param>
-        /// <returns>A JSON string of the XmlNode.</returns>
-        public static string SerializeXmlNode(XmlNode node, Formatting formatting, bool omitRootObject)
+        /// <returns>A JSON string of the <see cref="XmlNode"/>.</returns>
+        public static string SerializeXmlNode(XmlNode? node, Formatting formatting, bool omitRootObject)
         {
             XmlNodeConverter converter = new XmlNodeConverter { OmitRootObject = omitRootObject };
 
@@ -1030,54 +922,77 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Deserializes the XmlNode from a JSON string.
+        /// Deserializes the <see cref="XmlNode"/> from a JSON string.
         /// </summary>
         /// <param name="value">The JSON string.</param>
-        /// <returns>The deserialized XmlNode</returns>
-        public static XmlDocument DeserializeXmlNode(string value)
+        /// <returns>The deserialized <see cref="XmlNode"/>.</returns>
+        public static XmlDocument? DeserializeXmlNode(string value)
         {
             return DeserializeXmlNode(value, null);
         }
 
         /// <summary>
-        /// Deserializes the XmlNode from a JSON string nested in a root elment specified by <paramref name="deserializeRootElementName"/>.
+        /// Deserializes the <see cref="XmlNode"/> from a JSON string nested in a root element specified by <paramref name="deserializeRootElementName"/>.
         /// </summary>
         /// <param name="value">The JSON string.</param>
         /// <param name="deserializeRootElementName">The name of the root element to append when deserializing.</param>
-        /// <returns>The deserialized XmlNode</returns>
-        public static XmlDocument DeserializeXmlNode(string value, string deserializeRootElementName)
+        /// <returns>The deserialized <see cref="XmlNode"/>.</returns>
+        public static XmlDocument? DeserializeXmlNode(string value, string? deserializeRootElementName)
         {
             return DeserializeXmlNode(value, deserializeRootElementName, false);
         }
 
         /// <summary>
-        /// Deserializes the XmlNode from a JSON string nested in a root elment specified by <paramref name="deserializeRootElementName"/>
-        /// and writes a .NET array attribute for collections.
+        /// Deserializes the <see cref="XmlNode"/> from a JSON string nested in a root element specified by <paramref name="deserializeRootElementName"/>
+        /// and writes a Json.NET array attribute for collections.
         /// </summary>
         /// <param name="value">The JSON string.</param>
         /// <param name="deserializeRootElementName">The name of the root element to append when deserializing.</param>
         /// <param name="writeArrayAttribute">
-        /// A flag to indicate whether to write the Json.NET array attribute.
+        /// A value to indicate whether to write the Json.NET array attribute.
         /// This attribute helps preserve arrays when converting the written XML back to JSON.
         /// </param>
-        /// <returns>The deserialized XmlNode</returns>
-        public static XmlDocument DeserializeXmlNode(string value, string deserializeRootElementName, bool writeArrayAttribute)
+        /// <returns>The deserialized <see cref="XmlNode"/>.</returns>
+        public static XmlDocument? DeserializeXmlNode(string value, string? deserializeRootElementName, bool writeArrayAttribute)
+        {
+            return DeserializeXmlNode(value, deserializeRootElementName, writeArrayAttribute, false);
+        }
+
+        /// <summary>
+        /// Deserializes the <see cref="XmlNode"/> from a JSON string nested in a root element specified by <paramref name="deserializeRootElementName"/>,
+        /// writes a Json.NET array attribute for collections, and encodes special characters.
+        /// </summary>
+        /// <param name="value">The JSON string.</param>
+        /// <param name="deserializeRootElementName">The name of the root element to append when deserializing.</param>
+        /// <param name="writeArrayAttribute">
+        /// A value to indicate whether to write the Json.NET array attribute.
+        /// This attribute helps preserve arrays when converting the written XML back to JSON.
+        /// </param>
+        /// <param name="encodeSpecialCharacters">
+        /// A value to indicate whether to encode special characters when converting JSON to XML.
+        /// If <c>true</c>, special characters like ':', '@', '?', '#' and '$' in JSON property names aren't used to specify
+        /// XML namespaces, attributes or processing directives. Instead special characters are encoded and written
+        /// as part of the XML element name.
+        /// </param>
+        /// <returns>The deserialized <see cref="XmlNode"/>.</returns>
+        public static XmlDocument? DeserializeXmlNode(string value, string? deserializeRootElementName, bool writeArrayAttribute, bool encodeSpecialCharacters)
         {
             XmlNodeConverter converter = new XmlNodeConverter();
             converter.DeserializeRootElementName = deserializeRootElementName;
             converter.WriteArrayAttribute = writeArrayAttribute;
+            converter.EncodeSpecialCharacters = encodeSpecialCharacters;
 
-            return (XmlDocument)DeserializeObject(value, typeof(XmlDocument), converter);
+            return (XmlDocument?)DeserializeObject(value, typeof(XmlDocument), converter);
         }
 #endif
 
-#if !NET20 && !PORTABLE40
+#if HAVE_XLINQ
         /// <summary>
         /// Serializes the <see cref="XNode"/> to a JSON string.
         /// </summary>
         /// <param name="node">The node to convert to JSON.</param>
-        /// <returns>A JSON string of the XNode.</returns>
-        public static string SerializeXNode(XObject node)
+        /// <returns>A JSON string of the <see cref="XNode"/>.</returns>
+        public static string SerializeXNode(XObject? node)
         {
             return SerializeXNode(node, Formatting.None);
         }
@@ -1086,9 +1001,9 @@ namespace Exceptionless.Json
         /// Serializes the <see cref="XNode"/> to a JSON string using formatting.
         /// </summary>
         /// <param name="node">The node to convert to JSON.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
-        /// <returns>A JSON string of the XNode.</returns>
-        public static string SerializeXNode(XObject node, Formatting formatting)
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
+        /// <returns>A JSON string of the <see cref="XNode"/>.</returns>
+        public static string SerializeXNode(XObject? node, Formatting formatting)
         {
             return SerializeXNode(node, formatting, false);
         }
@@ -1097,10 +1012,10 @@ namespace Exceptionless.Json
         /// Serializes the <see cref="XNode"/> to a JSON string using formatting and omits the root object if <paramref name="omitRootObject"/> is <c>true</c>.
         /// </summary>
         /// <param name="node">The node to serialize.</param>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
         /// <param name="omitRootObject">Omits writing the root object.</param>
-        /// <returns>A JSON string of the XNode.</returns>
-        public static string SerializeXNode(XObject node, Formatting formatting, bool omitRootObject)
+        /// <returns>A JSON string of the <see cref="XNode"/>.</returns>
+        public static string SerializeXNode(XObject? node, Formatting formatting, bool omitRootObject)
         {
             XmlNodeConverter converter = new XmlNodeConverter { OmitRootObject = omitRootObject };
 
@@ -1111,41 +1026,64 @@ namespace Exceptionless.Json
         /// Deserializes the <see cref="XNode"/> from a JSON string.
         /// </summary>
         /// <param name="value">The JSON string.</param>
-        /// <returns>The deserialized XNode</returns>
-        public static XDocument DeserializeXNode(string value)
+        /// <returns>The deserialized <see cref="XNode"/>.</returns>
+        public static XDocument? DeserializeXNode(string value)
         {
             return DeserializeXNode(value, null);
         }
 
         /// <summary>
-        /// Deserializes the <see cref="XNode"/> from a JSON string nested in a root elment specified by <paramref name="deserializeRootElementName"/>.
+        /// Deserializes the <see cref="XNode"/> from a JSON string nested in a root element specified by <paramref name="deserializeRootElementName"/>.
         /// </summary>
         /// <param name="value">The JSON string.</param>
         /// <param name="deserializeRootElementName">The name of the root element to append when deserializing.</param>
-        /// <returns>The deserialized XNode</returns>
-        public static XDocument DeserializeXNode(string value, string deserializeRootElementName)
+        /// <returns>The deserialized <see cref="XNode"/>.</returns>
+        public static XDocument? DeserializeXNode(string value, string? deserializeRootElementName)
         {
             return DeserializeXNode(value, deserializeRootElementName, false);
         }
 
         /// <summary>
-        /// Deserializes the <see cref="XNode"/> from a JSON string nested in a root elment specified by <paramref name="deserializeRootElementName"/>
-        /// and writes a .NET array attribute for collections.
+        /// Deserializes the <see cref="XNode"/> from a JSON string nested in a root element specified by <paramref name="deserializeRootElementName"/>
+        /// and writes a Json.NET array attribute for collections.
         /// </summary>
         /// <param name="value">The JSON string.</param>
         /// <param name="deserializeRootElementName">The name of the root element to append when deserializing.</param>
         /// <param name="writeArrayAttribute">
-        /// A flag to indicate whether to write the Json.NET array attribute.
+        /// A value to indicate whether to write the Json.NET array attribute.
         /// This attribute helps preserve arrays when converting the written XML back to JSON.
         /// </param>
-        /// <returns>The deserialized XNode</returns>
-        public static XDocument DeserializeXNode(string value, string deserializeRootElementName, bool writeArrayAttribute)
+        /// <returns>The deserialized <see cref="XNode"/>.</returns>
+        public static XDocument? DeserializeXNode(string value, string? deserializeRootElementName, bool writeArrayAttribute)
+        {
+            return DeserializeXNode(value, deserializeRootElementName, writeArrayAttribute, false);
+        }
+
+        /// <summary>
+        /// Deserializes the <see cref="XNode"/> from a JSON string nested in a root element specified by <paramref name="deserializeRootElementName"/>,
+        /// writes a Json.NET array attribute for collections, and encodes special characters.
+        /// </summary>
+        /// <param name="value">The JSON string.</param>
+        /// <param name="deserializeRootElementName">The name of the root element to append when deserializing.</param>
+        /// <param name="writeArrayAttribute">
+        /// A value to indicate whether to write the Json.NET array attribute.
+        /// This attribute helps preserve arrays when converting the written XML back to JSON.
+        /// </param>
+        /// <param name="encodeSpecialCharacters">
+        /// A value to indicate whether to encode special characters when converting JSON to XML.
+        /// If <c>true</c>, special characters like ':', '@', '?', '#' and '$' in JSON property names aren't used to specify
+        /// XML namespaces, attributes or processing directives. Instead special characters are encoded and written
+        /// as part of the XML element name.
+        /// </param>
+        /// <returns>The deserialized <see cref="XNode"/>.</returns>
+        public static XDocument? DeserializeXNode(string value, string? deserializeRootElementName, bool writeArrayAttribute, bool encodeSpecialCharacters)
         {
             XmlNodeConverter converter = new XmlNodeConverter();
             converter.DeserializeRootElementName = deserializeRootElementName;
             converter.WriteArrayAttribute = writeArrayAttribute;
+            converter.EncodeSpecialCharacters = encodeSpecialCharacters;
 
-            return (XDocument)DeserializeObject(value, typeof(XDocument), converter);
+            return (XDocument?)DeserializeObject(value, typeof(XDocument), converter);
         }
 #endif
         #endregion

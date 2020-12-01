@@ -26,18 +26,21 @@
 using System;
 using Exceptionless.Json.Utilities;
 
+#nullable disable
+
 namespace Exceptionless.Json.Bson
 {
     /// <summary>
     /// Represents a BSON Oid (object id).
     /// </summary>
+    [Obsolete("BSON reading and writing has been moved to its own package. See https://www.nuget.org/packages/Exceptionless.Json.Bson for more details.")]
     internal class BsonObjectId
     {
         /// <summary>
         /// Gets or sets the value of the Oid.
         /// </summary>
         /// <value>The value of the Oid.</value>
-        public byte[] Value { get; private set; }
+        public byte[] Value { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BsonObjectId"/> class.

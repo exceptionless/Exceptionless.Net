@@ -26,6 +26,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Exceptionless.Json.Utilities;
 
 namespace Exceptionless.Json.Linq
 {
@@ -33,12 +36,16 @@ namespace Exceptionless.Json.Linq
     {
         private static readonly IEqualityComparer<string> Comparer = StringComparer.Ordinal;
 
-        private Dictionary<string, JToken> _dictionary;
+        private Dictionary<string, JToken>? _dictionary;
+
+        public JPropertyKeyedCollection() : base(new List<JToken>())
+        {
+        }
 
         private void AddKey(string key, JToken item)
         {
             EnsureDictionary();
-            _dictionary[key] = item;
+            _dictionary![key] = item;
         }
 
         protected void ChangeItemKey(JToken item, string newKey)
@@ -67,10 +74,7 @@ namespace Exceptionless.Json.Linq
         {
             base.ClearItems();
 
-            if (_dictionary != null)
-            {
-                _dictionary.Clear();
-            }
+            _dictionary?.Clear();
         }
 
         public bool Contains(string key)
@@ -96,8 +100,7 @@ namespace Exceptionless.Json.Linq
             }
 
             string key = GetKeyForItem(item);
-            JToken value;
-            return _dictionary.TryGetValue(key, out value);
+            return _dictionary.TryGetValue(key, out _);
         }
 
         private void EnsureDictionary()
@@ -128,7 +131,7 @@ namespace Exceptionless.Json.Linq
 
             if (_dictionary != null)
             {
-                return _dictionary.ContainsKey(key) && Remove(_dictionary[key]);
+                return _dictionary.TryGetValue(key, out JToken value) && Remove(value);
             }
 
             return false;
@@ -143,10 +146,7 @@ namespace Exceptionless.Json.Linq
 
         private void RemoveKey(string key)
         {
-            if (_dictionary != null)
-            {
-                _dictionary.Remove(key);
-            }
+            _dictionary?.Remove(key);
         }
 
         protected override void SetItem(int index, JToken item)
@@ -191,7 +191,7 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        public bool TryGetValue(string key, out JToken value)
+        public bool TryGetValue(string key, [NotNullWhen(true)]out JToken? value)
         {
             if (_dictionary == null)
             {
@@ -207,7 +207,7 @@ namespace Exceptionless.Json.Linq
             get
             {
                 EnsureDictionary();
-                return _dictionary.Keys;
+                return _dictionary!.Keys;
             }
         }
 
@@ -216,8 +216,13 @@ namespace Exceptionless.Json.Linq
             get
             {
                 EnsureDictionary();
-                return _dictionary.Values;
+                return _dictionary!.Values;
             }
+        }
+
+        public int IndexOfReference(JToken t)
+        {
+            return ((List<JToken>)Items).IndexOfReference(t);
         }
 
         public bool Compare(JPropertyKeyedCollection other)
@@ -229,8 +234,8 @@ namespace Exceptionless.Json.Linq
 
             // dictionaries in JavaScript aren't ordered
             // ignore order when comparing properties
-            Dictionary<string, JToken> d1 = _dictionary;
-            Dictionary<string, JToken> d2 = other._dictionary;
+            Dictionary<string, JToken>? d1 = _dictionary;
+            Dictionary<string, JToken>? d2 = other._dictionary;
 
             if (d1 == null && d2 == null)
             {
@@ -239,7 +244,7 @@ namespace Exceptionless.Json.Linq
 
             if (d1 == null)
             {
-                return (d2.Count == 0);
+                return (d2!.Count == 0);
             }
 
             if (d2 == null)
@@ -254,8 +259,7 @@ namespace Exceptionless.Json.Linq
 
             foreach (KeyValuePair<string, JToken> keyAndProperty in d1)
             {
-                JToken secondValue;
-                if (!d2.TryGetValue(keyAndProperty.Key, out secondValue))
+                if (!d2.TryGetValue(keyAndProperty.Key, out JToken secondValue))
                 {
                     return false;
                 }

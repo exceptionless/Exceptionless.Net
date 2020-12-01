@@ -25,16 +25,18 @@
 
 using System;
 using System.Collections.Generic;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 
 #endif
 
+#nullable disable
+
 namespace Exceptionless.Json.Schema
 {
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
+    [Obsolete("JSON Schema validation has been moved to its own package. See https://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaModelBuilder
     {
         private JsonSchemaNodeCollection _nodes = new JsonSchemaNodeCollection();
@@ -126,8 +128,7 @@ namespace Exceptionless.Json.Schema
 
         public void AddProperty(IDictionary<string, JsonSchemaNode> target, string propertyName, JsonSchema schema)
         {
-            JsonSchemaNode propertyNode;
-            target.TryGetValue(propertyName, out propertyNode);
+            target.TryGetValue(propertyName, out JsonSchemaNode propertyNode);
 
             target[propertyName] = AddSchema(propertyNode, schema);
         }
@@ -162,8 +163,7 @@ namespace Exceptionless.Json.Schema
 
         private JsonSchemaModel BuildNodeModel(JsonSchemaNode node)
         {
-            JsonSchemaModel model;
-            if (_nodeModels.TryGetValue(node, out model))
+            if (_nodeModels.TryGetValue(node, out JsonSchemaModel model))
             {
                 return model;
             }

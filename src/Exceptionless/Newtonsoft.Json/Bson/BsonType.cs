@@ -23,6 +23,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+#nullable disable
+
 namespace Exceptionless.Json.Bson
 {
     internal enum BsonType : sbyte

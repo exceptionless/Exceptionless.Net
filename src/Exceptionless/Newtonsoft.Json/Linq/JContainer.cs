@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -25,7 +25,7 @@
 
 using System;
 using System.Collections.Generic;
-#if !PORTABLE40
+#if HAVE_INOTIFY_COLLECTION_CHANGED
 using System.Collections.Specialized;
 #endif
 using System.Threading;
@@ -33,11 +33,13 @@ using Exceptionless.Json.Utilities;
 using System.Collections;
 using System.Globalization;
 using System.ComponentModel;
-#if NET20
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
-
 #endif
 
 namespace Exceptionless.Json.Linq
@@ -45,26 +47,26 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a token that can contain other tokens.
     /// </summary>
-    internal abstract class JContainer : JToken, IList<JToken>
-#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+    internal abstract partial class JContainer : JToken, IList<JToken>
+#if HAVE_COMPONENT_MODEL
         , ITypedList, IBindingList
 #endif
         , IList
-#if !(NET20 || NET35 || PORTABLE40)
+#if HAVE_INOTIFY_COLLECTION_CHANGED
         , INotifyCollectionChanged
 #endif
     {
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
-        internal ListChangedEventHandler _listChanged;
-        internal AddingNewEventHandler _addingNew;
+#if HAVE_COMPONENT_MODEL
+        internal ListChangedEventHandler? _listChanged;
+        internal AddingNewEventHandler? _addingNew;
 
         /// <summary>
         /// Occurs when the list changes or an item in the list changes.
         /// </summary>
         public event ListChangedEventHandler ListChanged
         {
-            add { _listChanged += value; }
-            remove { _listChanged -= value; }
+            add => _listChanged += value;
+            remove => _listChanged -= value;
         }
 
         /// <summary>
@@ -72,12 +74,12 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         public event AddingNewEventHandler AddingNew
         {
-            add { _addingNew += value; }
-            remove { _addingNew -= value; }
+            add => _addingNew += value;
+            remove => _addingNew -= value;
         }
 #endif
-#if !(NET20 || NET35 || PORTABLE40)
-        internal NotifyCollectionChangedEventHandler _collectionChanged;
+#if HAVE_INOTIFY_COLLECTION_CHANGED
+        internal NotifyCollectionChangedEventHandler? _collectionChanged;
 
         /// <summary>
         /// Occurs when the items list of the collection has changed, or the collection is reset.
@@ -95,8 +97,8 @@ namespace Exceptionless.Json.Linq
         /// <value>The container's children tokens.</value>
         protected abstract IList<JToken> ChildrenTokens { get; }
 
-        private object _syncRoot;
-#if !(PORTABLE40)
+        private object? _syncRoot;
+#if (HAVE_COMPONENT_MODEL || HAVE_INOTIFY_COLLECTION_CHANGED)
         private bool _busy;
 #endif
 
@@ -119,7 +121,7 @@ namespace Exceptionless.Json.Linq
 
         internal void CheckReentrancy()
         {
-#if !(PORTABLE40)
+#if (HAVE_COMPONENT_MODEL || HAVE_INOTIFY_COLLECTION_CHANGED)
             if (_busy)
             {
                 throw new InvalidOperationException("Cannot change {0} during a collection change event.".FormatWith(CultureInfo.InvariantCulture, GetType()));
@@ -132,18 +134,14 @@ namespace Exceptionless.Json.Linq
             return new List<JToken>();
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
         /// <summary>
         /// Raises the <see cref="AddingNew"/> event.
         /// </summary>
         /// <param name="e">The <see cref="AddingNewEventArgs"/> instance containing the event data.</param>
         protected virtual void OnAddingNew(AddingNewEventArgs e)
         {
-            AddingNewEventHandler handler = _addingNew;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            _addingNew?.Invoke(this, e);
         }
 
         /// <summary>
@@ -152,7 +150,7 @@ namespace Exceptionless.Json.Linq
         /// <param name="e">The <see cref="ListChangedEventArgs"/> instance containing the event data.</param>
         protected virtual void OnListChanged(ListChangedEventArgs e)
         {
-            ListChangedEventHandler handler = _listChanged;
+            ListChangedEventHandler? handler = _listChanged;
 
             if (handler != null)
             {
@@ -168,14 +166,14 @@ namespace Exceptionless.Json.Linq
             }
         }
 #endif
-#if !(NET20 || NET35 || PORTABLE40)
+#if HAVE_INOTIFY_COLLECTION_CHANGED
         /// <summary>
         /// Raises the <see cref="CollectionChanged"/> event.
         /// </summary>
         /// <param name="e">The <see cref="NotifyCollectionChangedEventArgs"/> instance containing the event data.</param>
         protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            NotifyCollectionChangedEventHandler handler = _collectionChanged;
+            NotifyCollectionChangedEventHandler? handler = _collectionChanged;
 
             if (handler != null)
             {
@@ -198,10 +196,7 @@ namespace Exceptionless.Json.Linq
         /// <value>
         /// 	<c>true</c> if this token has child values; otherwise, <c>false</c>.
         /// </value>
-        public override bool HasValues
-        {
-            get { return ChildrenTokens.Count > 0; }
-        }
+        public override bool HasValues => ChildrenTokens.Count > 0;
 
         internal bool ContentsEqual(JContainer container)
         {
@@ -235,7 +230,7 @@ namespace Exceptionless.Json.Linq
         /// <value>
         /// A <see cref="JToken"/> containing the first child token of the <see cref="JToken"/>.
         /// </value>
-        public override JToken First
+        public override JToken? First
         {
             get
             {
@@ -250,7 +245,7 @@ namespace Exceptionless.Json.Linq
         /// <value>
         /// A <see cref="JToken"/> containing the last child token of the <see cref="JToken"/>.
         /// </value>
-        public override JToken Last
+        public override JToken? Last
         {
             get
             {
@@ -286,7 +281,7 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Returns a collection of the descendant tokens for this token in document order.
         /// </summary>
-        /// <returns>An <see cref="IEnumerable{JToken}"/> containing the descendant tokens of the <see cref="JToken"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> containing the descendant tokens of the <see cref="JToken"/>.</returns>
         public IEnumerable<JToken> Descendants()
         {
             return GetDescendants(false);
@@ -295,7 +290,7 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Returns a collection of the tokens that contain this token, and all descendant tokens of this token, in document order.
         /// </summary>
-        /// <returns>An <see cref="IEnumerable{JToken}"/> containing this token, and all the descendant tokens of the <see cref="JToken"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> containing this token, and all the descendant tokens of the <see cref="JToken"/>.</returns>
         public IEnumerable<JToken> DescendantsAndSelf()
         {
             return GetDescendants(true);
@@ -311,8 +306,7 @@ namespace Exceptionless.Json.Linq
             foreach (JToken o in ChildrenTokens)
             {
                 yield return o;
-                JContainer c = o as JContainer;
-                if (c != null)
+                if (o is JContainer c)
                 {
                     foreach (JToken d in c.Descendants())
                     {
@@ -322,12 +316,12 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        internal bool IsMultiContent(object content)
+        internal bool IsMultiContent([NotNull]object? content)
         {
             return (content is IEnumerable && !(content is string) && !(content is JToken) && !(content is byte[]));
         }
 
-        internal JToken EnsureParentToken(JToken item, bool skipParentCheck)
+        internal JToken EnsureParentToken(JToken? item, bool skipParentCheck)
         {
             if (item == null)
             {
@@ -351,32 +345,9 @@ namespace Exceptionless.Json.Linq
             return item;
         }
 
-        private class JTokenReferenceEqualityComparer : IEqualityComparer<JToken>
-        {
-            public static readonly JTokenReferenceEqualityComparer Instance = new JTokenReferenceEqualityComparer();
+        internal abstract int IndexOfItem(JToken? item);
 
-            public bool Equals(JToken x, JToken y)
-            {
-                return ReferenceEquals(x, y);
-            }
-
-            public int GetHashCode(JToken obj)
-            {
-                if (obj == null)
-                {
-                    return 0;
-                }
-
-                return obj.GetHashCode();
-            }
-        }
-
-        internal int IndexOfItem(JToken item)
-        {
-            return ChildrenTokens.IndexOf(item, JTokenReferenceEqualityComparer.Instance);
-        }
-
-        internal virtual void InsertItem(int index, JToken item, bool skipParentCheck)
+        internal virtual void InsertItem(int index, JToken? item, bool skipParentCheck)
         {
             IList<JToken> children = ChildrenTokens;
 
@@ -389,9 +360,9 @@ namespace Exceptionless.Json.Linq
 
             item = EnsureParentToken(item, skipParentCheck);
 
-            JToken previous = (index == 0) ? null : children[index - 1];
+            JToken? previous = (index == 0) ? null : children[index - 1];
             // haven't inserted new token yet so next token is still at the inserting index
-            JToken next = (index == children.Count) ? null : children[index];
+            JToken? next = (index == children.Count) ? null : children[index];
 
             ValidateToken(item, null);
 
@@ -411,13 +382,13 @@ namespace Exceptionless.Json.Linq
 
             children.Insert(index, item);
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemAdded, index));
             }
 #endif
-#if !(NET20 || NET35 || PORTABLE40)
+#if HAVE_INOTIFY_COLLECTION_CHANGED
             if (_collectionChanged != null)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
@@ -441,8 +412,8 @@ namespace Exceptionless.Json.Linq
             CheckReentrancy();
 
             JToken item = children[index];
-            JToken previous = (index == 0) ? null : children[index - 1];
-            JToken next = (index == children.Count - 1) ? null : children[index + 1];
+            JToken? previous = (index == 0) ? null : children[index - 1];
+            JToken? next = (index == children.Count - 1) ? null : children[index + 1];
 
             if (previous != null)
             {
@@ -459,13 +430,13 @@ namespace Exceptionless.Json.Linq
 
             children.RemoveAt(index);
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemDeleted, index));
             }
 #endif
-#if !(NET20 || NET35 || PORTABLE40)
+#if HAVE_INOTIFY_COLLECTION_CHANGED
             if (_collectionChanged != null)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
@@ -473,13 +444,16 @@ namespace Exceptionless.Json.Linq
 #endif
         }
 
-        internal virtual bool RemoveItem(JToken item)
+        internal virtual bool RemoveItem(JToken? item)
         {
-            int index = IndexOfItem(item);
-            if (index >= 0)
+            if (item != null)
             {
-                RemoveItemAt(index);
-                return true;
+                int index = IndexOfItem(item);
+                if (index >= 0)
+                {
+                    RemoveItemAt(index);
+                    return true;
+                }
             }
 
             return false;
@@ -490,7 +464,7 @@ namespace Exceptionless.Json.Linq
             return ChildrenTokens[index];
         }
 
-        internal virtual void SetItem(int index, JToken item)
+        internal virtual void SetItem(int index, JToken? item)
         {
             IList<JToken> children = ChildrenTokens;
 
@@ -516,8 +490,8 @@ namespace Exceptionless.Json.Linq
 
             ValidateToken(item, existing);
 
-            JToken previous = (index == 0) ? null : children[index - 1];
-            JToken next = (index == children.Count - 1) ? null : children[index + 1];
+            JToken? previous = (index == 0) ? null : children[index - 1];
+            JToken? next = (index == children.Count - 1) ? null : children[index + 1];
 
             item.Parent = this;
 
@@ -539,13 +513,13 @@ namespace Exceptionless.Json.Linq
             existing.Previous = null;
             existing.Next = null;
 
-#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.ItemChanged, index));
             }
 #endif
-#if !(NET20 || NET35 || PORTABLE40)
+#if HAVE_INOTIFY_COLLECTION_CHANGED
             if (_collectionChanged != null)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, existing, index));
@@ -568,13 +542,13 @@ namespace Exceptionless.Json.Linq
 
             children.Clear();
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
             if (_listChanged != null)
             {
                 OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
             }
 #endif
-#if !(NET20 || NET35 || PORTABLE40)
+#if HAVE_INOTIFY_COLLECTION_CHANGED
             if (_collectionChanged != null)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
@@ -593,7 +567,7 @@ namespace Exceptionless.Json.Linq
             SetItem(index, replacement);
         }
 
-        internal virtual bool ContainsItem(JToken item)
+        internal virtual bool ContainsItem(JToken? item)
         {
             return (IndexOfItem(item) != -1);
         }
@@ -625,15 +599,14 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        internal static bool IsTokenUnchanged(JToken currentValue, JToken newValue)
+        internal static bool IsTokenUnchanged(JToken currentValue, JToken? newValue)
         {
-            JValue v1 = currentValue as JValue;
-            if (v1 != null)
+            if (currentValue is JValue v1)
             {
-                // null will get turned into a JValue of type null
-                if (v1.Type == JTokenType.Null && newValue == null)
+                if (newValue == null)
                 {
-                    return true;
+                    // null will get turned into a JValue of type null
+                    return v1.Type == JTokenType.Null;
                 }
 
                 return v1.Equals(newValue);
@@ -642,7 +615,7 @@ namespace Exceptionless.Json.Linq
             return false;
         }
 
-        internal virtual void ValidateToken(JToken o, JToken existing)
+        internal virtual void ValidateToken(JToken o, JToken? existing)
         {
             ValidationUtils.ArgumentNotNull(o, nameof(o));
 
@@ -656,7 +629,7 @@ namespace Exceptionless.Json.Linq
         /// Adds the specified content as children of this <see cref="JToken"/>.
         /// </summary>
         /// <param name="content">The content to be added.</param>
-        public virtual void Add(object content)
+        public virtual void Add(object? content)
         {
             AddInternal(ChildrenTokens.Count, content, false);
         }
@@ -670,12 +643,12 @@ namespace Exceptionless.Json.Linq
         /// Adds the specified content as the first children of this <see cref="JToken"/>.
         /// </summary>
         /// <param name="content">The content to be added.</param>
-        public void AddFirst(object content)
+        public void AddFirst(object? content)
         {
             AddInternal(0, content, false);
         }
 
-        internal void AddInternal(int index, object content, bool skipParentCheck)
+        internal void AddInternal(int index, object? content, bool skipParentCheck)
         {
             if (IsMultiContent(content))
             {
@@ -696,27 +669,27 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        internal static JToken CreateFromContent(object content)
+        internal static JToken CreateFromContent(object? content)
         {
-            if (content is JToken)
+            if (content is JToken token)
             {
-                return (JToken)content;
+                return token;
             }
 
             return new JValue(content);
         }
 
         /// <summary>
-        /// Creates an <see cref="JsonWriter"/> that can be used to add tokens to the <see cref="JToken"/>.
+        /// Creates a <see cref="JsonWriter"/> that can be used to add tokens to the <see cref="JToken"/>.
         /// </summary>
-        /// <returns>An <see cref="JsonWriter"/> that is ready to have content written to it.</returns>
+        /// <returns>A <see cref="JsonWriter"/> that is ready to have content written to it.</returns>
         public JsonWriter CreateWriter()
         {
             return new JTokenWriter(this);
         }
 
         /// <summary>
-        /// Replaces the children nodes of this token with the specified content.
+        /// Replaces the child nodes of this token with the specified content.
         /// </summary>
         /// <param name="content">The content.</param>
         public void ReplaceAll(object content)
@@ -733,7 +706,7 @@ namespace Exceptionless.Json.Linq
             ClearItems();
         }
 
-        internal abstract void MergeItem(object content, JsonMergeSettings settings);
+        internal abstract void MergeItem(object content, JsonMergeSettings? settings);
 
         /// <summary>
         /// Merge the specified content into this <see cref="JToken"/>.
@@ -741,7 +714,7 @@ namespace Exceptionless.Json.Linq
         /// <param name="content">The content to be merged.</param>
         public void Merge(object content)
         {
-            MergeItem(content, new JsonMergeSettings());
+            MergeItem(content, null);
         }
 
         /// <summary>
@@ -749,12 +722,12 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="content">The content to be merged.</param>
         /// <param name="settings">The <see cref="JsonMergeSettings"/> used to merge the content.</param>
-        public void Merge(object content, JsonMergeSettings settings)
+        public void Merge(object content, JsonMergeSettings? settings)
         {
             MergeItem(content, settings);
         }
 
-        internal void ReadTokenFrom(JsonReader reader, JsonLoadSettings options)
+        internal void ReadTokenFrom(JsonReader reader, JsonLoadSettings? options)
         {
             int startDepth = reader.Depth;
 
@@ -773,16 +746,16 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        internal void ReadContentFrom(JsonReader r, JsonLoadSettings settings)
+        internal void ReadContentFrom(JsonReader r, JsonLoadSettings? settings)
         {
             ValidationUtils.ArgumentNotNull(r, nameof(r));
-            IJsonLineInfo lineInfo = r as IJsonLineInfo;
+            IJsonLineInfo? lineInfo = r as IJsonLineInfo;
 
-            JContainer parent = this;
+            JContainer? parent = this;
 
             do
             {
-                if (parent is JProperty && ((JProperty)parent).Value != null)
+                if (parent is JProperty p && p.Value != null)
                 {
                     if (parent == this)
                     {
@@ -791,6 +764,8 @@ namespace Exceptionless.Json.Linq
 
                     parent = parent.Parent;
                 }
+
+                MiscellaneousUtils.Assert(parent != null);
 
                 switch (r.TokenType)
                 {
@@ -827,7 +802,7 @@ namespace Exceptionless.Json.Linq
                         parent = parent.Parent;
                         break;
                     case JsonToken.StartConstructor:
-                        JConstructor constructor = new JConstructor(r.Value.ToString());
+                        JConstructor constructor = new JConstructor(r.Value!.ToString());
                         constructor.SetLineInfo(lineInfo, settings);
                         parent.Add(constructor);
                         parent = constructor;
@@ -853,7 +828,7 @@ namespace Exceptionless.Json.Linq
                     case JsonToken.Comment:
                         if (settings != null && settings.CommentHandling == CommentHandling.Load)
                         {
-                            v = JValue.CreateComment(r.Value.ToString());
+                            v = JValue.CreateComment(r.Value!.ToString());
                             v.SetLineInfo(lineInfo, settings);
                             parent.Add(v);
                         }
@@ -869,26 +844,54 @@ namespace Exceptionless.Json.Linq
                         parent.Add(v);
                         break;
                     case JsonToken.PropertyName:
-                        string propertyName = r.Value.ToString();
-                        JProperty property = new JProperty(propertyName);
-                        property.SetLineInfo(lineInfo, settings);
-                        JObject parentObject = (JObject)parent;
-                        // handle multiple properties with the same name in JSON
-                        JProperty existingPropertyWithName = parentObject.Property(propertyName);
-                        if (existingPropertyWithName == null)
+                        JProperty? property = ReadProperty(r, settings, lineInfo, parent);
+                        if (property != null)
                         {
-                            parent.Add(property);
+                            parent = property;
                         }
                         else
                         {
-                            existingPropertyWithName.Replace(property);
+                            r.Skip();
                         }
-                        parent = property;
                         break;
                     default:
                         throw new InvalidOperationException("The JsonReader should not be on a token of type {0}.".FormatWith(CultureInfo.InvariantCulture, r.TokenType));
                 }
             } while (r.Read());
+        }
+
+        private static JProperty? ReadProperty(JsonReader r, JsonLoadSettings? settings, IJsonLineInfo? lineInfo, JContainer parent)
+        {
+            DuplicatePropertyNameHandling duplicatePropertyNameHandling = settings?.DuplicatePropertyNameHandling ?? DuplicatePropertyNameHandling.Replace;
+
+            JObject parentObject = (JObject)parent;
+            string propertyName = r.Value!.ToString();
+            JProperty? existingPropertyWithName = parentObject.Property(propertyName, StringComparison.Ordinal);
+            if (existingPropertyWithName != null)
+            {
+                if (duplicatePropertyNameHandling == DuplicatePropertyNameHandling.Ignore)
+                {
+                    return null;
+                }
+                else if (duplicatePropertyNameHandling == DuplicatePropertyNameHandling.Error)
+                {
+                    throw JsonReaderException.Create(r, "Property with the name '{0}' already exists in the current JSON object.".FormatWith(CultureInfo.InvariantCulture, propertyName));
+                }
+            }
+
+            JProperty property = new JProperty(propertyName);
+            property.SetLineInfo(lineInfo, settings);
+            // handle multiple properties with the same name in JSON
+            if (existingPropertyWithName == null)
+            {
+                parent.Add(property);
+            }
+            else
+            {
+                existingPropertyWithName.Replace(property);
+            }
+
+            return property;
         }
 
         internal int ContentsHashCode()
@@ -901,21 +904,16 @@ namespace Exceptionless.Json.Linq
             return hashCode;
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
         string ITypedList.GetListName(PropertyDescriptor[] listAccessors)
         {
             return string.Empty;
         }
 
-        PropertyDescriptorCollection ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
+        PropertyDescriptorCollection? ITypedList.GetItemProperties(PropertyDescriptor[] listAccessors)
         {
-            ICustomTypeDescriptor d = First as ICustomTypeDescriptor;
-            if (d != null)
-            {
-                return d.GetProperties();
-            }
-
-            return null;
+            ICustomTypeDescriptor? d = First as ICustomTypeDescriptor;
+            return d?.GetProperties();
         }
 #endif
 
@@ -937,8 +935,8 @@ namespace Exceptionless.Json.Linq
 
         JToken IList<JToken>.this[int index]
         {
-            get { return GetItem(index); }
-            set { SetItem(index, value); }
+            get => GetItem(index);
+            set => SetItem(index, value);
         }
         #endregion
 
@@ -963,10 +961,7 @@ namespace Exceptionless.Json.Linq
             CopyItemsTo(array, arrayIndex);
         }
 
-        bool ICollection<JToken>.IsReadOnly
-        {
-            get { return false; }
-        }
+        bool ICollection<JToken>.IsReadOnly => false;
 
         bool ICollection<JToken>.Remove(JToken item)
         {
@@ -974,16 +969,16 @@ namespace Exceptionless.Json.Linq
         }
         #endregion
 
-        private JToken EnsureValue(object value)
+        private JToken? EnsureValue(object value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            if (value is JToken)
+            if (value is JToken token)
             {
-                return (JToken)value;
+                return token;
             }
 
             throw new ArgumentException("Argument is not a JToken.");
@@ -1016,15 +1011,9 @@ namespace Exceptionless.Json.Linq
             InsertItem(index, EnsureValue(value), false);
         }
 
-        bool IList.IsFixedSize
-        {
-            get { return false; }
-        }
+        bool IList.IsFixedSize => false;
 
-        bool IList.IsReadOnly
-        {
-            get { return false; }
-        }
+        bool IList.IsReadOnly => false;
 
         void IList.Remove(object value)
         {
@@ -1038,8 +1027,8 @@ namespace Exceptionless.Json.Linq
 
         object IList.this[int index]
         {
-            get { return GetItem(index); }
-            set { SetItem(index, EnsureValue(value)); }
+            get => GetItem(index);
+            set => SetItem(index, EnsureValue(value));
         }
         #endregion
 
@@ -1052,16 +1041,10 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Gets the count of child JSON tokens.
         /// </summary>
-        /// <value>The count of child JSON tokens</value>
-        public int Count
-        {
-            get { return ChildrenTokens.Count; }
-        }
+        /// <value>The count of child JSON tokens.</value>
+        public int Count => ChildrenTokens.Count;
 
-        bool ICollection.IsSynchronized
-        {
-            get { return false; }
-        }
+        bool ICollection.IsSynchronized => false;
 
         object ICollection.SyncRoot
         {
@@ -1078,7 +1061,7 @@ namespace Exceptionless.Json.Linq
         #endregion
 
         #region IBindingList Members
-#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_COMPONENT_MODEL
         void IBindingList.AddIndex(PropertyDescriptor property)
         {
         }
@@ -1093,31 +1076,21 @@ namespace Exceptionless.Json.Linq
                 throw new JsonException("Could not determine new value to add to '{0}'.".FormatWith(CultureInfo.InvariantCulture, GetType()));
             }
 
-            if (!(args.NewObject is JToken))
+            if (!(args.NewObject is JToken newItem))
             {
                 throw new JsonException("New item to be added to collection must be compatible with {0}.".FormatWith(CultureInfo.InvariantCulture, typeof(JToken)));
             }
 
-            JToken newItem = (JToken)args.NewObject;
             Add(newItem);
 
             return newItem;
         }
 
-        bool IBindingList.AllowEdit
-        {
-            get { return true; }
-        }
+        bool IBindingList.AllowEdit => true;
 
-        bool IBindingList.AllowNew
-        {
-            get { return true; }
-        }
+        bool IBindingList.AllowNew => true;
 
-        bool IBindingList.AllowRemove
-        {
-            get { return true; }
-        }
+        bool IBindingList.AllowRemove => true;
 
         void IBindingList.ApplySort(PropertyDescriptor property, ListSortDirection direction)
         {
@@ -1129,10 +1102,7 @@ namespace Exceptionless.Json.Linq
             throw new NotSupportedException();
         }
 
-        bool IBindingList.IsSorted
-        {
-            get { return false; }
-        }
+        bool IBindingList.IsSorted => false;
 
         void IBindingList.RemoveIndex(PropertyDescriptor property)
         {
@@ -1143,36 +1113,21 @@ namespace Exceptionless.Json.Linq
             throw new NotSupportedException();
         }
 
-        ListSortDirection IBindingList.SortDirection
-        {
-            get { return ListSortDirection.Ascending; }
-        }
+        ListSortDirection IBindingList.SortDirection => ListSortDirection.Ascending;
 
-        PropertyDescriptor IBindingList.SortProperty
-        {
-            get { return null; }
-        }
+        PropertyDescriptor? IBindingList.SortProperty => null;
 
-        bool IBindingList.SupportsChangeNotification
-        {
-            get { return true; }
-        }
+        bool IBindingList.SupportsChangeNotification => true;
 
-        bool IBindingList.SupportsSearching
-        {
-            get { return false; }
-        }
+        bool IBindingList.SupportsSearching => false;
 
-        bool IBindingList.SupportsSorting
-        {
-            get { return false; }
-        }
+        bool IBindingList.SupportsSorting => false;
 #endif
         #endregion
 
-        internal static void MergeEnumerableContent(JContainer target, IEnumerable content, JsonMergeSettings settings)
+        internal static void MergeEnumerableContent(JContainer target, IEnumerable content, JsonMergeSettings? settings)
         {
-            switch (settings.MergeArrayHandling)
+            switch (settings?.MergeArrayHandling ?? MergeArrayHandling.Concat)
             {
                 case MergeArrayHandling.Concat:
                     foreach (JToken item in content)
@@ -1181,7 +1136,7 @@ namespace Exceptionless.Json.Linq
                     }
                     break;
                 case MergeArrayHandling.Union:
-#if !NET20
+#if HAVE_HASH_SET
                     HashSet<JToken> items = new HashSet<JToken>(target, EqualityComparer);
 
                     foreach (JToken item in content)
@@ -1192,7 +1147,7 @@ namespace Exceptionless.Json.Linq
                         }
                     }
 #else
-                    IDictionary<JToken, bool> items = new Dictionary<JToken, bool>(EqualityComparer);
+                    Dictionary<JToken, bool> items = new Dictionary<JToken, bool>(EqualityComparer);
                     foreach (JToken t in target)
                     {
                         items[t] = true;
@@ -1209,6 +1164,10 @@ namespace Exceptionless.Json.Linq
 #endif
                     break;
                 case MergeArrayHandling.Replace:
+                    if (target == content)
+                    {
+                        break;
+                    }
                     target.ClearItems();
                     foreach (JToken item in content)
                     {
@@ -1221,10 +1180,9 @@ namespace Exceptionless.Json.Linq
                     {
                         if (i < target.Count)
                         {
-                            JToken sourceItem = target[i];
+                            JToken? sourceItem = target[i];
 
-                            JContainer existingContainer = sourceItem as JContainer;
-                            if (existingContainer != null)
+                            if (sourceItem is JContainer existingContainer)
                             {
                                 existingContainer.Merge(targetItem, settings);
                             }

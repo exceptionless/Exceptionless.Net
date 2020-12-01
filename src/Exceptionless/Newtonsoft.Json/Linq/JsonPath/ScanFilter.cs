@@ -4,47 +4,39 @@ namespace Exceptionless.Json.Linq.JsonPath
 {
     internal class ScanFilter : PathFilter
     {
-        public string Name { get; set; }
+        internal string? Name;
 
-        public override IEnumerable<JToken> ExecuteFilter(IEnumerable<JToken> current, bool errorWhenNoMatch)
+        public ScanFilter(string? name)
         {
-            foreach (JToken root in current)
+            Name = name;
+        }
+
+        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, bool errorWhenNoMatch)
+        {
+            foreach (JToken c in current)
             {
                 if (Name == null)
                 {
-                    yield return root;
+                    yield return c;
                 }
 
-                JToken value = root;
-                JToken container = root;
+                JToken? value = c;
 
                 while (true)
                 {
-                    if (container != null && container.HasValues)
-                    {
-                        value = container.First;
-                    }
-                    else
-                    {
-                        while (value != null && value != root && value == value.Parent.Last)
-                        {
-                            value = value.Parent;
-                        }
+                    JContainer? container = value as JContainer;
 
-                        if (value == null || value == root)
-                        {
-                            break;
-                        }
-
-                        value = value.Next;
+                    value = GetNextScanValue(c, container, value);
+                    if (value == null)
+                    {
+                        break;
                     }
 
-                    JProperty e = value as JProperty;
-                    if (e != null)
+                    if (value is JProperty property)
                     {
-                        if (e.Name == Name)
+                        if (property.Name == Name)
                         {
-                            yield return e.Value;
+                            yield return property.Value;
                         }
                     }
                     else
@@ -54,8 +46,6 @@ namespace Exceptionless.Json.Linq.JsonPath
                             yield return value;
                         }
                     }
-
-                    container = value as JContainer;
                 }
             }
         }

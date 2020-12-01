@@ -6,18 +6,22 @@ namespace Exceptionless.Json.Linq.JsonPath
 {
     internal class FieldFilter : PathFilter
     {
-        public string Name { get; set; }
+        internal string? Name;
 
-        public override IEnumerable<JToken> ExecuteFilter(IEnumerable<JToken> current, bool errorWhenNoMatch)
+        public FieldFilter(string? name)
+        {
+            Name = name;
+        }
+
+        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, bool errorWhenNoMatch)
         {
             foreach (JToken t in current)
             {
-                JObject o = t as JObject;
-                if (o != null)
+                if (t is JObject o)
                 {
                     if (Name != null)
                     {
-                        JToken v = o[Name];
+                        JToken? v = o[Name];
 
                         if (v != null)
                         {
@@ -30,9 +34,9 @@ namespace Exceptionless.Json.Linq.JsonPath
                     }
                     else
                     {
-                        foreach (KeyValuePair<string, JToken> p in o)
+                        foreach (KeyValuePair<string, JToken?> p in o)
                         {
-                            yield return p.Value;
+                            yield return p.Value!;
                         }
                     }
                 }

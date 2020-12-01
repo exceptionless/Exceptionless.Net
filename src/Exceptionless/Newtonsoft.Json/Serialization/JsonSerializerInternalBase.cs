@@ -47,12 +47,12 @@ namespace Exceptionless.Json.Serialization
             }
         }
 
-        private ErrorContext _currentErrorContext;
-        private BidirectionalDictionary<string, object> _mappings;
+        private ErrorContext? _currentErrorContext;
+        private BidirectionalDictionary<string, object>? _mappings;
 
         internal readonly JsonSerializer Serializer;
-        internal readonly ITraceWriter TraceWriter;
-        protected JsonSerializerProxy InternalSerializer;
+        internal readonly ITraceWriter? TraceWriter;
+        protected JsonSerializerProxy? InternalSerializer;
 
         protected JsonSerializerInternalBase(JsonSerializer serializer)
         {
@@ -74,14 +74,24 @@ namespace Exceptionless.Json.Serialization
                         EqualityComparer<string>.Default,
                         new ReferenceEqualsEqualityComparer(),
                         "A different value already has the Id '{0}'.",
-                        "A different Id has already been assigned for value '{0}'.");
+                        "A different Id has already been assigned for value '{0}'. This error may be caused by an object being reused multiple times during deserialization and can be fixed with the setting ObjectCreationHandling.Replace.");
                 }
 
                 return _mappings;
             }
         }
 
-        private ErrorContext GetErrorContext(object currentObject, object member, string path, Exception error)
+        protected NullValueHandling ResolvedNullValueHandling(JsonObjectContract? containerContract, JsonProperty property)
+        {
+            NullValueHandling resolvedNullValueHandling =
+                property.NullValueHandling
+                ?? containerContract?.ItemNullValueHandling
+                ?? Serializer._nullValueHandling;
+
+            return resolvedNullValueHandling;
+        }
+
+        private ErrorContext GetErrorContext(object? currentObject, object? member, string path, Exception error)
         {
             if (_currentErrorContext == null)
             {
@@ -106,7 +116,7 @@ namespace Exceptionless.Json.Serialization
             _currentErrorContext = null;
         }
 
-        protected bool IsErrorHandled(object currentObject, JsonContract contract, object keyValue, IJsonLineInfo lineInfo, string path, Exception ex)
+        protected bool IsErrorHandled(object? currentObject, JsonContract? contract, object? keyValue, IJsonLineInfo? lineInfo, string path, Exception ex)
         {
             ErrorContext errorContext = GetErrorContext(currentObject, keyValue, path, ex);
 

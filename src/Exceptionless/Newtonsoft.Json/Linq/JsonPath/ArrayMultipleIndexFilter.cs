@@ -4,15 +4,20 @@ namespace Exceptionless.Json.Linq.JsonPath
 {
     internal class ArrayMultipleIndexFilter : PathFilter
     {
-        public List<int> Indexes { get; set; }
+        internal List<int> Indexes;
 
-        public override IEnumerable<JToken> ExecuteFilter(IEnumerable<JToken> current, bool errorWhenNoMatch)
+        public ArrayMultipleIndexFilter(List<int> indexes)
+        {
+            Indexes = indexes;
+        }
+
+        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, bool errorWhenNoMatch)
         {
             foreach (JToken t in current)
             {
                 foreach (int i in Indexes)
                 {
-                    JToken v = GetTokenIndex(t, errorWhenNoMatch, i);
+                    JToken? v = GetTokenIndex(t, errorWhenNoMatch, i);
 
                     if (v != null)
                     {

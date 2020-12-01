@@ -24,10 +24,11 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using Exceptionless.Json.Utilities;
 
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #endif
 
@@ -41,22 +42,22 @@ namespace Exceptionless.Json.Serialization
         internal Required? _required;
         internal bool _hasExplicitDefaultValue;
 
-        private object _defaultValue;
+        private object? _defaultValue;
         private bool _hasGeneratedDefaultValue;
-        private string _propertyName;
+        private string? _propertyName;
         internal bool _skipPropertyNameEscape;
-        private Type _propertyType;
+        private Type? _propertyType;
 
         // use to cache contract during deserialization
-        internal JsonContract PropertyContract { get; set; }
+        internal JsonContract? PropertyContract { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the property.
         /// </summary>
         /// <value>The name of the property.</value>
-        public string PropertyName
+        public string? PropertyName
         {
-            get { return _propertyName; }
+            get => _propertyName;
             set
             {
                 _propertyName = value;
@@ -68,7 +69,7 @@ namespace Exceptionless.Json.Serialization
         /// Gets or sets the type that declared this property.
         /// </summary>
         /// <value>The type that declared this property.</value>
-        public Type DeclaringType { get; set; }
+        public Type? DeclaringType { get; set; }
 
         /// <summary>
         /// Gets or sets the order of serialization of a member.
@@ -80,27 +81,27 @@ namespace Exceptionless.Json.Serialization
         /// Gets or sets the name of the underlying member or parameter.
         /// </summary>
         /// <value>The name of the underlying member or parameter.</value>
-        public string UnderlyingName { get; set; }
+        public string? UnderlyingName { get; set; }
 
         /// <summary>
         /// Gets the <see cref="IValueProvider"/> that will get and set the <see cref="JsonProperty"/> during serialization.
         /// </summary>
         /// <value>The <see cref="IValueProvider"/> that will get and set the <see cref="JsonProperty"/> during serialization.</value>
-        public IValueProvider ValueProvider { get; set; }
+        public IValueProvider? ValueProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IAttributeProvider"/> for this property.
         /// </summary>
         /// <value>The <see cref="IAttributeProvider"/> for this property.</value>
-        public IAttributeProvider AttributeProvider { get; set; }
+        public IAttributeProvider? AttributeProvider { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the property.
         /// </summary>
         /// <value>The type of the property.</value>
-        public Type PropertyType
+        public Type? PropertyType
         {
-            get { return _propertyType; }
+            get => _propertyType;
             set
             {
                 if (_propertyType != value)
@@ -113,16 +114,21 @@ namespace Exceptionless.Json.Serialization
 
         /// <summary>
         /// Gets or sets the <see cref="JsonConverter" /> for the property.
-        /// If set this converter takes presidence over the contract converter for the property type.
+        /// If set this converter takes precedence over the contract converter for the property type.
         /// </summary>
         /// <value>The converter.</value>
-        public JsonConverter Converter { get; set; }
+        public JsonConverter? Converter { get; set; }
 
         /// <summary>
         /// Gets or sets the member converter.
         /// </summary>
         /// <value>The member converter.</value>
-        public JsonConverter MemberConverter { get; set; }
+        [Obsolete("MemberConverter is obsolete. Use Converter instead.")]
+        public JsonConverter? MemberConverter
+        {
+            get => Converter;
+            set => Converter = value;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="JsonProperty"/> is ignored.
@@ -152,7 +158,7 @@ namespace Exceptionless.Json.Serialization
         /// Gets the default value.
         /// </summary>
         /// <value>The default value.</value>
-        public object DefaultValue
+        public object? DefaultValue
         {
             get
             {
@@ -170,7 +176,7 @@ namespace Exceptionless.Json.Serialization
             }
         }
 
-        internal object GetResolvedDefaultValue()
+        internal object? GetResolvedDefaultValue()
         {
             if (_propertyType == null)
             {
@@ -179,7 +185,7 @@ namespace Exceptionless.Json.Serialization
 
             if (!_hasExplicitDefaultValue && !_hasGeneratedDefaultValue)
             {
-                _defaultValue = ReflectionUtils.GetDefaultValue(PropertyType);
+                _defaultValue = ReflectionUtils.GetDefaultValue(_propertyType);
                 _hasGeneratedDefaultValue = true;
             }
 
@@ -192,9 +198,14 @@ namespace Exceptionless.Json.Serialization
         /// <value>A value indicating whether this <see cref="JsonProperty"/> is required.</value>
         public Required Required
         {
-            get { return _required ?? Required.Default; }
-            set { _required = value; }
+            get => _required ?? Required.Default;
+            set => _required = value;
         }
+
+        /// <summary>
+        /// Gets a value indicating whether <see cref="Required"/> has a value specified.
+        /// </summary>
+        public bool IsRequiredSpecified => _required != null;
 
         /// <summary>
         /// Gets or sets a value indicating whether this property preserves object references.
@@ -235,28 +246,28 @@ namespace Exceptionless.Json.Serialization
         public TypeNameHandling? TypeNameHandling { get; set; }
 
         /// <summary>
-        /// Gets or sets a predicate used to determine whether the property should be serialize.
+        /// Gets or sets a predicate used to determine whether the property should be serialized.
         /// </summary>
-        /// <value>A predicate used to determine whether the property should be serialize.</value>
-        public Predicate<object> ShouldSerialize { get; set; }
+        /// <value>A predicate used to determine whether the property should be serialized.</value>
+        public Predicate<object>? ShouldSerialize { get; set; }
 
         /// <summary>
         /// Gets or sets a predicate used to determine whether the property should be deserialized.
         /// </summary>
         /// <value>A predicate used to determine whether the property should be deserialized.</value>
-        public Predicate<object> ShouldDeserialize { get; set; }
+        public Predicate<object>? ShouldDeserialize { get; set; }
 
         /// <summary>
         /// Gets or sets a predicate used to determine whether the property should be serialized.
         /// </summary>
         /// <value>A predicate used to determine whether the property should be serialized.</value>
-        public Predicate<object> GetIsSpecified { get; set; }
+        public Predicate<object>? GetIsSpecified { get; set; }
 
         /// <summary>
         /// Gets or sets an action used to set whether the property has been deserialized.
         /// </summary>
         /// <value>An action used to set whether the property has been deserialized.</value>
-        public Action<object, object> SetIsSpecified { get; set; }
+        public Action<object, object?>? SetIsSpecified { get; set; }
 
         /// <summary>
         /// Returns a <see cref="String"/> that represents this instance.
@@ -266,14 +277,14 @@ namespace Exceptionless.Json.Serialization
         /// </returns>
         public override string ToString()
         {
-            return PropertyName;
+            return PropertyName ?? string.Empty;
         }
 
         /// <summary>
         /// Gets or sets the converter used when serializing the property's collection items.
         /// </summary>
         /// <value>The collection's items converter.</value>
-        public JsonConverter ItemConverter { get; set; }
+        public JsonConverter? ItemConverter { get; set; }
 
         /// <summary>
         /// Gets or sets whether this property's collection items are serialized as a reference.
@@ -282,26 +293,29 @@ namespace Exceptionless.Json.Serialization
         public bool? ItemIsReference { get; set; }
 
         /// <summary>
-        /// Gets or sets the the type name handling used when serializing the property's collection items.
+        /// Gets or sets the type name handling used when serializing the property's collection items.
         /// </summary>
         /// <value>The collection's items type name handling.</value>
         public TypeNameHandling? ItemTypeNameHandling { get; set; }
 
         /// <summary>
-        /// Gets or sets the the reference loop handling used when serializing the property's collection items.
+        /// Gets or sets the reference loop handling used when serializing the property's collection items.
         /// </summary>
         /// <value>The collection's items reference loop handling.</value>
         public ReferenceLoopHandling? ItemReferenceLoopHandling { get; set; }
 
         internal void WritePropertyName(JsonWriter writer)
         {
+            string? propertyName = PropertyName;
+            MiscellaneousUtils.Assert(propertyName != null);
+
             if (_skipPropertyNameEscape)
             {
-                writer.WritePropertyName(PropertyName, false);
+                writer.WritePropertyName(propertyName, false);
             }
             else
             {
-                writer.WritePropertyName(PropertyName);
+                writer.WritePropertyName(propertyName);
             }
         }
     }

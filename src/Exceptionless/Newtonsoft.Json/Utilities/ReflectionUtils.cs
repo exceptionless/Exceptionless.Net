@@ -25,16 +25,16 @@
 
 using System;
 using System.Collections.Generic;
-#if !(PORTABLE || PORTABLE40 || NET35 || NET20)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
 #endif
 using System.Reflection;
 using System.Collections;
 using System.Globalization;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters;
 using System.Text;
-#if NET20
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
@@ -43,18 +43,18 @@ using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Json.Utilities
 {
-#if (DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4)
+#if (DOTNET || PORTABLE || PORTABLE40) && !NETSTANDARD2_0
+    [Flags]
     internal enum MemberTypes
     {
-        Property = 0,
-        Field = 1,
         Event = 2,
-        Method = 3,
-        Other = 4
+        Field = 4,
+        Method = 8,
+        Property = 16
     }
 #endif
 
-#if PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2
+#if PORTABLE && !NETSTANDARD2_0
     [Flags]
     internal enum BindingFlags
     {
@@ -87,10 +87,10 @@ namespace Exceptionless.Json.Utilities
 
         static ReflectionUtils()
         {
-#if !(PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_EMPTY_TYPES
             EmptyTypes = Type.EmptyTypes;
 #else
-            EmptyTypes = new Type[0];
+            EmptyTypes = CollectionUtils.ArrayEmpty<Type>();
 #endif
         }
 
@@ -98,13 +98,13 @@ namespace Exceptionless.Json.Utilities
         {
             ValidationUtils.ArgumentNotNull(propertyInfo, nameof(propertyInfo));
 
-            MethodInfo m = propertyInfo.GetGetMethod();
+            MethodInfo? m = propertyInfo.GetGetMethod(true);
             if (m != null && m.IsVirtual)
             {
                 return true;
             }
 
-            m = propertyInfo.GetSetMethod();
+            m = propertyInfo.GetSetMethod(true);
             if (m != null && m.IsVirtual)
             {
                 return true;
@@ -113,32 +113,28 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        public static MethodInfo GetBaseDefinition(this PropertyInfo propertyInfo)
+        public static MethodInfo? GetBaseDefinition(this PropertyInfo propertyInfo)
         {
             ValidationUtils.ArgumentNotNull(propertyInfo, nameof(propertyInfo));
 
-            MethodInfo m = propertyInfo.GetGetMethod();
+            MethodInfo? m = propertyInfo.GetGetMethod(true);
             if (m != null)
             {
                 return m.GetBaseDefinition();
             }
 
-            m = propertyInfo.GetSetMethod();
-            if (m != null)
-            {
-                return m.GetBaseDefinition();
-            }
-
-            return null;
+            return propertyInfo.GetSetMethod(true)?.GetBaseDefinition();
         }
 
         public static bool IsPublic(PropertyInfo property)
         {
-            if (property.GetGetMethod() != null && property.GetGetMethod().IsPublic)
+            var getMethod = property.GetGetMethod();
+            if (getMethod != null && getMethod.IsPublic)
             {
                 return true;
             }
-            if (property.GetSetMethod() != null && property.GetSetMethod().IsPublic)
+            var setMethod = property.GetSetMethod();
+            if (setMethod != null && setMethod.IsPublic)
             {
                 return true;
             }
@@ -146,38 +142,42 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        public static Type GetObjectType(object v)
+        public static Type? GetObjectType(object? v)
         {
-            return (v != null) ? v.GetType() : null;
+            return v?.GetType();
         }
 
-        public static string GetTypeName(Type t, FormatterAssemblyStyle assemblyFormat, SerializationBinder binder)
+        public static string GetTypeName(Type t, TypeNameAssemblyFormatHandling assemblyFormat, ISerializationBinder? binder)
         {
-            string fullyQualifiedTypeName;
-#if !(NET20 || NET35)
-            if (binder != null)
-            {
-                string assemblyName, typeName;
-                binder.BindToName(t, out assemblyName, out typeName);
-                fullyQualifiedTypeName = typeName + (assemblyName == null ? "" : ", " + assemblyName);
-            }
-            else
-            {
-                fullyQualifiedTypeName = t.AssemblyQualifiedName;
-            }
-#else
-            fullyQualifiedTypeName = t.AssemblyQualifiedName;
-#endif
+            string fullyQualifiedTypeName = GetFullyQualifiedTypeName(t, binder);
 
             switch (assemblyFormat)
             {
-                case FormatterAssemblyStyle.Simple:
+                case TypeNameAssemblyFormatHandling.Simple:
                     return RemoveAssemblyDetails(fullyQualifiedTypeName);
-                case FormatterAssemblyStyle.Full:
+                case TypeNameAssemblyFormatHandling.Full:
                     return fullyQualifiedTypeName;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private static string GetFullyQualifiedTypeName(Type t, ISerializationBinder? binder)
+        {
+            if (binder != null)
+            {
+                binder.BindToName(t, out string? assemblyName, out string? typeName);
+#if (NET20 || NET35)
+                // for older SerializationBinder implementations that didn't have BindToName
+                if (assemblyName == null & typeName == null)
+                {
+                    return t.AssemblyQualifiedName;
+                }
+#endif
+                return typeName + (assemblyName == null ? "" : ", " + assemblyName);
+            }
+
+            return t.AssemblyQualifiedName;
         }
 
         private static string RemoveAssemblyDetails(string fullyQualifiedTypeName)
@@ -193,10 +193,6 @@ namespace Exceptionless.Json.Utilities
                 switch (current)
                 {
                     case '[':
-                        writingAssemblyName = false;
-                        skippingAssemblyDetails = false;
-                        builder.Append(current);
-                        break;
                     case ']':
                         writingAssemblyName = false;
                         skippingAssemblyDetails = false;
@@ -279,6 +275,13 @@ namespace Exceptionless.Json.Utilities
                 : t;
         }
 
+        public static Type EnsureNotByRefType(Type t)
+        {
+            return (t.IsByRef && t.HasElementType)
+                ? t.GetElementType()
+                : t;
+        }
+
         public static bool IsGenericDefinition(Type type, Type genericInterfaceDefinition)
         {
             if (!type.IsGenericType())
@@ -292,11 +295,10 @@ namespace Exceptionless.Json.Utilities
 
         public static bool ImplementsGenericDefinition(Type type, Type genericInterfaceDefinition)
         {
-            Type implementingType;
-            return ImplementsGenericDefinition(type, genericInterfaceDefinition, out implementingType);
+            return ImplementsGenericDefinition(type, genericInterfaceDefinition, out _);
         }
 
-        public static bool ImplementsGenericDefinition(Type type, Type genericInterfaceDefinition, out Type implementingType)
+        public static bool ImplementsGenericDefinition(Type type, Type genericInterfaceDefinition, [NotNullWhen(true)]out Type? implementingType)
         {
             ValidationUtils.ArgumentNotNull(type, nameof(type));
             ValidationUtils.ArgumentNotNull(genericInterfaceDefinition, nameof(genericInterfaceDefinition));
@@ -340,11 +342,10 @@ namespace Exceptionless.Json.Utilities
 
         public static bool InheritsGenericDefinition(Type type, Type genericClassDefinition)
         {
-            Type implementingType;
-            return InheritsGenericDefinition(type, genericClassDefinition, out implementingType);
+            return InheritsGenericDefinition(type, genericClassDefinition, out _);
         }
 
-        public static bool InheritsGenericDefinition(Type type, Type genericClassDefinition, out Type implementingType)
+        public static bool InheritsGenericDefinition(Type type, Type genericClassDefinition, out Type? implementingType)
         {
             ValidationUtils.ArgumentNotNull(type, nameof(type));
             ValidationUtils.ArgumentNotNull(genericClassDefinition, nameof(genericClassDefinition));
@@ -357,26 +358,22 @@ namespace Exceptionless.Json.Utilities
             return InheritsGenericDefinitionInternal(type, genericClassDefinition, out implementingType);
         }
 
-        private static bool InheritsGenericDefinitionInternal(Type currentType, Type genericClassDefinition, out Type implementingType)
+        private static bool InheritsGenericDefinitionInternal(Type currentType, Type genericClassDefinition, out Type? implementingType)
         {
-            if (currentType.IsGenericType())
+            do
             {
-                Type currentGenericClassDefinition = currentType.GetGenericTypeDefinition();
-
-                if (genericClassDefinition == currentGenericClassDefinition)
+                if (currentType.IsGenericType() && genericClassDefinition == currentType.GetGenericTypeDefinition())
                 {
                     implementingType = currentType;
                     return true;
                 }
-            }
 
-            if (currentType.BaseType() == null)
-            {
-                implementingType = null;
-                return false;
+                currentType = currentType.BaseType();
             }
+            while (currentType != null);
 
-            return InheritsGenericDefinitionInternal(currentType.BaseType(), genericClassDefinition, out implementingType);
+            implementingType = null;
+            return false;
         }
 
         /// <summary>
@@ -384,23 +381,22 @@ namespace Exceptionless.Json.Utilities
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>The type of the typed collection's items.</returns>
-        public static Type GetCollectionItemType(Type type)
+        public static Type? GetCollectionItemType(Type type)
         {
             ValidationUtils.ArgumentNotNull(type, nameof(type));
-            Type genericListType;
 
             if (type.IsArray)
             {
                 return type.GetElementType();
             }
-            if (ImplementsGenericDefinition(type, typeof(IEnumerable<>), out genericListType))
+            if (ImplementsGenericDefinition(type, typeof(IEnumerable<>), out Type? genericListType))
             {
-                if (genericListType.IsGenericTypeDefinition())
+                if (genericListType!.IsGenericTypeDefinition())
                 {
                     throw new Exception("Type {0} is not a collection.".FormatWith(CultureInfo.InvariantCulture, type));
                 }
 
-                return genericListType.GetGenericArguments()[0];
+                return genericListType!.GetGenericArguments()[0];
             }
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
@@ -410,19 +406,18 @@ namespace Exceptionless.Json.Utilities
             throw new Exception("Type {0} is not a collection.".FormatWith(CultureInfo.InvariantCulture, type));
         }
 
-        public static void GetDictionaryKeyValueTypes(Type dictionaryType, out Type keyType, out Type valueType)
+        public static void GetDictionaryKeyValueTypes(Type dictionaryType, out Type? keyType, out Type? valueType)
         {
             ValidationUtils.ArgumentNotNull(dictionaryType, nameof(dictionaryType));
 
-            Type genericDictionaryType;
-            if (ImplementsGenericDefinition(dictionaryType, typeof(IDictionary<,>), out genericDictionaryType))
+            if (ImplementsGenericDefinition(dictionaryType, typeof(IDictionary<,>), out Type? genericDictionaryType))
             {
-                if (genericDictionaryType.IsGenericTypeDefinition())
+                if (genericDictionaryType!.IsGenericTypeDefinition())
                 {
                     throw new Exception("Type {0} is not a dictionary.".FormatWith(CultureInfo.InvariantCulture, dictionaryType));
                 }
 
-                Type[] dictionaryGenericArguments = genericDictionaryType.GetGenericArguments();
+                Type[] dictionaryGenericArguments = genericDictionaryType!.GetGenericArguments();
 
                 keyType = dictionaryGenericArguments[0];
                 valueType = dictionaryGenericArguments[1];
@@ -462,27 +457,24 @@ namespace Exceptionless.Json.Utilities
             }
         }
 
-        /// <summary>
-        /// Determines whether the member is an indexed property.
-        /// </summary>
-        /// <param name="member">The member.</param>
-        /// <returns>
-        /// 	<c>true</c> if the member is an indexed property; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsIndexedProperty(MemberInfo member)
+        public static bool IsByRefLikeType(Type type)
         {
-            ValidationUtils.ArgumentNotNull(member, nameof(member));
-
-            PropertyInfo propertyInfo = member as PropertyInfo;
-
-            if (propertyInfo != null)
-            {
-                return IsIndexedProperty(propertyInfo);
-            }
-            else
+            if (!type.IsValueType())
             {
                 return false;
             }
+
+            // IsByRefLike flag on type is not available in netstandard2.0
+            Attribute[] attributes = GetAttributes(type, null, false);
+            for (int i = 0; i < attributes.Length; i++)
+            {
+                if (string.Equals(attributes[i].GetType().FullName, "System.Runtime.CompilerServices.IsByRefLikeAttribute", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -524,7 +516,7 @@ namespace Exceptionless.Json.Utilities
                         throw new ArgumentException("MemberInfo '{0}' has index parameters".FormatWith(CultureInfo.InvariantCulture, member.Name), e);
                     }
                 default:
-                    throw new ArgumentException("MemberInfo '{0}' is not of type FieldInfo or PropertyInfo".FormatWith(CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, member.Name), nameof(member));
+                    throw new ArgumentException("MemberInfo '{0}' is not of type FieldInfo or PropertyInfo".FormatWith(CultureInfo.InvariantCulture, member.Name), nameof(member));
             }
         }
 
@@ -534,7 +526,7 @@ namespace Exceptionless.Json.Utilities
         /// <param name="member">The member.</param>
         /// <param name="target">The target.</param>
         /// <param name="value">The value.</param>
-        public static void SetMemberValue(MemberInfo member, object target, object value)
+        public static void SetMemberValue(MemberInfo member, object target, object? value)
         {
             ValidationUtils.ArgumentNotNull(member, nameof(member));
             ValidationUtils.ArgumentNotNull(target, nameof(target));
@@ -656,19 +648,18 @@ namespace Exceptionless.Json.Utilities
             // update: I think this is fixed in .NET 3.5 SP1 - leave this in for now...
             List<MemberInfo> distinctMembers = new List<MemberInfo>(targetMembers.Count);
 
-            foreach (var groupedMember in targetMembers.GroupBy(m => m.Name))
+            foreach (IGrouping<string, MemberInfo> groupedMember in targetMembers.GroupBy(m => m.Name))
             {
                 int count = groupedMember.Count();
-                IList<MemberInfo> members = groupedMember.ToList();
 
                 if (count == 1)
                 {
-                    distinctMembers.Add(members.First());
+                    distinctMembers.Add(groupedMember.First());
                 }
                 else
                 {
-                    IList<MemberInfo> resolvedMembers = new List<MemberInfo>();
-                    foreach (MemberInfo memberInfo in members)
+                    List<MemberInfo> resolvedMembers = new List<MemberInfo>();
+                    foreach (MemberInfo memberInfo in groupedMember)
                     {
                         // this is a bit hacky
                         // if the hiding property is hiding a base property and it is virtual
@@ -679,6 +670,13 @@ namespace Exceptionless.Json.Utilities
                         }
                         else if (!IsOverridenGenericMember(memberInfo, bindingAttr) || memberInfo.Name == "Item")
                         {
+                            // two members with the same name were declared on a type
+                            // this can be done via IL emit, e.g. Moq
+                            if (resolvedMembers.Any(m => m.DeclaringType == memberInfo.DeclaringType))
+                            {
+                                continue;
+                            }
+
                             resolvedMembers.Add(memberInfo);
                         }
                     }
@@ -736,16 +734,15 @@ namespace Exceptionless.Json.Utilities
         {
             T[] attributes = GetAttributes<T>(attributeProvider, inherit);
 
-            return (attributes != null) ? attributes.FirstOrDefault() : null;
+            return attributes?.FirstOrDefault();
         }
 
-#if !(DOTNET || PORTABLE)
+#if !(DOTNET || PORTABLE) || NETSTANDARD2_0
         public static T[] GetAttributes<T>(object attributeProvider, bool inherit) where T : Attribute
         {
             Attribute[] a = GetAttributes(attributeProvider, typeof(T), inherit);
 
-            T[] attributes = a as T[];
-            if (attributes != null)
+            if (a is T[] attributes)
             {
                 return attributes;
             }
@@ -753,7 +750,7 @@ namespace Exceptionless.Json.Utilities
             return a.Cast<T>().ToArray();
         }
 
-        public static Attribute[] GetAttributes(object attributeProvider, Type attributeType, bool inherit)
+        public static Attribute[] GetAttributes(object attributeProvider, Type? attributeType, bool inherit)
         {
             ValidationUtils.ArgumentNotNull(attributeProvider, nameof(attributeProvider));
 
@@ -762,75 +759,41 @@ namespace Exceptionless.Json.Utilities
             // http://hyperthink.net/blog/getcustomattributes-gotcha/
             // ICustomAttributeProvider doesn't do inheritance
 
-            if (provider is Type)
+            switch (provider)
             {
-                Type t = (Type)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                object[] a = ((attributeType != null) ? t.GetTypeInfo().GetCustomAttributes(attributeType, inherit) : t.GetTypeInfo().GetCustomAttributes(inherit)).ToArray();
-#else
-                object[] a = (attributeType != null) ? t.GetCustomAttributes(attributeType, inherit) : t.GetCustomAttributes(inherit);
-#endif
-                Attribute[] attributes = a.Cast<Attribute>().ToArray();
+                case Type t:
+                    object[] array = attributeType != null ? t.GetCustomAttributes(attributeType, inherit) : t.GetCustomAttributes(inherit);
+                    Attribute[] attributes = array.Cast<Attribute>().ToArray();
 
 #if (NET20 || NET35)
-    // ye olde .NET GetCustomAttributes doesn't respect the inherit argument
-                if (inherit && t.BaseType != null)
-                    attributes = attributes.Union(GetAttributes(t.BaseType, attributeType, inherit)).ToArray();
+                    // ye olde .NET GetCustomAttributes doesn't respect the inherit argument
+                    if (inherit && t.BaseType != null)
+                    {
+                        attributes = attributes.Union(GetAttributes(t.BaseType, attributeType, inherit)).ToArray();
+                    }
 #endif
 
-                return attributes;
-            }
-
-            if (provider is Assembly)
-            {
-                Assembly a = (Assembly)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                return ((attributeType != null) ? a.GetCustomAttributes(attributeType) : a.GetCustomAttributes()).ToArray();
-#else
-                return (attributeType != null) ? Attribute.GetCustomAttributes(a, attributeType) : Attribute.GetCustomAttributes(a);
-#endif
-            }
-
-            if (provider is MemberInfo)
-            {
-                MemberInfo m = (MemberInfo)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                return ((attributeType != null) ? m.GetCustomAttributes(attributeType, inherit) : m.GetCustomAttributes(inherit)).ToArray();
-#else
-                return (attributeType != null) ? Attribute.GetCustomAttributes(m, attributeType, inherit) : Attribute.GetCustomAttributes(m, inherit);
-#endif
-            }
-
+                    return attributes;
+                case Assembly a:
+                    return (attributeType != null) ? Attribute.GetCustomAttributes(a, attributeType) : Attribute.GetCustomAttributes(a);
+                case MemberInfo mi:
+                    return (attributeType != null) ? Attribute.GetCustomAttributes(mi, attributeType, inherit) : Attribute.GetCustomAttributes(mi, inherit);
 #if !PORTABLE40
-            if (provider is Module)
-            {
-                Module m = (Module)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                return ((attributeType != null) ? m.GetCustomAttributes(attributeType) : m.GetCustomAttributes()).ToArray();
+                case Module m:
+                    return (attributeType != null) ? Attribute.GetCustomAttributes(m, attributeType, inherit) : Attribute.GetCustomAttributes(m, inherit);
+#endif
+                case ParameterInfo p:
+                    return (attributeType != null) ? Attribute.GetCustomAttributes(p, attributeType, inherit) : Attribute.GetCustomAttributes(p, inherit);
+                default:
+#if !PORTABLE40
+                    ICustomAttributeProvider customAttributeProvider = (ICustomAttributeProvider)attributeProvider;
+                    object[] result = (attributeType != null) ? customAttributeProvider.GetCustomAttributes(attributeType, inherit) : customAttributeProvider.GetCustomAttributes(inherit);
+
+                    return (Attribute[])result;
 #else
-                return (attributeType != null) ? Attribute.GetCustomAttributes(m, attributeType, inherit) : Attribute.GetCustomAttributes(m, inherit);
+                    throw new Exception("Cannot get attributes from '{0}'.".FormatWith(CultureInfo.InvariantCulture, provider));
 #endif
             }
-#endif
-
-            if (provider is ParameterInfo)
-            {
-                ParameterInfo p = (ParameterInfo)provider;
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                return ((attributeType != null) ? p.GetCustomAttributes(attributeType, inherit) : p.GetCustomAttributes(inherit)).ToArray();
-#else
-                return (attributeType != null) ? Attribute.GetCustomAttributes(p, attributeType, inherit) : Attribute.GetCustomAttributes(p, inherit);
-#endif
-            }
-
-#if !(PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4)
-            ICustomAttributeProvider customAttributeProvider = (ICustomAttributeProvider)attributeProvider;
-            object[] result = (attributeType != null) ? customAttributeProvider.GetCustomAttributes(attributeType, inherit) : customAttributeProvider.GetCustomAttributes(inherit);
-
-            return (Attribute[])result;
-#else
-            throw new Exception("Cannot get attributes from '{0}'.".FormatWith(CultureInfo.InvariantCulture, provider));
-#endif
         }
 #else
         public static T[] GetAttributes<T>(object attributeProvider, bool inherit) where T : Attribute
@@ -838,58 +801,47 @@ namespace Exceptionless.Json.Utilities
             return GetAttributes(attributeProvider, typeof(T), inherit).Cast<T>().ToArray();
         }
 
-        public static Attribute[] GetAttributes(object provider, Type attributeType, bool inherit)
+        public static Attribute[] GetAttributes(object provider, Type? attributeType, bool inherit)
         {
-            if (provider is Type)
+            switch (provider)
             {
-                Type t = (Type)provider;
-                return (attributeType != null)
-                    ? t.GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray()
-                    : t.GetTypeInfo().GetCustomAttributes(inherit).ToArray();
-            }
-
-            if (provider is Assembly)
-            {
-                Assembly a = (Assembly)provider;
-                return (attributeType != null) ? a.GetCustomAttributes(attributeType).ToArray() : a.GetCustomAttributes().ToArray();
-            }
-
-            if (provider is MemberInfo)
-            {
-                MemberInfo m = (MemberInfo)provider;
-                return (attributeType != null) ? m.GetCustomAttributes(attributeType, inherit).ToArray() : m.GetCustomAttributes(inherit).ToArray();
-            }
-
-            if (provider is Module)
-            {
-                Module m = (Module)provider;
-                return (attributeType != null) ? m.GetCustomAttributes(attributeType).ToArray() : m.GetCustomAttributes().ToArray();
-            }
-
-            if (provider is ParameterInfo)
-            {
-                ParameterInfo p = (ParameterInfo)provider;
-                return (attributeType != null) ? p.GetCustomAttributes(attributeType, inherit).ToArray() : p.GetCustomAttributes(inherit).ToArray();
+                case Type t:
+                    return (attributeType != null)
+                        ? t.GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray()
+                        : t.GetTypeInfo().GetCustomAttributes(inherit).ToArray();
+                case Assembly a:
+                    return (attributeType != null) ? a.GetCustomAttributes(attributeType).ToArray() : a.GetCustomAttributes().ToArray();
+                case MemberInfo memberInfo:
+                    return (attributeType != null) ? memberInfo.GetCustomAttributes(attributeType, inherit).ToArray() : memberInfo.GetCustomAttributes(inherit).ToArray();
+                case Module module:
+                    return (attributeType != null) ? module.GetCustomAttributes(attributeType).ToArray() : module.GetCustomAttributes().ToArray();
+                case ParameterInfo parameterInfo:
+                    return (attributeType != null) ? parameterInfo.GetCustomAttributes(attributeType, inherit).ToArray() : parameterInfo.GetCustomAttributes(inherit).ToArray();
             }
 
             throw new Exception("Cannot get attributes from '{0}'.".FormatWith(CultureInfo.InvariantCulture, provider));
         }
 #endif
 
-        public static void SplitFullyQualifiedTypeName(string fullyQualifiedTypeName, out string typeName, out string assemblyName)
+        internal static StructMultiKey<string?, string> SplitFullyQualifiedTypeName(string fullyQualifiedTypeName)
         {
             int? assemblyDelimiterIndex = GetAssemblyDelimiterIndex(fullyQualifiedTypeName);
 
+            string typeName;
+            string? assemblyName;
+
             if (assemblyDelimiterIndex != null)
             {
-                typeName = fullyQualifiedTypeName.Substring(0, assemblyDelimiterIndex.GetValueOrDefault()).Trim();
-                assemblyName = fullyQualifiedTypeName.Substring(assemblyDelimiterIndex.GetValueOrDefault() + 1, fullyQualifiedTypeName.Length - assemblyDelimiterIndex.GetValueOrDefault() - 1).Trim();
+                typeName = fullyQualifiedTypeName.Trim(0, assemblyDelimiterIndex.GetValueOrDefault());
+                assemblyName = fullyQualifiedTypeName.Trim(assemblyDelimiterIndex.GetValueOrDefault() + 1, fullyQualifiedTypeName.Length - assemblyDelimiterIndex.GetValueOrDefault() - 1);
             }
             else
             {
                 typeName = fullyQualifiedTypeName;
                 assemblyName = null;
             }
+
+            return new StructMultiKey<string?, string>(assemblyName, typeName);
         }
 
         private static int? GetAssemblyDelimiterIndex(string fullyQualifiedTypeName)
@@ -964,8 +916,8 @@ namespace Exceptionless.Json.Utilities
                 while ((targetType = targetType.BaseType()) != null)
                 {
                     // filter out protected fields
-                    IEnumerable<MemberInfo> childPrivateFields =
-                        targetType.GetFields(nonPublicBindingAttr).Where(f => f.IsPrivate).Cast<MemberInfo>();
+                    IEnumerable<FieldInfo> childPrivateFields =
+                        targetType.GetFields(nonPublicBindingAttr).Where(f => f.IsPrivate);
 
                     initialFields.AddRange(childPrivateFields);
                 }
@@ -990,7 +942,7 @@ namespace Exceptionless.Json.Utilities
 
             GetChildPrivateProperties(propertyInfos, targetType, bindingAttr);
 
-            // a base class private getter/setter will be inaccessable unless the property was gotten from the base class
+            // a base class private getter/setter will be inaccessible unless the property was gotten from the base class
             for (int i = 0; i < propertyInfos.Count; i++)
             {
                 PropertyInfo member = propertyInfos[i];
@@ -1024,31 +976,31 @@ namespace Exceptionless.Json.Utilities
                 {
                     PropertyInfo subTypeProperty = propertyInfo;
 
-                    if (!IsPublic(subTypeProperty))
+                    if (!subTypeProperty.IsVirtual())
                     {
-                        // have to test on name rather than reference because instances are different
-                        // depending on the type that GetProperties was called on
-                        int index = initialProperties.IndexOf(p => p.Name == subTypeProperty.Name);
-                        if (index == -1)
+                        if (!IsPublic(subTypeProperty))
                         {
-                            initialProperties.Add(subTypeProperty);
-                        }
-                        else
-                        {
-                            PropertyInfo childProperty = initialProperties[index];
-                            // don't replace public child with private base
-                            if (!IsPublic(childProperty))
+                            // have to test on name rather than reference because instances are different
+                            // depending on the type that GetProperties was called on
+                            int index = initialProperties.IndexOf(p => p.Name == subTypeProperty.Name);
+                            if (index == -1)
                             {
-                                // replace nonpublic properties for a child, but gotten from
-                                // the parent with the one from the child
-                                // the property gotten from the child will have access to private getter/setter
-                                initialProperties[index] = subTypeProperty;
+                                initialProperties.Add(subTypeProperty);
+                            }
+                            else
+                            {
+                                PropertyInfo childProperty = initialProperties[index];
+                                // don't replace public child with private base
+                                if (!IsPublic(childProperty))
+                                {
+                                    // replace nonpublic properties for a child, but gotten from
+                                    // the parent with the one from the child
+                                    // the property gotten from the child will have access to private getter/setter
+                                    initialProperties[index] = subTypeProperty;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        if (!subTypeProperty.IsVirtual())
+                        else
                         {
                             int index = initialProperties.IndexOf(p => p.Name == subTypeProperty.Name
                                                                        && p.DeclaringType == subTypeProperty.DeclaringType);
@@ -1058,17 +1010,19 @@ namespace Exceptionless.Json.Utilities
                                 initialProperties.Add(subTypeProperty);
                             }
                         }
-                        else
-                        {
-                            int index = initialProperties.IndexOf(p => p.Name == subTypeProperty.Name
-                                                                       && p.IsVirtual()
-                                                                       && p.GetBaseDefinition() != null
-                                                                       && p.GetBaseDefinition().DeclaringType.IsAssignableFrom(subTypeProperty.GetBaseDefinition().DeclaringType));
+                    }
+                    else
+                    {
+                        Type subTypePropertyDeclaringType = subTypeProperty.GetBaseDefinition()?.DeclaringType ?? subTypeProperty.DeclaringType;
 
-                            if (index == -1)
-                            {
-                                initialProperties.Add(subTypeProperty);
-                            }
+                        int index = initialProperties.IndexOf(p => p.Name == subTypeProperty.Name
+                                                                   && p.IsVirtual()
+                                                                   && (p.GetBaseDefinition()?.DeclaringType ?? p.DeclaringType).IsAssignableFrom(subTypePropertyDeclaringType));
+
+                        // don't add a virtual property that has an override
+                        if (index == -1)
+                        {
+                            initialProperties.Add(subTypeProperty);
                         }
                     }
                 }
@@ -1088,7 +1042,7 @@ namespace Exceptionless.Json.Utilities
             return isMethodOverriden;
         }
 
-        public static object GetDefaultValue(Type type)
+        public static object? GetDefaultValue(Type type)
         {
             if (!type.IsValueType())
             {
@@ -1118,13 +1072,13 @@ namespace Exceptionless.Json.Utilities
                     return 0m;
                 case PrimitiveTypeCode.DateTime:
                     return new DateTime();
-#if !(PORTABLE || PORTABLE40 || NET35 || NET20)
+#if HAVE_BIG_INTEGER
                 case PrimitiveTypeCode.BigInteger:
                     return new BigInteger();
 #endif
                 case PrimitiveTypeCode.Guid:
                     return new Guid();
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
                 case PrimitiveTypeCode.DateTimeOffset:
                     return new DateTimeOffset();
 #endif

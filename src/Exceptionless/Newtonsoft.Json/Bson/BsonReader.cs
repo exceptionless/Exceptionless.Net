@@ -32,11 +32,14 @@ using Exceptionless.Json.Serialization;
 using Exceptionless.Json.Utilities;
 using Exceptionless.Json.Linq;
 
+#nullable disable
+
 namespace Exceptionless.Json.Bson
 {
     /// <summary>
-    /// Represents a reader that provides fast, non-cached, forward-only access to serialized JSON data.
+    /// Represents a reader that provides fast, non-cached, forward-only access to serialized BSON data.
     /// </summary>
+    [Obsolete("BSON reading and writing has been moved to its own package. See https://www.nuget.org/packages/Exceptionless.Json.Bson for more details.")]
     internal class BsonReader : JsonReader
     {
         private const int MaxCharBytesSize = 128;
@@ -85,7 +88,7 @@ namespace Exceptionless.Json.Bson
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether binary data reading should compatible with incorrect Json.NET 3.5 written binary.
+        /// Gets or sets a value indicating whether binary data reading should be compatible with incorrect Json.NET 3.5 written binary.
         /// </summary>
         /// <value>
         /// 	<c>true</c> if binary data reading will be compatible with incorrect Json.NET 3.5 written binary; otherwise, <c>false</c>.
@@ -93,8 +96,8 @@ namespace Exceptionless.Json.Bson
         [Obsolete("JsonNet35BinaryCompatibility will be removed in a future version of Json.NET.")]
         public bool JsonNet35BinaryCompatibility
         {
-            get { return _jsonNet35BinaryCompatibility; }
-            set { _jsonNet35BinaryCompatibility = value; }
+            get => _jsonNet35BinaryCompatibility;
+            set => _jsonNet35BinaryCompatibility = value;
         }
 
         /// <summary>
@@ -105,8 +108,8 @@ namespace Exceptionless.Json.Bson
         /// </value>
         public bool ReadRootValueAsArray
         {
-            get { return _readRootValueAsArray; }
-            set { _readRootValueAsArray = value; }
+            get => _readRootValueAsArray;
+            set => _readRootValueAsArray = value;
         }
 
         /// <summary>
@@ -115,14 +118,14 @@ namespace Exceptionless.Json.Bson
         /// <value>The <see cref="DateTimeKind" /> used when reading <see cref="DateTime"/> values from BSON.</value>
         public DateTimeKind DateTimeKindHandling
         {
-            get { return _dateTimeKindHandling; }
-            set { _dateTimeKindHandling = value; }
+            get => _dateTimeKindHandling;
+            set => _dateTimeKindHandling = value;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BsonReader"/> class.
         /// </summary>
-        /// <param name="stream">The stream.</param>
+        /// <param name="stream">The <see cref="Stream"/> containing the BSON data to read.</param>
         public BsonReader(Stream stream)
             : this(stream, false, DateTimeKind.Local)
         {
@@ -131,7 +134,7 @@ namespace Exceptionless.Json.Bson
         /// <summary>
         /// Initializes a new instance of the <see cref="BsonReader"/> class.
         /// </summary>
-        /// <param name="reader">The reader.</param>
+        /// <param name="reader">The <see cref="BinaryReader"/> containing the BSON data to read.</param>
         public BsonReader(BinaryReader reader)
             : this(reader, false, DateTimeKind.Local)
         {
@@ -140,7 +143,7 @@ namespace Exceptionless.Json.Bson
         /// <summary>
         /// Initializes a new instance of the <see cref="BsonReader"/> class.
         /// </summary>
-        /// <param name="stream">The stream.</param>
+        /// <param name="stream">The <see cref="Stream"/> containing the BSON data to read.</param>
         /// <param name="readRootValueAsArray">if set to <c>true</c> the root object will be read as a JSON array.</param>
         /// <param name="dateTimeKindHandling">The <see cref="DateTimeKind" /> used when reading <see cref="DateTime"/> values from BSON.</param>
         public BsonReader(Stream stream, bool readRootValueAsArray, DateTimeKind dateTimeKindHandling)
@@ -155,7 +158,7 @@ namespace Exceptionless.Json.Bson
         /// <summary>
         /// Initializes a new instance of the <see cref="BsonReader"/> class.
         /// </summary>
-        /// <param name="reader">The reader.</param>
+        /// <param name="reader">The <see cref="BinaryReader"/> containing the BSON data to read.</param>
         /// <param name="readRootValueAsArray">if set to <c>true</c> the root object will be read as a JSON array.</param>
         /// <param name="dateTimeKindHandling">The <see cref="DateTimeKind" /> used when reading <see cref="DateTime"/> values from BSON.</param>
         public BsonReader(BinaryReader reader, bool readRootValueAsArray, DateTimeKind dateTimeKindHandling)
@@ -175,10 +178,10 @@ namespace Exceptionless.Json.Bson
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream.
+        /// Reads the next JSON token from the underlying <see cref="Stream"/>.
         /// </summary>
         /// <returns>
-        /// true if the next token was read successfully; false if there are no more tokens to read.
+        /// <c>true</c> if the next token was read successfully; <c>false</c> if there are no more tokens to read.
         /// </returns>
         public override bool Read()
         {
@@ -223,18 +226,19 @@ namespace Exceptionless.Json.Bson
         }
 
         /// <summary>
-        /// Changes the <see cref="JsonReader.State"/> to Closed.
+        /// Changes the reader's state to <see cref="JsonReader.State.Closed"/>.
+        /// If <see cref="JsonReader.CloseInput"/> is set to <c>true</c>, the underlying <see cref="Stream"/> is also closed.
         /// </summary>
         public override void Close()
         {
             base.Close();
 
-            if (CloseInput && _reader != null)
+            if (CloseInput)
             {
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
-                _reader.Close();
+#if HAVE_STREAM_READER_WRITER_CLOSE
+                _reader?.Close();
 #else
-                _reader.Dispose();
+                _reader?.Dispose();
 #endif
             }
         }
@@ -368,6 +372,11 @@ namespace Exceptionless.Json.Bson
                     ContainerContext context = _currentContext;
                     if (context == null)
                     {
+                        if (SupportMultipleContent)
+                        {
+                            goto case State.Start;
+                        }
+
                         return false;
                     }
 

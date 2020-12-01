@@ -27,11 +27,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Threading;
-#if NET20
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
-
 #endif
 
 namespace Exceptionless.Json.Utilities
@@ -44,12 +46,12 @@ namespace Exceptionless.Json.Utilities
 
     internal class DictionaryWrapper<TKey, TValue> : IDictionary<TKey, TValue>, IWrappedDictionary
     {
-        private readonly IDictionary _dictionary;
-        private readonly IDictionary<TKey, TValue> _genericDictionary;
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
-        private readonly IReadOnlyDictionary<TKey, TValue> _readOnlyDictionary;
+        private readonly IDictionary? _dictionary;
+        private readonly IDictionary<TKey, TValue>? _genericDictionary;
+#if HAVE_READ_ONLY_COLLECTIONS
+        private readonly IReadOnlyDictionary<TKey, TValue>? _readOnlyDictionary;
 #endif
-        private object _syncRoot;
+        private object? _syncRoot;
 
         public DictionaryWrapper(IDictionary dictionary)
         {
@@ -65,7 +67,7 @@ namespace Exceptionless.Json.Utilities
             _genericDictionary = dictionary;
         }
 
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
         public DictionaryWrapper(IReadOnlyDictionary<TKey, TValue> dictionary)
         {
             ValidationUtils.ArgumentNotNull(dictionary, nameof(dictionary));
@@ -73,6 +75,15 @@ namespace Exceptionless.Json.Utilities
             _readOnlyDictionary = dictionary;
         }
 #endif
+
+        internal IDictionary<TKey, TValue> GenericDictionary
+        {
+            get
+            {
+                MiscellaneousUtils.Assert(_genericDictionary != null);
+                return _genericDictionary;
+            }
+        }
 
         public void Add(TKey key, TValue value)
         {
@@ -96,7 +107,7 @@ namespace Exceptionless.Json.Utilities
             {
                 return _dictionary.Contains(key);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.ContainsKey(key);
@@ -104,7 +115,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _genericDictionary.ContainsKey(key);
+                return GenericDictionary.ContainsKey(key);
             }
         }
 
@@ -116,7 +127,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _dictionary.Keys.Cast<TKey>().ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Keys.ToList();
@@ -124,7 +135,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary.Keys;
+                    return GenericDictionary.Keys;
                 }
             }
         }
@@ -143,7 +154,7 @@ namespace Exceptionless.Json.Utilities
                     return false;
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -151,17 +162,19 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _genericDictionary.Remove(key);
+                return GenericDictionary.Remove(key);
             }
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNull]out TValue value)
         {
             if (_dictionary != null)
             {
                 if (!_dictionary.Contains(key))
                 {
-                    value = default(TValue);
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
+                    value = default;
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
                     return false;
                 }
                 else
@@ -170,7 +183,7 @@ namespace Exceptionless.Json.Utilities
                     return true;
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -178,7 +191,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _genericDictionary.TryGetValue(key, out value);
+                return GenericDictionary.TryGetValue(key, out value);
             }
         }
 
@@ -190,7 +203,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _dictionary.Values.Cast<TValue>().ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Values.ToList();
@@ -198,7 +211,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary.Values;
+                    return GenericDictionary.Values;
                 }
             }
         }
@@ -211,7 +224,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return (TValue)_dictionary[key];
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary[key];
@@ -219,7 +232,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary[key];
+                    return GenericDictionary[key];
                 }
             }
             set
@@ -228,7 +241,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     _dictionary[key] = value;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     throw new NotSupportedException();
@@ -236,7 +249,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    _genericDictionary[key] = value;
+                    GenericDictionary[key] = value;
                 }
             }
         }
@@ -247,15 +260,15 @@ namespace Exceptionless.Json.Utilities
             {
                 ((IList)_dictionary).Add(item);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
             }
 #endif
-            else if (_genericDictionary != null)
+            else
             {
-                _genericDictionary.Add(item);
+                _genericDictionary?.Add(item);
             }
         }
 
@@ -265,7 +278,7 @@ namespace Exceptionless.Json.Utilities
             {
                 _dictionary.Clear();
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -273,7 +286,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                _genericDictionary.Clear();
+                GenericDictionary.Clear();
             }
         }
 
@@ -283,7 +296,7 @@ namespace Exceptionless.Json.Utilities
             {
                 return ((IList)_dictionary).Contains(item);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.Contains(item);
@@ -291,7 +304,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _genericDictionary.Contains(item);
+                return GenericDictionary.Contains(item);
             }
         }
 
@@ -299,12 +312,22 @@ namespace Exceptionless.Json.Utilities
         {
             if (_dictionary != null)
             {
-                foreach (DictionaryEntry item in _dictionary)
+                // Manual use of IDictionaryEnumerator instead of foreach to avoid DictionaryEntry box allocations.
+                IDictionaryEnumerator e = _dictionary.GetEnumerator();
+                try
                 {
-                    array[arrayIndex++] = new KeyValuePair<TKey, TValue>((TKey)item.Key, (TValue)item.Value);
+                    while (e.MoveNext())
+                    {
+                        DictionaryEntry entry = e.Entry;
+                        array[arrayIndex++] = new KeyValuePair<TKey, TValue>((TKey)entry.Key, (TValue)entry.Value);
+                    }
+                }
+                finally
+                {
+                    (e as IDisposable)?.Dispose();
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -312,7 +335,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                _genericDictionary.CopyTo(array, arrayIndex);
+                GenericDictionary.CopyTo(array, arrayIndex);
             }
         }
 
@@ -324,7 +347,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _dictionary.Count;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Count;
@@ -332,7 +355,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary.Count;
+                    return GenericDictionary.Count;
                 }
             }
         }
@@ -345,7 +368,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _dictionary.IsReadOnly;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return true;
@@ -353,7 +376,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary.IsReadOnly;
+                    return GenericDictionary.IsReadOnly;
                 }
             }
         }
@@ -366,7 +389,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     object value = _dictionary[item.Key];
 
-                    if (object.Equals(value, item.Value))
+                    if (Equals(value, item.Value))
                     {
                         _dictionary.Remove(item.Key);
                         return true;
@@ -381,7 +404,7 @@ namespace Exceptionless.Json.Utilities
                     return true;
                 }
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -389,7 +412,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _genericDictionary.Remove(item);
+                return GenericDictionary.Remove(item);
             }
         }
 
@@ -399,7 +422,7 @@ namespace Exceptionless.Json.Utilities
             {
                 return _dictionary.Cast<DictionaryEntry>().Select(de => new KeyValuePair<TKey, TValue>((TKey)de.Key, (TValue)de.Value)).GetEnumerator();
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.GetEnumerator();
@@ -407,7 +430,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _genericDictionary.GetEnumerator();
+                return GenericDictionary.GetEnumerator();
             }
         }
 
@@ -422,7 +445,7 @@ namespace Exceptionless.Json.Utilities
             {
                 _dictionary.Add(key, value);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -430,11 +453,11 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                _genericDictionary.Add((TKey)key, (TValue)value);
+                GenericDictionary.Add((TKey)key, (TValue)value);
             }
         }
 
-        object IDictionary.this[object key]
+        object? IDictionary.this[object key]
         {
             get
             {
@@ -442,7 +465,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _dictionary[key];
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary[(TKey)key];
@@ -450,7 +473,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary[(TKey)key];
+                    return GenericDictionary[(TKey)key];
                 }
             }
             set
@@ -459,7 +482,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     _dictionary[key] = value;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     throw new NotSupportedException();
@@ -467,12 +490,14 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    _genericDictionary[(TKey)key] = (TValue)value;
+#pragma warning disable CS8601 // Possible null reference assignment.
+                    GenericDictionary[(TKey)key] = (TValue)value;
+#pragma warning restore CS8601 // Possible null reference assignment.
                 }
             }
         }
 
-        private struct DictionaryEnumerator<TEnumeratorKey, TEnumeratorValue> : IDictionaryEnumerator
+        private readonly struct DictionaryEnumerator<TEnumeratorKey, TEnumeratorValue> : IDictionaryEnumerator
         {
             private readonly IEnumerator<KeyValuePair<TEnumeratorKey, TEnumeratorValue>> _e;
 
@@ -482,25 +507,13 @@ namespace Exceptionless.Json.Utilities
                 _e = e;
             }
 
-            public DictionaryEntry Entry
-            {
-                get { return (DictionaryEntry)Current; }
-            }
+            public DictionaryEntry Entry => (DictionaryEntry)Current;
 
-            public object Key
-            {
-                get { return Entry.Key; }
-            }
+            public object Key => Entry.Key;
 
-            public object Value
-            {
-                get { return Entry.Value; }
-            }
+            public object Value => Entry.Value;
 
-            public object Current
-            {
-                get { return new DictionaryEntry(_e.Current.Key, _e.Current.Value); }
-            }
+            public object Current => new DictionaryEntry(_e.Current.Key, _e.Current.Value);
 
             public bool MoveNext()
             {
@@ -519,7 +532,7 @@ namespace Exceptionless.Json.Utilities
             {
                 return _dictionary.GetEnumerator();
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 return new DictionaryEnumerator<TKey, TValue>(_readOnlyDictionary.GetEnumerator());
@@ -527,7 +540,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return new DictionaryEnumerator<TKey, TValue>(_genericDictionary.GetEnumerator());
+                return new DictionaryEnumerator<TKey, TValue>(GenericDictionary.GetEnumerator());
             }
         }
 
@@ -537,7 +550,7 @@ namespace Exceptionless.Json.Utilities
             {
                 return _genericDictionary.ContainsKey((TKey)key);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 return _readOnlyDictionary.ContainsKey((TKey)key);
@@ -545,7 +558,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                return _dictionary.Contains(key);
+                return _dictionary!.Contains(key);
             }
         }
 
@@ -557,7 +570,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return false;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return true;
@@ -565,7 +578,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _dictionary.IsFixedSize;
+                    return _dictionary!.IsFixedSize;
                 }
             }
         }
@@ -578,7 +591,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _genericDictionary.Keys.ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Keys.ToList();
@@ -586,7 +599,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _dictionary.Keys;
+                    return _dictionary!.Keys;
                 }
             }
         }
@@ -597,7 +610,7 @@ namespace Exceptionless.Json.Utilities
             {
                 _dictionary.Remove(key);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -605,7 +618,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                _genericDictionary.Remove((TKey)key);
+                GenericDictionary.Remove((TKey)key);
             }
         }
 
@@ -617,7 +630,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _genericDictionary.Values.ToList();
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary.Values.ToList();
@@ -625,7 +638,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _dictionary.Values;
+                    return _dictionary!.Values;
                 }
             }
         }
@@ -636,7 +649,7 @@ namespace Exceptionless.Json.Utilities
             {
                 _dictionary.CopyTo(array, index);
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             else if (_readOnlyDictionary != null)
             {
                 throw new NotSupportedException();
@@ -644,7 +657,7 @@ namespace Exceptionless.Json.Utilities
 #endif
             else
             {
-                _genericDictionary.CopyTo((KeyValuePair<TKey, TValue>[])array, index);
+                GenericDictionary.CopyTo((KeyValuePair<TKey, TValue>[])array, index);
             }
         }
 
@@ -684,7 +697,7 @@ namespace Exceptionless.Json.Utilities
                 {
                     return _dictionary;
                 }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
                 else if (_readOnlyDictionary != null)
                 {
                     return _readOnlyDictionary;
@@ -692,7 +705,7 @@ namespace Exceptionless.Json.Utilities
 #endif
                 else
                 {
-                    return _genericDictionary;
+                    return GenericDictionary;
                 }
             }
         }

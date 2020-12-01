@@ -29,6 +29,8 @@ using System.IO;
 using System.Text;
 using Exceptionless.Json.Utilities;
 
+#nullable disable
+
 namespace Exceptionless.Json.Bson
 {
     internal class BsonBinaryWriter
@@ -54,7 +56,7 @@ namespace Exceptionless.Json.Bson
 
         public void Close()
         {
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_STREAM_READER_WRITER_CLOSE
             _writer.Close();
 #else
             _writer.Dispose();
@@ -124,10 +126,7 @@ namespace Exceptionless.Json.Bson
                 }
                     break;
                 case BsonType.Boolean:
-                {
-                    BsonValue value = (BsonValue)t;
-                    _writer.Write((bool)value.Value);
-                }
+                    _writer.Write(t == BsonBoolean.True);
                     break;
                 case BsonType.Null:
                 case BsonType.Undefined:
@@ -138,9 +137,8 @@ namespace Exceptionless.Json.Bson
 
                     long ticks = 0;
 
-                    if (value.Value is DateTime)
+                    if (value.Value is DateTime dateTime)
                     {
-                        DateTime dateTime = (DateTime)value.Value;
                         if (DateTimeKindHandling == DateTimeKind.Utc)
                         {
                             dateTime = dateTime.ToUniversalTime();
@@ -152,7 +150,7 @@ namespace Exceptionless.Json.Bson
 
                         ticks = DateTimeUtils.ConvertDateTimeToJavaScriptTicks(dateTime, false);
                     }
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
                     else
                     {
                         DateTimeOffset dateTimeOffset = (DateTimeOffset)value.Value;
@@ -210,12 +208,13 @@ namespace Exceptionless.Json.Bson
         {
             if (s != null)
             {
-                if (_largeByteBuffer == null)
-                {
-                    _largeByteBuffer = new byte[256];
-                }
                 if (byteCount <= 256)
                 {
+                    if (_largeByteBuffer == null)
+                    {
+                        _largeByteBuffer = new byte[256];
+                    }
+
                     Encoding.GetBytes(s, 0, s.Length, _largeByteBuffer, 0);
                     _writer.Write(_largeByteBuffer, 0, byteCount);
                 }

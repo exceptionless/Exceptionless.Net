@@ -28,47 +28,61 @@ using System.Runtime.Serialization;
 using System.Reflection;
 using System.Globalization;
 using Exceptionless.Json.Utilities;
+using System.Collections.Generic;
 
 namespace Exceptionless.Json.Serialization
 {
     /// <summary>
     /// The default serialization binder used when resolving and loading classes from type names.
     /// </summary>
-    internal class DefaultSerializationBinder : SerializationBinder
+    internal class DefaultSerializationBinder :
+#pragma warning disable 618
+        SerializationBinder,
+#pragma warning restore 618
+        ISerializationBinder
     {
         internal static readonly DefaultSerializationBinder Instance = new DefaultSerializationBinder();
 
-        private readonly ThreadSafeStore<TypeNameKey, Type> _typeCache = new ThreadSafeStore<TypeNameKey, Type>(GetTypeFromTypeNameKey);
+        private readonly ThreadSafeStore<StructMultiKey<string?, string>, Type> _typeCache;
 
-        private static Type GetTypeFromTypeNameKey(TypeNameKey typeNameKey)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultSerializationBinder"/> class.
+        /// </summary>
+        public DefaultSerializationBinder()
         {
-            string assemblyName = typeNameKey.AssemblyName;
-            string typeName = typeNameKey.TypeName;
+            _typeCache = new ThreadSafeStore<StructMultiKey<string?, string>, Type>(GetTypeFromTypeNameKey);
+        }
+
+        private Type GetTypeFromTypeNameKey(StructMultiKey<string?, string> typeNameKey)
+        {
+            string? assemblyName = typeNameKey.Value1;
+            string typeName = typeNameKey.Value2;
 
             if (assemblyName != null)
             {
                 Assembly assembly;
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if !(DOTNET || PORTABLE40 || PORTABLE)
                 // look, I don't like using obsolete methods as much as you do but this is the only way
                 // Assembly.Load won't check the GAC for a partial name
 #pragma warning disable 618,612
                 assembly = Assembly.LoadWithPartialName(assemblyName);
 #pragma warning restore 618,612
-#elif DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
+#elif DOTNET || PORTABLE
                 assembly = Assembly.Load(new AssemblyName(assemblyName));
 #else
                 assembly = Assembly.Load(assemblyName);
 #endif
 
-#if !(PORTABLE40 || PORTABLE || DOTNET || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if HAVE_APP_DOMAIN
                 if (assembly == null)
                 {
                     // will find assemblies loaded with Assembly.LoadFile outside of the main directory
                     Assembly[] loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
                     foreach (Assembly a in loadedAssemblies)
                     {
-                        if (a.FullName == assemblyName)
+                        // check for both full name or partial name match
+                        if (a.FullName == assemblyName || a.GetName().Name == assemblyName)
                         {
                             assembly = a;
                             break;
@@ -82,10 +96,27 @@ namespace Exceptionless.Json.Serialization
                     throw new JsonSerializationException("Could not load assembly '{0}'.".FormatWith(CultureInfo.InvariantCulture, assemblyName));
                 }
 
-                Type type = assembly.GetType(typeName);
+                Type? type = assembly.GetType(typeName);
                 if (type == null)
                 {
-                    throw new JsonSerializationException("Could not find type '{0}' in assembly '{1}'.".FormatWith(CultureInfo.InvariantCulture, typeName, assembly.FullName));
+                    // if generic type, try manually parsing the type arguments for the case of dynamically loaded assemblies
+                    // example generic typeName format: System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]
+                    if (typeName.IndexOf('`') >= 0)
+                    {
+                        try
+                        {
+                            type = GetGenericTypeFromTypeName(typeName, assembly);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new JsonSerializationException("Could not find type '{0}' in assembly '{1}'.".FormatWith(CultureInfo.InvariantCulture, typeName, assembly.FullName), ex);
+                        }
+                    }
+
+                    if (type == null)
+                    {
+                        throw new JsonSerializationException("Could not find type '{0}' in assembly '{1}'.".FormatWith(CultureInfo.InvariantCulture, typeName, assembly.FullName));
+                    }
                 }
 
                 return type;
@@ -96,62 +127,83 @@ namespace Exceptionless.Json.Serialization
             }
         }
 
-        internal struct TypeNameKey : IEquatable<TypeNameKey>
+        private Type? GetGenericTypeFromTypeName(string typeName, Assembly assembly)
         {
-            internal readonly string AssemblyName;
-            internal readonly string TypeName;
-
-            public TypeNameKey(string assemblyName, string typeName)
+            Type? type = null;
+            int openBracketIndex = typeName.IndexOf('[');
+            if (openBracketIndex >= 0)
             {
-                AssemblyName = assemblyName;
-                TypeName = typeName;
-            }
-
-            public override int GetHashCode()
-            {
-                return ((AssemblyName != null) ? AssemblyName.GetHashCode() : 0)
-                       ^ ((TypeName != null) ? TypeName.GetHashCode() : 0);
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (!(obj is TypeNameKey))
+                string genericTypeDefName = typeName.Substring(0, openBracketIndex);
+                Type genericTypeDef = assembly.GetType(genericTypeDefName);
+                if (genericTypeDef != null)
                 {
-                    return false;
+                    List<Type> genericTypeArguments = new List<Type>();
+                    int scope = 0;
+                    int typeArgStartIndex = 0;
+                    int endIndex = typeName.Length - 1;
+                    for (int i = openBracketIndex + 1; i < endIndex; ++i)
+                    {
+                        char current = typeName[i];
+                        switch (current)
+                        {
+                            case '[':
+                                if (scope == 0)
+                                {
+                                    typeArgStartIndex = i + 1;
+                                }
+                                ++scope;
+                                break;
+                            case ']':
+                                --scope;
+                                if (scope == 0)
+                                {
+                                    string typeArgAssemblyQualifiedName = typeName.Substring(typeArgStartIndex, i - typeArgStartIndex);
+
+                                    StructMultiKey<string?, string> typeNameKey = ReflectionUtils.SplitFullyQualifiedTypeName(typeArgAssemblyQualifiedName);
+                                    genericTypeArguments.Add(GetTypeByName(typeNameKey));
+                                }
+                                break;
+                        }
+                    }
+
+                    type = genericTypeDef.MakeGenericType(genericTypeArguments.ToArray());
                 }
-
-                return Equals((TypeNameKey)obj);
             }
 
-            public bool Equals(TypeNameKey other)
-            {
-                return (AssemblyName == other.AssemblyName && TypeName == other.TypeName);
-            }
+            return type;
+        }
+
+        private Type GetTypeByName(StructMultiKey<string?, string> typeNameKey)
+        {
+            return _typeCache.Get(typeNameKey);
         }
 
         /// <summary>
         /// When overridden in a derived class, controls the binding of a serialized object to a type.
         /// </summary>
-        /// <param name="assemblyName">Specifies the <see cref="T:System.Reflection.Assembly"/> name of the serialized object.</param>
-        /// <param name="typeName">Specifies the <see cref="T:System.Type"/> name of the serialized object.</param>
+        /// <param name="assemblyName">Specifies the <see cref="Assembly"/> name of the serialized object.</param>
+        /// <param name="typeName">Specifies the <see cref="System.Type"/> name of the serialized object.</param>
         /// <returns>
         /// The type of the object the formatter creates a new instance of.
         /// </returns>
-        public override Type BindToType(string assemblyName, string typeName)
+        public override Type BindToType(string? assemblyName, string typeName)
         {
-            return _typeCache.Get(new TypeNameKey(assemblyName, typeName));
+            return GetTypeByName(new StructMultiKey<string?, string>(assemblyName, typeName));
         }
 
-#if !(NET35 || NET20)
         /// <summary>
         /// When overridden in a derived class, controls the binding of a serialized object to a type.
         /// </summary>
         /// <param name="serializedType">The type of the object the formatter creates a new instance of.</param>
-        /// <param name="assemblyName">Specifies the <see cref="T:System.Reflection.Assembly"/> name of the serialized object. </param>
-        /// <param name="typeName">Specifies the <see cref="T:System.Type"/> name of the serialized object. </param>
-        public override void BindToName(Type serializedType, out string assemblyName, out string typeName)
+        /// <param name="assemblyName">Specifies the <see cref="Assembly"/> name of the serialized object.</param>
+        /// <param name="typeName">Specifies the <see cref="System.Type"/> name of the serialized object.</param>
+        public
+#if HAVE_SERIALIZATION_BINDER_BIND_TO_NAME
+        override
+#endif
+        void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
         {
-#if (DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if !HAVE_FULL_REFLECTION
             assemblyName = serializedType.GetTypeInfo().Assembly.FullName;
             typeName = serializedType.FullName;
 #else
@@ -159,6 +211,5 @@ namespace Exceptionless.Json.Serialization
             typeName = serializedType.FullName;
 #endif
         }
-#endif
     }
 }

@@ -28,11 +28,14 @@ using Exceptionless.Json.Bson;
 using System.Globalization;
 using Exceptionless.Json.Utilities;
 
+#nullable disable
+
 namespace Exceptionless.Json.Converters
 {
     /// <summary>
     /// Converts a <see cref="BsonObjectId"/> to and from JSON and BSON.
     /// </summary>
+    [Obsolete("BSON reading and writing has been moved to its own package. See https://www.nuget.org/packages/Exceptionless.Json.Bson for more details.")]
     internal class BsonObjectIdConverter : JsonConverter
     {
         /// <summary>
@@ -45,8 +48,7 @@ namespace Exceptionless.Json.Converters
         {
             BsonObjectId objectId = (BsonObjectId)value;
 
-            BsonWriter bsonWriter = writer as BsonWriter;
-            if (bsonWriter != null)
+            if (writer is BsonWriter bsonWriter)
             {
                 bsonWriter.WriteObjectId(objectId.Value);
             }

@@ -23,10 +23,10 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if HAVE_REFLECTION_EMIT
 using System;
 using System.Collections.Generic;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #endif
 using System.Reflection;
@@ -38,17 +38,13 @@ namespace Exceptionless.Json.Utilities
 {
     internal class DynamicReflectionDelegateFactory : ReflectionDelegateFactory
     {
-        public static DynamicReflectionDelegateFactory Instance = new DynamicReflectionDelegateFactory();
+        internal static DynamicReflectionDelegateFactory Instance { get; } = new DynamicReflectionDelegateFactory();
 
-        private static DynamicMethod CreateDynamicMethod(string name, Type returnType, Type[] parameterTypes, Type owner)
+        private static DynamicMethod CreateDynamicMethod(string name, Type? returnType, Type[] parameterTypes, Type owner)
         {
             DynamicMethod dynamicMethod = !owner.IsInterface()
                 ? new DynamicMethod(name, returnType, parameterTypes, owner, true)
-#if NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                : new DynamicMethod(name, returnType, parameterTypes, owner.GetTypeInfo().Module, true);
-#else
                 : new DynamicMethod(name, returnType, parameterTypes, owner.Module, true);
-#endif
 
             return dynamicMethod;
         }
@@ -59,18 +55,18 @@ namespace Exceptionless.Json.Utilities
             ILGenerator generator = dynamicMethod.GetILGenerator();
 
             GenerateCreateMethodCallIL(method, generator, 0);
-
+            
             return (ObjectConstructor<object>)dynamicMethod.CreateDelegate(typeof(ObjectConstructor<object>));
         }
 
-        public override MethodCall<T, object> CreateMethodCall<T>(MethodBase method)
+        public override MethodCall<T, object?> CreateMethodCall<T>(MethodBase method)
         {
             DynamicMethod dynamicMethod = CreateDynamicMethod(method.ToString(), typeof(object), new[] { typeof(object), typeof(object[]) }, method.DeclaringType);
             ILGenerator generator = dynamicMethod.GetILGenerator();
 
             GenerateCreateMethodCallIL(method, generator, 1);
 
-            return (MethodCall<T, object>)dynamicMethod.CreateDelegate(typeof(MethodCall<T, object>));
+            return (MethodCall<T, object?>)dynamicMethod.CreateDelegate(typeof(MethodCall<T, object?>));
         }
 
         private void GenerateCreateMethodCallIL(MethodBase method, ILGenerator generator, int argsIndex)
@@ -94,7 +90,11 @@ namespace Exceptionless.Json.Utilities
                 generator.PushInstance(method.DeclaringType);
             }
 
-            int localVariableCount = 0;
+            LocalBuilder localConvertible = generator.DeclareLocal(typeof(IConvertible));
+            LocalBuilder localObject = generator.DeclareLocal(typeof(object));
+
+            OpCode variableAddressOpCode = args.Length < 256 ? OpCodes.Ldloca_S : OpCodes.Ldloca;
+            OpCode variableLoadOpCode = args.Length < 256 ? OpCodes.Ldloc_S : OpCodes.Ldloc;
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -121,7 +121,7 @@ namespace Exceptionless.Json.Utilities
                             generator.Emit(OpCodes.Brtrue_S, skipSettingDefault);
 
                             // parameter has no value, initialize to default
-                            generator.Emit(OpCodes.Ldloca_S, localVariable);
+                            generator.Emit(variableAddressOpCode, localVariable);
                             generator.Emit(OpCodes.Initobj, parameterType);
                             generator.Emit(OpCodes.Br_S, finishedProcessingParameter);
 
@@ -129,7 +129,7 @@ namespace Exceptionless.Json.Utilities
                             generator.MarkLabel(skipSettingDefault);
                             generator.PushArrayInstance(argsIndex, i);
                             generator.UnboxIfNeeded(parameterType);
-                            generator.Emit(OpCodes.Stloc, localVariableCount);
+                            generator.Emit(OpCodes.Stloc_S, localVariable);
 
                             // parameter finished, we out!
                             generator.MarkLabel(finishedProcessingParameter);
@@ -137,17 +137,16 @@ namespace Exceptionless.Json.Utilities
                         else
                         {
                             generator.UnboxIfNeeded(parameterType);
-                            generator.Emit(OpCodes.Stloc, localVariableCount);
+                            generator.Emit(OpCodes.Stloc_S, localVariable);
                         }
                     }
 
-                    generator.Emit(OpCodes.Ldloca_S, localVariable);
-
-                    localVariableCount++;
+                    generator.Emit(variableAddressOpCode, localVariable);
                 }
                 else if (parameterType.IsValueType())
                 {
                     generator.PushArrayInstance(argsIndex, i);
+                    generator.Emit(OpCodes.Stloc_S, localObject);
 
                     // have to check that value type parameters aren't null
                     // otherwise they will error when unboxed
@@ -155,23 +154,60 @@ namespace Exceptionless.Json.Utilities
                     Label finishedProcessingParameter = generator.DefineLabel();
 
                     // check if parameter is not null
+                    generator.Emit(OpCodes.Ldloc_S, localObject);
                     generator.Emit(OpCodes.Brtrue_S, skipSettingDefault);
 
                     // parameter has no value, initialize to default
                     LocalBuilder localVariable = generator.DeclareLocal(parameterType);
-                    generator.Emit(OpCodes.Ldloca_S, localVariable);
+                    generator.Emit(variableAddressOpCode, localVariable);
                     generator.Emit(OpCodes.Initobj, parameterType);
-                    generator.Emit(OpCodes.Ldloc, localVariableCount);
+                    generator.Emit(variableLoadOpCode, localVariable);
                     generator.Emit(OpCodes.Br_S, finishedProcessingParameter);
 
-                    // parameter has value, get value from array again and unbox
+                    // argument has value, try to convert it to parameter type
                     generator.MarkLabel(skipSettingDefault);
-                    generator.PushArrayInstance(argsIndex, i);
-                    generator.UnboxIfNeeded(parameterType);
+                    
+                    if (parameterType.IsPrimitive())
+                    {
+                        // for primitive types we need to handle type widening (e.g. short -> int)
+                        MethodInfo toParameterTypeMethod = typeof(IConvertible)
+                            .GetMethod("To" + parameterType.Name, new[] { typeof(IFormatProvider) });
+                        
+                        if (toParameterTypeMethod != null)
+                        {
+                            Label skipConvertible = generator.DefineLabel();
 
+                            // check if argument type is an exact match for parameter type
+                            // in this case we may use cheap unboxing instead
+                            generator.Emit(OpCodes.Ldloc_S, localObject);
+                            generator.Emit(OpCodes.Isinst, parameterType);
+                            generator.Emit(OpCodes.Brtrue_S, skipConvertible);
+
+                            // types don't match, check if argument implements IConvertible
+                            generator.Emit(OpCodes.Ldloc_S, localObject);
+                            generator.Emit(OpCodes.Isinst, typeof(IConvertible));
+                            generator.Emit(OpCodes.Stloc_S, localConvertible);
+                            generator.Emit(OpCodes.Ldloc_S, localConvertible);
+                            generator.Emit(OpCodes.Brfalse_S, skipConvertible);
+
+                            // convert argument to parameter type
+                            generator.Emit(OpCodes.Ldloc_S, localConvertible);
+                            generator.Emit(OpCodes.Ldnull);
+                            generator.Emit(OpCodes.Callvirt, toParameterTypeMethod);
+                            generator.Emit(OpCodes.Br_S, finishedProcessingParameter);
+
+                            generator.MarkLabel(skipConvertible);
+                        }
+                    }
+
+                    // we got here because either argument type matches parameter (conversion will succeed),
+                    // or argument type doesn't match parameter, but we're out of options (conversion will fail)
+                    generator.Emit(OpCodes.Ldloc_S, localObject);
+
+                    generator.UnboxIfNeeded(parameterType);
+                    
                     // parameter finished, we out!
                     generator.MarkLabel(finishedProcessingParameter);
-                    localVariableCount++;
                 }
                 else
                 {
@@ -212,28 +248,29 @@ namespace Exceptionless.Json.Utilities
             dynamicMethod.InitLocals = true;
             ILGenerator generator = dynamicMethod.GetILGenerator();
 
-            GenerateCreateDefaultConstructorIL(type, generator);
+            GenerateCreateDefaultConstructorIL(type, generator, typeof(T));
 
             return (Func<T>)dynamicMethod.CreateDelegate(typeof(Func<T>));
         }
 
-        private void GenerateCreateDefaultConstructorIL(Type type, ILGenerator generator)
+        private void GenerateCreateDefaultConstructorIL(Type type, ILGenerator generator, Type delegateType)
         {
             if (type.IsValueType())
             {
                 generator.DeclareLocal(type);
                 generator.Emit(OpCodes.Ldloc_0);
-                generator.Emit(OpCodes.Box, type);
+
+                // only need to box if the delegate isn't returning the value type
+                if (type != delegateType)
+                {
+                    generator.Emit(OpCodes.Box, type);
+                }
             }
             else
             {
                 ConstructorInfo constructorInfo =
-#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                    type.GetConstructor(ReflectionUtils.EmptyTypes);
-#else
-                    type.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null,
-                        ReflectionUtils.EmptyTypes, null);              
-#endif
+                    type.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, ReflectionUtils.EmptyTypes, null);
+
                 if (constructorInfo == null)
                 {
                     throw new ArgumentException("Could not get constructor for {0}.".FormatWith(CultureInfo.InvariantCulture, type));
@@ -245,14 +282,14 @@ namespace Exceptionless.Json.Utilities
             generator.Return();
         }
 
-        public override Func<T, object> CreateGet<T>(PropertyInfo propertyInfo)
+        public override Func<T, object?> CreateGet<T>(PropertyInfo propertyInfo)
         {
-            DynamicMethod dynamicMethod = CreateDynamicMethod("Get" + propertyInfo.Name, typeof(T), new[] { typeof(object) }, propertyInfo.DeclaringType);
+            DynamicMethod dynamicMethod = CreateDynamicMethod("Get" + propertyInfo.Name, typeof(object), new[] { typeof(T) }, propertyInfo.DeclaringType);
             ILGenerator generator = dynamicMethod.GetILGenerator();
 
             GenerateCreateGetPropertyIL(propertyInfo, generator);
 
-            return (Func<T, object>)dynamicMethod.CreateDelegate(typeof(Func<T, object>));
+            return (Func<T, object?>)dynamicMethod.CreateDelegate(typeof(Func<T, object?>));
         }
 
         private void GenerateCreateGetPropertyIL(PropertyInfo propertyInfo, ILGenerator generator)
@@ -273,12 +310,12 @@ namespace Exceptionless.Json.Utilities
             generator.Return();
         }
 
-        public override Func<T, object> CreateGet<T>(FieldInfo fieldInfo)
+        public override Func<T, object?> CreateGet<T>(FieldInfo fieldInfo)
         {
             if (fieldInfo.IsLiteral)
             {
                 object constantValue = fieldInfo.GetValue(null);
-                Func<T, object> getter = o => constantValue;
+                Func<T, object?> getter = o => constantValue;
                 return getter;
             }
 
@@ -287,7 +324,7 @@ namespace Exceptionless.Json.Utilities
 
             GenerateCreateGetFieldIL(fieldInfo, generator);
 
-            return (Func<T, object>)dynamicMethod.CreateDelegate(typeof(Func<T, object>));
+            return (Func<T, object?>)dynamicMethod.CreateDelegate(typeof(Func<T, object?>));
         }
 
         private void GenerateCreateGetFieldIL(FieldInfo fieldInfo, ILGenerator generator)
@@ -306,14 +343,14 @@ namespace Exceptionless.Json.Utilities
             generator.Return();
         }
 
-        public override Action<T, object> CreateSet<T>(FieldInfo fieldInfo)
+        public override Action<T, object?> CreateSet<T>(FieldInfo fieldInfo)
         {
             DynamicMethod dynamicMethod = CreateDynamicMethod("Set" + fieldInfo.Name, null, new[] { typeof(T), typeof(object) }, fieldInfo.DeclaringType);
             ILGenerator generator = dynamicMethod.GetILGenerator();
 
             GenerateCreateSetFieldIL(fieldInfo, generator);
 
-            return (Action<T, object>)dynamicMethod.CreateDelegate(typeof(Action<T, object>));
+            return (Action<T, object?>)dynamicMethod.CreateDelegate(typeof(Action<T, object?>));
         }
 
         internal static void GenerateCreateSetFieldIL(FieldInfo fieldInfo, ILGenerator generator)
@@ -338,14 +375,14 @@ namespace Exceptionless.Json.Utilities
             generator.Return();
         }
 
-        public override Action<T, object> CreateSet<T>(PropertyInfo propertyInfo)
+        public override Action<T, object?> CreateSet<T>(PropertyInfo propertyInfo)
         {
             DynamicMethod dynamicMethod = CreateDynamicMethod("Set" + propertyInfo.Name, null, new[] { typeof(T), typeof(object) }, propertyInfo.DeclaringType);
             ILGenerator generator = dynamicMethod.GetILGenerator();
 
             GenerateCreateSetPropertyIL(propertyInfo, generator);
 
-            return (Action<T, object>)dynamicMethod.CreateDelegate(typeof(Action<T, object>));
+            return (Action<T, object?>)dynamicMethod.CreateDelegate(typeof(Action<T, object>));
         }
 
         internal static void GenerateCreateSetPropertyIL(PropertyInfo propertyInfo, ILGenerator generator)

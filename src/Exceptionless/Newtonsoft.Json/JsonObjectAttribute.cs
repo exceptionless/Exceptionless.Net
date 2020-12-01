@@ -34,10 +34,12 @@ namespace Exceptionless.Json
     internal sealed class JsonObjectAttribute : JsonContainerAttribute
     {
         private MemberSerialization _memberSerialization = MemberSerialization.OptOut;
+        internal MissingMemberHandling? _missingMemberHandling;
 
         // yuck. can't set nullable properties on an attribute in C#
         // have to use this approach to get an unset default state
         internal Required? _itemRequired;
+        internal NullValueHandling? _itemNullValueHandling;
 
         /// <summary>
         /// Gets or sets the member serialization.
@@ -45,8 +47,28 @@ namespace Exceptionless.Json
         /// <value>The member serialization.</value>
         public MemberSerialization MemberSerialization
         {
-            get { return _memberSerialization; }
-            set { _memberSerialization = value; }
+            get => _memberSerialization;
+            set => _memberSerialization = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the missing member handling used when deserializing this object.
+        /// </summary>
+        /// <value>The missing member handling.</value>
+        public MissingMemberHandling MissingMemberHandling
+        {
+            get => _missingMemberHandling ?? default;
+            set => _missingMemberHandling = value;
+        }
+
+        /// <summary>
+        /// Gets or sets how the object's properties with null values are handled during serialization and deserialization.
+        /// </summary>
+        /// <value>How the object's properties with null values are handled during serialization and deserialization.</value>
+        public NullValueHandling ItemNullValueHandling
+        {
+            get => _itemNullValueHandling ?? default;
+            set => _itemNullValueHandling = value;
         }
 
         /// <summary>
@@ -57,8 +79,8 @@ namespace Exceptionless.Json
         /// </value>
         public Required ItemRequired
         {
-            get { return _itemRequired ?? default(Required); }
-            set { _itemRequired = value; }
+            get => _itemRequired ?? default;
+            set => _itemRequired = value;
         }
 
         /// <summary>

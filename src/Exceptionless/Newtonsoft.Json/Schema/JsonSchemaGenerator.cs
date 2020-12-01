@@ -27,16 +27,17 @@ using System;
 using System.Globalization;
 using System.ComponentModel;
 using System.Collections.Generic;
-using System.Reflection;
 using Exceptionless.Json.Linq;
 using Exceptionless.Json.Utilities;
 using Exceptionless.Json.Serialization;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 
 #endif
+
+#nullable disable
 
 namespace Exceptionless.Json.Schema
 {
@@ -45,10 +46,10 @@ namespace Exceptionless.Json.Schema
     /// Generates a <see cref="JsonSchema"/> from a specified <see cref="Type"/>.
     /// </para>
     /// <note type="caution">
-    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
+    /// JSON Schema validation has been moved to its own package. See <see href="https://www.newtonsoft.com/jsonschema">https://www.newtonsoft.com/jsonschema</see> for more details.
     /// </note>
     /// </summary>
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
+    [Obsolete("JSON Schema validation has been moved to its own package. See https://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaGenerator
     {
         /// <summary>
@@ -73,13 +74,13 @@ namespace Exceptionless.Json.Schema
 
                 return _contractResolver;
             }
-            set { _contractResolver = value; }
+            set => _contractResolver = value;
         }
 
         private class TypeSchema
         {
-            public Type Type { get; private set; }
-            public JsonSchema Schema { get; private set; }
+            public Type Type { get; }
+            public JsonSchema Schema { get; }
 
             public TypeSchema(Type type, JsonSchema schema)
             {
@@ -95,10 +96,7 @@ namespace Exceptionless.Json.Schema
         private readonly IList<TypeSchema> _stack = new List<TypeSchema>();
         private JsonSchema _currentSchema;
 
-        private JsonSchema CurrentSchema
-        {
-            get { return _currentSchema; }
-        }
+        private JsonSchema CurrentSchema => _currentSchema;
 
         private void Push(TypeSchema typeSchema)
         {
@@ -177,7 +175,7 @@ namespace Exceptionless.Json.Schema
         {
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(type);
 
-            if (containerAttribute != null && !string.IsNullOrEmpty(containerAttribute.Title))
+            if (!StringUtils.IsNullOrEmpty(containerAttribute?.Title))
             {
                 return containerAttribute.Title;
             }
@@ -189,27 +187,24 @@ namespace Exceptionless.Json.Schema
         {
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(type);
 
-            if (containerAttribute != null && !string.IsNullOrEmpty(containerAttribute.Description))
+            if (!StringUtils.IsNullOrEmpty(containerAttribute?.Description))
             {
                 return containerAttribute.Description;
             }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_ADO_NET
             DescriptionAttribute descriptionAttribute = ReflectionUtils.GetAttribute<DescriptionAttribute>(type);
-            if (descriptionAttribute != null)
-            {
-                return descriptionAttribute.Description;
-            }
-#endif
-
+            return descriptionAttribute?.Description;
+#else
             return null;
+#endif
         }
 
         private string GetTypeId(Type type, bool explicitOnly)
         {
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(type);
 
-            if (containerAttribute != null && !string.IsNullOrEmpty(containerAttribute.Id))
+            if (!StringUtils.IsNullOrEmpty(containerAttribute?.Id))
             {
                 return containerAttribute.Id;
             }
@@ -237,7 +232,7 @@ namespace Exceptionless.Json.Schema
             string resolvedId = GetTypeId(type, false);
             string explicitId = GetTypeId(type, true);
 
-            if (!string.IsNullOrEmpty(resolvedId))
+            if (!StringUtils.IsNullOrEmpty(resolvedId))
             {
                 JsonSchema resolvedSchema = _resolver.GetSchema(resolvedId);
                 if (resolvedSchema != null)
@@ -264,15 +259,7 @@ namespace Exceptionless.Json.Schema
             }
 
             JsonContract contract = ContractResolver.ResolveContract(type);
-            JsonConverter converter;
-            if ((converter = contract.Converter) != null || (converter = contract.InternalConverter) != null)
-            {
-                JsonSchema converterSchema = converter.GetSchema();
-                if (converterSchema != null)
-                {
-                    return converterSchema;
-                }
-            }
+            JsonConverter converter = contract.Converter ?? contract.InternalConverter;
 
             Push(new TypeSchema(type, new JsonSchema()));
 
@@ -324,10 +311,11 @@ namespace Exceptionless.Json.Schema
                         {
                             CurrentSchema.Enum = new List<JToken>();
 
-                            IList<EnumValue<long>> enumValues = EnumUtils.GetNamesAndValues<long>(type);
-                            foreach (EnumValue<long> enumValue in enumValues)
+                            EnumInfo enumValues = EnumUtils.GetEnumValuesAndNames(type);
+                            for (int i = 0; i < enumValues.Names.Length; i++)
                             {
-                                JToken value = JToken.FromObject(enumValue.Value);
+                                ulong v = enumValues.Values[i];
+                                JToken value = JToken.FromObject(Enum.ToObject(type, v));
 
                                 CurrentSchema.Enum.Add(value);
                             }
@@ -358,14 +346,14 @@ namespace Exceptionless.Json.Schema
                             }
                         }
                         break;
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if HAVE_BINARY_SERIALIZATION
                     case JsonContractType.Serializable:
                         CurrentSchema.Type = AddNullType(JsonSchemaType.Object, valueRequired);
                         CurrentSchema.Id = GetTypeId(type, false);
                         GenerateISerializableContract(type, (JsonISerializableContract)contract);
                         break;
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
                     case JsonContractType.Dynamic:
 #endif
                     case JsonContractType.Linq:
@@ -423,7 +411,7 @@ namespace Exceptionless.Json.Schema
             }
         }
 
-#if !(DOTNET || PORTABLE || PORTABLE40)
+#if HAVE_BINARY_SERIALIZATION
         private void GenerateISerializableContract(Type type, JsonISerializableContract contract)
         {
             CurrentSchema.AllowAdditionalProperties = true;
@@ -472,7 +460,7 @@ namespace Exceptionless.Json.Schema
                 case PrimitiveTypeCode.Empty:
                 case PrimitiveTypeCode.Object:
                     return schemaType | JsonSchemaType.String;
-#if !(DOTNET || PORTABLE)
+#if HAVE_DB_NULL_TYPE_CODE
                 case PrimitiveTypeCode.DBNull:
                     return schemaType | JsonSchemaType.Null;
 #endif
@@ -488,7 +476,7 @@ namespace Exceptionless.Json.Schema
                 case PrimitiveTypeCode.UInt32:
                 case PrimitiveTypeCode.Int64:
                 case PrimitiveTypeCode.UInt64:
-#if !(PORTABLE || NET35 || NET20)
+#if HAVE_BIG_INTEGER
                 case PrimitiveTypeCode.BigInteger:
 #endif
                     return schemaType | JsonSchemaType.Integer;
@@ -498,7 +486,7 @@ namespace Exceptionless.Json.Schema
                     return schemaType | JsonSchemaType.Float;
                 // convert to string?
                 case PrimitiveTypeCode.DateTime:
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
                 case PrimitiveTypeCode.DateTimeOffset:
 #endif
                     return schemaType | JsonSchemaType.String;

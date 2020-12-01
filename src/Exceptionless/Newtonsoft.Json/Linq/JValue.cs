@@ -25,15 +25,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Exceptionless.Json.Utilities;
 using System.Globalization;
-#if !(NET35 || NET20 || PORTABLE40)
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if HAVE_DYNAMIC
 using System.Dynamic;
 using System.Linq.Expressions;
 #endif
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
-
 #endif
 
 namespace Exceptionless.Json.Linq
@@ -41,15 +43,15 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a value in JSON (string, integer, date, etc).
     /// </summary>
-    internal class JValue : JToken, IEquatable<JValue>, IFormattable, IComparable, IComparable<JValue>
-#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+    internal partial class JValue : JToken, IEquatable<JValue>, IFormattable, IComparable, IComparable<JValue>
+#if HAVE_ICONVERTIBLE
         , IConvertible
 #endif
     {
         private JTokenType _valueType;
-        private object _value;
+        private object? _value;
 
-        internal JValue(object value, JTokenType type)
+        internal JValue(object? value, JTokenType type)
         {
             _value = value;
             _valueType = type;
@@ -128,7 +130,7 @@ namespace Exceptionless.Json.Linq
         {
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
         /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
         /// </summary>
@@ -152,7 +154,7 @@ namespace Exceptionless.Json.Linq
         /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        public JValue(string value)
+        public JValue(string? value)
             : this(value, JTokenType.String)
         {
         }
@@ -170,7 +172,7 @@ namespace Exceptionless.Json.Linq
         /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        public JValue(Uri value)
+        public JValue(Uri? value)
             : this(value, (value != null) ? JTokenType.Uri : JTokenType.Null)
         {
         }
@@ -188,15 +190,14 @@ namespace Exceptionless.Json.Linq
         /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        public JValue(object value)
+        public JValue(object? value)
             : this(value, GetValueType(null, value))
         {
         }
 
         internal override bool DeepEquals(JToken node)
         {
-            JValue other = node as JValue;
-            if (other == null)
+            if (!(node is JValue other))
             {
                 return false;
             }
@@ -214,12 +215,9 @@ namespace Exceptionless.Json.Linq
         /// <value>
         /// 	<c>true</c> if this token has child values; otherwise, <c>false</c>.
         /// </value>
-        public override bool HasValues
-        {
-            get { return false; }
-        }
+        public override bool HasValues => false;
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
         private static int CompareBigInteger(BigInteger i1, object i2)
         {
             int result = i1.CompareTo(ConvertUtils.ToBigInteger(i2));
@@ -231,10 +229,9 @@ namespace Exceptionless.Json.Linq
 
             // converting a fractional number to a BigInteger will lose the fraction
             // check for fraction if result is two numbers are equal
-            if (i2 is decimal)
+            if (i2 is decimal d1)
             {
-                decimal d = (decimal)i2;
-                return (0m).CompareTo(Math.Abs(d - Math.Truncate(d)));
+                return (0m).CompareTo(Math.Abs(d1 - Math.Truncate(d1)));
             }
             else if (i2 is double || i2 is float)
             {
@@ -246,17 +243,17 @@ namespace Exceptionless.Json.Linq
         }
 #endif
 
-        internal static int Compare(JTokenType valueType, object objA, object objB)
+        internal static int Compare(JTokenType valueType, object? objA, object? objB)
         {
-            if (objA == null && objB == null)
+            if (objA == objB)
             {
                 return 0;
             }
-            if (objA != null && objB == null)
+            if (objB == null)
             {
                 return 1;
             }
-            if (objA == null && objB != null)
+            if (objA == null)
             {
                 return -1;
             }
@@ -264,15 +261,16 @@ namespace Exceptionless.Json.Linq
             switch (valueType)
             {
                 case JTokenType.Integer:
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-                    if (objA is BigInteger)
+                {
+#if HAVE_BIG_INTEGER
+                    if (objA is BigInteger integerA)
                     {
-                        return CompareBigInteger((BigInteger)objA, objB);
+                        return CompareBigInteger(integerA, objB);
                     }
-                    if (objB is BigInteger)
+                    if (objB is BigInteger integerB)
                     {
-                        return -CompareBigInteger((BigInteger)objB, objA);
-                    }
+                            return -CompareBigInteger(integerB, objA);
+                        }
 #endif
                     if (objA is ulong || objB is ulong || objA is decimal || objB is decimal)
                     {
@@ -286,18 +284,25 @@ namespace Exceptionless.Json.Linq
                     {
                         return Convert.ToInt64(objA, CultureInfo.InvariantCulture).CompareTo(Convert.ToInt64(objB, CultureInfo.InvariantCulture));
                     }
+                }
                 case JTokenType.Float:
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-                    if (objA is BigInteger)
+                {
+#if HAVE_BIG_INTEGER
+                    if (objA is BigInteger integerA)
                     {
-                        return CompareBigInteger((BigInteger)objA, objB);
+                        return CompareBigInteger(integerA, objB);
                     }
-                    if (objB is BigInteger)
+                    if (objB is BigInteger integerB)
                     {
-                        return -CompareBigInteger((BigInteger)objB, objA);
+                        return -CompareBigInteger(integerB, objA);
                     }
 #endif
+                    if (objA is ulong || objB is ulong || objA is decimal || objB is decimal)
+                    {
+                        return Convert.ToDecimal(objA, CultureInfo.InvariantCulture).CompareTo(Convert.ToDecimal(objB, CultureInfo.InvariantCulture));
+                    }
                     return CompareFloat(objA, objB);
+                    }
                 case JTokenType.Comment:
                 case JTokenType.String:
                 case JTokenType.Raw:
@@ -311,62 +316,49 @@ namespace Exceptionless.Json.Linq
 
                     return b1.CompareTo(b2);
                 case JTokenType.Date:
-#if !NET20
-                    if (objA is DateTime)
+#if HAVE_DATE_TIME_OFFSET
+                    if (objA is DateTime dateA)
                     {
+#else
+                        DateTime dateA = (DateTime)objA;
 #endif
-                        DateTime date1 = (DateTime)objA;
-                        DateTime date2;
+                        DateTime dateB;
 
-#if !NET20
-                        if (objB is DateTimeOffset)
+#if HAVE_DATE_TIME_OFFSET
+                        if (objB is DateTimeOffset offsetB)
                         {
-                            date2 = ((DateTimeOffset)objB).DateTime;
+                            dateB = offsetB.DateTime;
                         }
                         else
 #endif
                         {
-                            date2 = Convert.ToDateTime(objB, CultureInfo.InvariantCulture);
+                            dateB = Convert.ToDateTime(objB, CultureInfo.InvariantCulture);
                         }
 
-                        return date1.CompareTo(date2);
-#if !NET20
+                        return dateA.CompareTo(dateB);
+#if HAVE_DATE_TIME_OFFSET
                     }
                     else
                     {
-                        DateTimeOffset date1 = (DateTimeOffset)objA;
-                        DateTimeOffset date2;
-
-                        if (objB is DateTimeOffset)
+                        DateTimeOffset offsetA = (DateTimeOffset)objA;
+                        if (!(objB is DateTimeOffset offsetB))
                         {
-                            date2 = (DateTimeOffset)objB;
-                        }
-                        else
-                        {
-                            date2 = new DateTimeOffset(Convert.ToDateTime(objB, CultureInfo.InvariantCulture));
+                            offsetB = new DateTimeOffset(Convert.ToDateTime(objB, CultureInfo.InvariantCulture));
                         }
 
-                        return date1.CompareTo(date2);
+                        return offsetA.CompareTo(offsetB);
                     }
 #endif
                 case JTokenType.Bytes:
-                    if (!(objB is byte[]))
+                    if (!(objB is byte[] bytesB))
                     {
                         throw new ArgumentException("Object must be of type byte[].");
                     }
 
-                    byte[] bytes1 = objA as byte[];
-                    byte[] bytes2 = objB as byte[];
-                    if (bytes1 == null)
-                    {
-                        return -1;
-                    }
-                    if (bytes2 == null)
-                    {
-                        return 1;
-                    }
+                    byte[]? bytesA = objA as byte[];
+                    MiscellaneousUtils.Assert(bytesA != null);
 
-                    return MiscellaneousUtils.ByteArrayCompare(bytes1, bytes2);
+                    return MiscellaneousUtils.ByteArrayCompare(bytesA!, bytesB);
                 case JTokenType.Guid:
                     if (!(objB is Guid))
                     {
@@ -378,13 +370,13 @@ namespace Exceptionless.Json.Linq
 
                     return guid1.CompareTo(guid2);
                 case JTokenType.Uri:
-                    if (!(objB is Uri))
+                    Uri? uri2 = objB as Uri;
+                    if (uri2 == null)
                     {
                         throw new ArgumentException("Object must be of type Uri.");
                     }
 
                     Uri uri1 = (Uri)objA;
-                    Uri uri2 = (Uri)objB;
 
                     return Comparer<string>.Default.Compare(uri1.ToString(), uri2.ToString());
                 case JTokenType.TimeSpan:
@@ -398,7 +390,7 @@ namespace Exceptionless.Json.Linq
 
                     return ts1.CompareTo(ts2);
                 default:
-                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException("valueType", valueType, "Unexpected value type: {0}".FormatWith(CultureInfo.InvariantCulture, valueType));
+                    throw MiscellaneousUtils.CreateArgumentOutOfRangeException(nameof(valueType), valueType, "Unexpected value type: {0}".FormatWith(CultureInfo.InvariantCulture, valueType));
             }
         }
 
@@ -416,19 +408,19 @@ namespace Exceptionless.Json.Linq
             return d1.CompareTo(d2);
         }
 
-#if !(NET35 || NET20 || PORTABLE40)
-        private static bool Operation(ExpressionType operation, object objA, object objB, out object result)
+#if HAVE_EXPRESSIONS
+        private static bool Operation(ExpressionType operation, object? objA, object? objB, out object? result)
         {
             if (objA is string || objB is string)
             {
                 if (operation == ExpressionType.Add || operation == ExpressionType.AddAssign)
                 {
-                    result = ((objA != null) ? objA.ToString() : null) + ((objB != null) ? objB.ToString() : null);
+                    result = objA?.ToString() + objB?.ToString();
                     return true;
                 }
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
             if (objA is BigInteger || objB is BigInteger)
             {
                 if (objA == null || objB == null)
@@ -574,7 +566,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>A <see cref="JValue"/> comment with the given value.</returns>
-        public static JValue CreateComment(string value)
+        public static JValue CreateComment(string? value)
         {
             return new JValue(value, JTokenType.Comment);
         }
@@ -584,7 +576,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>A <see cref="JValue"/> string with the given value.</returns>
-        public static JValue CreateString(string value)
+        public static JValue CreateString(string? value)
         {
             return new JValue(value, JTokenType.String);
         }
@@ -607,13 +599,13 @@ namespace Exceptionless.Json.Linq
             return new JValue(null, JTokenType.Undefined);
         }
 
-        private static JTokenType GetValueType(JTokenType? current, object value)
+        private static JTokenType GetValueType(JTokenType? current, object? value)
         {
             if (value == null)
             {
                 return JTokenType.Null;
             }
-#if !(DOTNET || PORTABLE40 || PORTABLE)
+#if HAVE_ADO_NET
             else if (value == DBNull.Value)
             {
                 return JTokenType.Null;
@@ -632,7 +624,7 @@ namespace Exceptionless.Json.Linq
             {
                 return JTokenType.Integer;
             }
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
             else if (value is BigInteger)
             {
                 return JTokenType.Integer;
@@ -646,7 +638,7 @@ namespace Exceptionless.Json.Linq
             {
                 return JTokenType.Date;
             }
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
             else if (value is DateTimeOffset)
             {
                 return JTokenType.Date;
@@ -698,22 +690,19 @@ namespace Exceptionless.Json.Linq
         /// Gets the node type for this <see cref="JToken"/>.
         /// </summary>
         /// <value>The type.</value>
-        public override JTokenType Type
-        {
-            get { return _valueType; }
-        }
+        public override JTokenType Type => _valueType;
 
         /// <summary>
         /// Gets or sets the underlying token value.
         /// </summary>
         /// <value>The underlying token value.</value>
-        public object Value
+        public object? Value
         {
-            get { return _value; }
+            get => _value;
             set
             {
-                Type currentType = (_value != null) ? _value.GetType() : null;
-                Type newType = (value != null) ? value.GetType() : null;
+                Type? currentType = _value?.GetType();
+                Type? newType = value?.GetType();
 
                 if (currentType != newType)
                 {
@@ -728,12 +717,12 @@ namespace Exceptionless.Json.Linq
         /// Writes this token to a <see cref="JsonWriter"/>.
         /// </summary>
         /// <param name="writer">A <see cref="JsonWriter"/> into which this method will write.</param>
-        /// <param name="converters">A collection of <see cref="JsonConverter"/> which will be used when writing the token.</param>
+        /// <param name="converters">A collection of <see cref="JsonConverter"/>s which will be used when writing the token.</param>
         public override void WriteTo(JsonWriter writer, params JsonConverter[] converters)
         {
             if (converters != null && converters.Length > 0 && _value != null)
             {
-                JsonConverter matchingConverter = JsonSerializer.GetMatchingConverter(converters, _value.GetType());
+                JsonConverter? matchingConverter = JsonSerializer.GetMatchingConverter(converters, _value.GetType());
                 if (matchingConverter != null && matchingConverter.CanWrite)
                 {
                     matchingConverter.WriteJson(writer, _value, JsonSerializer.CreateDefault());
@@ -744,10 +733,10 @@ namespace Exceptionless.Json.Linq
             switch (_valueType)
             {
                 case JTokenType.Comment:
-                    writer.WriteComment((_value != null) ? _value.ToString() : null);
+                    writer.WriteComment(_value?.ToString());
                     return;
                 case JTokenType.Raw:
-                    writer.WriteRawValue((_value != null) ? _value.ToString() : null);
+                    writer.WriteRawValue(_value?.ToString());
                     return;
                 case JTokenType.Null:
                     writer.WriteNull();
@@ -756,22 +745,22 @@ namespace Exceptionless.Json.Linq
                     writer.WriteUndefined();
                     return;
                 case JTokenType.Integer:
-                    if (_value is int)
+                    if (_value is int i)
                     {
-                        writer.WriteValue((int)_value);
+                        writer.WriteValue(i);
                     }
-                    else if (_value is long)
+                    else if (_value is long l)
                     {
-                        writer.WriteValue((long)_value);
+                        writer.WriteValue(l);
                     }
-                    else if (_value is ulong)
+                    else if (_value is ulong ul)
                     {
-                        writer.WriteValue((ulong)_value);
+                        writer.WriteValue(ul);
                     }
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-                    else if (_value is BigInteger)
+#if HAVE_BIG_INTEGER
+                    else if (_value is BigInteger integer)
                     {
-                        writer.WriteValue((BigInteger)_value);
+                        writer.WriteValue(integer);
                     }
 #endif
                     else
@@ -780,17 +769,17 @@ namespace Exceptionless.Json.Linq
                     }
                     return;
                 case JTokenType.Float:
-                    if (_value is decimal)
+                    if (_value is decimal dec)
                     {
-                        writer.WriteValue((decimal)_value);
+                        writer.WriteValue(dec);
                     }
-                    else if (_value is double)
+                    else if (_value is double d)
                     {
-                        writer.WriteValue((double)_value);
+                        writer.WriteValue(d);
                     }
-                    else if (_value is float)
+                    else if (_value is float f)
                     {
-                        writer.WriteValue((float)_value);
+                        writer.WriteValue(f);
                     }
                     else
                     {
@@ -798,16 +787,16 @@ namespace Exceptionless.Json.Linq
                     }
                     return;
                 case JTokenType.String:
-                    writer.WriteValue((_value != null) ? _value.ToString() : null);
+                    writer.WriteValue(_value?.ToString());
                     return;
                 case JTokenType.Boolean:
                     writer.WriteValue(Convert.ToBoolean(_value, CultureInfo.InvariantCulture));
                     return;
                 case JTokenType.Date:
-#if !NET20
-                    if (_value is DateTimeOffset)
+#if HAVE_DATE_TIME_OFFSET
+                    if (_value is DateTimeOffset offset)
                     {
-                        writer.WriteValue((DateTimeOffset)_value);
+                        writer.WriteValue(offset);
                     }
                     else
 #endif
@@ -816,18 +805,20 @@ namespace Exceptionless.Json.Linq
                     }
                     return;
                 case JTokenType.Bytes:
-                    writer.WriteValue((byte[])_value);
+                    writer.WriteValue((byte[]?)_value);
                     return;
                 case JTokenType.Guid:
+                    writer.WriteValue((_value != null) ? (Guid?)_value : null);
+                    return;
                 case JTokenType.TimeSpan:
-                    writer.WriteValue((_value != null) ? _value.ToString() : null);
+                    writer.WriteValue((_value != null) ? (TimeSpan?)_value : null);
                     return;
                 case JTokenType.Uri:
-                    writer.WriteValue((_value != null) ? ((Uri)_value).OriginalString : null);
+                    writer.WriteValue((Uri?)_value);
                     return;
             }
 
-            throw MiscellaneousUtils.CreateArgumentOutOfRangeException("TokenType", _valueType, "Unexpected token type.");
+            throw MiscellaneousUtils.CreateArgumentOutOfRangeException(nameof(Type), _valueType, "Unexpected token type.");
         }
 
         internal override int GetDeepHashCode()
@@ -847,10 +838,10 @@ namespace Exceptionless.Json.Linq
         /// Indicates whether the current object is equal to another object of the same type.
         /// </summary>
         /// <returns>
-        /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+        /// <c>true</c> if the current object is equal to the <paramref name="other"/> parameter; otherwise, <c>false</c>.
         /// </returns>
         /// <param name="other">An object to compare with this object.</param>
-        public bool Equals(JValue other)
+        public bool Equals([AllowNull] JValue other)
         {
             if (other == null)
             {
@@ -861,36 +852,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+        /// Determines whether the specified <see cref="Object"/> is equal to the current <see cref="Object"/>.
         /// </summary>
-        /// <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:System.Object"/>.</param>
+        /// <param name="obj">The <see cref="Object"/> to compare with the current <see cref="Object"/>.</param>
         /// <returns>
-        /// true if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
+        /// <c>true</c> if the specified <see cref="Object"/> is equal to the current <see cref="Object"/>; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
-        /// The <paramref name="obj"/> parameter is null.
-        /// </exception>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is JValue v)
             {
-                return false;
+                return Equals(v);
             }
 
-            JValue otherValue = obj as JValue;
-            if (otherValue != null)
-            {
-                return Equals(otherValue);
-            }
-
-            return base.Equals(obj);
+            return false;
         }
 
         /// <summary>
         /// Serves as a hash function for a particular type.
         /// </summary>
         /// <returns>
-        /// A hash code for the current <see cref="T:System.Object"/>.
+        /// A hash code for the current <see cref="Object"/>.
         /// </returns>
         public override int GetHashCode()
         {
@@ -903,10 +885,14 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="String"/> that represents this instance.
         /// </summary>
+        /// <remarks>
+        /// <c>ToString()</c> returns a non-JSON string value for tokens with a type of <see cref="JTokenType.String"/>.
+        /// If you want the JSON for all token types then you should use <see cref="WriteTo(JsonWriter, JsonConverter[])"/>.
+        /// </remarks>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="String"/> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -919,11 +905,11 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="String"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="String"/> that represents this instance.
         /// </returns>
         public string ToString(string format)
         {
@@ -931,11 +917,11 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="String"/> that represents this instance.
         /// </summary>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="String"/> that represents this instance.
         /// </returns>
         public string ToString(IFormatProvider formatProvider)
         {
@@ -943,22 +929,21 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="String"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="String"/> that represents this instance.
         /// </returns>
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider formatProvider)
         {
             if (_value == null)
             {
                 return string.Empty;
             }
 
-            IFormattable formattable = _value as IFormattable;
-            if (formattable != null)
+            if (_value is IFormattable formattable)
             {
                 return formattable.ToString(format, formatProvider);
             }
@@ -968,22 +953,22 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
         /// <summary>
-        /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
+        /// Returns the <see cref="DynamicMetaObject"/> responsible for binding operations performed on this object.
         /// </summary>
         /// <param name="parameter">The expression tree representation of the runtime value.</param>
         /// <returns>
-        /// The <see cref="T:System.Dynamic.DynamicMetaObject"/> to bind this object.
+        /// The <see cref="DynamicMetaObject"/> to bind this object.
         /// </returns>
         protected override DynamicMetaObject GetMetaObject(Expression parameter)
         {
-            return new DynamicProxyMetaObject<JValue>(parameter, this, new JValueDynamicProxy(), true);
+            return new DynamicProxyMetaObject<JValue>(parameter, this, new JValueDynamicProxy());
         }
 
         private class JValueDynamicProxy : DynamicProxy<JValue>
         {
-            public override bool TryConvert(JValue instance, ConvertBinder binder, out object result)
+            public override bool TryConvert(JValue instance, ConvertBinder binder, [NotNullWhen(true)]out object? result)
             {
                 if (binder.Type == typeof(JValue) || binder.Type == typeof(JToken))
                 {
@@ -991,7 +976,7 @@ namespace Exceptionless.Json.Linq
                     return true;
                 }
 
-                object value = instance.Value;
+                object? value = instance.Value;
 
                 if (value == null)
                 {
@@ -1003,9 +988,9 @@ namespace Exceptionless.Json.Linq
                 return true;
             }
 
-            public override bool TryBinaryOperation(JValue instance, BinaryOperationBinder binder, object arg, out object result)
+            public override bool TryBinaryOperation(JValue instance, BinaryOperationBinder binder, object arg, [NotNullWhen(true)]out object? result)
             {
-                object compareValue = (arg is JValue) ? ((JValue)arg).Value : arg;
+                object? compareValue = arg is JValue value ? value.Value : arg;
 
                 switch (binder.Operation)
                 {
@@ -1056,9 +1041,22 @@ namespace Exceptionless.Json.Linq
                 return 1;
             }
 
-            object otherValue = (obj is JValue) ? ((JValue)obj).Value : obj;
+            JTokenType comparisonType;
+            object? otherValue;
+            if (obj is JValue value)
+            {
+                otherValue = value.Value;
+                comparisonType = (_valueType == JTokenType.String && _valueType != value._valueType)
+                    ? value._valueType
+                    : _valueType;
+            }
+            else
+            {
+                otherValue = obj;
+                comparisonType = _valueType;
+            }
 
-            return Compare(_valueType, _value, otherValue);
+            return Compare(comparisonType, _value, otherValue);
         }
 
         /// <summary>
@@ -1076,8 +1074,8 @@ namespace Exceptionless.Json.Linq
         /// Greater than zero
         /// This instance is greater than <paramref name="obj"/>.
         /// </returns>
-        /// <exception cref="T:System.ArgumentException">
-        /// 	<paramref name="obj"/> is not the same type as this instance.
+        /// <exception cref="ArgumentException">
+        /// 	<paramref name="obj"/> is not of the same type as this instance.
         /// </exception>
         public int CompareTo(JValue obj)
         {
@@ -1086,10 +1084,14 @@ namespace Exceptionless.Json.Linq
                 return 1;
             }
 
-            return Compare(_valueType, _value, obj._value);
+            JTokenType comparisonType = (_valueType == JTokenType.String && _valueType != obj._valueType)
+                ? obj._valueType
+                : _valueType;
+
+            return Compare(comparisonType, _value, obj._value);
         }
 
-#if !(PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if HAVE_ICONVERTIBLE
         TypeCode IConvertible.GetTypeCode()
         {
             if (_value == null)
@@ -1097,14 +1099,12 @@ namespace Exceptionless.Json.Linq
                 return TypeCode.Empty;
             }
 
-            IConvertible convertable = _value as IConvertible;
-
-            if (convertable == null)
+            if (_value is IConvertible convertable)
             {
-                return TypeCode.Object;
+                return convertable.GetTypeCode();
             }
 
-            return convertable.GetTypeCode();
+            return TypeCode.Object;
         }
 
         bool IConvertible.ToBoolean(IFormatProvider provider)
@@ -1177,7 +1177,7 @@ namespace Exceptionless.Json.Linq
             return (DateTime)this;
         }
 
-        object IConvertible.ToType(Type conversionType, IFormatProvider provider)
+        object? IConvertible.ToType(Type conversionType, IFormatProvider provider)
         {
             return ToObject(conversionType);
         }

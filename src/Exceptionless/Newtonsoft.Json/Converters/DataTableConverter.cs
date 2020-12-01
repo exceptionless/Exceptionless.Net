@@ -23,7 +23,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_ADO_NET
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Exceptionless.Json.Utilities;
@@ -44,10 +45,16 @@ namespace Exceptionless.Json.Converters
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
             DataTable table = (DataTable)value;
-            DefaultContractResolver resolver = serializer.ContractResolver as DefaultContractResolver;
+            DefaultContractResolver? resolver = serializer.ContractResolver as DefaultContractResolver;
 
             writer.WriteStartArray();
 
@@ -80,16 +87,14 @@ namespace Exceptionless.Json.Converters
         /// <param name="existingValue">The existing value of object being read.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
             {
                 return null;
             }
 
-            DataTable dt = existingValue as DataTable;
-
-            if (dt == null)
+            if (!(existingValue is DataTable dt))
             {
                 // handle typed datasets
                 dt = (objectType == typeof(DataTable))
@@ -101,7 +106,7 @@ namespace Exceptionless.Json.Converters
             // populate the name from the property name
             if (reader.TokenType == JsonToken.PropertyName)
             {
-                dt.TableName = (string)reader.Value;
+                dt.TableName = (string)reader.Value!;
 
                 reader.ReadAndAssert();
 
@@ -135,7 +140,7 @@ namespace Exceptionless.Json.Converters
 
             while (reader.TokenType == JsonToken.PropertyName)
             {
-                string columnName = (string)reader.Value;
+                string columnName = (string)reader.Value!;
 
                 reader.ReadAndAssert();
 
@@ -172,7 +177,7 @@ namespace Exceptionless.Json.Converters
                         reader.ReadAndAssert();
                     }
 
-                    List<object> o = new List<object>();
+                    List<object?> o = new List<object?>();
 
                     while (reader.TokenType != JsonToken.EndArray)
                     {
@@ -181,13 +186,17 @@ namespace Exceptionless.Json.Converters
                     }
 
                     Array destinationArray = Array.CreateInstance(column.DataType.GetElementType(), o.Count);
-                    Array.Copy(o.ToArray(), destinationArray, o.Count);
+                    ((IList)o).CopyTo(destinationArray, 0);
 
                     dr[columnName] = destinationArray;
                 }
                 else
                 {
-                    dr[columnName] = (reader.Value != null) ? serializer.Deserialize(reader, column.DataType) : DBNull.Value;
+                    object columnValue = (reader.Value != null)
+                        ? serializer.Deserialize(reader, column.DataType) ?? DBNull.Value
+                        : DBNull.Value;
+
+                    dr[columnName] = columnValue;
                 }
 
                 reader.ReadAndAssert();
@@ -209,9 +218,10 @@ namespace Exceptionless.Json.Converters
                 case JsonToken.String:
                 case JsonToken.Date:
                 case JsonToken.Bytes:
-                    return reader.ValueType;
+                    return reader.ValueType!;
                 case JsonToken.Null:
                 case JsonToken.Undefined:
+                case JsonToken.EndArray:
                     return typeof(string);
                 case JsonToken.StartArray:
                     reader.ReadAndAssert();

@@ -30,7 +30,7 @@ using Exceptionless.Json.Utilities;
 namespace Exceptionless.Json.Converters
 {
     /// <summary>
-    /// Converts a <see cref="DateTime"/> to and from a JavaScript date constructor (e.g. new Date(52231943)).
+    /// Converts a <see cref="DateTime"/> to and from a JavaScript <c>Date</c> constructor (e.g. <c>new Date(52231943)</c>).
     /// </summary>
     internal class JavaScriptDateTimeConverter : DateTimeConverterBase
     {
@@ -40,20 +40,18 @@ namespace Exceptionless.Json.Converters
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             long ticks;
 
-            if (value is DateTime)
+            if (value is DateTime dateTime)
             {
-                DateTime dateTime = (DateTime)value;
                 DateTime utcDateTime = dateTime.ToUniversalTime();
                 ticks = DateTimeUtils.ConvertDateTimeToJavaScriptTicks(utcDateTime);
             }
-#if !NET20
-            else if (value is DateTimeOffset)
+#if HAVE_DATE_TIME_OFFSET
+            else if (value is DateTimeOffset dateTimeOffset)
             {
-                DateTimeOffset dateTimeOffset = (DateTimeOffset)value;
                 DateTimeOffset utcDateTimeOffset = dateTimeOffset.ToUniversalTime();
                 ticks = DateTimeUtils.ConvertDateTimeToJavaScriptTicks(utcDateTimeOffset.UtcDateTime);
             }
@@ -76,7 +74,7 @@ namespace Exceptionless.Json.Converters
         /// <param name="existingValue">The existing property value of the JSON that is being converted.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
             {
@@ -88,30 +86,17 @@ namespace Exceptionless.Json.Converters
                 return null;
             }
 
-            if (reader.TokenType != JsonToken.StartConstructor || !string.Equals(reader.Value.ToString(), "Date", StringComparison.Ordinal))
+            if (reader.TokenType != JsonToken.StartConstructor || !string.Equals(reader.Value?.ToString(), "Date", StringComparison.Ordinal))
             {
                 throw JsonSerializationException.Create(reader, "Unexpected token or value when parsing date. Token: {0}, Value: {1}".FormatWith(CultureInfo.InvariantCulture, reader.TokenType, reader.Value));
             }
 
-            reader.Read();
-
-            if (reader.TokenType != JsonToken.Integer)
+            if (!JavaScriptUtils.TryGetDateFromConstructorJson(reader, out DateTime d, out string? errorMessage))
             {
-                throw JsonSerializationException.Create(reader, "Unexpected token parsing date. Expected Integer, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
+                throw JsonSerializationException.Create(reader, errorMessage);
             }
 
-            long ticks = (long)reader.Value;
-
-            DateTime d = DateTimeUtils.ConvertJavaScriptTicksToDateTime(ticks);
-
-            reader.Read();
-
-            if (reader.TokenType != JsonToken.EndConstructor)
-            {
-                throw JsonSerializationException.Create(reader, "Unexpected token parsing date. Expected EndConstructor, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
-            }
-
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
             Type t = (ReflectionUtils.IsNullableType(objectType))
                 ? Nullable.GetUnderlyingType(objectType)
                 : objectType;
@@ -120,7 +105,6 @@ namespace Exceptionless.Json.Converters
                 return new DateTimeOffset(d);
             }
 #endif
-
             return d;
         }
     }

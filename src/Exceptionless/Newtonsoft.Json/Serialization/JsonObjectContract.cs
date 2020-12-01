@@ -45,6 +45,12 @@ namespace Exceptionless.Json.Serialization
         public MemberSerialization MemberSerialization { get; set; }
 
         /// <summary>
+        /// Gets or sets the missing member handling used when deserializing this object.
+        /// </summary>
+        /// <value>The missing member handling.</value>
+        public MissingMemberHandling? MissingMemberHandling { get; set; }
+
+        /// <summary>
         /// Gets or sets a value that indicates whether the object's properties are required.
         /// </summary>
         /// <value>
@@ -53,22 +59,19 @@ namespace Exceptionless.Json.Serialization
         public Required? ItemRequired { get; set; }
 
         /// <summary>
+        /// Gets or sets how the object's properties with null values are handled during serialization and deserialization.
+        /// </summary>
+        /// <value>How the object's properties with null values are handled during serialization and deserialization.</value>
+        public NullValueHandling? ItemNullValueHandling { get; set; }
+
+        /// <summary>
         /// Gets the object's properties.
         /// </summary>
         /// <value>The object's properties.</value>
-        public JsonPropertyCollection Properties { get; private set; }
+        public JsonPropertyCollection Properties { get; }
 
         /// <summary>
-        /// Gets the constructor parameters required for any non-default constructor
-        /// </summary>
-        [Obsolete("ConstructorParameters is obsolete. Use CreatorParameters instead.")]
-        public JsonPropertyCollection ConstructorParameters
-        {
-            get { return CreatorParameters; }
-        }
-
-        /// <summary>
-        /// Gets a collection of <see cref="JsonProperty"/> instances that define the parameters used with <see cref="OverrideCreator"/>.
+        /// Gets a collection of <see cref="JsonProperty"/> instances that define the parameters used with <see cref="JsonObjectContract.OverrideCreator"/>.
         /// </summary>
         public JsonPropertyCollection CreatorParameters
         {
@@ -84,73 +87,38 @@ namespace Exceptionless.Json.Serialization
         }
 
         /// <summary>
-        /// Gets or sets the override constructor used to create the object.
-        /// This is set when a constructor is marked up using the
-        /// JsonConstructor attribute.
-        /// </summary>
-        /// <value>The override constructor.</value>
-        [Obsolete("OverrideConstructor is obsolete. Use OverrideCreator instead.")]
-        public ConstructorInfo OverrideConstructor
-        {
-            get { return _overrideConstructor; }
-            set
-            {
-                _overrideConstructor = value;
-                _overrideCreator = (value != null) ? JsonTypeReflector.ReflectionDelegateFactory.CreateParameterizedConstructor(value) : null;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the parametrized constructor used to create the object.
-        /// </summary>
-        /// <value>The parametrized constructor.</value>
-        [Obsolete("ParametrizedConstructor is obsolete. Use OverrideCreator instead.")]
-        public ConstructorInfo ParametrizedConstructor
-        {
-            get { return _parametrizedConstructor; }
-            set
-            {
-                _parametrizedConstructor = value;
-                _parameterizedCreator = (value != null) ? JsonTypeReflector.ReflectionDelegateFactory.CreateParameterizedConstructor(value) : null;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the function used to create the object. When set this function will override <see cref="JsonContract.DefaultCreator"/>.
-        /// This function is called with a collection of arguments which are defined by the <see cref="CreatorParameters"/> collection.
+        /// This function is called with a collection of arguments which are defined by the <see cref="JsonObjectContract.CreatorParameters"/> collection.
         /// </summary>
         /// <value>The function used to create the object.</value>
-        public ObjectConstructor<object> OverrideCreator
+        public ObjectConstructor<object>? OverrideCreator
         {
-            get { return _overrideCreator; }
-            set
-            {
-                _overrideCreator = value;
-                _overrideConstructor = null;
-            }
+            get => _overrideCreator;
+            set => _overrideCreator = value;
         }
 
-        internal ObjectConstructor<object> ParameterizedCreator
+        internal ObjectConstructor<object>? ParameterizedCreator
         {
-            get { return _parameterizedCreator; }
+            get => _parameterizedCreator;
+            set => _parameterizedCreator = value;
         }
 
         /// <summary>
         /// Gets or sets the extension data setter.
         /// </summary>
-        public ExtensionDataSetter ExtensionDataSetter { get; set; }
+        public ExtensionDataSetter? ExtensionDataSetter { get; set; }
 
         /// <summary>
         /// Gets or sets the extension data getter.
         /// </summary>
-        public ExtensionDataGetter ExtensionDataGetter { get; set; }
+        public ExtensionDataGetter? ExtensionDataGetter { get; set; }
 
         /// <summary>
         /// Gets or sets the extension data value type.
         /// </summary>
-        public Type ExtensionDataValueType
+        public Type? ExtensionDataValueType
         {
-            get { return _extensionDataValueType; }
+            get => _extensionDataValueType;
             set
             {
                 _extensionDataValueType = value;
@@ -158,14 +126,18 @@ namespace Exceptionless.Json.Serialization
             }
         }
 
+        /// <summary>
+        /// Gets or sets the extension data name resolver.
+        /// </summary>
+        /// <value>The extension data name resolver.</value>
+        public Func<string, string>? ExtensionDataNameResolver { get; set; }
+
         internal bool ExtensionDataIsJToken;
         private bool? _hasRequiredOrDefaultValueProperties;
-        private ConstructorInfo _parametrizedConstructor;
-        private ConstructorInfo _overrideConstructor;
-        private ObjectConstructor<object> _overrideCreator;
-        private ObjectConstructor<object> _parameterizedCreator;
-        private JsonPropertyCollection _creatorParameters;
-        private Type _extensionDataValueType;
+        private ObjectConstructor<object>? _overrideCreator;
+        private ObjectConstructor<object>? _parameterizedCreator;
+        private JsonPropertyCollection? _creatorParameters;
+        private Type? _extensionDataValueType;
 
         internal bool HasRequiredOrDefaultValueProperties
         {
@@ -208,8 +180,8 @@ namespace Exceptionless.Json.Serialization
             Properties = new JsonPropertyCollection(UnderlyingType);
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
-#if !(NET20 || NET35)
+#if HAVE_BINARY_FORMATTER
+#if HAVE_SECURITY_SAFE_CRITICAL_ATTRIBUTE
         [SecuritySafeCritical]
 #endif
         internal object GetUninitializedObject()
