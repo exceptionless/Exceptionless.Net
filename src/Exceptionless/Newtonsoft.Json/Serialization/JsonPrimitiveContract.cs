@@ -48,8 +48,7 @@ namespace Exceptionless.Json.Serialization
             TypeCode = ConvertUtils.GetTypeCode(underlyingType);
             IsReadOnlyOrFixedSize = true;
 
-            ReadType readType;
-            if (ReadTypeMap.TryGetValue(NonNullableUnderlyingType, out readType))
+            if (ReadTypeMap.TryGetValue(NonNullableUnderlyingType, out ReadType readType))
             {
                 InternalReadType = readType;
             }
@@ -65,11 +64,12 @@ namespace Exceptionless.Json.Serialization
             [typeof(bool)] = ReadType.ReadAsBoolean,
             [typeof(string)] = ReadType.ReadAsString,
             [typeof(DateTime)] = ReadType.ReadAsDateTime,
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
             [typeof(DateTimeOffset)] = ReadType.ReadAsDateTimeOffset,
 #endif
             [typeof(float)] = ReadType.ReadAsDouble,
-            [typeof(double)] = ReadType.ReadAsDouble
+            [typeof(double)] = ReadType.ReadAsDouble,
+            [typeof(long)] = ReadType.ReadAsInt64
         };
     }
 }

@@ -25,25 +25,19 @@
 
 namespace Exceptionless.Json.Utilities
 {
-    internal class EnumValue<T> where T : struct
+    internal class EnumInfo
     {
-        private readonly string _name;
-        private readonly T _value;
-
-        public string Name
+        internal EnumInfo(bool isFlags, ulong[] values, string[] names, string[] resolvedNames)
         {
-            get { return _name; }
+            IsFlags = isFlags;
+            Values = values;
+            Names = names;
+            ResolvedNames = resolvedNames;
         }
 
-        public T Value
-        {
-            get { return _value; }
-        }
-
-        public EnumValue(string name, T value)
-        {
-            _name = name;
-            _value = value;
-        }
+        public readonly bool IsFlags;
+        public readonly ulong[] Values;
+        public readonly string[] Names;
+        public readonly string[] ResolvedNames;
     }
 }

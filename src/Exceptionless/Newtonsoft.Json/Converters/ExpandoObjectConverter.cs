@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
 
 using System;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ using Exceptionless.Json.Utilities;
 namespace Exceptionless.Json.Converters
 {
     /// <summary>
-    /// Converts an ExpandoObject to and from JSON.
+    /// Converts an <see cref="ExpandoObject"/> to and from JSON.
     /// </summary>
     internal class ExpandoObjectConverter : JsonConverter
     {
@@ -46,7 +46,7 @@ namespace Exceptionless.Json.Converters
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             // can write is set to false
         }
@@ -59,12 +59,12 @@ namespace Exceptionless.Json.Converters
         /// <param name="existingValue">The existing value of object being read.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             return ReadValue(reader);
         }
 
-        private object ReadValue(JsonReader reader)
+        private object? ReadValue(JsonReader reader)
         {
             if (!reader.MoveToContent())
             {
@@ -89,7 +89,7 @@ namespace Exceptionless.Json.Converters
 
         private object ReadList(JsonReader reader)
         {
-            IList<object> list = new List<object>();
+            IList<object?> list = new List<object?>();
 
             while (reader.Read())
             {
@@ -98,7 +98,7 @@ namespace Exceptionless.Json.Converters
                     case JsonToken.Comment:
                         break;
                     default:
-                        object v = ReadValue(reader);
+                        object? v = ReadValue(reader);
 
                         list.Add(v);
                         break;
@@ -112,21 +112,21 @@ namespace Exceptionless.Json.Converters
 
         private object ReadObject(JsonReader reader)
         {
-            IDictionary<string, object> expandoObject = new ExpandoObject();
+            IDictionary<string, object?> expandoObject = new ExpandoObject();
 
             while (reader.Read())
             {
                 switch (reader.TokenType)
                 {
                     case JsonToken.PropertyName:
-                        string propertyName = reader.Value.ToString();
+                        string propertyName = reader.Value!.ToString();
 
                         if (!reader.Read())
                         {
                             throw JsonSerializationException.Create(reader, "Unexpected end when reading ExpandoObject.");
                         }
 
-                        object v = ReadValue(reader);
+                        object? v = ReadValue(reader);
 
                         expandoObject[propertyName] = v;
                         break;
@@ -158,10 +158,7 @@ namespace Exceptionless.Json.Converters
         /// <value>
         /// 	<c>true</c> if this <see cref="JsonConverter"/> can write JSON; otherwise, <c>false</c>.
         /// </value>
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
+        public override bool CanWrite => false;
     }
 }
 

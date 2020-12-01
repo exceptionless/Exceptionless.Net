@@ -25,7 +25,7 @@
 
 using System;
 using System.Collections.Generic;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
 #endif
 using Exceptionless.Json.Linq;
@@ -34,12 +34,14 @@ using Exceptionless.Json.Utilities;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.IO;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 
 #endif
+
+#nullable disable
 
 namespace Exceptionless.Json
 {
@@ -48,10 +50,10 @@ namespace Exceptionless.Json
     /// Represents a reader that provides <see cref="JsonSchema"/> validation.
     /// </para>
     /// <note type="caution">
-    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
+    /// JSON Schema validation has been moved to its own package. See <see href="https://www.newtonsoft.com/jsonschema">https://www.newtonsoft.com/jsonschema</see> for more details.
     /// </note>
     /// </summary>
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
+    [Obsolete("JSON Schema validation has been moved to its own package. See https://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonValidatingReader : JsonReader, IJsonLineInfo
     {
         private class SchemaScope
@@ -62,24 +64,15 @@ namespace Exceptionless.Json
 
             public string CurrentPropertyName { get; set; }
             public int ArrayItemCount { get; set; }
-            public bool IsUniqueArray { get; set; }
-            public IList<JToken> UniqueArrayItems { get; set; }
+            public bool IsUniqueArray { get; }
+            public IList<JToken> UniqueArrayItems { get; }
             public JTokenWriter CurrentItemWriter { get; set; }
 
-            public IList<JsonSchemaModel> Schemas
-            {
-                get { return _schemas; }
-            }
+            public IList<JsonSchemaModel> Schemas => _schemas;
 
-            public Dictionary<string, bool> RequiredProperties
-            {
-                get { return _requiredProperties; }
-            }
+            public Dictionary<string, bool> RequiredProperties => _requiredProperties;
 
-            public JTokenType TokenType
-            {
-                get { return _tokenType; }
-            }
+            public JTokenType TokenType => _tokenType;
 
             public SchemaScope(JTokenType tokenType, IList<JsonSchemaModel> schemas)
             {
@@ -97,7 +90,7 @@ namespace Exceptionless.Json
 
             private IEnumerable<string> GetRequiredProperties(JsonSchemaModel schema)
             {
-                if (schema == null || schema.Properties == null)
+                if (schema?.Properties == null)
                 {
                     return Enumerable.Empty<string>();
                 }
@@ -121,27 +114,18 @@ namespace Exceptionless.Json
         /// Gets the text value of the current JSON token.
         /// </summary>
         /// <value></value>
-        public override object Value
-        {
-            get { return _reader.Value; }
-        }
+        public override object Value => _reader.Value;
 
         /// <summary>
         /// Gets the depth of the current token in the JSON document.
         /// </summary>
         /// <value>The depth of the current token in the JSON document.</value>
-        public override int Depth
-        {
-            get { return _reader.Depth; }
-        }
+        public override int Depth => _reader.Depth;
 
         /// <summary>
         /// Gets the path of the current JSON token. 
         /// </summary>
-        public override string Path
-        {
-            get { return _reader.Path; }
-        }
+        public override string Path => _reader.Path;
 
         /// <summary>
         /// Gets the quotation mark character used to enclose the value of a string.
@@ -157,19 +141,13 @@ namespace Exceptionless.Json
         /// Gets the type of the current JSON token.
         /// </summary>
         /// <value></value>
-        public override JsonToken TokenType
-        {
-            get { return _reader.TokenType; }
-        }
+        public override JsonToken TokenType => _reader.TokenType;
 
         /// <summary>
-        /// Gets the Common Language Runtime (CLR) type for the current JSON token.
+        /// Gets the .NET type for the current JSON token.
         /// </summary>
         /// <value></value>
-        public override Type ValueType
-        {
-            get { return _reader.ValueType; }
-        }
+        public override Type ValueType => _reader.ValueType;
 
         private void Push(SchemaScope scope)
         {
@@ -187,10 +165,7 @@ namespace Exceptionless.Json
             return poppedScope;
         }
 
-        private IList<JsonSchemaModel> CurrentSchemas
-        {
-            get { return _currentScope.Schemas; }
-        }
+        private IList<JsonSchemaModel> CurrentSchemas => _currentScope.Schemas;
 
         private static readonly IList<JsonSchemaModel> EmptySchemaList = new List<JsonSchemaModel>();
 
@@ -213,72 +188,71 @@ namespace Exceptionless.Json
                     case JTokenType.None:
                         return _currentScope.Schemas;
                     case JTokenType.Object:
-                    {
-                        if (_currentScope.CurrentPropertyName == null)
                         {
-                            throw new JsonReaderException("CurrentPropertyName has not been set on scope.");
-                        }
-
-                        IList<JsonSchemaModel> schemas = new List<JsonSchemaModel>();
-
-                        foreach (JsonSchemaModel schema in CurrentSchemas)
-                        {
-                            JsonSchemaModel propertySchema;
-                            if (schema.Properties != null && schema.Properties.TryGetValue(_currentScope.CurrentPropertyName, out propertySchema))
+                            if (_currentScope.CurrentPropertyName == null)
                             {
-                                schemas.Add(propertySchema);
+                                throw new JsonReaderException("CurrentPropertyName has not been set on scope.");
                             }
-                            if (schema.PatternProperties != null)
+
+                            IList<JsonSchemaModel> schemas = new List<JsonSchemaModel>();
+
+                            foreach (JsonSchemaModel schema in CurrentSchemas)
                             {
-                                foreach (KeyValuePair<string, JsonSchemaModel> patternProperty in schema.PatternProperties)
+                                if (schema.Properties != null && schema.Properties.TryGetValue(_currentScope.CurrentPropertyName, out JsonSchemaModel propertySchema))
                                 {
-                                    if (Regex.IsMatch(_currentScope.CurrentPropertyName, patternProperty.Key))
+                                    schemas.Add(propertySchema);
+                                }
+                                if (schema.PatternProperties != null)
+                                {
+                                    foreach (KeyValuePair<string, JsonSchemaModel> patternProperty in schema.PatternProperties)
                                     {
-                                        schemas.Add(patternProperty.Value);
+                                        if (Regex.IsMatch(_currentScope.CurrentPropertyName, patternProperty.Key))
+                                        {
+                                            schemas.Add(patternProperty.Value);
+                                        }
                                     }
+                                }
+
+                                if (schemas.Count == 0 && schema.AllowAdditionalProperties && schema.AdditionalProperties != null)
+                                {
+                                    schemas.Add(schema.AdditionalProperties);
                                 }
                             }
 
-                            if (schemas.Count == 0 && schema.AllowAdditionalProperties && schema.AdditionalProperties != null)
-                            {
-                                schemas.Add(schema.AdditionalProperties);
-                            }
+                            return schemas;
                         }
-
-                        return schemas;
-                    }
                     case JTokenType.Array:
-                    {
-                        IList<JsonSchemaModel> schemas = new List<JsonSchemaModel>();
-
-                        foreach (JsonSchemaModel schema in CurrentSchemas)
                         {
-                            if (!schema.PositionalItemsValidation)
+                            IList<JsonSchemaModel> schemas = new List<JsonSchemaModel>();
+
+                            foreach (JsonSchemaModel schema in CurrentSchemas)
                             {
-                                if (schema.Items != null && schema.Items.Count > 0)
+                                if (!schema.PositionalItemsValidation)
                                 {
-                                    schemas.Add(schema.Items[0]);
-                                }
-                            }
-                            else
-                            {
-                                if (schema.Items != null && schema.Items.Count > 0)
-                                {
-                                    if (schema.Items.Count > (_currentScope.ArrayItemCount - 1))
+                                    if (schema.Items != null && schema.Items.Count > 0)
                                     {
-                                        schemas.Add(schema.Items[_currentScope.ArrayItemCount - 1]);
+                                        schemas.Add(schema.Items[0]);
                                     }
                                 }
-
-                                if (schema.AllowAdditionalItems && schema.AdditionalItems != null)
+                                else
                                 {
-                                    schemas.Add(schema.AdditionalItems);
+                                    if (schema.Items != null && schema.Items.Count > 0)
+                                    {
+                                        if (schema.Items.Count > (_currentScope.ArrayItemCount - 1))
+                                        {
+                                            schemas.Add(schema.Items[_currentScope.ArrayItemCount - 1]);
+                                        }
+                                    }
+
+                                    if (schema.AllowAdditionalItems && schema.AdditionalItems != null)
+                                    {
+                                        schemas.Add(schema.AdditionalItems);
+                                    }
                                 }
                             }
-                        }
 
-                        return schemas;
-                    }
+                            return schemas;
+                        }
                     case JTokenType.Constructor:
                         return EmptySchemaList;
                     default:
@@ -329,7 +303,7 @@ namespace Exceptionless.Json
         /// <value>The schema.</value>
         public JsonSchema Schema
         {
-            get { return _schema; }
+            get => _schema;
             set
             {
                 if (TokenType != JsonToken.None)
@@ -346,9 +320,19 @@ namespace Exceptionless.Json
         /// Gets the <see cref="JsonReader"/> used to construct this <see cref="JsonValidatingReader"/>.
         /// </summary>
         /// <value>The <see cref="JsonReader"/> specified in the constructor.</value>
-        public JsonReader Reader
+        public JsonReader Reader => _reader;
+
+        /// <summary>
+        /// Changes the reader's state to <see cref="JsonReader.State.Closed"/>.
+        /// If <see cref="JsonReader.CloseInput"/> is set to <c>true</c>, the underlying <see cref="JsonReader"/> is also closed.
+        /// </summary>
+        public override void Close()
         {
-            get { return _reader; }
+            base.Close();
+            if (CloseInput)
+            {
+                _reader?.Close();
+            }
         }
 
         private void ValidateNotDisallowed(JsonSchemaModel schema)
@@ -392,9 +376,9 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{Int32}"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Nullable{T}"/> of <see cref="Int32"/>.
         /// </summary>
-        /// <returns>A <see cref="Nullable{Int32}"/>.</returns>
+        /// <returns>A <see cref="Nullable{T}"/> of <see cref="Int32"/>.</returns>
         public override int? ReadAsInt32()
         {
             int? i = _reader.ReadAsInt32();
@@ -404,10 +388,10 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Byte"/>[].
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Byte"/>[].
         /// </summary>
         /// <returns>
-        /// A <see cref="Byte"/>[] or a null reference if the next JSON token is null.
+        /// A <see cref="Byte"/>[] or <c>null</c> if the next JSON token is null.
         /// </returns>
         public override byte[] ReadAsBytes()
         {
@@ -418,9 +402,9 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{Decimal}"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Nullable{T}"/> of <see cref="Decimal"/>.
         /// </summary>
-        /// <returns>A <see cref="Nullable{Decimal}"/>.</returns>
+        /// <returns>A <see cref="Nullable{T}"/> of <see cref="Decimal"/>.</returns>
         public override decimal? ReadAsDecimal()
         {
             decimal? d = _reader.ReadAsDecimal();
@@ -430,9 +414,9 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{Double}"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Nullable{T}"/> of <see cref="Double"/>.
         /// </summary>
-        /// <returns>A <see cref="Nullable{Double}"/>.</returns>
+        /// <returns>A <see cref="Nullable{T}"/> of <see cref="Double"/>.</returns>
         public override double? ReadAsDouble()
         {
             double? d = _reader.ReadAsDouble();
@@ -442,9 +426,9 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{Boolean}"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Nullable{T}"/> of <see cref="Boolean"/>.
         /// </summary>
-        /// <returns>A <see cref="Nullable{Boolean}"/>.</returns>
+        /// <returns>A <see cref="Nullable{T}"/> of <see cref="Boolean"/>.</returns>
         public override bool? ReadAsBoolean()
         {
             bool? b = _reader.ReadAsBoolean();
@@ -454,7 +438,7 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="String"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="String"/>.
         /// </summary>
         /// <returns>A <see cref="String"/>. This method will return <c>null</c> at the end of an array.</returns>
         public override string ReadAsString()
@@ -466,9 +450,9 @@ namespace Exceptionless.Json
         }
 
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTime}"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Nullable{T}"/> of <see cref="DateTime"/>.
         /// </summary>
-        /// <returns>A <see cref="Nullable{DateTime}"/>. This method will return <c>null</c> at the end of an array.</returns>
+        /// <returns>A <see cref="Nullable{T}"/> of <see cref="DateTime"/>. This method will return <c>null</c> at the end of an array.</returns>
         public override DateTime? ReadAsDateTime()
         {
             DateTime? dateTime = _reader.ReadAsDateTime();
@@ -477,11 +461,11 @@ namespace Exceptionless.Json
             return dateTime;
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
-        /// Reads the next JSON token from the stream as a <see cref="Nullable{DateTimeOffset}"/>.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/> as a <see cref="Nullable{T}"/> of <see cref="DateTimeOffset"/>.
         /// </summary>
-        /// <returns>A <see cref="Nullable{DateTimeOffset}"/>.</returns>
+        /// <returns>A <see cref="Nullable{T}"/> of <see cref="DateTimeOffset"/>.</returns>
         public override DateTimeOffset? ReadAsDateTimeOffset()
         {
             DateTimeOffset? dateTimeOffset = _reader.ReadAsDateTimeOffset();
@@ -492,10 +476,10 @@ namespace Exceptionless.Json
 #endif
 
         /// <summary>
-        /// Reads the next JSON token from the stream.
+        /// Reads the next JSON token from the underlying <see cref="JsonReader"/>.
         /// </summary>
         /// <returns>
-        /// true if the next token was read successfully; false if there are no more tokens to read.
+        /// <c>true</c> if the next token was read successfully; <c>false</c> if there are no more tokens to read.
         /// </returns>
         public override bool Read()
         {
@@ -697,15 +681,14 @@ namespace Exceptionless.Json
 
             Dictionary<string, bool> requiredProperties = _currentScope.RequiredProperties;
 
-            if (requiredProperties != null)
+            if (requiredProperties != null && requiredProperties.Values.Any(v => !v))
             {
-                List<string> unmatchedRequiredProperties =
-                    requiredProperties.Where(kv => !kv.Value).Select(kv => kv.Key).ToList();
-
-                if (unmatchedRequiredProperties.Count > 0)
-                {
-                    RaiseError("Required properties are missing from object: {0}.".FormatWith(CultureInfo.InvariantCulture, string.Join(", ", unmatchedRequiredProperties.ToArray())), schema);
-                }
+                IEnumerable<string> unmatchedRequiredProperties = requiredProperties.Where(kv => !kv.Value).Select(kv => kv.Key);
+                RaiseError("Required properties are missing from object: {0}.".FormatWith(CultureInfo.InvariantCulture, string.Join(", ", unmatchedRequiredProperties
+#if !HAVE_STRING_JOIN_WITH_ENUMERABLE
+                    .ToArray()
+#endif
+                    )), schema);
             }
         }
 
@@ -840,12 +823,11 @@ namespace Exceptionless.Json
             if (schema.DivisibleBy != null)
             {
                 bool notDivisible;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-                if (value is BigInteger)
+#if HAVE_BIG_INTEGER
+                if (value is BigInteger i)
                 {
                     // not that this will lose any decimal point on DivisibleBy
                     // so manually raise an error if DivisibleBy is not an integer and value is not zero
-                    BigInteger i = (BigInteger)value;
                     bool divisibleNonInteger = !Math.Abs(schema.DivisibleBy.Value - Math.Truncate(schema.DivisibleBy.Value)).Equals(0);
                     if (divisibleNonInteger)
                     {
@@ -877,7 +859,7 @@ namespace Exceptionless.Json
 
                 foreach (JsonSchemaModel currentSchema in CurrentSchemas)
                 {
-                    // if there is positional validation and the array index is past the number of item validation schemas and there is no additonal items then error
+                    // if there is positional validation and the array index is past the number of item validation schemas and there are no additional items then error
                     if (currentSchema != null
                         && currentSchema.PositionalItemsValidation
                         && !currentSchema.AllowAdditionalItems
@@ -1033,26 +1015,11 @@ namespace Exceptionless.Json
 
         bool IJsonLineInfo.HasLineInfo()
         {
-            IJsonLineInfo lineInfo = _reader as IJsonLineInfo;
-            return lineInfo != null && lineInfo.HasLineInfo();
+            return _reader is IJsonLineInfo lineInfo && lineInfo.HasLineInfo();
         }
 
-        int IJsonLineInfo.LineNumber
-        {
-            get
-            {
-                IJsonLineInfo lineInfo = _reader as IJsonLineInfo;
-                return (lineInfo != null) ? lineInfo.LineNumber : 0;
-            }
-        }
+        int IJsonLineInfo.LineNumber => (_reader is IJsonLineInfo lineInfo) ? lineInfo.LineNumber : 0;
 
-        int IJsonLineInfo.LinePosition
-        {
-            get
-            {
-                IJsonLineInfo lineInfo = _reader as IJsonLineInfo;
-                return (lineInfo != null) ? lineInfo.LinePosition : 0;
-            }
-        }
+        int IJsonLineInfo.LinePosition => (_reader is IJsonLineInfo lineInfo) ? lineInfo.LinePosition : 0;
     }
 }

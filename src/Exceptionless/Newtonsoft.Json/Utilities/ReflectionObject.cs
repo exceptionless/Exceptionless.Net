@@ -26,10 +26,9 @@
 using Exceptionless.Json.Serialization;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Globalization;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
@@ -40,36 +39,37 @@ namespace Exceptionless.Json.Utilities
 {
     internal class ReflectionMember
     {
-        public Type MemberType { get; set; }
-        public Func<object, object> Getter { get; set; }
-        public Action<object, object> Setter { get; set; }
+        public Type? MemberType { get; set; }
+        public Func<object, object?>? Getter { get; set; }
+        public Action<object, object?>? Setter { get; set; }
     }
 
     internal class ReflectionObject
     {
-        public ObjectConstructor<object> Creator { get; private set; }
-        public IDictionary<string, ReflectionMember> Members { get; private set; }
+        public ObjectConstructor<object>? Creator { get; }
+        public IDictionary<string, ReflectionMember> Members { get; }
 
-        public ReflectionObject()
+        private ReflectionObject(ObjectConstructor<object>? creator)
         {
             Members = new Dictionary<string, ReflectionMember>();
+            Creator = creator;
         }
 
-        public object GetValue(object target, string member)
+        public object? GetValue(object target, string member)
         {
-            Func<object, object> getter = Members[member].Getter;
+            Func<object, object?> getter = Members[member].Getter!;
             return getter(target);
         }
 
-        public void SetValue(object target, string member, object value)
+        public void SetValue(object target, string member, object? value)
         {
-            Action<object, object> setter = Members[member].Setter;
+            Action<object, object?> setter = Members[member].Setter!;
             setter(target, value);
         }
 
         public Type GetType(string member)
         {
-            return Members[member].MemberType;
+            return Members[member].MemberType!;
         }
 
         public static ReflectionObject Create(Type t, params string[] memberNames)
@@ -77,15 +77,14 @@ namespace Exceptionless.Json.Utilities
             return Create(t, null, memberNames);
         }
 
-        public static ReflectionObject Create(Type t, MethodBase creator, params string[] memberNames)
+        public static ReflectionObject Create(Type t, MethodBase? creator, params string[] memberNames)
         {
-            ReflectionObject d = new ReflectionObject();
-
             ReflectionDelegateFactory delegateFactory = JsonTypeReflector.ReflectionDelegateFactory;
 
+            ObjectConstructor<object>? creatorConstructor = null;
             if (creator != null)
             {
-                d.Creator = delegateFactory.CreateParameterizedConstructor(creator);
+                creatorConstructor = delegateFactory.CreateParameterizedConstructor(creator);
             }
             else
             {
@@ -93,9 +92,11 @@ namespace Exceptionless.Json.Utilities
                 {
                     Func<object> ctor = delegateFactory.CreateDefaultConstructor<object>(t);
 
-                    d.Creator = args => ctor();
+                    creatorConstructor = args => ctor();
                 }
             }
+
+            ReflectionObject d = new ReflectionObject(creatorConstructor);
 
             foreach (string memberName in memberNames)
             {
@@ -130,28 +131,18 @@ namespace Exceptionless.Json.Utilities
                             ParameterInfo[] parameters = method.GetParameters();
                             if (parameters.Length == 0 && method.ReturnType != typeof(void))
                             {
-                                MethodCall<object, object> call = delegateFactory.CreateMethodCall<object>(method);
+                                MethodCall<object, object?> call = delegateFactory.CreateMethodCall<object>(method);
                                 reflectionMember.Getter = target => call(target);
                             }
                             else if (parameters.Length == 1 && method.ReturnType == typeof(void))
                             {
-                                MethodCall<object, object> call = delegateFactory.CreateMethodCall<object>(method);
+                                MethodCall<object, object?> call = delegateFactory.CreateMethodCall<object>(method);
                                 reflectionMember.Setter = (target, arg) => call(target, arg);
                             }
                         }
                         break;
                     default:
                         throw new ArgumentException("Unexpected member type '{0}' for member '{1}'.".FormatWith(CultureInfo.InvariantCulture, member.MemberType(), member.Name));
-                }
-
-                if (ReflectionUtils.CanReadMemberValue(member, false))
-                {
-                    reflectionMember.Getter = delegateFactory.CreateGet<object>(member);
-                }
-
-                if (ReflectionUtils.CanSetMemberValue(member, false, false))
-                {
-                    reflectionMember.Setter = delegateFactory.CreateSet<object>(member);
                 }
 
                 reflectionMember.MemberType = ReflectionUtils.GetMemberUnderlyingType(member);

@@ -35,19 +35,16 @@ namespace Exceptionless.Json.Serialization
 
         private BidirectionalDictionary<string, object> GetMappings(object context)
         {
-            JsonSerializerInternalBase internalSerializer;
-
-            if (context is JsonSerializerInternalBase)
+            if (!(context is JsonSerializerInternalBase internalSerializer))
             {
-                internalSerializer = (JsonSerializerInternalBase)context;
-            }
-            else if (context is JsonSerializerProxy)
-            {
-                internalSerializer = ((JsonSerializerProxy)context).GetInternalSerializer();
-            }
-            else
-            {
-                throw new JsonException("The DefaultReferenceResolver can only be used internally.");
+                if (context is JsonSerializerProxy proxy)
+                {
+                    internalSerializer = proxy.GetInternalSerializer();
+                }
+                else
+                {
+                    throw new JsonException("The DefaultReferenceResolver can only be used internally.");
+                }
             }
 
             return internalSerializer.DefaultReferenceMappings;
@@ -55,17 +52,15 @@ namespace Exceptionless.Json.Serialization
 
         public object ResolveReference(object context, string reference)
         {
-            object value;
-            GetMappings(context).TryGetByFirst(reference, out value);
+            GetMappings(context).TryGetByFirst(reference, out object value);
             return value;
         }
 
         public string GetReference(object context, object value)
         {
-            var mappings = GetMappings(context);
+            BidirectionalDictionary<string, object> mappings = GetMappings(context);
 
-            string reference;
-            if (!mappings.TryGetBySecond(value, out reference))
+            if (!mappings.TryGetBySecond(value, out string reference))
             {
                 _referenceCount++;
                 reference = _referenceCount.ToString(CultureInfo.InvariantCulture);
@@ -82,8 +77,7 @@ namespace Exceptionless.Json.Serialization
 
         public bool IsReferenced(object context, object value)
         {
-            string reference;
-            return GetMappings(context).TryGetBySecond(value, out reference);
+            return GetMappings(context).TryGetBySecond(value, out _);
         }
     }
 }

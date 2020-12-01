@@ -5,15 +5,20 @@ namespace Exceptionless.Json.Linq.JsonPath
 {
     internal class QueryFilter : PathFilter
     {
-        public QueryExpression Expression { get; set; }
+        internal QueryExpression Expression;
 
-        public override IEnumerable<JToken> ExecuteFilter(IEnumerable<JToken> current, bool errorWhenNoMatch)
+        public QueryFilter(QueryExpression expression)
+        {
+            Expression = expression;
+        }
+
+        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, bool errorWhenNoMatch)
         {
             foreach (JToken t in current)
             {
                 foreach (JToken v in t)
                 {
-                    if (Expression.IsMatch(v))
+                    if (Expression.IsMatch(root, v))
                     {
                         yield return v;
                     }

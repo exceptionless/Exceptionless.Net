@@ -25,12 +25,14 @@
 
 using System;
 using System.Collections.Generic;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 
 #endif
+
+#nullable disable
 
 namespace Exceptionless.Json.Schema
 {
@@ -39,10 +41,10 @@ namespace Exceptionless.Json.Schema
     /// Resolves <see cref="JsonSchema"/> from an id.
     /// </para>
     /// <note type="caution">
-    /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
+    /// JSON Schema validation has been moved to its own package. See <see href="https://www.newtonsoft.com/jsonschema">https://www.newtonsoft.com/jsonschema</see> for more details.
     /// </note>
     /// </summary>
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
+    [Obsolete("JSON Schema validation has been moved to its own package. See https://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaResolver
     {
         /// <summary>

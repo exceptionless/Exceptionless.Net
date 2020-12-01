@@ -24,6 +24,7 @@
 #endregion
 
 #if !(NET20 || NET35)
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,10 +39,7 @@ namespace Exceptionless.Json.Utilities
     {
         private static readonly ExpressionReflectionDelegateFactory _instance = new ExpressionReflectionDelegateFactory();
 
-        internal static ReflectionDelegateFactory Instance
-        {
-            get { return _instance; }
-        }
+        internal static ReflectionDelegateFactory Instance => _instance;
 
         public override ObjectConstructor<object> CreateParameterizedConstructor(MethodBase method)
         {
@@ -59,7 +57,7 @@ namespace Exceptionless.Json.Utilities
             return compiled;
         }
 
-        public override MethodCall<T, object> CreateMethodCall<T>(MethodBase method)
+        public override MethodCall<T, object?> CreateMethodCall<T>(MethodBase method)
         {
             ValidationUtils.ArgumentNotNull(method, nameof(method));
 
@@ -72,7 +70,7 @@ namespace Exceptionless.Json.Utilities
 
             LambdaExpression lambdaExpression = Expression.Lambda(typeof(MethodCall<T, object>), callExpression, targetParameterExpression, argsParameterExpression);
 
-            MethodCall<T, object> compiled = (MethodCall<T, object>)lambdaExpression.Compile();
+            MethodCall<T, object?> compiled = (MethodCall<T, object?>)lambdaExpression.Compile();
             return compiled;
         }
 
@@ -81,57 +79,58 @@ namespace Exceptionless.Json.Utilities
             public Expression Value;
             public ParameterExpression Variable;
             public bool IsOut;
+
+            public ByRefParameter(Expression value, ParameterExpression variable, bool isOut)
+            {
+                Value = value;
+                Variable = variable;
+                IsOut = isOut;
+            }
         }
 
-        private Expression BuildMethodCall(MethodBase method, Type type, ParameterExpression targetParameterExpression, ParameterExpression argsParameterExpression)
+        private Expression BuildMethodCall(MethodBase method, Type type, ParameterExpression? targetParameterExpression, ParameterExpression argsParameterExpression)
         {
             ParameterInfo[] parametersInfo = method.GetParameters();
 
-            Expression[] argsExpression = new Expression[parametersInfo.Length];
-            IList<ByRefParameter> refParameterMap = new List<ByRefParameter>();
-
-            for (int i = 0; i < parametersInfo.Length; i++)
+            Expression[] argsExpression;
+            IList<ByRefParameter> refParameterMap;
+            if (parametersInfo.Length == 0)
             {
-                ParameterInfo parameter = parametersInfo[i];
-                Type parameterType = parameter.ParameterType;
-                bool isByRef = false;
-                if (parameterType.IsByRef)
+                argsExpression = CollectionUtils.ArrayEmpty<Expression>();
+                refParameterMap = CollectionUtils.ArrayEmpty<ByRefParameter>();
+            }
+            else
+            {
+                argsExpression = new Expression[parametersInfo.Length];
+                refParameterMap = new List<ByRefParameter>();
+
+                for (int i = 0; i < parametersInfo.Length; i++)
                 {
-                    parameterType = parameterType.GetElementType();
-                    isByRef = true;
-                }
-
-                Expression indexExpression = Expression.Constant(i);
-
-                Expression paramAccessorExpression = Expression.ArrayIndex(argsParameterExpression, indexExpression);
-
-                Expression argExpression;
-
-                if (parameterType.IsValueType())
-                {
-                    BinaryExpression ensureValueTypeNotNull = Expression.Coalesce(paramAccessorExpression, Expression.New(parameterType));
-
-                    argExpression = EnsureCastExpression(ensureValueTypeNotNull, parameterType);
-                }
-                else
-                {
-                    argExpression = EnsureCastExpression(paramAccessorExpression, parameterType);
-                }
-
-                if (isByRef)
-                {
-                    ParameterExpression variable = Expression.Variable(parameterType);
-                    refParameterMap.Add(new ByRefParameter
+                    ParameterInfo parameter = parametersInfo[i];
+                    Type parameterType = parameter.ParameterType;
+                    bool isByRef = false;
+                    if (parameterType.IsByRef)
                     {
-                        Value = argExpression,
-                        Variable = variable,
-                        IsOut = parameter.IsOut
-                    });
+                        parameterType = parameterType.GetElementType();
+                        isByRef = true;
+                    }
 
-                    argExpression = variable;
+                    Expression indexExpression = Expression.Constant(i);
+
+                    Expression paramAccessorExpression = Expression.ArrayIndex(argsParameterExpression, indexExpression);
+
+                    Expression argExpression = EnsureCastExpression(paramAccessorExpression, parameterType, !isByRef);
+
+                    if (isByRef)
+                    {
+                        ParameterExpression variable = Expression.Variable(parameterType);
+                        refParameterMap.Add(new ByRefParameter(argExpression, variable, parameter.IsOut));
+
+                        argExpression = variable;
+                    }
+
+                    argsExpression[i] = argExpression;
                 }
-
-                argsExpression[i] = argExpression;
             }
 
             Expression callExpression;
@@ -145,14 +144,13 @@ namespace Exceptionless.Json.Utilities
             }
             else
             {
-                Expression readParameter = EnsureCastExpression(targetParameterExpression, method.DeclaringType);
+                Expression readParameter = EnsureCastExpression(targetParameterExpression!, method.DeclaringType);
 
                 callExpression = Expression.Call(readParameter, (MethodInfo)method, argsExpression);
             }
 
-            if (method is MethodInfo)
+            if (method is MethodInfo m)
             {
-                MethodInfo m = (MethodInfo)method;
                 if (m.ReturnType != typeof(void))
                 {
                     callExpression = EnsureCastExpression(callExpression, type);
@@ -220,7 +218,7 @@ namespace Exceptionless.Json.Utilities
             }
         }
 
-        public override Func<T, object> CreateGet<T>(PropertyInfo propertyInfo)
+        public override Func<T, object?> CreateGet<T>(PropertyInfo propertyInfo)
         {
             ValidationUtils.ArgumentNotNull(propertyInfo, nameof(propertyInfo));
 
@@ -230,7 +228,11 @@ namespace Exceptionless.Json.Utilities
             ParameterExpression parameterExpression = Expression.Parameter(instanceType, "instance");
             Expression resultExpression;
 
-            MethodInfo getMethod = propertyInfo.GetGetMethod(true);
+            MethodInfo? getMethod = propertyInfo.GetGetMethod(true);
+            if (getMethod == null)
+            {
+                throw new ArgumentException("Property does not have a getter.");
+            }
 
             if (getMethod.IsStatic)
             {
@@ -247,11 +249,11 @@ namespace Exceptionless.Json.Utilities
 
             LambdaExpression lambdaExpression = Expression.Lambda(typeof(Func<T, object>), resultExpression, parameterExpression);
 
-            Func<T, object> compiled = (Func<T, object>)lambdaExpression.Compile();
+            Func<T, object?> compiled = (Func<T, object?>)lambdaExpression.Compile();
             return compiled;
         }
 
-        public override Func<T, object> CreateGet<T>(FieldInfo fieldInfo)
+        public override Func<T, object?> CreateGet<T>(FieldInfo fieldInfo)
         {
             ValidationUtils.ArgumentNotNull(fieldInfo, nameof(fieldInfo));
 
@@ -271,11 +273,11 @@ namespace Exceptionless.Json.Utilities
 
             fieldExpression = EnsureCastExpression(fieldExpression, typeof(object));
 
-            Func<T, object> compiled = Expression.Lambda<Func<T, object>>(fieldExpression, sourceParameter).Compile();
+            Func<T, object?> compiled = Expression.Lambda<Func<T, object?>>(fieldExpression, sourceParameter).Compile();
             return compiled;
         }
 
-        public override Action<T, object> CreateSet<T>(FieldInfo fieldInfo)
+        public override Action<T, object?> CreateSet<T>(FieldInfo fieldInfo)
         {
             ValidationUtils.ArgumentNotNull(fieldInfo, nameof(fieldInfo));
 
@@ -307,11 +309,11 @@ namespace Exceptionless.Json.Utilities
 
             LambdaExpression lambdaExpression = Expression.Lambda(typeof(Action<T, object>), assignExpression, sourceParameterExpression, valueParameterExpression);
 
-            Action<T, object> compiled = (Action<T, object>)lambdaExpression.Compile();
+            Action<T, object?> compiled = (Action<T, object?>)lambdaExpression.Compile();
             return compiled;
         }
 
-        public override Action<T, object> CreateSet<T>(PropertyInfo propertyInfo)
+        public override Action<T, object?> CreateSet<T>(PropertyInfo propertyInfo)
         {
             ValidationUtils.ArgumentNotNull(propertyInfo, nameof(propertyInfo));
 
@@ -330,7 +332,11 @@ namespace Exceptionless.Json.Utilities
             ParameterExpression valueParameter = Expression.Parameter(valueType, "value");
             Expression readValueParameter = EnsureCastExpression(valueParameter, propertyInfo.PropertyType);
 
-            MethodInfo setMethod = propertyInfo.GetSetMethod(true);
+            MethodInfo? setMethod = propertyInfo.GetSetMethod(true);
+            if (setMethod == null)
+            {
+                throw new ArgumentException("Property does not have a setter.");
+            }
 
             Expression setExpression;
             if (setMethod.IsStatic)
@@ -344,20 +350,44 @@ namespace Exceptionless.Json.Utilities
                 setExpression = Expression.Call(readInstanceParameter, setMethod, readValueParameter);
             }
 
-            LambdaExpression lambdaExpression = Expression.Lambda(typeof(Action<T, object>), setExpression, instanceParameter, valueParameter);
+            LambdaExpression lambdaExpression = Expression.Lambda(typeof(Action<T, object?>), setExpression, instanceParameter, valueParameter);
 
-            Action<T, object> compiled = (Action<T, object>)lambdaExpression.Compile();
+            Action<T, object?> compiled = (Action<T, object?>)lambdaExpression.Compile();
             return compiled;
         }
-
-        private Expression EnsureCastExpression(Expression expression, Type targetType)
+        
+        private Expression EnsureCastExpression(Expression expression, Type targetType, bool allowWidening = false)
         {
             Type expressionType = expression.Type;
-
+            
             // check if a cast or conversion is required
             if (expressionType == targetType || (!expressionType.IsValueType() && targetType.IsAssignableFrom(expressionType)))
             {
                 return expression;
+            }
+
+            if (targetType.IsValueType())
+            {
+                Expression convert = Expression.Unbox(expression, targetType);
+
+                if (allowWidening && targetType.IsPrimitive())
+                {
+                    MethodInfo toTargetTypeMethod = typeof(Convert)
+                        .GetMethod("To" + targetType.Name, new[] { typeof(object) });
+
+                    if (toTargetTypeMethod != null)
+                    {
+                        convert = Expression.Condition(
+                            Expression.TypeIs(expression, targetType),
+                            convert,
+                            Expression.Call(toTargetTypeMethod, expression));
+                    }
+                }
+                
+                return Expression.Condition(
+                    Expression.Equal(expression, Expression.Constant(null, typeof(object))),
+                    Expression.Default(targetType), 
+                    convert);
             }
 
             return Expression.Convert(expression, targetType);

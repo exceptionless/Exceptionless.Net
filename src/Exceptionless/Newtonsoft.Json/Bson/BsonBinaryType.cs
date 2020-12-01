@@ -25,6 +25,8 @@
 
 using System;
 
+#nullable disable
+
 namespace Exceptionless.Json.Bson
 {
     internal enum BsonBinaryType : byte

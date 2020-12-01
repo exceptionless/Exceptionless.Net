@@ -11,7 +11,7 @@ namespace Exceptionless.Json.Linq.JsonPath
         public int? End { get; set; }
         public int? Step { get; set; }
 
-        public override IEnumerable<JToken> ExecuteFilter(IEnumerable<JToken> current, bool errorWhenNoMatch)
+        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, bool errorWhenNoMatch)
         {
             if (Step == 0)
             {
@@ -20,21 +20,20 @@ namespace Exceptionless.Json.Linq.JsonPath
 
             foreach (JToken t in current)
             {
-                JArray a = t as JArray;
-                if (a != null)
+                if (t is JArray a)
                 {
                     // set defaults for null arguments
                     int stepCount = Step ?? 1;
                     int startIndex = Start ?? ((stepCount > 0) ? 0 : a.Count - 1);
                     int stopIndex = End ?? ((stepCount > 0) ? a.Count : -1);
 
-                    // start from the end of the list if start is negitive
+                    // start from the end of the list if start is negative
                     if (Start < 0)
                     {
                         startIndex = a.Count + startIndex;
                     }
 
-                    // end from the start of the list if stop is negitive
+                    // end from the start of the list if stop is negative
                     if (End < 0)
                     {
                         stopIndex = a.Count + stopIndex;

@@ -26,23 +26,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 
 #endif
 
+#nullable disable
+
 namespace Exceptionless.Json.Schema
 {
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
+    [Obsolete("JSON Schema validation has been moved to its own package. See https://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaNode
     {
-        public string Id { get; private set; }
-        public ReadOnlyCollection<JsonSchema> Schemas { get; private set; }
-        public Dictionary<string, JsonSchemaNode> Properties { get; private set; }
-        public Dictionary<string, JsonSchemaNode> PatternProperties { get; private set; }
-        public List<JsonSchemaNode> Items { get; private set; }
+        public string Id { get; }
+        public ReadOnlyCollection<JsonSchema> Schemas { get; }
+        public Dictionary<string, JsonSchemaNode> Properties { get; }
+        public Dictionary<string, JsonSchemaNode> PatternProperties { get; }
+        public List<JsonSchemaNode> Items { get; }
         public JsonSchemaNode AdditionalProperties { get; set; }
         public JsonSchemaNode AdditionalItems { get; set; }
 
@@ -75,7 +77,11 @@ namespace Exceptionless.Json.Schema
 
         public static string GetId(IEnumerable<JsonSchema> schemata)
         {
-            return string.Join("-", schemata.Select(s => s.InternalId).OrderBy(id => id, StringComparer.Ordinal).ToArray());
+            return string.Join("-", schemata.Select(s => s.InternalId).OrderBy(id => id, StringComparer.Ordinal)
+#if !HAVE_STRING_JOIN_WITH_ENUMERABLE
+                    .ToArray()
+#endif
+                );
         }
     }
 }

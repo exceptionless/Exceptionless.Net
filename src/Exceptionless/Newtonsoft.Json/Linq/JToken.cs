@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -26,24 +26,24 @@
 using System;
 using System.Collections.Generic;
 using Exceptionless.Json.Linq.JsonPath;
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
 using System.Dynamic;
 using System.Linq.Expressions;
 #endif
 using System.IO;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
 #endif
-using System.Text;
 using Exceptionless.Json.Utilities;
 using System.Diagnostics;
 using System.Globalization;
 using System.Collections;
-#if NET20
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
-
 #endif
 
 namespace Exceptionless.Json.Linq
@@ -51,24 +51,24 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents an abstract JSON token.
     /// </summary>
-    internal abstract class JToken : IJEnumerable<JToken>, IJsonLineInfo
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+    internal abstract partial class JToken : IJEnumerable<JToken>, IJsonLineInfo
+#if HAVE_ICLONEABLE
         , ICloneable
 #endif
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
         , IDynamicMetaObjectProvider
 #endif
     {
-        private static JTokenEqualityComparer _equalityComparer;
+        private static JTokenEqualityComparer? _equalityComparer;
 
-        private JContainer _parent;
-        private JToken _previous;
-        private JToken _next;
-        private object _annotations;
+        private JContainer? _parent;
+        private JToken? _previous;
+        private JToken? _next;
+        private object? _annotations;
 
         private static readonly JTokenType[] BooleanTypes = new[] { JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean };
         private static readonly JTokenType[] NumberTypes = new[] { JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean };
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
         private static readonly JTokenType[] BigIntegerTypes = new[] { JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean, JTokenType.Bytes };
 #endif
         private static readonly JTokenType[] StringTypes = new[] { JTokenType.Date, JTokenType.Integer, JTokenType.Float, JTokenType.String, JTokenType.Comment, JTokenType.Raw, JTokenType.Boolean, JTokenType.Bytes, JTokenType.Guid, JTokenType.TimeSpan, JTokenType.Uri };
@@ -100,7 +100,7 @@ namespace Exceptionless.Json.Linq
         /// Gets or sets the parent.
         /// </summary>
         /// <value>The parent.</value>
-        public JContainer Parent
+        public JContainer? Parent
         {
             [DebuggerStepThrough]
             get { return _parent; }
@@ -115,7 +115,7 @@ namespace Exceptionless.Json.Linq
         {
             get
             {
-                JContainer parent = Parent;
+                JContainer? parent = Parent;
                 if (parent == null)
                 {
                     return this;
@@ -152,8 +152,8 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="t1">The first <see cref="JToken"/> to compare.</param>
         /// <param name="t2">The second <see cref="JToken"/> to compare.</param>
-        /// <returns>true if the tokens are equal; otherwise false.</returns>
-        public static bool DeepEquals(JToken t1, JToken t2)
+        /// <returns><c>true</c> if the tokens are equal; otherwise <c>false</c>.</returns>
+        public static bool DeepEquals(JToken? t1, JToken? t2)
         {
             return (t1 == t2 || (t1 != null && t2 != null && t1.DeepEquals(t2)));
         }
@@ -162,20 +162,20 @@ namespace Exceptionless.Json.Linq
         /// Gets the next sibling token of this node.
         /// </summary>
         /// <value>The <see cref="JToken"/> that contains the next sibling token.</value>
-        public JToken Next
+        public JToken? Next
         {
-            get { return _next; }
-            internal set { _next = value; }
+            get => _next;
+            internal set => _next = value;
         }
 
         /// <summary>
         /// Gets the previous sibling token of this node.
         /// </summary>
         /// <value>The <see cref="JToken"/> that contains the previous sibling token.</value>
-        public JToken Previous
+        public JToken? Previous
         {
-            get { return _previous; }
-            internal set { _previous = value; }
+            get => _previous;
+            internal set => _previous = value;
         }
 
         /// <summary>
@@ -190,39 +190,35 @@ namespace Exceptionless.Json.Linq
                     return string.Empty;
                 }
 
-                IList<JToken> ancestors = AncestorsAndSelf().Reverse().ToList();
-
                 List<JsonPosition> positions = new List<JsonPosition>();
-                for (int i = 0; i < ancestors.Count; i++)
+                JToken? previous = null;
+                for (JToken? current = this; current != null; current = current.Parent)
                 {
-                    JToken current = ancestors[i];
-                    JToken next = null;
-                    if (i + 1 < ancestors.Count)
+                    switch (current.Type)
                     {
-                        next = ancestors[i + 1];
-                    }
-                    else if (ancestors[i].Type == JTokenType.Property)
-                    {
-                        next = ancestors[i];
-                    }
-
-                    if (next != null)
-                    {
-                        switch (current.Type)
-                        {
-                            case JTokenType.Property:
-                                JProperty property = (JProperty)current;
-                                positions.Add(new JsonPosition(JsonContainerType.Object) { PropertyName = property.Name });
-                                break;
-                            case JTokenType.Array:
-                            case JTokenType.Constructor:
-                                int index = ((IList<JToken>)current).IndexOf(next);
+                        case JTokenType.Property:
+                            JProperty property = (JProperty)current;
+                            positions.Add(new JsonPosition(JsonContainerType.Object) { PropertyName = property.Name });
+                            break;
+                        case JTokenType.Array:
+                        case JTokenType.Constructor:
+                            if (previous != null)
+                            {
+                                int index = ((IList<JToken>)current).IndexOf(previous);
 
                                 positions.Add(new JsonPosition(JsonContainerType.Array) { Position = index });
-                                break;
-                        }
+                            }
+                            break;
                     }
+
+                    previous = current;
                 }
+
+#if HAVE_FAST_REVERSE
+                positions.FastReverse();
+#else
+                positions.Reverse();
+#endif
 
                 return JsonPosition.BuildPath(positions, null);
             }
@@ -236,7 +232,7 @@ namespace Exceptionless.Json.Linq
         /// Adds the specified content immediately after this token.
         /// </summary>
         /// <param name="content">A content object that contains simple content or a collection of content objects to be added after this token.</param>
-        public void AddAfterSelf(object content)
+        public void AddAfterSelf(object? content)
         {
             if (_parent == null)
             {
@@ -251,7 +247,7 @@ namespace Exceptionless.Json.Linq
         /// Adds the specified content immediately before this token.
         /// </summary>
         /// <param name="content">A content object that contains simple content or a collection of content objects to be added before this token.</param>
-        public void AddBeforeSelf(object content)
+        public void AddBeforeSelf(object? content)
         {
             if (_parent == null)
             {
@@ -282,7 +278,7 @@ namespace Exceptionless.Json.Linq
 
         internal IEnumerable<JToken> GetAncestors(bool self)
         {
-            for (JToken current = self ? this : Parent; current != null; current = current.Parent)
+            for (JToken? current = self ? this : Parent; current != null; current = current.Parent)
             {
                 yield return current;
             }
@@ -299,7 +295,7 @@ namespace Exceptionless.Json.Linq
                 yield break;
             }
 
-            for (JToken o = Next; o != null; o = o.Next)
+            for (JToken? o = Next; o != null; o = o.Next)
             {
                 yield return o;
             }
@@ -311,7 +307,12 @@ namespace Exceptionless.Json.Linq
         /// <returns>A collection of the sibling tokens before this token, in document order.</returns>
         public IEnumerable<JToken> BeforeSelf()
         {
-            for (JToken o = Parent.First; o != this; o = o.Next)
+            if (Parent == null)
+            {
+                yield break;
+            }
+
+            for (JToken? o = Parent.First; o != this && o != null; o = o.Next)
             {
                 yield return o;
             }
@@ -321,10 +322,10 @@ namespace Exceptionless.Json.Linq
         /// Gets the <see cref="JToken"/> with the specified key.
         /// </summary>
         /// <value>The <see cref="JToken"/> with the specified key.</value>
-        public virtual JToken this[object key]
+        public virtual JToken? this[object key]
         {
-            get { throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType())); }
-            set { throw new InvalidOperationException("Cannot set child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType())); }
+            get => throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType()));
+            set => throw new InvalidOperationException("Cannot set child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType()));
         }
 
         /// <summary>
@@ -335,29 +336,23 @@ namespace Exceptionless.Json.Linq
         /// <returns>The converted token value.</returns>
         public virtual T Value<T>(object key)
         {
-            JToken token = this[key];
+            JToken? token = this[key];
 
             // null check to fix MonoTouch issue - https://github.com/dolbz/Exceptionless.Json/commit/a24e3062846b30ee505f3271ac08862bb471b822
-            return token == null ? default(T) : Extensions.Convert<JToken, T>(token);
+            return token == null ? default : Extensions.Convert<JToken, T>(token);
         }
 
         /// <summary>
         /// Get the first child token of this token.
         /// </summary>
         /// <value>A <see cref="JToken"/> containing the first child token of the <see cref="JToken"/>.</value>
-        public virtual JToken First
-        {
-            get { throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType())); }
-        }
+        public virtual JToken? First => throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType()));
 
         /// <summary>
         /// Get the last child token of this token.
         /// </summary>
         /// <value>A <see cref="JToken"/> containing the last child token of the <see cref="JToken"/>.</value>
-        public virtual JToken Last
-        {
-            get { throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType())); }
-        }
+        public virtual JToken? Last => throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType()));
 
         /// <summary>
         /// Returns a collection of the child tokens of this token, in document order.
@@ -425,6 +420,10 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Returns the indented JSON for this token.
         /// </summary>
+        /// <remarks>
+        /// <c>ToString()</c> returns a non-JSON string value for tokens with a type of <see cref="JTokenType.String"/>.
+        /// If you want the JSON for all token types then you should use <see cref="WriteTo(JsonWriter, JsonConverter[])"/>.
+        /// </remarks>
         /// <returns>
         /// The indented JSON for this token.
         /// </returns>
@@ -436,8 +435,8 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Returns the JSON for this token using the given formatting and converters.
         /// </summary>
-        /// <param name="formatting">Indicates how the output is formatted.</param>
-        /// <param name="converters">A collection of <see cref="JsonConverter"/> which will be used when writing the token.</param>
+        /// <param name="formatting">Indicates how the output should be formatted.</param>
+        /// <param name="converters">A collection of <see cref="JsonConverter"/>s which will be used when writing the token.</param>
         /// <returns>The JSON for this token using the given formatting and converters.</returns>
         public string ToString(Formatting formatting, params JsonConverter[] converters)
         {
@@ -452,19 +451,19 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        private static JValue EnsureValue(JToken value)
+        private static JValue? EnsureValue(JToken value)
         {
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
 
-            if (value is JProperty)
+            if (value is JProperty property)
             {
-                value = ((JProperty)value).Value;
+                value = property.Value;
             }
 
-            JValue v = value as JValue;
+            JValue? v = value as JValue;
 
             return v;
         }
@@ -473,9 +472,9 @@ namespace Exceptionless.Json.Linq
         {
             ValidationUtils.ArgumentNotNull(token, nameof(token));
 
-            if (token is JProperty)
+            if (token is JProperty p)
             {
-                token = ((JProperty)token).Value;
+                token = p.Value;
             }
 
             return token.Type.ToString();
@@ -486,7 +485,7 @@ namespace Exceptionless.Json.Linq
             return (Array.IndexOf(validTypes, o.Type) != -1) || (nullable && (o.Type == JTokenType.Null || o.Type == JTokenType.Undefined));
         }
 
-        #region Cast from operators
+#region Cast from operators
         /// <summary>
         /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Boolean"/>.
         /// </summary>
@@ -494,23 +493,23 @@ namespace Exceptionless.Json.Linq
         /// <returns>The result of the conversion.</returns>
         public static explicit operator bool(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, BooleanTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Boolean.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return Convert.ToBoolean((int)(BigInteger)v.Value);
+                return Convert.ToBoolean((int)integer);
             }
 #endif
 
             return Convert.ToBoolean(v.Value, CultureInfo.InvariantCulture);
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
         /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.DateTimeOffset"/>.
         /// </summary>
@@ -518,46 +517,48 @@ namespace Exceptionless.Json.Linq
         /// <returns>The result of the conversion.</returns>
         public static explicit operator DateTimeOffset(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, DateTimeTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to DateTimeOffset.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-            if (v.Value is DateTimeOffset)
+            if (v.Value is DateTimeOffset offset)
             {
-                return (DateTimeOffset)v.Value;
+                return offset;
             }
-            if (v.Value is string)
+
+            if (v.Value is string s)
             {
-                return DateTimeOffset.Parse((string)v.Value, CultureInfo.InvariantCulture);
+                return DateTimeOffset.Parse(s, CultureInfo.InvariantCulture);
             }
+
             return new DateTimeOffset(Convert.ToDateTime(v.Value, CultureInfo.InvariantCulture));
         }
 #endif
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Boolean}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Boolean"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator bool?(JToken value)
+        public static explicit operator bool?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, BooleanTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Boolean.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return Convert.ToBoolean((int)(BigInteger)v.Value);
+                return Convert.ToBoolean((int)integer);
             }
 #endif
 
@@ -565,22 +566,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Int64"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Int64"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator long(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Int64.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (long)(BigInteger)v.Value;
+                return (long)integer;
             }
 #endif
 
@@ -588,47 +589,47 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{DateTime}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="DateTime"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator DateTime?(JToken value)
+        public static explicit operator DateTime?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, DateTimeTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to DateTime.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !NET20
-            if (v.Value is DateTimeOffset)
+#if HAVE_DATE_TIME_OFFSET
+            if (v.Value is DateTimeOffset offset)
             {
-                return ((DateTimeOffset)v.Value).DateTime;
+                return offset.DateTime;
             }
 #endif
 
             return (v.Value != null) ? (DateTime?)Convert.ToDateTime(v.Value, CultureInfo.InvariantCulture) : null;
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{DateTimeOffset}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="DateTimeOffset"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator DateTimeOffset?(JToken value)
+        public static explicit operator DateTimeOffset?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, DateTimeTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to DateTimeOffset.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -638,40 +639,42 @@ namespace Exceptionless.Json.Linq
             {
                 return null;
             }
-            if (v.Value is DateTimeOffset)
+            if (v.Value is DateTimeOffset offset)
             {
-                return (DateTimeOffset?)v.Value;
+                return offset;
             }
-            if (v.Value is string)
+
+            if (v.Value is string s)
             {
-                return DateTimeOffset.Parse((string)v.Value, CultureInfo.InvariantCulture);
+                return DateTimeOffset.Parse(s, CultureInfo.InvariantCulture);
             }
+
             return new DateTimeOffset(Convert.ToDateTime(v.Value, CultureInfo.InvariantCulture));
         }
 #endif
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Decimal}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Decimal"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator decimal?(JToken value)
+        public static explicit operator decimal?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Decimal.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (decimal?)(BigInteger)v.Value;
+                return (decimal?)integer;
             }
 #endif
 
@@ -679,27 +682,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Double}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Double"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator double?(JToken value)
+        public static explicit operator double?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Double.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (double?)(BigInteger)v.Value;
+                return (double?)integer;
             }
 #endif
 
@@ -707,27 +710,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Char}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Char"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator char?(JToken value)
+        public static explicit operator char?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, CharTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Char.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (char?)(BigInteger)v.Value;
+                return (char?)integer;
             }
 #endif
 
@@ -735,22 +738,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Int32"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Int32"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator int(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Int32.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (int)(BigInteger)v.Value;
+                return (int)integer;
             }
 #endif
 
@@ -758,22 +761,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Int16"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Int16"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator short(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Int16.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (short)(BigInteger)v.Value;
+                return (short)integer;
             }
 #endif
 
@@ -781,23 +784,23 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.UInt16"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="UInt16"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
         public static explicit operator ushort(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to UInt16.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (ushort)(BigInteger)v.Value;
+                return (ushort)integer;
             }
 #endif
 
@@ -805,23 +808,23 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Char"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Char"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
         public static explicit operator char(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, CharTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Char.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (char)(BigInteger)v.Value;
+                return (char)integer;
             }
 #endif
 
@@ -829,22 +832,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Byte"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Byte"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator byte(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Byte.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (byte)(BigInteger)v.Value;
+                return (byte)integer;
             }
 #endif
 
@@ -859,16 +862,16 @@ namespace Exceptionless.Json.Linq
         
         public static explicit operator sbyte(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to SByte.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (sbyte)(BigInteger)v.Value;
+                return (sbyte)integer;
             }
 #endif
 
@@ -876,27 +879,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Int32}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Int32"/> .
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator int?(JToken value)
+        public static explicit operator int?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Int32.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (int?)(BigInteger)v.Value;
+                return (int?)integer;
             }
 #endif
 
@@ -904,27 +907,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Int16}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Int16"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator short?(JToken value)
+        public static explicit operator short?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Int16.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (short?)(BigInteger)v.Value;
+                return (short?)integer;
             }
 #endif
 
@@ -932,28 +935,28 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{UInt16}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="UInt16"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
-        public static explicit operator ushort?(JToken value)
+        public static explicit operator ushort?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to UInt16.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (ushort?)(BigInteger)v.Value;
+                return (ushort?)integer;
             }
 #endif
 
@@ -961,27 +964,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Byte}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Byte"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator byte?(JToken value)
+        public static explicit operator byte?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Byte.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (byte?)(BigInteger)v.Value;
+                return (byte?)integer;
             }
 #endif
 
@@ -989,28 +992,28 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{SByte}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="SByte"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
-        public static explicit operator sbyte?(JToken value)
+        public static explicit operator sbyte?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to SByte.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (sbyte?)(BigInteger)v.Value;
+                return (sbyte?)integer;
             }
 #endif
 
@@ -1018,22 +1021,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.DateTime"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="DateTime"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator DateTime(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, DateTimeTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to DateTime.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !NET20
-            if (v.Value is DateTimeOffset)
+#if HAVE_DATE_TIME_OFFSET
+            if (v.Value is DateTimeOffset offset)
             {
-                return ((DateTimeOffset)v.Value).DateTime;
+                return offset.DateTime;
             }
 #endif
 
@@ -1041,27 +1044,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Int64}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Int64"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator long?(JToken value)
+        public static explicit operator long?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Int64.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (long?)(BigInteger)v.Value;
+                return (long?)integer;
             }
 #endif
 
@@ -1069,27 +1072,27 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{Single}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Single"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator float?(JToken value)
+        public static explicit operator float?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Single.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (float?)(BigInteger)v.Value;
+                return (float?)integer;
             }
 #endif
 
@@ -1097,22 +1100,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Decimal"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Decimal"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator decimal(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Decimal.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (decimal)(BigInteger)v.Value;
+                return (decimal)integer;
             }
 #endif
 
@@ -1120,28 +1123,28 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{UInt32}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="UInt32"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
-        public static explicit operator uint?(JToken value)
+        public static explicit operator uint?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to UInt32.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (uint?)(BigInteger)v.Value;
+                return (uint?)integer;
             }
 #endif
 
@@ -1149,28 +1152,28 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Nullable{UInt64}"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="UInt64"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
-        public static explicit operator ulong?(JToken value)
+        public static explicit operator ulong?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to UInt64.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (ulong?)(BigInteger)v.Value;
+                return (ulong?)integer;
             }
 #endif
 
@@ -1178,22 +1181,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Double"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Double"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator double(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Double.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (double)(BigInteger)v.Value;
+                return (double)integer;
             }
 #endif
 
@@ -1201,22 +1204,22 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Single"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Single"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator float(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Single.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (float)(BigInteger)v.Value;
+                return (float)integer;
             }
 #endif
 
@@ -1224,18 +1227,18 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.String"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="String"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator string(JToken value)
+        public static explicit operator string?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, StringTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to String.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -1245,14 +1248,16 @@ namespace Exceptionless.Json.Linq
             {
                 return null;
             }
-            if (v.Value is byte[])
+
+            if (v.Value is byte[] bytes)
             {
-                return Convert.ToBase64String((byte[])v.Value);
+                return Convert.ToBase64String(bytes);
             }
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return ((BigInteger)v.Value).ToString(CultureInfo.InvariantCulture);
+                return integer.ToString(CultureInfo.InvariantCulture);
             }
 #endif
 
@@ -1260,23 +1265,23 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.UInt32"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="UInt32"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         
         public static explicit operator uint(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to UInt32.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (uint)(BigInteger)v.Value;
+                return (uint)integer;
             }
 #endif
 
@@ -1291,16 +1296,16 @@ namespace Exceptionless.Json.Linq
         
         public static explicit operator ulong(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, NumberTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to UInt64.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return (ulong)(BigInteger)v.Value;
+                return (ulong)integer;
             }
 #endif
 
@@ -1308,18 +1313,18 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="Byte"/>[].
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Byte"/>[].
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator byte[](JToken value)
+        public static explicit operator byte[]?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, BytesTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to byte array.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -1329,55 +1334,55 @@ namespace Exceptionless.Json.Linq
             {
                 return Convert.FromBase64String(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
             }
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
-            if (v.Value is BigInteger)
+#if HAVE_BIG_INTEGER
+            if (v.Value is BigInteger integer)
             {
-                return ((BigInteger)v.Value).ToByteArray();
+                return integer.ToByteArray();
             }
 #endif
 
-            if (v.Value is byte[])
+            if (v.Value is byte[] bytes)
             {
-                return (byte[])v.Value;
+                return bytes;
             }
 
             throw new ArgumentException("Can not convert {0} to byte array.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Guid"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Guid"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator Guid(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, GuidTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to Guid.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-            if (v.Value is byte[])
+            if (v.Value is byte[] bytes)
             {
-                return new Guid((byte[])v.Value);
+                return new Guid(bytes);
             }
 
-            return (v.Value is Guid) ? (Guid)v.Value : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is Guid guid) ? guid : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Guid"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="Guid"/> .
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator Guid?(JToken value)
+        public static explicit operator Guid?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, GuidTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Guid.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -1388,43 +1393,43 @@ namespace Exceptionless.Json.Linq
                 return null;
             }
 
-            if (v.Value is byte[])
+            if (v.Value is byte[] bytes)
             {
-                return new Guid((byte[])v.Value);
+                return new Guid(bytes);
             }
 
-            return (v.Value is Guid) ? (Guid)v.Value : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is Guid guid) ? guid : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.TimeSpan"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="TimeSpan"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator TimeSpan(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, TimeSpanTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to TimeSpan.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-            return (v.Value is TimeSpan) ? (TimeSpan)v.Value : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is TimeSpan span) ? span : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.TimeSpan"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Nullable{T}"/> of <see cref="TimeSpan"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator TimeSpan?(JToken value)
+        public static explicit operator TimeSpan?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, TimeSpanTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to TimeSpan.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -1435,22 +1440,22 @@ namespace Exceptionless.Json.Linq
                 return null;
             }
 
-            return (v.Value is TimeSpan) ? (TimeSpan)v.Value : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is TimeSpan span) ? span : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Uri"/>.
+        /// Performs an explicit conversion from <see cref="JToken"/> to <see cref="Uri"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator Uri(JToken value)
+        public static explicit operator Uri?(JToken? value)
         {
             if (value == null)
             {
                 return null;
             }
 
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, UriTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to Uri.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -1461,24 +1466,24 @@ namespace Exceptionless.Json.Linq
                 return null;
             }
 
-            return (v.Value is Uri) ? (Uri)v.Value : new Uri(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is Uri uri) ? uri : new Uri(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
         }
 
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
         private static BigInteger ToBigInteger(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, BigIntegerTypes, false))
             {
                 throw new ArgumentException("Can not convert {0} to BigInteger.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-            return ConvertUtils.ToBigInteger(v.Value);
+            return ConvertUtils.ToBigInteger(v.Value!);
         }
 
         private static BigInteger? ToBigIntegerNullable(JToken value)
         {
-            JValue v = EnsureValue(value);
+            JValue? v = EnsureValue(value);
             if (v == null || !ValidateToken(v, BigIntegerTypes, true))
             {
                 throw new ArgumentException("Can not convert {0} to BigInteger.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
@@ -1492,9 +1497,9 @@ namespace Exceptionless.Json.Linq
             return ConvertUtils.ToBigInteger(v.Value);
         }
 #endif
-        #endregion
+#endregion
 
-        #region Cast to operators
+#region Cast to operators
         /// <summary>
         /// Performs an implicit conversion from <see cref="Boolean"/> to <see cref="JToken"/>.
         /// </summary>
@@ -1505,7 +1510,7 @@ namespace Exceptionless.Json.Linq
             return new JValue(value);
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
         /// Performs an implicit conversion from <see cref="DateTimeOffset"/> to <see cref="JToken"/>.
         /// </summary>
@@ -1528,7 +1533,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Byte}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Byte"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1549,7 +1554,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{SByte}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="SByte"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1560,7 +1565,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Boolean}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Boolean"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1570,7 +1575,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Int64}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Int64"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1580,7 +1585,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{DateTime}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="DateTime"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1589,9 +1594,9 @@ namespace Exceptionless.Json.Linq
             return new JValue(value);
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{DateTimeOffset}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="DateTimeOffset"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1602,7 +1607,7 @@ namespace Exceptionless.Json.Linq
 #endif
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Decimal}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Decimal"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1612,7 +1617,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Double}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Double"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1654,7 +1659,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Int32}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Int32"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1674,7 +1679,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Int64}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Int64"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1684,7 +1689,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Single}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Single"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1704,7 +1709,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Int16}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Int16"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1715,7 +1720,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{UInt16}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="UInt16"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1726,7 +1731,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{UInt32}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="UInt32"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1737,7 +1742,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{UInt64}"/> to <see cref="JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="UInt64"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1772,7 +1777,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        public static implicit operator JToken(string value)
+        public static implicit operator JToken(string? value)
         {
             return new JValue(value);
         }
@@ -1800,7 +1805,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Byte"/>[] to <see cref="Exceptionless.Json.Linq.JToken"/>.
+        /// Performs an implicit conversion from <see cref="Byte"/>[] to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1810,17 +1815,17 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="T:System.Uri"/> to <see cref="Exceptionless.Json.Linq.JToken"/>.
+        /// Performs an implicit conversion from <see cref="Uri"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
-        public static implicit operator JToken(Uri value)
+        public static implicit operator JToken(Uri? value)
         {
             return new JValue(value);
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="T:System.TimeSpan"/> to <see cref="Exceptionless.Json.Linq.JToken"/>.
+        /// Performs an implicit conversion from <see cref="TimeSpan"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1830,7 +1835,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{TimeSpan}"/> to <see cref="Exceptionless.Json.Linq.JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="TimeSpan"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1840,7 +1845,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="T:System.Guid"/> to <see cref="Exceptionless.Json.Linq.JToken"/>.
+        /// Performs an implicit conversion from <see cref="Guid"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1850,7 +1855,7 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Nullable{Guid}"/> to <see cref="Exceptionless.Json.Linq.JToken"/>.
+        /// Performs an implicit conversion from <see cref="Nullable{T}"/> of <see cref="Guid"/> to <see cref="JToken"/>.
         /// </summary>
         /// <param name="value">The value to create a <see cref="JValue"/> from.</param>
         /// <returns>The <see cref="JValue"/> initialized with the specified value.</returns>
@@ -1858,7 +1863,7 @@ namespace Exceptionless.Json.Linq
         {
             return new JValue(value);
         }
-        #endregion
+#endregion
 
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -1872,18 +1877,15 @@ namespace Exceptionless.Json.Linq
 
         internal abstract int GetDeepHashCode();
 
-        IJEnumerable<JToken> IJEnumerable<JToken>.this[object key]
-        {
-            get { return this[key]; }
-        }
+        IJEnumerable<JToken> IJEnumerable<JToken>.this[object key] => this[key]!;
 
         /// <summary>
-        /// Creates an <see cref="JsonReader"/> for this token.
+        /// Creates a <see cref="JsonReader"/> for this token.
         /// </summary>
-        /// <returns>An <see cref="JsonReader"/> that can be used to read this token and its descendants.</returns>
+        /// <returns>A <see cref="JsonReader"/> that can be used to read this token and its descendants.</returns>
         public JsonReader CreateReader()
         {
-            return new JTokenReader(this, Path);
+            return new JTokenReader(this);
         }
 
         internal static JToken FromObjectInternal(object o, JsonSerializer jsonSerializer)
@@ -1895,7 +1897,7 @@ namespace Exceptionless.Json.Linq
             using (JTokenWriter jsonWriter = new JTokenWriter())
             {
                 jsonSerializer.Serialize(jsonWriter, o);
-                token = jsonWriter.Token;
+                token = jsonWriter.Token!;
             }
 
             return token;
@@ -1905,7 +1907,7 @@ namespace Exceptionless.Json.Linq
         /// Creates a <see cref="JToken"/> from an object.
         /// </summary>
         /// <param name="o">The object that will be used to create <see cref="JToken"/>.</param>
-        /// <returns>A <see cref="JToken"/> with the value of the specified object</returns>
+        /// <returns>A <see cref="JToken"/> with the value of the specified object.</returns>
         public static JToken FromObject(object o)
         {
             return FromObjectInternal(o, JsonSerializer.CreateDefault());
@@ -1916,33 +1918,35 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="o">The object that will be used to create <see cref="JToken"/>.</param>
         /// <param name="jsonSerializer">The <see cref="JsonSerializer"/> that will be used when reading the object.</param>
-        /// <returns>A <see cref="JToken"/> with the value of the specified object</returns>
+        /// <returns>A <see cref="JToken"/> with the value of the specified object.</returns>
         public static JToken FromObject(object o, JsonSerializer jsonSerializer)
         {
             return FromObjectInternal(o, jsonSerializer);
         }
 
         /// <summary>
-        /// Creates the specified .NET type from the <see cref="JToken"/>.
+        /// Creates an instance of the specified .NET type from the <see cref="JToken"/>.
         /// </summary>
         /// <typeparam name="T">The object type that the token will be deserialized to.</typeparam>
         /// <returns>The new object created from the JSON value.</returns>
+        [return: MaybeNull]
         public T ToObject<T>()
         {
+#pragma warning disable CS8601 // Possible null reference assignment.
             return (T)ToObject(typeof(T));
+#pragma warning restore CS8601 // Possible null reference assignment.
         }
 
         /// <summary>
-        /// Creates the specified .NET type from the <see cref="JToken"/>.
+        /// Creates an instance of the specified .NET type from the <see cref="JToken"/>.
         /// </summary>
         /// <param name="objectType">The object type that the token will be deserialized to.</param>
         /// <returns>The new object created from the JSON value.</returns>
-        public object ToObject(Type objectType)
+        public object? ToObject(Type objectType)
         {
             if (JsonConvert.DefaultSettings == null)
             {
-                bool isEnum;
-                PrimitiveTypeCode typeCode = ConvertUtils.GetTypeCode(objectType, out isEnum);
+                PrimitiveTypeCode typeCode = ConvertUtils.GetTypeCode(objectType, out bool isEnum);
 
                 if (isEnum)
                 {
@@ -1956,7 +1960,7 @@ namespace Exceptionless.Json.Linq
                         catch (Exception ex)
                         {
                             Type enumType = objectType.IsEnum() ? objectType : Nullable.GetUnderlyingType(objectType);
-                            throw new ArgumentException("Could not convert '{0}' to {1}.".FormatWith(CultureInfo.InvariantCulture, (string)this, enumType.Name), ex);
+                            throw new ArgumentException("Could not convert '{0}' to {1}.".FormatWith(CultureInfo.InvariantCulture, (string?)this, enumType.Name), ex);
                         }
                     }
 
@@ -1978,9 +1982,9 @@ namespace Exceptionless.Json.Linq
                     case PrimitiveTypeCode.Char:
                         return (char)this;
                     case PrimitiveTypeCode.SByte:
-                        return (sbyte?)this;
-                    case PrimitiveTypeCode.SByteNullable:
                         return (sbyte)this;
+                    case PrimitiveTypeCode.SByteNullable:
+                        return (sbyte?)this;
                     case PrimitiveTypeCode.ByteNullable:
                         return (byte?)this;
                     case PrimitiveTypeCode.Byte:
@@ -2025,25 +2029,25 @@ namespace Exceptionless.Json.Linq
                         return (DateTime?)this;
                     case PrimitiveTypeCode.DateTime:
                         return (DateTime)this;
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
                     case PrimitiveTypeCode.DateTimeOffsetNullable:
                         return (DateTimeOffset?)this;
                     case PrimitiveTypeCode.DateTimeOffset:
                         return (DateTimeOffset)this;
 #endif
                     case PrimitiveTypeCode.String:
-                        return (string)this;
+                        return (string?)this;
                     case PrimitiveTypeCode.GuidNullable:
                         return (Guid?)this;
                     case PrimitiveTypeCode.Guid:
                         return (Guid)this;
                     case PrimitiveTypeCode.Uri:
-                        return (Uri)this;
+                        return (Uri?)this;
                     case PrimitiveTypeCode.TimeSpanNullable:
                         return (TimeSpan?)this;
                     case PrimitiveTypeCode.TimeSpan:
                         return (TimeSpan)this;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
                     case PrimitiveTypeCode.BigIntegerNullable:
                         return ToBigIntegerNullable(this);
                     case PrimitiveTypeCode.BigInteger:
@@ -2056,23 +2060,26 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Creates the specified .NET type from the <see cref="JToken"/> using the specified <see cref="JsonSerializer"/>.
+        /// Creates an instance of the specified .NET type from the <see cref="JToken"/> using the specified <see cref="JsonSerializer"/>.
         /// </summary>
         /// <typeparam name="T">The object type that the token will be deserialized to.</typeparam>
         /// <param name="jsonSerializer">The <see cref="JsonSerializer"/> that will be used when creating the object.</param>
         /// <returns>The new object created from the JSON value.</returns>
+        [return: MaybeNull]
         public T ToObject<T>(JsonSerializer jsonSerializer)
         {
+#pragma warning disable CS8601 // Possible null reference assignment.
             return (T)ToObject(typeof(T), jsonSerializer);
+#pragma warning restore CS8601 // Possible null reference assignment.
         }
 
         /// <summary>
-        /// Creates the specified .NET type from the <see cref="JToken"/> using the specified <see cref="JsonSerializer"/>.
+        /// Creates an instance of the specified .NET type from the <see cref="JToken"/> using the specified <see cref="JsonSerializer"/>.
         /// </summary>
         /// <param name="objectType">The object type that the token will be deserialized to.</param>
         /// <param name="jsonSerializer">The <see cref="JsonSerializer"/> that will be used when creating the object.</param>
         /// <returns>The new object created from the JSON value.</returns>
-        public object ToObject(Type objectType, JsonSerializer jsonSerializer)
+        public object? ToObject(Type objectType, JsonSerializer jsonSerializer)
         {
             ValidationUtils.ArgumentNotNull(jsonSerializer, nameof(jsonSerializer));
 
@@ -2085,9 +2092,9 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Creates a <see cref="JToken"/> from a <see cref="JsonReader"/>.
         /// </summary>
-        /// <param name="reader">An <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
+        /// <param name="reader">A <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
         /// <returns>
-        /// An <see cref="JToken"/> that contains the token and its descendant tokens
+        /// A <see cref="JToken"/> that contains the token and its descendant tokens
         /// that were read from the reader. The runtime type of the token is determined
         /// by the token type of the first token encountered in the reader.
         /// </returns>
@@ -2101,29 +2108,38 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="reader">An <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
         /// <param name="settings">The <see cref="JsonLoadSettings"/> used to load the JSON.
-        /// If this is null, default load settings will be used.</param>
+        /// If this is <c>null</c>, default load settings will be used.</param>
         /// <returns>
-        /// An <see cref="JToken"/> that contains the token and its descendant tokens
+        /// A <see cref="JToken"/> that contains the token and its descendant tokens
         /// that were read from the reader. The runtime type of the token is determined
         /// by the token type of the first token encountered in the reader.
         /// </returns>
-        public static JToken ReadFrom(JsonReader reader, JsonLoadSettings settings)
+        public static JToken ReadFrom(JsonReader reader, JsonLoadSettings? settings)
         {
             ValidationUtils.ArgumentNotNull(reader, nameof(reader));
 
+            bool hasContent;
             if (reader.TokenType == JsonToken.None)
             {
-                bool hasContent = (settings != null && settings.CommentHandling == CommentHandling.Ignore)
+                hasContent = (settings != null && settings.CommentHandling == CommentHandling.Ignore)
                     ? reader.ReadAndMoveToContent()
                     : reader.Read();
-
-                if (!hasContent)
-                {
-                    throw JsonReaderException.Create(reader, "Error reading JToken from JsonReader.");
-                }
+            }
+            else if (reader.TokenType == JsonToken.Comment && settings?.CommentHandling == CommentHandling.Ignore)
+            {
+                hasContent = reader.ReadAndMoveToContent();
+            }
+            else
+            {
+                hasContent = true;
             }
 
-            IJsonLineInfo lineInfo = reader as IJsonLineInfo;
+            if (!hasContent)
+            {
+                throw JsonReaderException.Create(reader, "Error reading JToken from JsonReader.");
+            }
+
+            IJsonLineInfo? lineInfo = reader as IJsonLineInfo;
 
             switch (reader.TokenType)
             {
@@ -2145,7 +2161,7 @@ namespace Exceptionless.Json.Linq
                     v.SetLineInfo(lineInfo, settings);
                     return v;
                 case JsonToken.Comment:
-                    v = JValue.CreateComment(reader.Value.ToString());
+                    v = JValue.CreateComment(reader.Value!.ToString());
                     v.SetLineInfo(lineInfo, settings);
                     return v;
                 case JsonToken.Null:
@@ -2176,17 +2192,17 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="json">A <see cref="String"/> that contains JSON.</param>
         /// <param name="settings">The <see cref="JsonLoadSettings"/> used to load the JSON.
-        /// If this is null, default load settings will be used.</param>
+        /// If this is <c>null</c>, default load settings will be used.</param>
         /// <returns>A <see cref="JToken"/> populated from the string that contains JSON.</returns>
-        public static JToken Parse(string json, JsonLoadSettings settings)
+        public static JToken Parse(string json, JsonLoadSettings? settings)
         {
             using (JsonReader reader = new JsonTextReader(new StringReader(json)))
             {
                 JToken t = Load(reader, settings);
 
-                if (reader.Read() && reader.TokenType != JsonToken.Comment)
+                while (reader.Read())
                 {
-                    throw JsonReaderException.Create(reader, "Additional text found in JSON string after parsing content.");
+                    // Any content encountered here other than a comment will throw in the reader.
                 }
 
                 return t;
@@ -2196,15 +2212,15 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Creates a <see cref="JToken"/> from a <see cref="JsonReader"/>.
         /// </summary>
-        /// <param name="reader">An <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
+        /// <param name="reader">A <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
         /// <param name="settings">The <see cref="JsonLoadSettings"/> used to load the JSON.
-        /// If this is null, default load settings will be used.</param>
+        /// If this is <c>null</c>, default load settings will be used.</param>
         /// <returns>
-        /// An <see cref="JToken"/> that contains the token and its descendant tokens
+        /// A <see cref="JToken"/> that contains the token and its descendant tokens
         /// that were read from the reader. The runtime type of the token is determined
         /// by the token type of the first token encountered in the reader.
         /// </returns>
-        public static JToken Load(JsonReader reader, JsonLoadSettings settings)
+        public static JToken Load(JsonReader reader, JsonLoadSettings? settings)
         {
             return ReadFrom(reader, settings);
         }
@@ -2212,9 +2228,9 @@ namespace Exceptionless.Json.Linq
         /// <summary>
         /// Creates a <see cref="JToken"/> from a <see cref="JsonReader"/>.
         /// </summary>
-        /// <param name="reader">An <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
+        /// <param name="reader">A <see cref="JsonReader"/> positioned at the token to read into this <see cref="JToken"/>.</param>
         /// <returns>
-        /// An <see cref="JToken"/> that contains the token and its descendant tokens
+        /// A <see cref="JToken"/> that contains the token and its descendant tokens
         /// that were read from the reader. The runtime type of the token is determined
         /// by the token type of the first token encountered in the reader.
         /// </returns>
@@ -2223,9 +2239,9 @@ namespace Exceptionless.Json.Linq
             return Load(reader, null);
         }
 
-        internal void SetLineInfo(IJsonLineInfo lineInfo, JsonLoadSettings settings)
+        internal void SetLineInfo(IJsonLineInfo? lineInfo, JsonLoadSettings? settings)
         {
-            if (settings != null && settings.LineInfoHandling == LineInfoHandling.Load)
+            if (settings != null && settings.LineInfoHandling != LineInfoHandling.Load)
             {
                 return;
             }
@@ -2264,7 +2280,7 @@ namespace Exceptionless.Json.Linq
         {
             get
             {
-                LineInfoAnnotation annotation = Annotation<LineInfoAnnotation>();
+                LineInfoAnnotation? annotation = Annotation<LineInfoAnnotation>();
                 if (annotation != null)
                 {
                     return annotation.LineNumber;
@@ -2278,7 +2294,7 @@ namespace Exceptionless.Json.Linq
         {
             get
             {
-                LineInfoAnnotation annotation = Annotation<LineInfoAnnotation>();
+                LineInfoAnnotation? annotation = Annotation<LineInfoAnnotation>();
                 if (annotation != null)
                 {
                     return annotation.LinePosition;
@@ -2289,31 +2305,31 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Selects a <see cref="JToken"/> using a JPath expression. Selects the token that matches the object path.
+        /// Selects a <see cref="JToken"/> using a JSONPath expression. Selects the token that matches the object path.
         /// </summary>
         /// <param name="path">
-        /// A <see cref="String"/> that contains a JPath expression.
+        /// A <see cref="String"/> that contains a JSONPath expression.
         /// </param>
-        /// <returns>A <see cref="JToken"/>, or null.</returns>
-        public JToken SelectToken(string path)
+        /// <returns>A <see cref="JToken"/>, or <c>null</c>.</returns>
+        public JToken? SelectToken(string path)
         {
             return SelectToken(path, false);
         }
 
         /// <summary>
-        /// Selects a <see cref="JToken"/> using a JPath expression. Selects the token that matches the object path.
+        /// Selects a <see cref="JToken"/> using a JSONPath expression. Selects the token that matches the object path.
         /// </summary>
         /// <param name="path">
-        /// A <see cref="String"/> that contains a JPath expression.
+        /// A <see cref="String"/> that contains a JSONPath expression.
         /// </param>
         /// <param name="errorWhenNoMatch">A flag to indicate whether an error should be thrown if no tokens are found when evaluating part of the expression.</param>
         /// <returns>A <see cref="JToken"/>.</returns>
-        public JToken SelectToken(string path, bool errorWhenNoMatch)
+        public JToken? SelectToken(string path, bool errorWhenNoMatch)
         {
             JPath p = new JPath(path);
 
-            JToken token = null;
-            foreach (JToken t in p.Evaluate(this, errorWhenNoMatch))
+            JToken? token = null;
+            foreach (JToken t in p.Evaluate(this, this, errorWhenNoMatch))
             {
                 if (token != null)
                 {
@@ -2327,50 +2343,50 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Selects a collection of elements using a JPath expression.
+        /// Selects a collection of elements using a JSONPath expression.
         /// </summary>
         /// <param name="path">
-        /// A <see cref="String"/> that contains a JPath expression.
+        /// A <see cref="String"/> that contains a JSONPath expression.
         /// </param>
-        /// <returns>An <see cref="IEnumerable{JToken}"/> that contains the selected elements.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the selected elements.</returns>
         public IEnumerable<JToken> SelectTokens(string path)
         {
             return SelectTokens(path, false);
         }
 
         /// <summary>
-        /// Selects a collection of elements using a JPath expression.
+        /// Selects a collection of elements using a JSONPath expression.
         /// </summary>
         /// <param name="path">
-        /// A <see cref="String"/> that contains a JPath expression.
+        /// A <see cref="String"/> that contains a JSONPath expression.
         /// </param>
         /// <param name="errorWhenNoMatch">A flag to indicate whether an error should be thrown if no tokens are found when evaluating part of the expression.</param>
-        /// <returns>An <see cref="IEnumerable{JToken}"/> that contains the selected elements.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the selected elements.</returns>
         public IEnumerable<JToken> SelectTokens(string path, bool errorWhenNoMatch)
         {
             JPath p = new JPath(path);
-            return p.Evaluate(this, errorWhenNoMatch);
+            return p.Evaluate(this, this, errorWhenNoMatch);
         }
 
-#if !(NET35 || NET20 || PORTABLE40)
+#if HAVE_DYNAMIC
         /// <summary>
-        /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
+        /// Returns the <see cref="DynamicMetaObject"/> responsible for binding operations performed on this object.
         /// </summary>
         /// <param name="parameter">The expression tree representation of the runtime value.</param>
         /// <returns>
-        /// The <see cref="T:System.Dynamic.DynamicMetaObject"/> to bind this object.
+        /// The <see cref="DynamicMetaObject"/> to bind this object.
         /// </returns>
         protected virtual DynamicMetaObject GetMetaObject(Expression parameter)
         {
-            return new DynamicProxyMetaObject<JToken>(parameter, this, new DynamicProxy<JToken>(), true);
+            return new DynamicProxyMetaObject<JToken>(parameter, this, new DynamicProxy<JToken>());
         }
 
         /// <summary>
-        /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
+        /// Returns the <see cref="DynamicMetaObject"/> responsible for binding operations performed on this object.
         /// </summary>
         /// <param name="parameter">The expression tree representation of the runtime value.</param>
         /// <returns>
-        /// The <see cref="T:System.Dynamic.DynamicMetaObject"/> to bind this object.
+        /// The <see cref="DynamicMetaObject"/> to bind this object.
         /// </returns>
         DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(Expression parameter)
         {
@@ -2378,7 +2394,7 @@ namespace Exceptionless.Json.Linq
         }
 #endif
 
-#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_ICLONEABLE
         object ICloneable.Clone()
         {
             return DeepClone();
@@ -2411,8 +2427,7 @@ namespace Exceptionless.Json.Linq
             }
             else
             {
-                object[] annotations = _annotations as object[];
-                if (annotations == null)
+                if (!(_annotations is object[] annotations))
                 {
                     _annotations = new[] { _annotations, annotation };
                 }
@@ -2442,8 +2457,7 @@ namespace Exceptionless.Json.Linq
         {
             if (_annotations != null)
             {
-                object[] annotations = _annotations as object[];
-                if (annotations == null)
+                if (!(_annotations is object[] annotations))
                 {
                     return (_annotations as T);
                 }
@@ -2455,15 +2469,14 @@ namespace Exceptionless.Json.Linq
                         break;
                     }
 
-                    T local = annotation as T;
-                    if (local != null)
+                    if (annotation is T local)
                     {
                         return local;
                     }
                 }
             }
 
-            return default(T);
+            return default;
         }
 
         /// <summary>
@@ -2471,7 +2484,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="type">The <see cref="Type"/> of the annotation to retrieve.</param>
         /// <returns>The first annotation object that matches the specified type, or <c>null</c> if no annotation is of the specified type.</returns>
-        public object Annotation(Type type)
+        public object? Annotation(Type type)
         {
             if (type == null)
             {
@@ -2480,8 +2493,7 @@ namespace Exceptionless.Json.Linq
 
             if (_annotations != null)
             {
-                object[] annotations = _annotations as object[];
-                if (annotations == null)
+                if (!(_annotations is object[] annotations))
                 {
                     if (type.IsInstanceOfType(_annotations))
                     {
@@ -2513,7 +2525,7 @@ namespace Exceptionless.Json.Linq
         /// Gets a collection of annotations of the specified type for this <see cref="JToken"/>.
         /// </summary>
         /// <typeparam name="T">The type of the annotations to retrieve.</typeparam>
-        /// <returns>An <see cref="IEnumerable{T}"/>  that contains the annotations for this <see cref="JToken"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> that contains the annotations for this <see cref="JToken"/>.</returns>
         public IEnumerable<T> Annotations<T>() where T : class
         {
             if (_annotations == null)
@@ -2521,8 +2533,7 @@ namespace Exceptionless.Json.Linq
                 yield break;
             }
 
-            object[] annotations = _annotations as object[];
-            if (annotations != null)
+            if (_annotations is object[] annotations)
             {
                 for (int i = 0; i < annotations.Length; i++)
                 {
@@ -2532,8 +2543,7 @@ namespace Exceptionless.Json.Linq
                         break;
                     }
 
-                    T casted = o as T;
-                    if (casted != null)
+                    if (o is T casted)
                     {
                         yield return casted;
                     }
@@ -2541,8 +2551,7 @@ namespace Exceptionless.Json.Linq
                 yield break;
             }
 
-            T annotation = _annotations as T;
-            if (annotation == null)
+            if (!(_annotations is T annotation))
             {
                 yield break;
             }
@@ -2567,8 +2576,7 @@ namespace Exceptionless.Json.Linq
                 yield break;
             }
 
-            object[] annotations = _annotations as object[];
-            if (annotations != null)
+            if (_annotations is object[] annotations)
             {
                 for (int i = 0; i < annotations.Length; i++)
                 {
@@ -2602,8 +2610,7 @@ namespace Exceptionless.Json.Linq
         {
             if (_annotations != null)
             {
-                object[] annotations = _annotations as object[];
-                if (annotations == null)
+                if (!(_annotations is object?[] annotations))
                 {
                     if (_annotations is T)
                     {
@@ -2616,7 +2623,7 @@ namespace Exceptionless.Json.Linq
                     int keepCount = 0;
                     while (index < annotations.Length)
                     {
-                        object obj2 = annotations[index];
+                        object? obj2 = annotations[index];
                         if (obj2 == null)
                         {
                             break;
@@ -2658,8 +2665,7 @@ namespace Exceptionless.Json.Linq
 
             if (_annotations != null)
             {
-                object[] annotations = _annotations as object[];
-                if (annotations == null)
+                if (!(_annotations is object?[] annotations))
                 {
                     if (type.IsInstanceOfType(_annotations))
                     {
@@ -2672,7 +2678,7 @@ namespace Exceptionless.Json.Linq
                     int keepCount = 0;
                     while (index < annotations.Length)
                     {
-                        object o = annotations[index];
+                        object? o = annotations[index];
                         if (o == null)
                         {
                             break;

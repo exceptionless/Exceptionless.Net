@@ -13,11 +13,12 @@ namespace Exceptionless.Json.Serialization
     internal class MemoryTraceWriter : ITraceWriter
     {
         private readonly Queue<string> _traceMessages;
+        private readonly object _lock;
 
         /// <summary>
         /// Gets the <see cref="TraceLevel"/> that will be used to filter the trace messages passed to the writer.
-        /// For example a filter level of <code>Info</code> will exclude <code>Verbose</code> messages and include <code>Info</code>,
-        /// <code>Warning</code> and <code>Error</code> messages.
+        /// For example a filter level of <see cref="TraceLevel.Info"/> will exclude <see cref="TraceLevel.Verbose"/> messages and include <see cref="TraceLevel.Info"/>,
+        /// <see cref="TraceLevel.Warning"/> and <see cref="TraceLevel.Error"/> messages.
         /// </summary>
         /// <value>
         /// The <see cref="TraceLevel"/> that will be used to filter the trace messages passed to the writer.
@@ -31,6 +32,7 @@ namespace Exceptionless.Json.Serialization
         {
             LevelFilter = TraceLevel.Verbose;
             _traceMessages = new Queue<string>();
+            _lock = new object();
         }
 
         /// <summary>
@@ -39,13 +41,8 @@ namespace Exceptionless.Json.Serialization
         /// <param name="level">The <see cref="TraceLevel"/> at which to write this trace.</param>
         /// <param name="message">The trace message.</param>
         /// <param name="ex">The trace exception. This parameter is optional.</param>
-        public void Trace(TraceLevel level, string message, Exception ex)
+        public void Trace(TraceLevel level, string message, Exception? ex)
         {
-            if (_traceMessages.Count >= 1000)
-            {
-                _traceMessages.Dequeue();
-            }
-
             StringBuilder sb = new StringBuilder();
             sb.Append(DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff", CultureInfo.InvariantCulture));
             sb.Append(" ");
@@ -53,7 +50,17 @@ namespace Exceptionless.Json.Serialization
             sb.Append(" ");
             sb.Append(message);
 
-            _traceMessages.Enqueue(sb.ToString());
+            string s = sb.ToString();
+
+            lock (_lock)
+            {
+                if (_traceMessages.Count >= 1000)
+                {
+                    _traceMessages.Dequeue();
+                }
+
+                _traceMessages.Enqueue(s);
+            }
         }
 
         /// <summary>
@@ -73,18 +80,21 @@ namespace Exceptionless.Json.Serialization
         /// </returns>
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (string traceMessage in _traceMessages)
+            lock (_lock)
             {
-                if (sb.Length > 0)
+                StringBuilder sb = new StringBuilder();
+                foreach (string traceMessage in _traceMessages)
                 {
-                    sb.AppendLine();
+                    if (sb.Length > 0)
+                    {
+                        sb.AppendLine();
+                    }
+
+                    sb.Append(traceMessage);
                 }
 
-                sb.Append(traceMessage);
+                return sb.ToString();
             }
-
-            return sb.ToString();
         }
     }
 }

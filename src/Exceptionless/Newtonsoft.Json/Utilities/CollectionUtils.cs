@@ -29,12 +29,16 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Text;
 using System.Collections;
-#if NET20
+using System.Diagnostics;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 #endif
 using System.Globalization;
+#if HAVE_METHOD_IMPL_ATTRIBUTE
+using System.Runtime.CompilerServices;
+#endif
 using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Json.Utilities
@@ -42,11 +46,11 @@ namespace Exceptionless.Json.Utilities
     internal static class CollectionUtils
     {
         /// <summary>
-        /// Determines whether the collection is null or empty.
+        /// Determines whether the collection is <c>null</c> or empty.
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <returns>
-        /// 	<c>true</c> if the collection is null or empty; otherwise, <c>false</c>.
+        /// 	<c>true</c> if the collection is <c>null</c> or empty; otherwise, <c>false</c>.
         /// </returns>
         public static bool IsNullOrEmpty<T>(ICollection<T> collection)
         {
@@ -58,7 +62,7 @@ namespace Exceptionless.Json.Utilities
         }
 
         /// <summary>
-        /// Adds the elements of the specified collection to the specified generic IList.
+        /// Adds the elements of the specified collection to the specified generic <see cref="IList{T}"/>.
         /// </summary>
         /// <param name="initial">The list to add to.</param>
         /// <param name="collection">The collection of elements to add.</param>
@@ -80,7 +84,7 @@ namespace Exceptionless.Json.Utilities
             }
         }
 
-#if (NET20 || NET35 || PORTABLE40)
+#if !HAVE_COVARIANT_GENERICS
         public static void AddRange<T>(this IList<T> initial, IEnumerable collection)
         {
             ValidationUtils.ArgumentNotNull(initial, nameof(initial));
@@ -102,7 +106,7 @@ namespace Exceptionless.Json.Utilities
             {
                 return true;
             }
-#if !(NET40 || NET35 || NET20 || PORTABLE40)
+#if HAVE_READ_ONLY_COLLECTIONS
             if (ReflectionUtils.ImplementsGenericDefinition(type, typeof(IReadOnlyDictionary<,>)))
             {
                 return true;
@@ -112,10 +116,17 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        public static ConstructorInfo ResolveEnumerableCollectionConstructor(Type collectionType, Type collectionItemType)
+        public static ConstructorInfo? ResolveEnumerableCollectionConstructor(Type collectionType, Type collectionItemType)
+        {
+            Type genericConstructorArgument = typeof(IList<>).MakeGenericType(collectionItemType);
+
+            return ResolveEnumerableCollectionConstructor(collectionType, collectionItemType, genericConstructorArgument);
+        }
+
+        public static ConstructorInfo? ResolveEnumerableCollectionConstructor(Type collectionType, Type collectionItemType, Type constructorArgumentType)
         {
             Type genericEnumerable = typeof(IEnumerable<>).MakeGenericType(collectionItemType);
-            ConstructorInfo match = null;
+            ConstructorInfo? match = null;
 
             foreach (ConstructorInfo constructor in collectionType.GetConstructors(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -123,17 +134,19 @@ namespace Exceptionless.Json.Utilities
 
                 if (parameters.Count == 1)
                 {
-                    if (genericEnumerable == parameters[0].ParameterType)
+                    Type parameterType = parameters[0].ParameterType;
+
+                    if (genericEnumerable == parameterType)
                     {
                         // exact match
                         match = constructor;
                         break;
                     }
 
-                    // incase we can't find an exact match, use first inexact
+                    // in case we can't find an exact match, use first inexact
                     if (match == null)
                     {
-                        if (genericEnumerable.IsAssignableFrom(parameters[0].ParameterType))
+                        if (parameterType.IsAssignableFrom(constructorArgumentType))
                         {
                             match = constructor;
                         }
@@ -214,11 +227,11 @@ namespace Exceptionless.Json.Utilities
             return -1;
         }
 
-        public static bool Contains(this IEnumerable list, object value, IEqualityComparer comparer)
+        public static bool Contains<T>(this List<T> list, T value, IEqualityComparer comparer)
         {
-            foreach (object item in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (comparer.Equals(item, value))
+                if (comparer.Equals(value, list[i]))
                 {
                     return true;
                 }
@@ -226,27 +239,35 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        /// <summary>
-        /// Returns the index of the first occurrence in a sequence by using a specified IEqualityComparer{TSource}.
-        /// </summary>
-        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
-        /// <param name="list">A sequence in which to locate a value.</param>
-        /// <param name="value">The object to locate in the sequence</param>
-        /// <param name="comparer">An equality comparer to compare values.</param>
-        /// <returns>The zero-based index of the first occurrence of value within the entire sequence, if found; otherwise, –1.</returns>
-        public static int IndexOf<TSource>(this IEnumerable<TSource> list, TSource value, IEqualityComparer<TSource> comparer)
+        public static int IndexOfReference<T>(this List<T> list, T item)
         {
-            int index = 0;
-            foreach (TSource item in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (comparer.Equals(item, value))
+                if (ReferenceEquals(item, list[i]))
                 {
-                    return index;
+                    return i;
                 }
-                index++;
             }
+
             return -1;
         }
+
+#if HAVE_FAST_REVERSE
+        // faster reverse in .NET Framework with value types - https://github.com/JamesNK/Exceptionless.Json/issues/1430
+        public static void FastReverse<T>(this List<T> list)
+        {
+            int i = 0;
+            int j = list.Count - 1;
+            while (i < j)
+            {
+                T temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+                i++;
+                j--;
+            }
+        }
+#endif
 
         private static IList<int> GetDimensions(IList values, int dimensionsCount)
         {
@@ -269,9 +290,9 @@ namespace Exceptionless.Json.Utilities
                 }
 
                 object v = currentArray[0];
-                if (v is IList)
+                if (v is IList list)
                 {
-                    currentArray = (IList)v;
+                    currentArray = list;
                 }
                 else
                 {
@@ -340,9 +361,22 @@ namespace Exceptionless.Json.Utilities
             }
 
             Array multidimensionalArray = Array.CreateInstance(type, dimensions.ToArray());
-            CopyFromJaggedToMultidimensionalArray(values, multidimensionalArray, new int[0]);
+            CopyFromJaggedToMultidimensionalArray(values, multidimensionalArray, ArrayEmpty<int>());
 
             return multidimensionalArray;
+        }
+
+        public static T[] ArrayEmpty<T>()
+        {
+            // Enumerable.Empty<T> no longer returns an empty array in .NET Core 3.0
+            return EmptyArrayContainer<T>.Empty;
+        }
+
+        private static class EmptyArrayContainer<T>
+        {
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
+            public static readonly T[] Empty = new T[0];
+#pragma warning restore CA1825 // Avoid zero-length array allocations.
         }
     }
 }

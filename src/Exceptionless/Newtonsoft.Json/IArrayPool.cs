@@ -7,7 +7,7 @@ namespace Exceptionless.Json
     internal interface IArrayPool<T>
     {
         /// <summary>
-        /// Rent a array from the pool. This array must be returned when it is no longer needed.
+        /// Rent an array from the pool. This array must be returned when it is no longer needed.
         /// </summary>
         /// <param name="minimumLength">The minimum required length of the array. The returned array may be longer.</param>
         /// <returns>The rented array from the pool. This array must be returned when it is no longer needed.</returns>
@@ -17,6 +17,6 @@ namespace Exceptionless.Json
         /// Return an array to the pool.
         /// </summary>
         /// <param name="array">The array that is being returned.</param>
-        void Return(T[] array);
+        void Return(T[]? array);
     }
 }

@@ -28,7 +28,7 @@ using System;
 namespace Exceptionless.Json.Serialization
 {
     /// <summary>
-    /// Used by <see cref="JsonSerializer"/> to resolves a <see cref="JsonContract"/> for a given <see cref="Type"/>.
+    /// Used by <see cref="JsonSerializer"/> to resolve a <see cref="JsonContract"/> for a given <see cref="Type"/>.
     /// </summary>
     /// <example>
     ///   <code lang="cs" source="..\Src\Exceptionless.Json.Tests\Documentation\SerializationTests.cs" region="ReducingSerializedJsonSizeContractResolverObject" title="IContractResolver Class" />

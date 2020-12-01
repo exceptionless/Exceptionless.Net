@@ -23,13 +23,9 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET35 || NET20 || PORTABLE40)
-using System;
+#if HAVE_DYNAMIC
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 
 namespace Exceptionless.Json.Utilities
 {
@@ -37,22 +33,22 @@ namespace Exceptionless.Json.Utilities
     {
         public virtual IEnumerable<string> GetDynamicMemberNames(T instance)
         {
-            return new string[0];
+            return CollectionUtils.ArrayEmpty<string>();
         }
 
-        public virtual bool TryBinaryOperation(T instance, BinaryOperationBinder binder, object arg, out object result)
+        public virtual bool TryBinaryOperation(T instance, BinaryOperationBinder binder, object arg, out object? result)
         {
             result = null;
             return false;
         }
 
-        public virtual bool TryConvert(T instance, ConvertBinder binder, out object result)
+        public virtual bool TryConvert(T instance, ConvertBinder binder, out object? result)
         {
             result = null;
             return false;
         }
 
-        public virtual bool TryCreateInstance(T instance, CreateInstanceBinder binder, object[] args, out object result)
+        public virtual bool TryCreateInstance(T instance, CreateInstanceBinder binder, object[] args, out object? result)
         {
             result = null;
             return false;
@@ -68,25 +64,25 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        public virtual bool TryGetIndex(T instance, GetIndexBinder binder, object[] indexes, out object result)
+        public virtual bool TryGetIndex(T instance, GetIndexBinder binder, object[] indexes, out object? result)
         {
             result = null;
             return false;
         }
 
-        public virtual bool TryGetMember(T instance, GetMemberBinder binder, out object result)
+        public virtual bool TryGetMember(T instance, GetMemberBinder binder, out object? result)
         {
             result = null;
             return false;
         }
 
-        public virtual bool TryInvoke(T instance, InvokeBinder binder, object[] args, out object result)
+        public virtual bool TryInvoke(T instance, InvokeBinder binder, object[] args, out object? result)
         {
             result = null;
             return false;
         }
 
-        public virtual bool TryInvokeMember(T instance, InvokeMemberBinder binder, object[] args, out object result)
+        public virtual bool TryInvokeMember(T instance, InvokeMemberBinder binder, object[] args, out object? result)
         {
             result = null;
             return false;
@@ -102,7 +98,7 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        public virtual bool TryUnaryOperation(T instance, UnaryOperationBinder binder, out object result)
+        public virtual bool TryUnaryOperation(T instance, UnaryOperationBinder binder, out object? result)
         {
             result = null;
             return false;

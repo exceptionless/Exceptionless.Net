@@ -26,7 +26,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-#if NET20
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
@@ -36,15 +38,16 @@ namespace Exceptionless.Json.Utilities
 {
     internal static class TypeExtensions
     {
-#if !DOTNET && (PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
-        private static BindingFlags DefaultFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
+#if DOTNET || PORTABLE
+#if !DOTNET
+        private static readonly BindingFlags DefaultFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
 
-        public static MethodInfo GetGetMethod(this PropertyInfo propertyInfo)
+        public static MethodInfo? GetGetMethod(this PropertyInfo propertyInfo)
         {
             return propertyInfo.GetGetMethod(false);
         }
 
-        public static MethodInfo GetGetMethod(this PropertyInfo propertyInfo, bool nonPublic)
+        public static MethodInfo? GetGetMethod(this PropertyInfo propertyInfo, bool nonPublic)
         {
             MethodInfo getMethod = propertyInfo.GetMethod;
             if (getMethod != null && (getMethod.IsPublic || nonPublic))
@@ -55,12 +58,12 @@ namespace Exceptionless.Json.Utilities
             return null;
         }
 
-        public static MethodInfo GetSetMethod(this PropertyInfo propertyInfo)
+        public static MethodInfo? GetSetMethod(this PropertyInfo propertyInfo)
         {
             return propertyInfo.GetSetMethod(false);
         }
 
-        public static MethodInfo GetSetMethod(this PropertyInfo propertyInfo, bool nonPublic)
+        public static MethodInfo? GetSetMethod(this PropertyInfo propertyInfo, bool nonPublic)
         {
             MethodInfo setMethod = propertyInfo.SetMethod;
             if (setMethod != null && (setMethod.IsPublic || nonPublic))
@@ -70,20 +73,21 @@ namespace Exceptionless.Json.Utilities
 
             return null;
         }
-        
+#endif
+
+        public static bool IsSubclassOf(this Type type, Type c)
+        {
+            return type.GetTypeInfo().IsSubclassOf(c);
+        }
+
+#if !DOTNET
         public static bool IsAssignableFrom(this Type type, Type c)
         {
             return type.GetTypeInfo().IsAssignableFrom(c.GetTypeInfo());
         }
 #endif
 
-#if DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-        public static bool IsSubclassOf(this Type type, Type c)
-        {
-            return type.GetTypeInfo().IsSubclassOf(c);
-        }
-        
-        public static bool IsInstanceOfType(this Type type, object o)
+        public static bool IsInstanceOfType(this Type type, object? o)
         {
             if (o == null)
             {
@@ -93,10 +97,10 @@ namespace Exceptionless.Json.Utilities
             return type.IsAssignableFrom(o.GetType());
         }
 #endif
-        
+
         public static MethodInfo Method(this Delegate d)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return d.Method;
 #else
             return d.GetMethodInfo();
@@ -105,7 +109,7 @@ namespace Exceptionless.Json.Utilities
 
         public static MemberTypes MemberType(this MemberInfo memberInfo)
         {
-#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4)
+#if !(DOTNET || PORTABLE || PORTABLE40)
             return memberInfo.MemberType;
 #else
             if (memberInfo is PropertyInfo)
@@ -126,14 +130,14 @@ namespace Exceptionless.Json.Utilities
             }
             else
             {
-                return MemberTypes.Other;
+                return default;
             }
 #endif
         }
 
         public static bool ContainsGenericParameters(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.ContainsGenericParameters;
 #else
             return type.GetTypeInfo().ContainsGenericParameters;
@@ -142,7 +146,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsInterface(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsInterface;
 #else
             return type.GetTypeInfo().IsInterface;
@@ -151,7 +155,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsGenericType(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsGenericType;
 #else
             return type.GetTypeInfo().IsGenericType;
@@ -160,7 +164,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsGenericTypeDefinition(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsGenericTypeDefinition;
 #else
             return type.GetTypeInfo().IsGenericTypeDefinition;
@@ -169,7 +173,7 @@ namespace Exceptionless.Json.Utilities
 
         public static Type BaseType(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.BaseType;
 #else
             return type.GetTypeInfo().BaseType;
@@ -178,7 +182,7 @@ namespace Exceptionless.Json.Utilities
 
         public static Assembly Assembly(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.Assembly;
 #else
             return type.GetTypeInfo().Assembly;
@@ -187,7 +191,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsEnum(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsEnum;
 #else
             return type.GetTypeInfo().IsEnum;
@@ -196,7 +200,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsClass(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsClass;
 #else
             return type.GetTypeInfo().IsClass;
@@ -205,15 +209,15 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsSealed(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsSealed;
 #else
             return type.GetTypeInfo().IsSealed;
 #endif
         }
 
-#if (PORTABLE40 || DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
-        public static PropertyInfo GetProperty(this Type type, string name, BindingFlags bindingFlags, object placeholder1, Type propertyType, IList<Type> indexParameters, object placeholder2)
+#if (PORTABLE40 || DOTNET || PORTABLE)
+        public static PropertyInfo GetProperty(this Type type, string name, BindingFlags bindingFlags, object? placeholder1, Type propertyType, IList<Type> indexParameters, object? placeholder2)
         {
             IEnumerable<PropertyInfo> propertyInfos = type.GetProperties(bindingFlags);
 
@@ -246,7 +250,7 @@ namespace Exceptionless.Json.Utilities
 #else
             return type.GetMember(name, bindingFlags).Where(m =>
             {
-                if (m.MemberType() != memberType)
+                if ((m.MemberType() | memberType) != memberType)
                 {
                     return false;
                 }
@@ -257,22 +261,21 @@ namespace Exceptionless.Json.Utilities
         }
 #endif
 
-#if (DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if (DOTNET || PORTABLE)
         public static MethodInfo GetBaseDefinition(this MethodInfo method)
         {
             return method.GetRuntimeBaseDefinition();
         }
 #endif
 
-#if (DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if (DOTNET || PORTABLE)
         public static bool IsDefined(this Type type, Type attributeType, bool inherit)
         {
             return type.GetTypeInfo().CustomAttributes.Any(a => a.AttributeType == attributeType);
         }
-#endif
 
-#if (DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
 #if !DOTNET
+        
         public static MethodInfo GetMethod(this Type type, string name)
         {
             return type.GetMethod(name, DefaultFlags);
@@ -288,28 +291,14 @@ namespace Exceptionless.Json.Utilities
             return type.GetMethod(null, parameterTypes);
         }
 
-        public static MethodInfo GetMethod(this Type type, string name, IList<Type> parameterTypes)
+        public static MethodInfo GetMethod(this Type type, string? name, IList<Type> parameterTypes)
         {
             return type.GetMethod(name, DefaultFlags, null, parameterTypes, null);
         }
 
-        public static MethodInfo GetMethod(this Type type, string name, BindingFlags bindingFlags, object placeHolder1, IList<Type> parameterTypes, object placeHolder2)
+        public static MethodInfo GetMethod(this Type type, string? name, BindingFlags bindingFlags, object? placeHolder1, IList<Type> parameterTypes, object? placeHolder2)
         {
-            return type.GetTypeInfo().DeclaredMethods.Where(
-                m =>
-                {
-                    if (name != null && m.Name != name)
-                    {
-                        return false;
-                    }
-
-                    if (!TestAccessibility(m, bindingFlags))
-                    {
-                        return false;
-                    }
-
-                    return m.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameterTypes);
-                }).SingleOrDefault();
+            return MethodBinder.SelectMethod(type.GetTypeInfo().DeclaredMethods.Where(m => (name == null || m.Name == name) && TestAccessibility(m, bindingFlags)), parameterTypes);
         }
 
         public static IEnumerable<ConstructorInfo> GetConstructors(this Type type)
@@ -319,38 +308,19 @@ namespace Exceptionless.Json.Utilities
 
         public static IEnumerable<ConstructorInfo> GetConstructors(this Type type, BindingFlags bindingFlags)
         {
-            return type.GetConstructors(bindingFlags, null);
+            return type.GetTypeInfo().DeclaredConstructors.Where(c => TestAccessibility(c, bindingFlags));
         }
-
-        private static IEnumerable<ConstructorInfo> GetConstructors(this Type type, BindingFlags bindingFlags, IList<Type> parameterTypes)
-        {
-            return type.GetTypeInfo().DeclaredConstructors.Where(
-                c =>
-                {
-                    if (!TestAccessibility(c, bindingFlags))
-                    {
-                        return false;
-                    }
-
-                    if (parameterTypes != null && !c.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameterTypes))
-                    {
-                        return false;
-                    }
-
-                    return true;
-                });
-        }
-
+        
         public static ConstructorInfo GetConstructor(this Type type, IList<Type> parameterTypes)
         {
             return type.GetConstructor(DefaultFlags, null, parameterTypes, null);
         }
 
-        public static ConstructorInfo GetConstructor(this Type type, BindingFlags bindingFlags, object placeholder1, IList<Type> parameterTypes, object placeholder2)
+        public static ConstructorInfo GetConstructor(this Type type, BindingFlags bindingFlags, object? placeholder1, IList<Type> parameterTypes, object? placeholder2)
         {
-            return type.GetConstructors(bindingFlags, parameterTypes).SingleOrDefault();
+            return MethodBinder.SelectMethod(type.GetConstructors(bindingFlags), parameterTypes);
         }
-
+        
         public static MemberInfo[] GetMember(this Type type, string member)
         {
             return type.GetMemberInternal(member, null, DefaultFlags);
@@ -366,18 +336,24 @@ namespace Exceptionless.Json.Utilities
             return type.GetTypeInfo().GetMembersRecursive().Where(m =>
                 m.Name == member &&
                 // test type before accessibility - accessibility doesn't support some types
-                (memberType == null || m.MemberType() == memberType) &&
+                (memberType == null || (m.MemberType() | memberType) == memberType) &&
                 TestAccessibility(m, bindingFlags)).ToArray();
         }
 
-        public static MemberInfo GetField(this Type type, string member)
+        public static FieldInfo? GetField(this Type type, string member)
         {
             return type.GetField(member, DefaultFlags);
         }
 
-        public static MemberInfo GetField(this Type type, string member, BindingFlags bindingFlags)
+        public static FieldInfo? GetField(this Type type, string member, BindingFlags bindingFlags)
         {
-            return type.GetTypeInfo().GetDeclaredField(member);
+            FieldInfo field = type.GetTypeInfo().GetDeclaredField(member);
+            if (field == null || !TestAccessibility(field, bindingFlags))
+            {
+                return null;
+            }
+            
+            return field;
         }
 
         public static IEnumerable<PropertyInfo> GetProperties(this Type type, BindingFlags bindingFlags)
@@ -389,20 +365,33 @@ namespace Exceptionless.Json.Utilities
             return properties.Where(p => TestAccessibility(p, bindingFlags));
         }
 
+        private static bool ContainsMemberName(IEnumerable<MemberInfo> members, string name)
+        {
+            foreach (MemberInfo memberInfo in members)
+            {
+                if (memberInfo.Name == name)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static IList<MemberInfo> GetMembersRecursive(this TypeInfo type)
         {
-            TypeInfo t = type;
-            IList<MemberInfo> members = new List<MemberInfo>();
+            TypeInfo? t = type;
+            List<MemberInfo> members = new List<MemberInfo>();
             while (t != null)
             {
                 foreach (MemberInfo member in t.DeclaredMembers)
                 {
-                    if (!members.Any(p => p.Name == member.Name))
+                    if (!ContainsMemberName(members, member.Name))
                     {
                         members.Add(member);
                     }
                 }
-                t = (t.BaseType != null) ? t.BaseType.GetTypeInfo() : null;
+                t = t.BaseType?.GetTypeInfo();
             }
 
             return members;
@@ -410,18 +399,18 @@ namespace Exceptionless.Json.Utilities
 
         private static IList<PropertyInfo> GetPropertiesRecursive(this TypeInfo type)
         {
-            TypeInfo t = type;
-            IList<PropertyInfo> properties = new List<PropertyInfo>();
+            TypeInfo? t = type;
+            List<PropertyInfo> properties = new List<PropertyInfo>();
             while (t != null)
             {
                 foreach (PropertyInfo member in t.DeclaredProperties)
                 {
-                    if (!properties.Any(p => p.Name == member.Name))
+                    if (!ContainsMemberName(properties, member.Name))
                     {
                         properties.Add(member);
                     }
                 }
-                t = (t.BaseType != null) ? t.BaseType.GetTypeInfo() : null;
+                t = t.BaseType?.GetTypeInfo();
             }
 
             return properties;
@@ -429,18 +418,18 @@ namespace Exceptionless.Json.Utilities
 
         private static IList<FieldInfo> GetFieldsRecursive(this TypeInfo type)
         {
-            TypeInfo t = type;
-            IList<FieldInfo> fields = new List<FieldInfo>();
+            TypeInfo? t = type;
+            List<FieldInfo> fields = new List<FieldInfo>();
             while (t != null)
             {
                 foreach (FieldInfo member in t.DeclaredFields)
                 {
-                    if (!fields.Any(p => p.Name == member.Name))
+                    if (!ContainsMemberName(fields, member.Name))
                     {
                         fields.Add(member);
                     }
                 }
-                t = (t.BaseType != null) ? t.BaseType.GetTypeInfo() : null;
+                t = t.BaseType?.GetTypeInfo();
             }
 
             return fields;
@@ -451,14 +440,20 @@ namespace Exceptionless.Json.Utilities
             return type.GetTypeInfo().DeclaredMethods;
         }
 
-        public static PropertyInfo GetProperty(this Type type, string name)
+        public static PropertyInfo? GetProperty(this Type type, string name)
         {
             return type.GetProperty(name, DefaultFlags);
         }
 
-        public static PropertyInfo GetProperty(this Type type, string name, BindingFlags bindingFlags)
+        public static PropertyInfo? GetProperty(this Type type, string name, BindingFlags bindingFlags)
         {
-            return type.GetTypeInfo().GetDeclaredProperty(name);
+            PropertyInfo property = type.GetTypeInfo().GetDeclaredProperty(name);
+            if (property == null || !TestAccessibility(property, bindingFlags))
+            {
+                return null;
+            }
+            
+            return property;
         }
 
         public static IEnumerable<FieldInfo> GetFields(this Type type)
@@ -492,20 +487,20 @@ namespace Exceptionless.Json.Utilities
 
         private static bool TestAccessibility(MemberInfo member, BindingFlags bindingFlags)
         {
-            if (member is FieldInfo)
+            if (member is FieldInfo f)
             {
-                return TestAccessibility((FieldInfo) member, bindingFlags);
+                return TestAccessibility(f, bindingFlags);
             }
-            else if (member is MethodBase)
+            else if (member is MethodBase m)
             {
-                return TestAccessibility((MethodBase) member, bindingFlags);
+                return TestAccessibility(m, bindingFlags);
             }
-            else if (member is PropertyInfo)
+            else if (member is PropertyInfo p)
             {
-                return TestAccessibility((PropertyInfo) member, bindingFlags);
+                return TestAccessibility(p, bindingFlags);
             }
 
-            throw new Exception("Unexpected member type.");
+            throw new ArgumentOutOfRangeException("Unexpected member type.");
         }
 
         private static bool TestAccessibility(FieldInfo member, BindingFlags bindingFlags)
@@ -549,7 +544,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsAbstract(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsAbstract;
 #else
             return type.GetTypeInfo().IsAbstract;
@@ -558,7 +553,7 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsVisible(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsVisible;
 #else
             return type.GetTypeInfo().IsVisible;
@@ -567,14 +562,23 @@ namespace Exceptionless.Json.Utilities
 
         public static bool IsValueType(this Type type)
         {
-#if !(DOTNET || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_FULL_REFLECTION
             return type.IsValueType;
 #else
             return type.GetTypeInfo().IsValueType;
 #endif
         }
+        
+        public static bool IsPrimitive(this Type type)
+        {
+#if HAVE_FULL_REFLECTION
+            return type.IsPrimitive;
+#else
+            return type.GetTypeInfo().IsPrimitive;
+#endif
+        }
 
-        public static bool AssignableToTypeName(this Type type, string fullTypeName, out Type match)
+        public static bool AssignableToTypeName(this Type type, string fullTypeName, bool searchInterfaces, [NotNullWhen(true)]out Type? match)
         {
             Type current = type;
 
@@ -589,12 +593,15 @@ namespace Exceptionless.Json.Utilities
                 current = current.BaseType();
             }
 
-            foreach (Type i in type.GetInterfaces())
+            if (searchInterfaces)
             {
-                if (string.Equals(i.Name, fullTypeName, StringComparison.Ordinal))
+                foreach (Type i in type.GetInterfaces())
                 {
-                    match = type;
-                    return true;
+                    if (string.Equals(i.Name, fullTypeName, StringComparison.Ordinal))
+                    {
+                        match = type;
+                        return true;
+                    }
                 }
             }
 
@@ -602,10 +609,9 @@ namespace Exceptionless.Json.Utilities
             return false;
         }
 
-        public static bool AssignableToTypeName(this Type type, string fullTypeName)
+        public static bool AssignableToTypeName(this Type type, string fullTypeName, bool searchInterfaces)
         {
-            Type match;
-            return type.AssignableToTypeName(fullTypeName, out match);
+            return type.AssignableToTypeName(fullTypeName, searchInterfaces, out _);
         }
 
         public static bool ImplementInterface(this Type type, Type interfaceType)

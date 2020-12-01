@@ -35,12 +35,12 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a JSON property.
     /// </summary>
-    internal class JProperty : JContainer
+    internal partial class JProperty : JContainer
     {
         #region JPropertyList
         private class JPropertyList : IList<JToken>
         {
-            internal JToken _token;
+            internal JToken? _token;
 
             public IEnumerator<JToken> GetEnumerator()
             {
@@ -88,15 +88,9 @@ namespace Exceptionless.Json.Linq
                 return false;
             }
 
-            public int Count
-            {
-                get { return (_token != null) ? 1 : 0; }
-            }
+            public int Count => (_token != null) ? 1 : 0;
 
-            public bool IsReadOnly
-            {
-                get { return false; }
-            }
+            public bool IsReadOnly => false;
 
             public int IndexOf(JToken item)
             {
@@ -121,13 +115,24 @@ namespace Exceptionless.Json.Linq
 
             public JToken this[int index]
             {
-                get { return (index == 0) ? _token : null; }
+                get
+                {
+                    if (index != 0)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    MiscellaneousUtils.Assert(_token != null);
+                    return _token;
+                }
                 set
                 {
-                    if (index == 0)
+                    if (index != 0)
                     {
-                        _token = value;
+                        throw new IndexOutOfRangeException();
                     }
+
+                    _token = value;
                 }
             }
         }
@@ -140,10 +145,7 @@ namespace Exceptionless.Json.Linq
         /// Gets the container's children tokens.
         /// </summary>
         /// <value>The container's children tokens.</value>
-        protected override IList<JToken> ChildrenTokens
-        {
-            get { return _content; }
-        }
+        protected override IList<JToken> ChildrenTokens => _content;
 
         /// <summary>
         /// Gets the property name.
@@ -162,7 +164,7 @@ namespace Exceptionless.Json.Linq
         public JToken Value
         {
             [DebuggerStepThrough]
-            get { return _content._token; }
+            get { return _content._token!; }
             set
             {
                 CheckReentrancy();
@@ -200,7 +202,7 @@ namespace Exceptionless.Json.Linq
             return Value;
         }
 
-        internal override void SetItem(int index, JToken item)
+        internal override void SetItem(int index, JToken? item)
         {
             if (index != 0)
             {
@@ -212,20 +214,14 @@ namespace Exceptionless.Json.Linq
                 return;
             }
 
-            if (Parent != null)
-            {
-                ((JObject)Parent).InternalPropertyChanging(this);
-            }
+            ((JObject?)Parent)?.InternalPropertyChanging(this);
 
             base.SetItem(0, item);
 
-            if (Parent != null)
-            {
-                ((JObject)Parent).InternalPropertyChanged(this);
-            }
+            ((JObject?)Parent)?.InternalPropertyChanged(this);
         }
 
-        internal override bool RemoveItem(JToken item)
+        internal override bool RemoveItem(JToken? item)
         {
             throw new JsonException("Cannot add or remove items from {0}.".FormatWith(CultureInfo.InvariantCulture, typeof(JProperty)));
         }
@@ -235,7 +231,17 @@ namespace Exceptionless.Json.Linq
             throw new JsonException("Cannot add or remove items from {0}.".FormatWith(CultureInfo.InvariantCulture, typeof(JProperty)));
         }
 
-        internal override void InsertItem(int index, JToken item, bool skipParentCheck)
+        internal override int IndexOfItem(JToken? item)
+        {
+            if (item == null)
+            {
+                return -1;
+            }
+
+            return _content.IndexOf(item);
+        }
+
+        internal override void InsertItem(int index, JToken? item, bool skipParentCheck)
         {
             // don't add comments to JProperty
             if (item != null && item.Type == JTokenType.Comment)
@@ -251,22 +257,18 @@ namespace Exceptionless.Json.Linq
             base.InsertItem(0, item, false);
         }
 
-        internal override bool ContainsItem(JToken item)
+        internal override bool ContainsItem(JToken? item)
         {
             return (Value == item);
         }
 
-        internal override void MergeItem(object content, JsonMergeSettings settings)
+        internal override void MergeItem(object content, JsonMergeSettings? settings)
         {
-            JProperty p = content as JProperty;
-            if (p == null)
-            {
-                return;
-            }
+            JToken? value = (content as JProperty)?.Value;
 
-            if (p.Value != null && p.Value.Type != JTokenType.Null)
+            if (value != null && value.Type != JTokenType.Null)
             {
-                Value = p.Value;
+                Value = value;
             }
         }
 
@@ -277,8 +279,7 @@ namespace Exceptionless.Json.Linq
 
         internal override bool DeepEquals(JToken node)
         {
-            JProperty t = node as JProperty;
-            return (t != null && _name == t.Name && ContentsEqual(t));
+            return (node is JProperty t && _name == t.Name && ContentsEqual(t));
         }
 
         internal override JToken CloneToken()
@@ -319,7 +320,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="name">The property name.</param>
         /// <param name="content">The property content.</param>
-        public JProperty(string name, object content)
+        public JProperty(string name, object? content)
         {
             ValidationUtils.ArgumentNotNull(name, nameof(name));
 
@@ -352,11 +353,11 @@ namespace Exceptionless.Json.Linq
 
         internal override int GetDeepHashCode()
         {
-            return _name.GetHashCode() ^ ((Value != null) ? Value.GetDeepHashCode() : 0);
+            return _name.GetHashCode() ^ (Value?.GetDeepHashCode() ?? 0);
         }
 
         /// <summary>
-        /// Loads an <see cref="JProperty"/> from a <see cref="JsonReader"/>. 
+        /// Loads a <see cref="JProperty"/> from a <see cref="JsonReader"/>.
         /// </summary>
         /// <param name="reader">A <see cref="JsonReader"/> that will be read for the content of the <see cref="JProperty"/>.</param>
         /// <returns>A <see cref="JProperty"/> that contains the JSON that was read from the specified <see cref="JsonReader"/>.</returns>
@@ -366,13 +367,13 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Loads an <see cref="JProperty"/> from a <see cref="JsonReader"/>. 
+        /// Loads a <see cref="JProperty"/> from a <see cref="JsonReader"/>.
         /// </summary>
         /// <param name="reader">A <see cref="JsonReader"/> that will be read for the content of the <see cref="JProperty"/>.</param>
         /// <param name="settings">The <see cref="JsonLoadSettings"/> used to load the JSON.
-        /// If this is null, default load settings will be used.</param>
+        /// If this is <c>null</c>, default load settings will be used.</param>
         /// <returns>A <see cref="JProperty"/> that contains the JSON that was read from the specified <see cref="JsonReader"/>.</returns>
-        public new static JProperty Load(JsonReader reader, JsonLoadSettings settings)
+        public new static JProperty Load(JsonReader reader, JsonLoadSettings? settings)
         {
             if (reader.TokenType == JsonToken.None)
             {
@@ -389,7 +390,7 @@ namespace Exceptionless.Json.Linq
                 throw JsonReaderException.Create(reader, "Error reading JProperty from JsonReader. Current JsonReader item is not a property: {0}".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
             }
 
-            JProperty p = new JProperty((string)reader.Value);
+            JProperty p = new JProperty((string)reader.Value!);
             p.SetLineInfo(reader as IJsonLineInfo, settings);
 
             p.ReadTokenFrom(reader, settings);

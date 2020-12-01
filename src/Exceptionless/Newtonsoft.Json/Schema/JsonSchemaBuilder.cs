@@ -26,7 +26,7 @@
 using System;
 using System.Collections.Generic;
 using Exceptionless.Json.Serialization;
-#if NET20
+#if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
@@ -35,9 +35,11 @@ using System.Globalization;
 using Exceptionless.Json.Utilities;
 using Exceptionless.Json.Linq;
 
+#nullable disable
+
 namespace Exceptionless.Json.Schema
 {
-    [Obsolete("JSON Schema validation has been moved to its own package. See http://www.newtonsoft.com/jsonschema for more details.")]
+    [Obsolete("JSON Schema validation has been moved to its own package. See https://www.newtonsoft.com/jsonschema for more details.")]
     internal class JsonSchemaBuilder
     {
         private readonly IList<JsonSchema> _stack;
@@ -70,10 +72,7 @@ namespace Exceptionless.Json.Schema
             return poppedSchema;
         }
 
-        private JsonSchema CurrentSchema
-        {
-            get { return _currentSchema; }
-        }
+        private JsonSchema CurrentSchema => _currentSchema;
 
         internal JsonSchema Read(JsonReader reader)
         {
@@ -123,8 +122,7 @@ namespace Exceptionless.Json.Schema
                             }
                             else if (currentToken.Type == JTokenType.Array || currentToken.Type == JTokenType.Constructor)
                             {
-                                int index;
-                                if (int.TryParse(part, out index) && index >= 0 && index < currentToken.Count())
+                                if (int.TryParse(part, out int index) && index >= 0 && index < currentToken.Count())
                                 {
                                     currentToken = currentToken[index];
                                 }
@@ -209,14 +207,12 @@ namespace Exceptionless.Json.Schema
 
         private JsonSchema BuildSchema(JToken token)
         {
-            JObject schemaObject = token as JObject;
-            if (schemaObject == null)
+            if (!(token is JObject schemaObject))
             {
                 throw JsonException.Create(token, token.Path, "Expected object while parsing schema object, got {0}.".FormatWith(CultureInfo.InvariantCulture, token.Type));
             }
 
-            JToken referenceToken;
-            if (schemaObject.TryGetValue(JsonTypeReflector.RefPropertyName, out referenceToken))
+            if (schemaObject.TryGetValue(JsonTypeReflector.RefPropertyName, out JToken referenceToken))
             {
                 JsonSchema deferredSchema = new JsonSchema();
                 deferredSchema.DeferredReference = (string)referenceToken;
@@ -225,14 +221,13 @@ namespace Exceptionless.Json.Schema
             }
 
             string location = token.Path.Replace(".", "/").Replace("[", "/").Replace("]", string.Empty);
-            if (!string.IsNullOrEmpty(location))
+            if (!StringUtils.IsNullOrEmpty(location))
             {
                 location = "/" + location;
             }
             location = "#" + location;
 
-            JsonSchema existingSchema;
-            if (_documentSchemas.TryGetValue(location, out existingSchema))
+            if (_documentSchemas.TryGetValue(location, out JsonSchema existingSchema))
             {
                 return existingSchema;
             }
@@ -462,7 +457,7 @@ namespace Exceptionless.Json.Schema
                     {
                         if (typeToken.Type != JTokenType.String)
                         {
-                            throw JsonException.Create(typeToken, typeToken.Path, "Exception JSON schema type string token, got {0}.".FormatWith(CultureInfo.InvariantCulture, token.Type));
+                            throw JsonException.Create(typeToken, typeToken.Path, "Expected JSON schema type string token, got {0}.".FormatWith(CultureInfo.InvariantCulture, token.Type));
                         }
 
                         type = type | MapType((string)typeToken);
@@ -478,8 +473,7 @@ namespace Exceptionless.Json.Schema
 
         internal static JsonSchemaType MapType(string type)
         {
-            JsonSchemaType mappedType;
-            if (!JsonSchemaConstants.JsonSchemaTypeMapping.TryGetValue(type, out mappedType))
+            if (!JsonSchemaConstants.JsonSchemaTypeMapping.TryGetValue(type, out JsonSchemaType mappedType))
             {
                 throw new JsonException("Invalid JSON schema type: {0}".FormatWith(CultureInfo.InvariantCulture, type));
             }

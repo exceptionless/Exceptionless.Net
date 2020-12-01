@@ -23,14 +23,15 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2)
+#if HAVE_LINQ || HAVE_ADO_NET
 using System;
-#if !NO_SQL_CLIENT
-using System.Data.SqlTypes;
-#endif
 using System.Globalization;
 using Exceptionless.Json.Utilities;
 using System.Collections.Generic;
+using System.Diagnostics;
+#if HAVE_ADO_NET
+using System.Data.SqlTypes;
+#endif
 
 namespace Exceptionless.Json.Converters
 {
@@ -39,10 +40,10 @@ namespace Exceptionless.Json.Converters
     /// </summary>
     internal class BinaryConverter : JsonConverter
     {
-#if !NET20
+#if HAVE_LINQ
         private const string BinaryTypeName = "System.Data.Linq.Binary";
         private const string BinaryToArrayName = "ToArray";
-        private ReflectionObject _reflectionObject;
+        private static ReflectionObject? _reflectionObject;
 #endif
 
         /// <summary>
@@ -51,7 +52,7 @@ namespace Exceptionless.Json.Converters
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             if (value == null)
             {
@@ -66,34 +67,31 @@ namespace Exceptionless.Json.Converters
 
         private byte[] GetByteArray(object value)
         {
-#if !(NET20)
-            if (value.GetType().AssignableToTypeName(BinaryTypeName))
+#if HAVE_LINQ
+            if (value.GetType().FullName == BinaryTypeName)
             {
                 EnsureReflectionObject(value.GetType());
-                return (byte[])_reflectionObject.GetValue(value, BinaryToArrayName);
+                MiscellaneousUtils.Assert(_reflectionObject != null);
+
+                return (byte[])_reflectionObject.GetValue(value, BinaryToArrayName)!;
             }
 #endif
-
-#if !NO_SQL_CLIENT
-            if (value is SqlBinary)
+#if HAVE_ADO_NET
+            if (value is SqlBinary binary)
             {
-                return ((SqlBinary)value).Value;
+                return binary.Value;
             }
 #endif
 
             throw new JsonSerializationException("Unexpected value type when writing binary: {0}".FormatWith(CultureInfo.InvariantCulture, value.GetType()));
         }
 
-#if !NET20
-        private void EnsureReflectionObject(Type t)
+#if HAVE_LINQ
+        private static void EnsureReflectionObject(Type t)
         {
             if (_reflectionObject == null)
             {
-#if NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5
-                _reflectionObject = ReflectionObject.Create(t, System.Reflection.TypeExtensions.GetConstructor(t, new[] { typeof(byte[]) }), BinaryToArrayName);
-#else
                 _reflectionObject = ReflectionObject.Create(t, t.GetConstructor(new[] { typeof(byte[]) }), BinaryToArrayName);
-#endif
             }
         }
 #endif
@@ -106,7 +104,7 @@ namespace Exceptionless.Json.Converters
         /// <param name="existingValue">The existing value of object being read.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
             {
@@ -128,7 +126,7 @@ namespace Exceptionless.Json.Converters
             {
                 // current token is already at base64 string
                 // unable to call ReadAsBytes so do it the old fashion way
-                string encodedData = reader.Value.ToString();
+                string encodedData = reader.Value!.ToString();
                 data = Convert.FromBase64String(encodedData);
             }
             else
@@ -140,16 +138,17 @@ namespace Exceptionless.Json.Converters
                 ? Nullable.GetUnderlyingType(objectType)
                 : objectType;
 
-#if !NET20
-            if (t.AssignableToTypeName(BinaryTypeName))
+#if HAVE_LINQ
+            if (t.FullName == BinaryTypeName)
             {
                 EnsureReflectionObject(t);
+                MiscellaneousUtils.Assert(_reflectionObject != null);
 
-                return _reflectionObject.Creator(data);
+                return _reflectionObject.Creator!(data);
             }
 #endif
 
-#if !NO_SQL_CLIENT
+#if HAVE_ADO_NET
             if (t == typeof(SqlBinary))
             {
                 return new SqlBinary(data);
@@ -192,14 +191,13 @@ namespace Exceptionless.Json.Converters
         /// </returns>
         public override bool CanConvert(Type objectType)
         {
-#if !NET20
-            if (objectType.AssignableToTypeName(BinaryTypeName))
+#if HAVE_LINQ
+            if (objectType.FullName == BinaryTypeName)
             {
                 return true;
             }
 #endif
-
-#if !NO_SQL_CLIENT
+#if HAVE_ADO_NET
             if (objectType == typeof(SqlBinary) || objectType == typeof(SqlBinary?))
             {
                 return true;

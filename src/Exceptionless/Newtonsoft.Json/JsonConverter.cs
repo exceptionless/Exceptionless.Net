@@ -24,10 +24,10 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Exceptionless.Json.Utilities;
-using Exceptionless.Json.Schema;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Exceptionless.Json
 {
@@ -42,7 +42,7 @@ namespace Exceptionless.Json
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
-        public abstract void WriteJson(JsonWriter writer, object value, JsonSerializer serializer);
+        public abstract void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer);
 
         /// <summary>
         /// Reads the JSON representation of the object.
@@ -52,7 +52,7 @@ namespace Exceptionless.Json
         /// <param name="existingValue">The existing value of object being read.</param>
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
-        public abstract object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer);
+        public abstract object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer);
 
         /// <summary>
         /// Determines whether this instance can convert the specified object type.
@@ -64,36 +64,90 @@ namespace Exceptionless.Json
         public abstract bool CanConvert(Type objectType);
 
         /// <summary>
-        /// <para>
-        /// Gets the <see cref="JsonSchema"/> of the JSON produced by the JsonConverter.
-        /// </para>
-        /// <note type="caution">
-        /// JSON Schema validation has been moved to its own package. See <see href="http://www.newtonsoft.com/jsonschema">http://www.newtonsoft.com/jsonschema</see> for more details.
-        /// </note>
-        /// </summary>
-        /// <returns>The <see cref="JsonSchema"/> of the JSON produced by the JsonConverter.</returns>
-        [Obsolete("JSON Schema validation has been moved to its own package. It is strongly recommended that you do not override GetSchema() in your own converter. It is not used by Json.NET and will be removed at some point in the future. Converter's that override GetSchema() will stop working when it is removed.")]
-        public virtual JsonSchema GetSchema()
-        {
-            return null;
-        }
-
-        /// <summary>
         /// Gets a value indicating whether this <see cref="JsonConverter"/> can read JSON.
         /// </summary>
         /// <value><c>true</c> if this <see cref="JsonConverter"/> can read JSON; otherwise, <c>false</c>.</value>
-        public virtual bool CanRead
-        {
-            get { return true; }
-        }
+        public virtual bool CanRead => true;
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="JsonConverter"/> can write JSON.
         /// </summary>
         /// <value><c>true</c> if this <see cref="JsonConverter"/> can write JSON; otherwise, <c>false</c>.</value>
-        public virtual bool CanWrite
+        public virtual bool CanWrite => true;
+    }
+
+    /// <summary>
+    /// Converts an object to and from JSON.
+    /// </summary>
+    /// <typeparam name="T">The object type to convert.</typeparam>
+    internal abstract class JsonConverter<T> : JsonConverter
+    {
+        /// <summary>
+        /// Writes the JSON representation of the object.
+        /// </summary>
+        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="serializer">The calling serializer.</param>
+        public sealed override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            get { return true; }
+            if (!(value != null ? value is T : ReflectionUtils.IsNullable(typeof(T))))
+            {
+                throw new JsonSerializationException("Converter cannot write specified value to JSON. {0} is required.".FormatWith(CultureInfo.InvariantCulture, typeof(T)));
+            }
+#pragma warning disable CS8601 // Possible null reference assignment.
+            WriteJson(writer, (T)value, serializer);
+#pragma warning restore CS8601 // Possible null reference assignment.
+        }
+
+        /// <summary>
+        /// Writes the JSON representation of the object.
+        /// </summary>
+        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="serializer">The calling serializer.</param>
+        public abstract void WriteJson(JsonWriter writer, [AllowNull]T value, JsonSerializer serializer);
+
+        /// <summary>
+        /// Reads the JSON representation of the object.
+        /// </summary>
+        /// <param name="reader">The <see cref="JsonReader"/> to read from.</param>
+        /// <param name="objectType">Type of the object.</param>
+        /// <param name="existingValue">The existing value of object being read.</param>
+        /// <param name="serializer">The calling serializer.</param>
+        /// <returns>The object value.</returns>
+        public sealed override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            bool existingIsNull = existingValue == null;
+            if (!(existingIsNull || existingValue is T))
+            {
+                throw new JsonSerializationException("Converter cannot read JSON with the specified existing value. {0} is required.".FormatWith(CultureInfo.InvariantCulture, typeof(T)));
+            }
+#pragma warning disable CS8601 // Possible null reference assignment.
+            return ReadJson(reader, objectType, existingIsNull ? default : (T)existingValue, !existingIsNull, serializer);
+#pragma warning restore CS8601 // Possible null reference assignment.
+        }
+
+        /// <summary>
+        /// Reads the JSON representation of the object.
+        /// </summary>
+        /// <param name="reader">The <see cref="JsonReader"/> to read from.</param>
+        /// <param name="objectType">Type of the object.</param>
+        /// <param name="existingValue">The existing value of object being read. If there is no existing value then <c>null</c> will be used.</param>
+        /// <param name="hasExistingValue">The existing value has a value.</param>
+        /// <param name="serializer">The calling serializer.</param>
+        /// <returns>The object value.</returns>
+        public abstract T ReadJson(JsonReader reader, Type objectType, [AllowNull]T existingValue, bool hasExistingValue, JsonSerializer serializer);
+
+        /// <summary>
+        /// Determines whether this instance can convert the specified object type.
+        /// </summary>
+        /// <param name="objectType">Type of the object.</param>
+        /// <returns>
+        /// 	<c>true</c> if this instance can convert the specified object type; otherwise, <c>false</c>.
+        /// </returns>
+        public sealed override bool CanConvert(Type objectType)
+        {
+            return typeof(T).IsAssignableFrom(objectType);
         }
     }
 }

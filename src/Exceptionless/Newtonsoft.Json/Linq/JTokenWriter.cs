@@ -24,8 +24,9 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
-#if !(NET20 || NET35 || PORTABLE40 || PORTABLE)
+#if HAVE_BIG_INTEGER
 using System.Numerics;
 #endif
 using Exceptionless.Json.Utilities;
@@ -35,27 +36,24 @@ namespace Exceptionless.Json.Linq
     /// <summary>
     /// Represents a writer that provides a fast, non-cached, forward-only way of generating JSON data.
     /// </summary>
-    internal class JTokenWriter : JsonWriter
+    internal partial class JTokenWriter : JsonWriter
     {
-        private JContainer _token;
-        private JContainer _parent;
+        private JContainer? _token;
+        private JContainer? _parent;
         // used when writer is writing single value and the value has no containing parent
-        private JValue _value;
-        private JToken _current;
+        private JValue? _value;
+        private JToken? _current;
 
         /// <summary>
         /// Gets the <see cref="JToken"/> at the writer's current position.
         /// </summary>
-        public JToken CurrentToken
-        {
-            get { return _current; }
-        }
+        public JToken? CurrentToken => _current;
 
         /// <summary>
-        /// Gets the token being writen.
+        /// Gets the token being written.
         /// </summary>
-        /// <value>The token being writen.</value>
-        public JToken Token
+        /// <value>The token being written.</value>
+        public JToken? Token
         {
             get
             {
@@ -88,15 +86,19 @@ namespace Exceptionless.Json.Linq
         }
 
         /// <summary>
-        /// Flushes whatever is in the buffer to the underlying streams and also flushes the underlying stream.
+        /// Flushes whatever is in the buffer to the underlying <see cref="JContainer"/>.
         /// </summary>
         public override void Flush()
         {
         }
 
         /// <summary>
-        /// Closes this stream and the underlying stream.
+        /// Closes this writer.
+        /// If <see cref="JsonWriter.AutoCompleteOnClose"/> is set to <c>true</c>, the JSON is auto-completed.
         /// </summary>
+        /// <remarks>
+        /// Setting <see cref="JsonWriter.CloseOutput"/> to <c>true</c> has no additional effect, since the underlying <see cref="JContainer"/> is a type that cannot be closed.
+        /// </remarks>
         public override void Close()
         {
             base.Close();
@@ -130,7 +132,7 @@ namespace Exceptionless.Json.Linq
         private void RemoveParent()
         {
             _current = _parent;
-            _parent = _parent.Parent;
+            _parent = _parent!.Parent;
 
             if (_parent != null && _parent.Type == JTokenType.Property)
             {
@@ -174,13 +176,9 @@ namespace Exceptionless.Json.Linq
         /// <param name="name">The name of the property.</param>
         public override void WritePropertyName(string name)
         {
-            JObject o = _parent as JObject;
-            if (o != null)
-            {
-                // avoid duplicate property name exception
-                // last property name wins
-                o.Remove(name);
-            }
+            // avoid duplicate property name exception
+            // last property name wins
+            (_parent as JObject)?.Remove(name);
 
             AddParent(new JProperty(name));
 
@@ -189,12 +187,12 @@ namespace Exceptionless.Json.Linq
             base.WritePropertyName(name);
         }
 
-        private void AddValue(object value, JsonToken token)
+        private void AddValue(object? value, JsonToken token)
         {
             AddValue(new JValue(value), token);
         }
 
-        internal void AddValue(JValue value, JsonToken token)
+        internal void AddValue(JValue? value, JsonToken token)
         {
             if (_parent != null)
             {
@@ -216,12 +214,12 @@ namespace Exceptionless.Json.Linq
         #region WriteValue methods
         /// <summary>
         /// Writes a <see cref="Object"/> value.
-        /// An error will raised if the value cannot be written as a single JSON token.
+        /// An error will be raised if the value cannot be written as a single JSON token.
         /// </summary>
         /// <param name="value">The <see cref="Object"/> value to write.</param>
-        public override void WriteValue(object value)
+        public override void WriteValue(object? value)
         {
-#if !(NET20 || NET35 || PORTABLE || PORTABLE40)
+#if HAVE_BIG_INTEGER
             if (value is BigInteger)
             {
                 InternalWriteValue(JsonToken.Integer);
@@ -256,17 +254,17 @@ namespace Exceptionless.Json.Linq
         /// Writes raw JSON.
         /// </summary>
         /// <param name="json">The raw JSON to write.</param>
-        public override void WriteRaw(string json)
+        public override void WriteRaw(string? json)
         {
             base.WriteRaw(json);
             AddValue(new JRaw(json), JsonToken.Raw);
         }
 
         /// <summary>
-        /// Writes out a comment <code>/*...*/</code> containing the specified text.
+        /// Writes a comment <c>/*...*/</c> containing the specified text.
         /// </summary>
         /// <param name="text">Text to place inside the comment.</param>
-        public override void WriteComment(string text)
+        public override void WriteComment(string? text)
         {
             base.WriteComment(text);
             AddValue(JValue.CreateComment(text), JsonToken.Comment);
@@ -276,7 +274,7 @@ namespace Exceptionless.Json.Linq
         /// Writes a <see cref="String"/> value.
         /// </summary>
         /// <param name="value">The <see cref="String"/> value to write.</param>
-        public override void WriteValue(string value)
+        public override void WriteValue(string? value)
         {
             base.WriteValue(value);
             AddValue(value, JsonToken.String);
@@ -382,8 +380,8 @@ namespace Exceptionless.Json.Linq
         public override void WriteValue(char value)
         {
             base.WriteValue(value);
-            string s = null;
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+            string s;
+#if HAVE_CHAR_TO_STRING_WITH_CULTURE
             s = value.ToString(CultureInfo.InvariantCulture);
 #else
             s = value.ToString();
@@ -433,7 +431,7 @@ namespace Exceptionless.Json.Linq
             AddValue(value, JsonToken.Date);
         }
 
-#if !NET20
+#if HAVE_DATE_TIME_OFFSET
         /// <summary>
         /// Writes a <see cref="DateTimeOffset"/> value.
         /// </summary>
@@ -449,7 +447,7 @@ namespace Exceptionless.Json.Linq
         /// Writes a <see cref="Byte"/>[] value.
         /// </summary>
         /// <param name="value">The <see cref="Byte"/>[] value to write.</param>
-        public override void WriteValue(byte[] value)
+        public override void WriteValue(byte[]? value)
         {
             base.WriteValue(value);
             AddValue(value, JsonToken.Bytes);
@@ -479,11 +477,57 @@ namespace Exceptionless.Json.Linq
         /// Writes a <see cref="Uri"/> value.
         /// </summary>
         /// <param name="value">The <see cref="Uri"/> value to write.</param>
-        public override void WriteValue(Uri value)
+        public override void WriteValue(Uri? value)
         {
             base.WriteValue(value);
             AddValue(value, JsonToken.String);
         }
         #endregion
+
+        internal override void WriteToken(JsonReader reader, bool writeChildren, bool writeDateConstructorAsDate, bool writeComments)
+        {
+            // cloning the token rather than reading then writing it doesn't lose some type information, e.g. Guid, byte[], etc
+            if (reader is JTokenReader tokenReader && writeChildren && writeDateConstructorAsDate && writeComments)
+            {
+                if (tokenReader.TokenType == JsonToken.None)
+                {
+                    if (!tokenReader.Read())
+                    {
+                        return;
+                    }
+                }
+
+                JToken value = tokenReader.CurrentToken!.CloneToken();
+
+                if (_parent != null)
+                {
+                    _parent.Add(value);
+                    _current = _parent.Last;
+
+                    // if the writer was in a property then move out of it and up to its parent object
+                    if (_parent.Type == JTokenType.Property)
+                    {
+                        _parent = _parent.Parent;
+                        InternalWriteValue(JsonToken.Null);
+                    }
+                }
+                else
+                {
+                    _current = value;
+
+                    if (_token == null && _value == null)
+                    {
+                        _token = value as JContainer;
+                        _value = value as JValue;
+                    }
+                }
+
+                tokenReader.Skip();
+            }
+            else
+            {
+                base.WriteToken(reader, writeChildren, writeDateConstructorAsDate, writeComments);
+            }
+        }
     }
 }

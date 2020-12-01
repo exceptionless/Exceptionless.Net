@@ -33,7 +33,7 @@ namespace Exceptionless.Json
     /// <summary>
     /// The exception thrown when an error occurs while reading JSON text.
     /// </summary>
-#if !(DOTNET || PORTABLE || PORTABLE40 || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_BINARY_EXCEPTION_SERIALIZATION
     [Serializable]
 #endif
     internal class JsonReaderException : JsonException
@@ -42,19 +42,19 @@ namespace Exceptionless.Json
         /// Gets the line number indicating where the error occurred.
         /// </summary>
         /// <value>The line number indicating where the error occurred.</value>
-        public int LineNumber { get; private set; }
+        public int LineNumber { get; }
 
         /// <summary>
         /// Gets the line position indicating where the error occurred.
         /// </summary>
         /// <value>The line position indicating where the error occurred.</value>
-        public int LinePosition { get; private set; }
+        public int LinePosition { get; }
 
         /// <summary>
         /// Gets the path to the JSON where the error occurred.
         /// </summary>
         /// <value>The path to the JSON where the error occurred.</value>
-        public string Path { get; private set; }
+        public string? Path { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonReaderException"/> class.
@@ -78,27 +78,36 @@ namespace Exceptionless.Json
         /// with a specified error message and a reference to the inner exception that is the cause of this exception.
         /// </summary>
         /// <param name="message">The error message that explains the reason for the exception.</param>
-        /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        /// <param name="innerException">The exception that is the cause of the current exception, or <c>null</c> if no inner exception is specified.</param>
         public JsonReaderException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
 
-#if !(DOTNET || PORTABLE40 || PORTABLE || NETSTANDARD1_0 || NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5)
+#if HAVE_BINARY_EXCEPTION_SERIALIZATION
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonReaderException"/> class.
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> that contains contextual information about the source or destination.</param>
-        /// <exception cref="T:System.ArgumentNullException">The <paramref name="info"/> parameter is null. </exception>
-        /// <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is null or <see cref="P:System.Exception.HResult"/> is zero (0). </exception>
+        /// <param name="info">The <see cref="SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
+        /// <param name="context">The <see cref="StreamingContext"/> that contains contextual information about the source or destination.</param>
+        /// <exception cref="ArgumentNullException">The <paramref name="info"/> parameter is <c>null</c>.</exception>
+        /// <exception cref="SerializationException">The class name is <c>null</c> or <see cref="Exception.HResult"/> is zero (0).</exception>
         public JsonReaderException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
 #endif
 
-        internal JsonReaderException(string message, Exception innerException, string path, int lineNumber, int linePosition)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonReaderException"/> class
+        /// with a specified error message, JSON path, line number, line position, and a reference to the inner exception that is the cause of this exception.
+        /// </summary>
+        /// <param name="message">The error message that explains the reason for the exception.</param>
+        /// <param name="path">The path to the JSON where the error occurred.</param>
+        /// <param name="lineNumber">The line number indicating where the error occurred.</param>
+        /// <param name="linePosition">The line position indicating where the error occurred.</param>
+        /// <param name="innerException">The exception that is the cause of the current exception, or <c>null</c> if no inner exception is specified.</param>
+        public JsonReaderException(string message, string path, int lineNumber, int linePosition, Exception? innerException)
             : base(message, innerException)
         {
             Path = path;
@@ -111,12 +120,12 @@ namespace Exceptionless.Json
             return Create(reader, message, null);
         }
 
-        internal static JsonReaderException Create(JsonReader reader, string message, Exception ex)
+        internal static JsonReaderException Create(JsonReader reader, string message, Exception? ex)
         {
             return Create(reader as IJsonLineInfo, reader.Path, message, ex);
         }
 
-        internal static JsonReaderException Create(IJsonLineInfo lineInfo, string path, string message, Exception ex)
+        internal static JsonReaderException Create(IJsonLineInfo? lineInfo, string path, string message, Exception? ex)
         {
             message = JsonPosition.FormatMessage(lineInfo, path, message);
 
@@ -133,7 +142,7 @@ namespace Exceptionless.Json
                 linePosition = 0;
             }
 
-            return new JsonReaderException(message, ex, path, lineNumber, linePosition);
+            return new JsonReaderException(message, path, lineNumber, linePosition, ex);
         }
     }
 }
