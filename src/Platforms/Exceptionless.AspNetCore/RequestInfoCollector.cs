@@ -131,7 +131,7 @@ namespace Exceptionless.AspNetCore {
             "*SessionId*"
         };
 
-        private static Dictionary<string, string> ToDictionary(this IRequestCookieCollection cookies, IEnumerable<string> exclusions) {
+        private static Dictionary<string, string> ToDictionary(this IRequestCookieCollection cookies, IList<string> exclusions) {
             var d = new Dictionary<string, string>();
 
             foreach (var kvp in cookies) {
