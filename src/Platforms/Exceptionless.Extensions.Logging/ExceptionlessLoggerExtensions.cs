@@ -2,6 +2,7 @@
 using Exceptionless.Extensions.Logging;
 using ExceptionlessLogLevel = Exceptionless.Logging.LogLevel;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Exceptionless {
     public static class ExceptionlessLoggerExtensions {
@@ -25,13 +26,26 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Adds Exceptionless to the logging pipeline using the <see cref="ExceptionlessClient.Default"/>.
+        /// Adds Exceptionless to the logging pipeline using the specified <see cref="ExceptionlessClient"/> instance.
         /// </summary>
         /// <param name="builder">The <see cref="ILoggingBuilder"/>.</param>
-        /// <param name="client">If a client is not specified then the <see cref="ExceptionlessClient.Default"/> will be used.</param>
+        /// <param name="client">The <see cref="ExceptionlessClient"/> instance that will be used.</param>
         /// <returns>The <see cref="ILoggingBuilder"/>.</returns>
-        public static ILoggingBuilder AddExceptionless(this ILoggingBuilder builder, ExceptionlessClient client = null) {
-            builder.AddProvider(new ExceptionlessLoggerProvider(client ?? ExceptionlessClient.Default));
+        public static ILoggingBuilder AddExceptionless(this ILoggingBuilder builder, ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
+            builder.AddProvider(new ExceptionlessLoggerProvider(client));
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds Exceptionless to the logging pipeline using the <see cref="ExceptionlessClient"/> instance retrieved from the <see cref="IServiceProvider"/> or the <see cref="ExceptionlessClient.Default"/> instance.
+        /// </summary>
+        /// <param name="builder">The <see cref="ILoggingBuilder"/>.</param>
+        /// <returns>The <see cref="ILoggingBuilder"/>.</returns>
+        public static ILoggingBuilder AddExceptionless(this ILoggingBuilder builder) {
+            builder.Services.AddSingleton<ILoggerProvider>(sp => new ExceptionlessLoggerProvider(sp.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default));
             return builder;
         }
 

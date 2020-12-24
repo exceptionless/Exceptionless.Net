@@ -1,45 +1,34 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Exceptionless.SampleAspNetCore {
     public class Startup {
-        public Startup(IWebHostEnvironment env) {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables();
-            Configuration = builder.Build();
+        public Startup(IConfiguration configuration) {
+            Configuration = configuration;
         }
 
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
         
         public void ConfigureServices(IServiceCollection services) {
-            services.AddLogging(b => b
-                .AddConfiguration(Configuration.GetSection("Logging"))
-                .AddDebug()
-                .AddConsole()
-                .AddExceptionless());
+            // Reads settings from IConfiguration
+            services.AddExceptionless(c => c.DefaultData["Startup"] = "heyyy");
+            // OR
+            // services.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
+            // OR
+            // services.AddExceptionless("API_KEY_HERE");
+
+            // This enables Exceptionless to gather more detailed information about unhandled exceptions and other events
             services.AddHttpContextAccessor();
-            services.AddMvc();
+            services.AddControllers();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory) {
-            app.UseExceptionless(Configuration);
-            //OR
-            //app.UseExceptionless(c => c.ReadFromConfiguration(Configuration));
-            //OR
-            //app.UseExceptionless("API_KEY_HERE");
-            //OR
-            //loggerFactory.AddExceptionless("API_KEY_HERE");
-            //OR
-            //loggerFactory.AddExceptionless(c => c.ReadFromConfiguration(Configuration));
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            // Adds Exceptionless middleware to listen for unhandled exceptions
+            app.UseExceptionless();
 
-            //loggerFactory.AddExceptionless();
             app.UseRouting();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

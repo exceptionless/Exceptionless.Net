@@ -31,7 +31,7 @@ namespace Exceptionless.Tests.Plugins {
         [Theory]
         [InlineData(null, null, null, null, false)]
         [InlineData("Test", null, null, null, false)]
-        [InlineData("Test", "Trace", null, null, false)]
+        [InlineData("Test", "Trace", null, null, true)]
         [InlineData("Test", "Off", null, null, true)]
         [InlineData("Test", "Abc", null, null, false)]
         [InlineData(null, "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix, "Off", true)]

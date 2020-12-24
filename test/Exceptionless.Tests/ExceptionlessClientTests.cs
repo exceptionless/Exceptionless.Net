@@ -122,7 +122,7 @@ namespace Exceptionless.Tests {
                 const int iterations = 200;
                 for (int i = 1; i <= iterations; i++) {
                     _writer.WriteLine($"---- {i} ----");
-                    client.CreateLog(typeof(ExceptionlessClientTests).FullName, i.ToString(), LogLevel.Info)
+                    client.CreateLog(typeof(ExceptionlessClientTests).FullName, i.ToString(), LogLevel.Warn)
                         .AddTags("Test")
                         .SetUserIdentity(new UserInfo { Identity = "00001", Name = "test" })
                         .Submit();

@@ -1,15 +1,22 @@
 ﻿using System;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Exceptionless.SampleAspNetCore {
     public class Program {
         public static void Main(string[] args) {
-            CreateWebHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
-            return WebHost.CreateDefaultBuilder(args).UseStartup<Startup>();
-        }
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureLogging(b => {
+                    // By default sends warning and error log messages to Exceptionless.
+                    // Log levels can be controlled remotely per log source from the Exceptionless app in near real-time.
+                    b.AddExceptionless();
+                })
+                .ConfigureWebHostDefaults(webBuilder => {
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }
