@@ -10,6 +10,7 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
         private readonly ILogger _logger;
 
         public ValuesController(ExceptionlessClient exceptionlessClient, ILogger<ValuesController> logger) {
+            // ExceptionlessClient instance from DI that was registered with the AddExceptionless call in Startup.ConfigureServices
             _exceptionlessClient = exceptionlessClient;
             _logger = logger;
         }
@@ -28,6 +29,15 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
             } catch (Exception handledException) {
                 // Use the ToExceptionless extension method to submit this handled exception to Exceptionless using the client instance from DI.
                 handledException.ToExceptionless(_exceptionlessClient).Submit();
+            }
+
+            try {
+                throw new Exception($"Handled Exception (Default Client): {Guid.NewGuid()}");
+            } catch (Exception handledException) {
+                // Use the ToExceptionless extension method to submit this handled exception to Exceptionless using the default client instance (ExceptionlessClient.Default).
+                // This works and is convenient, but its generally not recommended to use static singleton instances because it makes testing and
+                // other things harder.
+                handledException.ToExceptionless().Submit();
             }
 
             // Unhandled exceptions will get reported since called UseExceptionless in the Startup.cs which registers a listener for unhandled exceptions.
