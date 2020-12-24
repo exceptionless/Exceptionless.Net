@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" />
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.AspNetCore\Exceptionless.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Platforms\Exceptionless.Extensions.Hosting\Exceptionless.Extensions.Hosting.csproj" />
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.Extensions.Logging\Exceptionless.Extensions.Logging.csproj" />
   </ItemGroup>
 </Project>

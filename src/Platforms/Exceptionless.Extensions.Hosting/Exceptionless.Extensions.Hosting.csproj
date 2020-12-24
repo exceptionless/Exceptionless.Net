@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\build\common.props" />
+
+  <PropertyGroup>
+    <PackageId>Exceptionless.Extensions.Hosting</PackageId>
+    <AssemblyName>Exceptionless.Extensions.Hosting</AssemblyName>
+    <AssemblyTitle>Exceptionless provider for Microsoft.Extensions.Hosting</AssemblyTitle>
+    <Description>Exceptionless provider for Microsoft.Extensions.Hosting. $(Description)</Description>
+    <PackageTags>Exceptionless;Microsoft.Extensions.Hosting;log;logging</PackageTags>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup Label="Package">
+    <None Include="readme.txt" pack="true" PackagePath="." />
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
+  </ItemGroup>
+</Project>

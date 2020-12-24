@@ -29,6 +29,24 @@ namespace Exceptionless {
             pluginContextData.SetException(exception);
             return client.CreateEvent(pluginContextData).SetType(Event.KnownTypes.Error);
         }
+
+        /// <summary>
+        /// Creates a builder object for constructing error reports in a fluent api.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        /// <param name="client">
+        /// The ExceptionlessClient instance used for configuration.
+        /// </param>
+        /// <returns></returns>
+        public static EventBuilder ToExceptionless(this Exception exception, ExceptionlessClient client) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
+            var pluginContextData = new ContextData();
+            pluginContextData.SetException(exception);
+            
+            return client.CreateEvent(pluginContextData).SetType(Event.KnownTypes.Error);
+        }
     }
 }
 

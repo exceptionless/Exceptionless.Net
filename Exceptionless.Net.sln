@@ -74,6 +74,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleWindows
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleWpf", "samples\Exceptionless.SampleWpf\Exceptionless.SampleWpf.csproj", "{AD95A70D-18DB-414E-9F6C-1B13B4FBA56E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.Extensions.Hosting", "src\Platforms\Exceptionless.Extensions.Hosting\Exceptionless.Extensions.Hosting.csproj", "{A5589072-EC59-4A6A-B78D-5D2ABB36DB1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,6 +170,10 @@ Global
 		{AD95A70D-18DB-414E-9F6C-1B13B4FBA56E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD95A70D-18DB-414E-9F6C-1B13B4FBA56E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD95A70D-18DB-414E-9F6C-1B13B4FBA56E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5589072-EC59-4A6A-B78D-5D2ABB36DB1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5589072-EC59-4A6A-B78D-5D2ABB36DB1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5589072-EC59-4A6A-B78D-5D2ABB36DB1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5589072-EC59-4A6A-B78D-5D2ABB36DB1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -194,6 +200,7 @@ Global
 		{683D19D9-1AF2-4F4B-B0E6-24F26A369436} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 		{E1D077DE-C62E-4137-B609-3E9845C8A027} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{AD95A70D-18DB-414E-9F6C-1B13B4FBA56E} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
+		{A5589072-EC59-4A6A-B78D-5D2ABB36DB1B} = {D363E15F-621D-40E4-8C96-DEE41A7070FF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EBB2CC85-FF87-431B-865F-2F110B2A10E6}

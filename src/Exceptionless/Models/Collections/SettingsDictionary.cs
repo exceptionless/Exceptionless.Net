@@ -201,7 +201,7 @@ namespace Exceptionless.Models {
             if (_minLogLevels.TryGetValue(source, out minLogLevel))
                 return minLogLevel;
 
-            string setting = GetTypeAndSourceSetting("log", source, "Trace");
+            string setting = GetTypeAndSourceSetting("log", source, LogLevel.Warn.ToString());
             if (setting == null) {
                 _minLogLevels.AddOrUpdate(source, LogLevel.Trace, (logName, level) => LogLevel.Trace);
                 return LogLevel.Trace;

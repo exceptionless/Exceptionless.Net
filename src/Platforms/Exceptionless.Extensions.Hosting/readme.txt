@@ -24,38 +24,18 @@ Please visit the documentation https://exceptionless.com/docs/clients/dotnet/pri
 for detailed information on how to configure the client to meet your requirements.
 
 -------------------------------------
-      ASP.NET Core Integration
+Microsoft.Extensions.Logging Integration
 -------------------------------------
-You must import the "Exceptionless" namespace and add the following code to register and configure
-the ExceptionlessClient inside of the ConfigureServices method:
+You must import the "Exceptionless" namespace and call the following line
+of code to start reporting log messages.
 
-services.AddExceptionless("API_KEY_HERE");
-
-In order to start gathering unhandled exceptions, you will need to register the Exceptionless
-middleware in the Configure method like this:
-
-app.UseExceptionless();
+loggerFactory.AddExceptionless("API_KEY_HERE");
 
 Alternatively, you can also use the different overloads of the AddExceptionless method
 for different configuration options.
 
 Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.
-
--------------------------------------
-   Manually reporting an exception
--------------------------------------
-By default the Exceptionless Client will report all unhandled exceptions. You can
-also manually send an exception by importing the Exceptionless namespace and calling
-the following method.
-
-exception.ToExceptionless().Submit()
-
-Please note that ASP.NET Core doesn't have a static http context. We recommend registering
-the http context accessor. Doing so will allow the request and user information to be populated.
-You can do this by calling the AddHttpContextAccessor while configure services.
-
-services.AddHttpContextAccessor()
 
 -------------------------------------
       Documentation and Support
