@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions.Hosting;
@@ -50,7 +50,7 @@ namespace Exceptionless {
         /// <returns></returns>
         public static IServiceCollection AddExceptionless(this IServiceCollection services, Action<ExceptionlessConfiguration> configure = null) {
             return services.AddSingleton(sp => {
-                var client = new ExceptionlessClient();
+                var client = ExceptionlessClient.Default;
 
                 var config = sp.GetService<IConfiguration>();
                 if (config != null)
