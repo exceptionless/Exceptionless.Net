@@ -13,15 +13,18 @@ namespace Exceptionless.SampleAspNetCore {
         public IConfiguration Configuration { get; }
         
         public void ConfigureServices(IServiceCollection services) {
-            // Reads settings from IConfiguration
+            // Reads settings from IConfiguration then adds additional configuration from this lambda.
+            // This also configures ExceptionlessClient.Default
             services.AddExceptionless(c => c.DefaultData["Startup"] = "heyyy");
             // OR
-            // services.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
+            // services.AddExceptionless();
             // OR
             // services.AddExceptionless("API_KEY_HERE");
 
             // This enables Exceptionless to gather more detailed information about unhandled exceptions and other events
             services.AddHttpContextAccessor();
+
+            // This is normal ASP.NET code
             services.AddControllers();
         }
 
@@ -29,6 +32,7 @@ namespace Exceptionless.SampleAspNetCore {
             // Adds Exceptionless middleware to listen for unhandled exceptions
             app.UseExceptionless();
 
+            // This is normal ASP.NET code
             app.UseRouting();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
