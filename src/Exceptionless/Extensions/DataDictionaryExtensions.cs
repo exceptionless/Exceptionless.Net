@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Exceptionless.Dependency;
@@ -40,6 +40,9 @@ namespace Exceptionless {
         /// ExceptionlessClient.Default.
         /// </param>
         public static void SetProperty(this IData target, string name, object value, int? maxDepth = null, IEnumerable<string> excludedPropertyNames = null, bool ignoreSerializationErrors = false, ExceptionlessClient client = null) {
+            if (String.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+            
             AddObject(target, value, name, maxDepth, excludedPropertyNames, ignoreSerializationErrors, client);
         }
 
