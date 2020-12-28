@@ -501,7 +501,11 @@ namespace Exceptionless.Json.Serialization
                     propertyName = (contract.ExtensionDataNameResolver != null)
                         ? contract.ExtensionDataNameResolver(propertyName)
                         : propertyName;
-
+                    
+                    // CUSTOM: check to see if property name can be written.
+                    if (!writer.ShouldWriteProperty(propertyName))
+                        continue;
+                    
                     if (ShouldWriteReference(e.Value, null, valueContract, contract, member))
                     {
                         writer.WritePropertyName(propertyName);
@@ -1074,6 +1078,10 @@ namespace Exceptionless.Json.Serialization
                         ? contract.DictionaryKeyResolver(propertyName)
                         : propertyName;
 
+                    // CUSTOM: check to see if property name can be written.
+                    if (!writer.ShouldWriteProperty(propertyName))
+                        continue;
+                    
                     try
                     {
                         object value = entry.Value;

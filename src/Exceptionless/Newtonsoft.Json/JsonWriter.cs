@@ -464,6 +464,14 @@ namespace Exceptionless.Json
         {
             InternalWriteEnd(JsonContainerType.Constructor);
         }
+        
+        /// <summary>
+        /// CUSTOM: Return two if the property an be written.
+        /// </summary>
+        public virtual bool ShouldWriteProperty(string name) 
+        {
+            return true;
+        }
 
         /// <summary>
         /// Writes the property name of a name/value pair of a JSON object.

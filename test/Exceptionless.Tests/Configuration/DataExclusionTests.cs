@@ -68,8 +68,7 @@ namespace Exceptionless.Tests.Configuration {
             var ev = new Event();
             ev.SetProperty(nameof(order), order, excludedPropertyNames: new [] { nameof(order.CardLast4) });
             Assert.Single(ev.Data);
-
-            Assert.Equal("{\"id\":\"1234\"}", ev.Data.GetString(nameof(order)));
+            Assert.Equal("{\"id\":\"1234\",\"data\":{}}", ev.Data.GetString(nameof(order)));
         }
         
         [InlineData("Credit*", true)]
