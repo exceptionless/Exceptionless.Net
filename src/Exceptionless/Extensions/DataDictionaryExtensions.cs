@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Exceptionless.Dependency;
@@ -105,16 +105,16 @@ namespace Exceptionless {
                 : client.Configuration.DataExclusions.ToArray();
 
             string name = !String.IsNullOrWhiteSpace(info.Name) ? info.Name.Trim() : null;
+            Type dataType = info.Data.GetType();
             if (String.IsNullOrEmpty(name)) {
-                name = info.Data.GetType().Name;
+                name = dataType.Name;
                 int index = 1;
                 while (data.Data.ContainsKey(name))
-                    name = info.Data.GetType().Name + index++;
+                    name = dataType.Name + index++;
             } else if (name.AnyWildcardMatches(exclusions, true)) {
                 return;
             }
 
-            Type dataType = info.Data.GetType();
             if (dataType == typeof(bool) || dataType == typeof(string) || dataType.IsNumeric()) {
                 if (data.Data.ContainsKey(name))
                     data.Data[name] = info.Data;
