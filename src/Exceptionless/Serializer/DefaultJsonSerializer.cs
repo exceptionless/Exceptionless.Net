@@ -8,6 +8,7 @@ using System.Text;
 using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
+using Exceptionless.Json.Linq;
 using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Serializer {
@@ -42,14 +43,15 @@ namespace Exceptionless.Serializer {
             if (model == null)
                 return null;
 
-            JsonSerializer serializer = JsonSerializer.Create(_serializerSettings);
+            var serializer = JsonSerializer.Create(_serializerSettings);
             if (maxDepth < 1)
                 maxDepth = Int32.MaxValue;
 
+            var excludedPropertyNames = new HashSet<string>(exclusions ?? new string[0], StringComparer.OrdinalIgnoreCase);            
             using (var sw = new StringWriter()) {
-                using (var jw = new JsonTextWriterWithDepth(sw)) {
+                using (var jw = new JsonTextWriterWithExclusions(sw, excludedPropertyNames)) {
                     jw.Formatting = Formatting.None;
-                    Func<JsonProperty, object, bool> include = (property, value) => ShouldSerialize(jw, property, value, maxDepth, exclusions);
+                    Func<JsonProperty, object, bool> include = (property, value) => ShouldSerialize(jw, property, value, maxDepth, excludedPropertyNames);
                     var resolver = new ExceptionlessContractResolver(include);
                     serializer.ContractResolver = resolver;
                     if (continueOnSerializationError)
@@ -69,7 +71,7 @@ namespace Exceptionless.Serializer {
             return JsonConvert.DeserializeObject(json, type, _serializerSettings);
         }
 
-        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, IList<string> excludedPropertyNames) {
+        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, ISet<string> excludedPropertyNames) {
             try {
                 if (excludedPropertyNames != null && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, true)))
                     return false;
