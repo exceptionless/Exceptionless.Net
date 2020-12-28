@@ -7,10 +7,9 @@ using Xunit;
 namespace Exceptionless.Tests.Configuration {
     public class DataExclusionTests {
         [Fact]
-        public void WillIgnoreNullKey() {
+        public void WillHandleNullKey() {
             var ev = new Event();
-            ev.SetProperty(null, "test");
-            Assert.Empty(ev.Data);
+            Assert.Throws<ArgumentNullException>(() => ev.SetProperty(null, "test"));
         }
         
         [Fact]
