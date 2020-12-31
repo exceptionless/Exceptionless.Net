@@ -6,7 +6,7 @@
     <AssemblyName>Exceptionless.Web</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET WebForms applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET WebForms applications. $(Description)</Description>
-    <PackageTags>WebForms;Web Forms;Wcf;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);ASP.NET;WebForms;Wcf</PackageTags>
     <TargetFramework>net452</TargetFramework>
   </PropertyGroup>
 

@@ -13,7 +13,7 @@
     <AssemblyName>Exceptionless.MessagePack</AssemblyName>
     <AssemblyTitle>Serialize/deserialize log entries with MessagePack.</AssemblyTitle>
     <Description>Serialize/deserialize log entries with MessagePack. $(Description)</Description>
-    <PackageTags>MessagePack;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);MessagePack</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">

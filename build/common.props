@@ -15,6 +15,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
     <PackageIcon>exceptionless-icon.png</PackageIcon>
+    <PackageTags>Exceptionless;Error;Error-Handling;Error-Handler;Error-Reporting;Error-Management;Error-Monitoring;Handling;Management;Monitoring;Report;Reporting;Crash-Reporting;Exception;Exception-Handling;Exception-Handler;Exception-Reporting;Exceptions;Log;Logs;Logging;Unhandled;Unhandled-Exceptions;Feature;Configuration;Debug;FeatureToggle;Metrics;ELMAH</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

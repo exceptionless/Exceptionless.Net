@@ -13,7 +13,7 @@
     <AssemblyName>Exceptionless.NLog</AssemblyName>
     <AssemblyTitle>NLog target that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>NLog target that sends log entries to Exceptionless. $(Description)</Description>
-    <PackageTags>NLog;Target;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);NLog;Target</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

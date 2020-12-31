@@ -10,7 +10,7 @@
     <AssemblyName>Exceptionless.AspNetCore</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET Core</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Core. $(Description)</Description>
-    <PackageTags>ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);ASP.NET;AspNetCore;MVC</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

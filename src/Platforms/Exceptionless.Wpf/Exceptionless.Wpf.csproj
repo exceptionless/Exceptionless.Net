@@ -13,7 +13,7 @@
     <AssemblyName>Exceptionless.Wpf</AssemblyName>
     <AssemblyTitle>Exceptionless client for WPF applications</AssemblyTitle>
     <Description>Exceptionless client for WPF applications. $(Description)</Description>
-    <PackageTags>WPF;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);WPF</PackageTags>
     <UseWPF>true</UseWPF>
     <RootNamespace>Exceptionless</RootNamespace>
     <OutputType>Library</OutputType>

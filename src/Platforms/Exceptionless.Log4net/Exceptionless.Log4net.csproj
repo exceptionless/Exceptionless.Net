@@ -13,7 +13,7 @@
     <AssemblyName>Exceptionless.Log4net</AssemblyName>
     <AssemblyTitle>Log4net appender that sends log entries to Exceptionless.</AssemblyTitle>
     <Description>Log4net appender that sends log entries to Exceptionless. $(Description)</Description>
-    <PackageTags>Log4net;Appender;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);Log4net;Appender</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

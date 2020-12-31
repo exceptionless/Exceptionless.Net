@@ -7,12 +7,12 @@
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
   </PropertyGroup>
-  
+
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless</PackageId>
     <AssemblyName>Exceptionless</AssemblyName>
     <AssemblyTitle>Exceptionless client for non visual (ie. Console and Services) applications.</AssemblyTitle>
-    <PackageTags>Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH;NETSTANDARD;Core</PackageTags>
+    <PackageTags>$(PackageTags);Console;Services;</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

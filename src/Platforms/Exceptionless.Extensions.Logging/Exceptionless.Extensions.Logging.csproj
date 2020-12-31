@@ -6,7 +6,7 @@
     <AssemblyName>Exceptionless.Extensions.Logging</AssemblyName>
     <AssemblyTitle>Exceptionless provider for Microsoft.Extensions.Logging</AssemblyTitle>
     <Description>Exceptionless provider for Microsoft.Extensions.Logging. $(Description)</Description>
-    <PackageTags>Exceptionless;Microsoft.Extensions.Logging;log;logging</PackageTags>
+    <PackageTags>$(PackageTags);Microsoft.Extensions.Logging</PackageTags>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 

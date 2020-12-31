@@ -7,7 +7,7 @@
     <AssemblyTitle>Exceptionless client for ASP.NET Web API applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET Web API applications. $(Description)</Description>
     <TargetFramework>net452</TargetFramework>
-    <PackageTags>Web Api;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);ASP.NET;Web Api</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Package">

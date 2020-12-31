@@ -13,7 +13,7 @@
     <AssemblyName>Exceptionless.Windows</AssemblyName>
     <AssemblyTitle>Exceptionless client for WinForms applications</AssemblyTitle>
     <Description>Exceptionless client for WinForms applications. $(Description)</Description>
-    <PackageTags>WinForms;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);WinForms</PackageTags>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Exceptionless</RootNamespace>
     <OutputType>Library</OutputType>

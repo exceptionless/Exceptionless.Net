@@ -6,7 +6,7 @@
     <AssemblyName>Exceptionless.Mvc</AssemblyName>
     <AssemblyTitle>Exceptionless client for ASP.NET MVC 3+ applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET MVC 3+ applications. $(Description)</Description>
-    <PackageTags>MVC;ASP.NET;Exceptionless;Error;Report;Reporting;Exception;Logging;Log;ELMAH</PackageTags>
+    <PackageTags>$(PackageTags);ASP.NET;MVC</PackageTags>
     <TargetFramework>net452</TargetFramework>
   </PropertyGroup>
 
