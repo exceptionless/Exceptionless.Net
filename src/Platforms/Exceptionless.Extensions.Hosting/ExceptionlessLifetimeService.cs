@@ -8,6 +8,9 @@ namespace Exceptionless.Extensions.Hosting {
 
         public ExceptionlessLifetimeService(ExceptionlessClient client, IHostApplicationLifetime appLifetime) {
             _exceptionlessClient = client;
+            
+            _exceptionlessClient.RegisterAppDomainUnhandledExceptionHandler();
+            _exceptionlessClient.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
 
             appLifetime.ApplicationStopping.Register(() => _exceptionlessClient.ProcessQueue());
         }

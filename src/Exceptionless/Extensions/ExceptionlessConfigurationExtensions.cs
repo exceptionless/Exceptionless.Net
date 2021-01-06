@@ -403,6 +403,21 @@ namespace Exceptionless {
             if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out enabled) && !enabled)
                 config.Enabled = false;
 
+            bool processQueueOnCompletedRequest;
+            string processQueueOnCompletedRequestValue = GetEnvironmentalVariable("Exceptionless:ProcessQueueOnCompletedRequest") ??
+                GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
+
+            // if we are running in a serverless environment default this config to true
+            if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)
+                && (
+                    !String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_EXECUTION_ENV"))
+                    || !String.IsNullOrEmpty(GetEnvironmentalVariable("FUNCTIONS_WORKER_RUNTIME")))
+                )
+                processQueueOnCompletedRequestValue = "true";
+
+            if (Boolean.TryParse(processQueueOnCompletedRequestValue, out processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
+                config.ProcessQueueOnCompletedRequest = true;
+
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl") ?? GetEnvironmentalVariable("Exceptionless__ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;

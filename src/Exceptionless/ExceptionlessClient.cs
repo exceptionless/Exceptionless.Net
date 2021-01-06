@@ -231,6 +231,14 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Gets a disposable object that when disposed will trigger the client queue to be processed.
+        /// </summary>
+        /// <returns>An <see cref="IDisposable"/> that when disposed will trigger the client queue to be processed.</returns>
+        public IDisposable CreateQueueScope() {
+            return new ProcessQueueScope(this);
+        }
+
+        /// <summary>
         /// Occurs when the event is being submitted.
         /// </summary>
         public event EventHandler<EventSubmittingEventArgs> SubmittingEvent;
