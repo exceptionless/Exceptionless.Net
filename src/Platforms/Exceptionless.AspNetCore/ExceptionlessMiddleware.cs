@@ -14,6 +14,12 @@ namespace Exceptionless.AspNetCore {
         }
 
         public async Task Invoke(HttpContext context) {
+            if (_client.Configuration.ProcessQueueOnCompletedRequest) {
+                context.Response.OnCompleted(async () => {
+                    await _client.ProcessQueueAsync();
+                });
+            }
+
             try {
                 await _next(context);
             } catch (Exception ex) {

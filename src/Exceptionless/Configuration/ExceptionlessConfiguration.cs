@@ -267,6 +267,12 @@ namespace Exceptionless {
         /// </summary>
         public bool SessionsEnabled { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to automatically process the pending event queue after each request is completed.
+        /// NOTE: Only supported on AspNetCore currently.
+        /// </summary>
+        public bool ProcessQueueOnCompletedRequest { get; set; }
+        
         internal string CurrentSessionIdentifier { get; set; }
 
         /// <summary>

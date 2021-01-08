@@ -65,6 +65,26 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Adds an <see cref="ExceptionlessClient"/> instance to the services collection as a singleton.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the <see cref="ExceptionlessClient"/> instance to as a singleton.</param>
+        /// <param name="configuration">The <see cref="IConfiguration"/> to use to configure the <see cref="ExceptionlessClient"/> instance.</param>
+        /// <param name="configure">Allows altering the <see cref="ExceptionlessClient"/> configuration.</param>
+        /// <returns></returns>
+        public static IServiceCollection AddExceptionless(this IServiceCollection services, IConfiguration configuration, Action<ExceptionlessConfiguration> configure = null) {
+            return services.AddSingleton(sp => {
+                var client = ExceptionlessClient.Default;
+
+                if (configuration != null)
+                    client.Configuration.ReadFromConfiguration(configuration);
+
+                configure?.Invoke(client.Configuration);
+
+                return client;
+            });
+        }
+
+        /// <summary>
         /// Sets the configuration from .net configuration settings.
         /// </summary>
         /// <param name="config">The configuration object you want to apply the settings to.</param>
@@ -122,7 +142,10 @@ namespace Exceptionless {
             
             if (Boolean.TryParse(section["IncludePrivateInformation"], out bool includePrivateInformation) && !includePrivateInformation)
                 config.IncludePrivateInformation = false;
-            
+
+            if (Boolean.TryParse(section["ProcessQueueOnCompletedRequest"], out bool processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
+                config.ProcessQueueOnCompletedRequest = true;
+
             foreach (var tag in section.GetSection("DefaultTags").GetChildren())
                 config.DefaultTags.Add(tag.Value);
             

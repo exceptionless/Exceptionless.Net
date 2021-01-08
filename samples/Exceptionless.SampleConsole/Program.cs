@@ -22,7 +22,7 @@ using NLog.Fluent;
 using LogLevel = Exceptionless.Logging.LogLevel;
 
 // example of setting an attribute value in config.
-[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:50000")] 
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:5000")] 
 [assembly: ExceptionlessSetting("EnableWelcomeMessage", "True")]
 
 namespace Exceptionless.SampleConsole {

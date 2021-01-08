@@ -154,6 +154,15 @@ namespace Exceptionless {
         }
 
         /// <summary>
+        /// Gets a disposable object that when disposed will trigger the client queue to be processed.
+        /// <code>using var _ = client.ProcessQueueDeferred();</code>
+        /// </summary>
+        /// <returns>An <see cref="IDisposable"/> that when disposed will trigger the client queue to be processed.</returns>
+        public IDisposable ProcessQueueDeferred() {
+            return new ProcessQueueScope(this);
+        }
+
+        /// <summary>
         /// Submits the event to be sent to the server.
         /// </summary>
         /// <param name="ev">The event data.</param>

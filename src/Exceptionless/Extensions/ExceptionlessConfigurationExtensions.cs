@@ -403,6 +403,25 @@ namespace Exceptionless {
             if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out enabled) && !enabled)
                 config.Enabled = false;
 
+            bool processQueueOnCompletedRequest;
+            string processQueueOnCompletedRequestValue = GetEnvironmentalVariable("Exceptionless:ProcessQueueOnCompletedRequest") ??
+                GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
+
+            // if we are running in a serverless environment default this config to true
+            if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)) {
+
+                // check for AWS lambda environment
+                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_LAMBDA_FUNCTION_NAME ")))
+                    processQueueOnCompletedRequestValue = Boolean.TrueString;
+
+                // check for azure functions environment
+                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("FUNCTIONS_WORKER_RUNTIME")))
+                    processQueueOnCompletedRequestValue = Boolean.TrueString;
+            }
+
+            if (Boolean.TryParse(processQueueOnCompletedRequestValue, out processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
+                config.ProcessQueueOnCompletedRequest = true;
+
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl") ?? GetEnvironmentalVariable("Exceptionless__ServerUrl");
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
