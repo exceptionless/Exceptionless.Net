@@ -408,12 +408,10 @@ namespace Exceptionless {
                 GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
 
             // if we are running in a serverless environment default this config to true
-            if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)
-                && (
-                    !String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_EXECUTION_ENV"))
-                    || !String.IsNullOrEmpty(GetEnvironmentalVariable("FUNCTIONS_WORKER_RUNTIME")))
-                )
-                processQueueOnCompletedRequestValue = "true";
+            if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)) {
+                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_EXECUTION_ENV")) || !String.IsNullOrEmpty(GetEnvironmentalVariable("FUNCTIONS_WORKER_RUNTIME")))
+                    processQueueOnCompletedRequestValue = Boolean.TrueString;
+            }
 
             if (Boolean.TryParse(processQueueOnCompletedRequestValue, out processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
                 config.ProcessQueueOnCompletedRequest = true;
