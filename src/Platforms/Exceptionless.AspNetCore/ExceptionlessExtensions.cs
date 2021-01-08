@@ -42,21 +42,21 @@ namespace Exceptionless {
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }
 
-        [Obsolete("ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
+        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, Action<ExceptionlessConfiguration> configure) {
             var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
             configure?.Invoke(client.Configuration);
             return app.UseExceptionless(client);
         }
 
-        [Obsolete("ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
+        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, IConfiguration configuration) {
             var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
             client.Configuration.ReadFromConfiguration(configuration);
             return app.UseExceptionless(client);
         }
 
-        [Obsolete("ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
+        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, string apiKey) {
             var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
             client.Configuration.ApiKey = apiKey;
