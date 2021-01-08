@@ -409,7 +409,13 @@ namespace Exceptionless {
 
             // if we are running in a serverless environment default this config to true
             if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)) {
-                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_EXECUTION_ENV")) || !String.IsNullOrEmpty(GetEnvironmentalVariable("FUNCTIONS_WORKER_RUNTIME")))
+
+                // check for AWS lambda environment
+                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_LAMBDA_FUNCTION_NAME ")))
+                    processQueueOnCompletedRequestValue = Boolean.TrueString;
+
+                // check for azure functions environment
+                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("FUNCTIONS_WORKER_RUNTIME")))
                     processQueueOnCompletedRequestValue = Boolean.TrueString;
             }
 
