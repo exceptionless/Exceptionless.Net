@@ -68,7 +68,7 @@ namespace Exceptionless.Storage {
                 if (!Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
 
-                using (var writer = File.OpenWrite(Path.Combine(Folder, path))) {
+                using (var writer = File.Open(Path.Combine(Folder, path), FileMode.Create)) {
                     _resolver.GetStorageSerializer().Serialize(value, writer);
                 }
             } catch (Exception ex) {
