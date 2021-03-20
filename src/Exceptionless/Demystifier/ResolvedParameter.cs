@@ -7,17 +7,22 @@ namespace System.Diagnostics
 {
     public class ResolvedParameter
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public Type ResolvedType { get; set; }
 
-        public string Prefix { get; set; }
+        public string? Prefix { get; set; }
         public bool IsDynamicType { get; set; }
+
+        public ResolvedParameter(Type resolvedType) => ResolvedType = resolvedType;
 
         public override string ToString() => Append(new StringBuilder()).ToString();
 
-        internal StringBuilder Append(StringBuilder sb)
+        public StringBuilder Append(StringBuilder sb)
         {
+            if (ResolvedType.Assembly.ManifestModule.Name == "FSharp.Core.dll" && ResolvedType.Name == "Unit")
+                return sb;
+            
             if (!string.IsNullOrEmpty(Prefix))
             {
                 sb.Append(Prefix)

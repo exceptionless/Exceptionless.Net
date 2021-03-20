@@ -7,15 +7,21 @@ namespace System.Diagnostics
 {
     public class EnhancedStackFrame : StackFrame
     {
-        private string _fileName;
-        private int _lineNumber;
-        private int _colNumber;
+        private readonly string? _fileName;
+        private readonly int _lineNumber;
+        private readonly int _colNumber;
 
         public StackFrame StackFrame { get; }
 
+        public bool IsRecursive 
+        { 
+            get => MethodInfo.RecurseCount > 0;
+            internal set => MethodInfo.RecurseCount++;
+        }
+
         public ResolvedMethod MethodInfo { get; }
 
-        internal EnhancedStackFrame(StackFrame stackFrame, ResolvedMethod methodInfo, string fileName, int lineNumber, int colNumber)
+        internal EnhancedStackFrame(StackFrame stackFrame, ResolvedMethod methodInfo, string? fileName, int lineNumber, int colNumber)
             : base(fileName, lineNumber, colNumber)
         {
             StackFrame = stackFrame;
@@ -24,6 +30,14 @@ namespace System.Diagnostics
             _fileName = fileName;
             _lineNumber = lineNumber;
             _colNumber = colNumber;
+        }
+
+        internal bool IsEquivalent(ResolvedMethod methodInfo, string? fileName, int lineNumber, int colNumber)
+        {
+            return _lineNumber == lineNumber &&
+                _colNumber == colNumber &&
+                _fileName == fileName &&
+                MethodInfo.IsSequentialEquivalent(methodInfo);
         }
 
         /// <summary>
@@ -45,7 +59,7 @@ namespace System.Diagnostics
         ///     This information is typically extracted from the debugging symbols for the executable.
         /// </summary>
         /// <returns>The file name, or null if the file name cannot be determined.</returns>
-        public override string GetFileName() => _fileName;
+        public override string? GetFileName() => _fileName;
 
         /// <summary>
         ///    Gets the offset from the start of the Microsoft intermediate language (MSIL)
@@ -60,7 +74,7 @@ namespace System.Diagnostics
         ///     Gets the method in which the frame is executing.
         /// </summary>
         /// <returns>The method in which the frame is executing.</returns>
-        public override MethodBase GetMethod() => StackFrame.GetMethod();
+        public override MethodBase? GetMethod() => StackFrame.GetMethod();
 
         /// <summary>
         ///     Gets the offset from the start of the native just-in-time (JIT)-compiled code
