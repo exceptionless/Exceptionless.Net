@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Sample Console",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceRoot}/samples/Exceptionless.SampleConsole/bin/Debug/netcoreapp3.1/Exceptionless.SampleConsole.dll",
+      "args": [],
+      "cwd": "${workspaceRoot}/samples/Exceptionless.SampleConsole",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "env": {
+          "AppMode": "Development"
+      }
+    },
+    {
+      "name": "Sample AspNetCore",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build",
+      "program": "${workspaceRoot}/samples/Exceptionless.SampleAspNetCore/bin/Debug/netcoreapp3.1/Exceptionless.SampleAspNetCore.dll",
+      "args": [],
+      "cwd": "${workspaceRoot}/samples/Exceptionless.SampleAspNetCore",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "env": {
+        "AppMode": "Development"
+      }
+    }
+  ]
+}
