@@ -1,108 +1,120 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using Exceptionless.Extensions;
-using Exceptionless.Json;
-using Exceptionless.Json.Converters;
-using Exceptionless.Json.Linq;
-using Exceptionless.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+using Microsoft.IO;
 
 namespace Exceptionless.Serializer {
     public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
-        private readonly JsonSerializerSettings _serializerSettings;
+        private const int DefaultMaxDepth = 10;
+        internal const int MaxDepthBuffer = 2;
+
+        private static readonly MaxDepthJsonConverterFactory s_maxDepthJsonConverterFactory = new MaxDepthJsonConverterFactory();
+        private static readonly DictionaryConverterFactory s_dictionaryConverterFactory = new DictionaryConverterFactory();
+
+        private static readonly JsonWriterOptions s_writerOptions = new JsonWriterOptions() {
+            SkipValidation = true
+        };
+
+        private static readonly JsonSerializerOptions s_deserializeOptions = new JsonSerializerOptions() {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = new SnakeCaseNamingPolicy()
+        };
+
+        private static readonly JsonSerializerOptions s_serializeOptions = new JsonSerializerOptions() {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            PropertyNameCaseInsensitive = true,
+            MaxDepth = DefaultMaxDepth + MaxDepthBuffer,
+            PropertyNamingPolicy = new SnakeCaseNamingPolicy(),
+            Converters = { s_dictionaryConverterFactory, s_maxDepthJsonConverterFactory }
+        };
+
+        private static readonly JsonSerializerOptions s_serializeOptionsStrict = new JsonSerializerOptions() {
+            ReadCommentHandling = JsonCommentHandling.Disallow,
+            AllowTrailingCommas = false,
+            NumberHandling = JsonNumberHandling.Strict,
+            PropertyNameCaseInsensitive = false,
+            MaxDepth = DefaultMaxDepth + MaxDepthBuffer,
+            PropertyNamingPolicy = new SnakeCaseNamingPolicy(),
+            Converters = { s_dictionaryConverterFactory, s_maxDepthJsonConverterFactory }
+        };
+
+        private static readonly RecyclableMemoryStreamManager manager = new RecyclableMemoryStreamManager();
 
         public DefaultJsonSerializer() {
-            _serializerSettings = new JsonSerializerSettings {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                PreserveReferencesHandling = PreserveReferencesHandling.None,
-                ContractResolver = new ExceptionlessContractResolver()
-            };
-
-            _serializerSettings.Converters.Add(new StringEnumConverter());
-            _serializerSettings.Converters.Add(new DataDictionaryConverter());
-            _serializerSettings.Converters.Add(new RequestInfoConverter());
         }
 
         public virtual void Serialize<T>(T data, Stream outputStream) {
-            using (var writer = new StreamWriter(outputStream, new UTF8Encoding(false, true), 0x400, true)) {
-                writer.Write(Serialize(data));
+            using var stream = manager.GetStream(); 
+            var writer = GetWriter(outputStream);
+            try {
+                JsonSerializer.Serialize(writer, data, s_serializeOptions);
+                writer.Flush();
             }
+            finally {
+                ReleaseWriter(writer);
+            }
+
+            stream.Position = 0;
+            stream.CopyTo(outputStream);
         }
 
         public virtual T Deserialize<T>(Stream inputStream) {
-            using (var reader = new StreamReader(inputStream, Encoding.UTF8, true, 0x400, true)) {
-                return (T)Deserialize(reader.ReadToEnd(), typeof(T));
+            // Revist when sync with Stream is supported https://github.com/dotnet/runtime/issues/1574
+            using (var stream = manager.GetStream()) {
+                inputStream.CopyTo(stream);
+                stream.Position = 0;
+                return JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(stream.GetBuffer(), 0, (int)stream.Length), s_serializeOptions);
             }
         }
 
-        public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 10, bool continueOnSerializationError = true) {
+        public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = DefaultMaxDepth, bool continueOnSerializationError = true) {
             if (model == null)
                 return null;
 
-            var serializer = JsonSerializer.Create(_serializerSettings);
-            if (maxDepth < 1)
-                maxDepth = Int32.MaxValue;
+            var serializeOptions = continueOnSerializationError ? s_serializeOptions : s_serializeOptionsStrict;
+            if (maxDepth != DefaultMaxDepth || (exclusions != null && exclusions.Length > 0)) {
 
-            var excludedPropertyNames = new HashSet<string>(exclusions ?? new string[0], StringComparer.OrdinalIgnoreCase);            
-            using (var sw = new StringWriter()) {
-                using (var jw = new JsonTextWriterWithExclusions(sw, excludedPropertyNames)) {
-                    jw.Formatting = Formatting.None;
-                    Func<JsonProperty, object, bool> include = (property, value) => ShouldSerialize(jw, property, value, maxDepth, excludedPropertyNames);
-                    var resolver = new ExceptionlessContractResolver(include);
-                    serializer.ContractResolver = resolver;
-                    if (continueOnSerializationError)
-                        serializer.Error += (sender, args) => { args.ErrorContext.Handled = true; };
+                maxDepth += MaxDepthBuffer;
+                maxDepth = (maxDepth < (1 + MaxDepthBuffer) ? Int32.MaxValue : maxDepth);
+                serializeOptions = new JsonSerializerOptions(serializeOptions) { MaxDepth = maxDepth };
 
-                    serializer.Serialize(jw, model);
+                if (exclusions != null && exclusions.Length > 0) {
+                    serializeOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy(exclusions);
                 }
-
-                return sw.ToString();
             }
+
+            return JsonSerializer.Serialize(model, serializeOptions);
         }
 
         public virtual object Deserialize(string json, Type type) {
             if (String.IsNullOrWhiteSpace(json))
                 return null;
 
-            return JsonConvert.DeserializeObject(json, type, _serializerSettings);
+            return JsonSerializer.Deserialize(json, type, s_deserializeOptions);
         }
 
-        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, ISet<string> excludedPropertyNames) {
-            try {
-                if (excludedPropertyNames != null && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, true)))
-                    return false;
+        [ThreadStatic] private static Utf8JsonWriter s_writer;
+        private static Utf8JsonWriter GetWriter(Stream outputStream) {
+            var writer = s_writer;
+            if (writer is null) {
+                s_writer = writer = new Utf8JsonWriter(outputStream, s_writerOptions);
+            }
+            else {
+                writer.Reset(outputStream);
+            }
 
-                bool isPrimitiveType = DefaultContractResolver.IsJsonPrimitiveType(property.PropertyType);
-                bool isPastMaxDepth = !(isPrimitiveType ? jw.CurrentDepth <= maxDepth : jw.CurrentDepth < maxDepth);
-                if (isPastMaxDepth)
-                    return false;
+            return writer;
+        }
 
-                if (isPrimitiveType)
-                    return true;
-
-                object value = property.ValueProvider.GetValue(obj);
-                if (value == null)
-                    return true;
-
-                if (typeof(ICollection).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo())) {
-                    var collection = value as ICollection;
-                    if (collection != null)
-                        return collection.Count > 0;
-                }
-
-                var collectionType = value.GetType().GetInterfaces().FirstOrDefault(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
-                if (collectionType != null) {
-                    var countProperty = collectionType.GetProperty("Count");
-                    if (countProperty != null)
-                        return (int)countProperty.GetValue(value, null) > 0;
-                }
-            } catch (Exception) {}
-
-            return true;
+        private static void ReleaseWriter(Utf8JsonWriter writer) {
+            writer.Reset(Stream.Null);
         }
     }
 }

@@ -7,10 +7,10 @@ using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
-using Exceptionless.Json.Linq;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission.Net;
@@ -183,8 +183,8 @@ namespace Exceptionless.Submission {
 
             if (responseText.Trim().StartsWith("{")) {
                 try {
-                    var responseJson = JObject.Parse(responseText);
-                    message = responseJson["message"].Value<string>();
+                    var responseJson = JsonSerializer.Deserialize<Dictionary<string, string>>(responseText);
+                    message = responseJson["message"];
                 } catch { }
             }
 
