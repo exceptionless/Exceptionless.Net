@@ -5,7 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <TargetFrameworks>net5.0;net462</TargetFrameworks>
+    <TargetFrameworks>net5.0;net472</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
