@@ -1,11 +1,10 @@
 {
-  
-  "name": "Exceptionless.Net"
+
+  "name": "Exceptionless.Net",
   "image": "mcr.microsoft.com/vscode/devcontainers/dotnetcore:latest",
   "extensions": [
     "ms-dotnettools.csharp",
     "streetsidesoftware.code-spell-checker",
-    "tintoy.msbuild-project-tools",
-    "humao.rest-client",
+    "tintoy.msbuild-project-tools"
   ]
 }

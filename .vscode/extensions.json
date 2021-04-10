@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "ms-dotnettools.csharp",
+    "streetsidesoftware.code-spell-checker",
+    "tintoy.msbuild-project-tools"
+  ]
+}

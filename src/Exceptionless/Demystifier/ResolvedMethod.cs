@@ -9,35 +9,51 @@ namespace System.Diagnostics
 {
     public class ResolvedMethod
     {
-        public MethodBase MethodBase { get; set; }
+        public MethodBase? MethodBase { get; set; }
 
-        public Type DeclaringType { get; set; }
+        public Type? DeclaringType { get; set; }
         
         public bool IsAsync { get; set; }
 
         public bool IsLambda { get; set; }
 
-        public ResolvedParameter ReturnParameter { get; set; }
+        public ResolvedParameter? ReturnParameter { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public int? Ordinal { get; set; }
 
-        public string GenericArguments { get; set; }
+        public string? GenericArguments { get; set; }
 
-        public Type[] ResolvedGenericArguments { get; set; }
+        public Type[]? ResolvedGenericArguments { get; set; }
 
-        public MethodBase SubMethodBase { get; set; }
+        public MethodBase? SubMethodBase { get; set; }
 
-        public string SubMethod { get; set; }
+        public string? SubMethod { get; set; }
 
         public EnumerableIList<ResolvedParameter> Parameters { get; set; }
 
         public EnumerableIList<ResolvedParameter> SubMethodParameters { get; set; }
+        public int RecurseCount { get; internal set; }
+
+        internal bool IsSequentialEquivalent(ResolvedMethod obj)
+        {
+            return 
+                IsAsync == obj.IsAsync && 
+                DeclaringType == obj.DeclaringType &&
+                Name == obj.Name &&
+                IsLambda == obj.IsLambda &&
+                Ordinal == obj.Ordinal &&
+                GenericArguments == obj.GenericArguments &&
+                SubMethod == obj.SubMethod;
+        }
 
         public override string ToString() => Append(new StringBuilder()).ToString();
 
-        internal StringBuilder Append(StringBuilder builder)
+        public StringBuilder Append(StringBuilder builder)
+            => Append(builder, true);
+
+        public StringBuilder Append(StringBuilder builder, bool fullName)
         {
             if (IsAsync)
             {
@@ -58,16 +74,16 @@ namespace System.Diagnostics
                     if (string.IsNullOrEmpty(SubMethod) && !IsLambda)
                         builder.Append("new ");
 
-                    AppendDeclaringTypeName(builder);
+                    AppendDeclaringTypeName(builder, fullName);
                 }
                 else if (Name == ".cctor")
                 {
                     builder.Append("static ");
-                    AppendDeclaringTypeName(builder);
+                    AppendDeclaringTypeName(builder, fullName);
                 }
                 else
                 {
-                    AppendDeclaringTypeName(builder)
+                    AppendDeclaringTypeName(builder, fullName)
                         .Append(".")
                         .Append(Name);
                 }
@@ -140,12 +156,17 @@ namespace System.Diagnostics
                 }
             }
 
+            if (RecurseCount > 0)
+            {
+                builder.Append($" x {RecurseCount + 1:0}");
+            }
+
             return builder;
         }
 
-        private StringBuilder AppendDeclaringTypeName(StringBuilder builder)
+        private StringBuilder AppendDeclaringTypeName(StringBuilder builder, bool fullName = true)
         {
-            return DeclaringType != null ? builder.AppendTypeDisplayName(DeclaringType, fullName: true, includeGenericParameterNames: true) : builder;
+            return DeclaringType != null ? builder.AppendTypeDisplayName(DeclaringType, fullName: fullName, includeGenericParameterNames: true) : builder;
         }
     }
 }

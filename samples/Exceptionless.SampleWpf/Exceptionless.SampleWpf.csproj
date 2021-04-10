@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' "> 
-    <TargetFrameworks>netcoreapp3.1;net452</TargetFrameworks>
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0-windows;net462</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -11,12 +9,12 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>Exceptionless</RootNamespace>
   </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " Label="Build">
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0-windows' " Label="Build">
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' " Label="Build">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
 

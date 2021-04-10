@@ -28,6 +28,15 @@ namespace System.Diagnostics
             { typeof(ulong), "ulong" },
             { typeof(ushort), "ushort" }
         };
+        
+        public static readonly Dictionary<string, string> FSharpTypeNames = new Dictionary<string, string>
+        {
+            { "Unit", "void" },
+            { "FSharpOption", "Option" },
+            { "FSharpAsync", "Async" },
+            { "FSharpOption`1", "Option" },
+            { "FSharpAsync`1", "Async" }
+        };
 
         /// <summary>
         /// Pretty print a type name.
@@ -60,9 +69,8 @@ namespace System.Diagnostics
             }
 
             var genericPartIndex = type.Name.IndexOf('`');
-            Debug.Assert(genericPartIndex >= 0);
 
-            return type.Name.Substring(0, genericPartIndex);
+            return (genericPartIndex >= 0) ? type.Name.Substring(0, genericPartIndex) : type.Name;
         }
 
         private static void ProcessType(StringBuilder builder, Type type, DisplayNameOptions options)
@@ -93,6 +101,11 @@ namespace System.Diagnostics
             {
                 builder.Append(type.Name);
             }
+            else if (type.Assembly.ManifestModule.Name == "FSharp.Core.dll" 
+                     && FSharpTypeNames.TryGetValue(type.Name, out builtInName))
+            {
+                builder.Append(builtInName);
+            }
             else if (type.IsGenericParameter)
             {
                 if (options.IncludeGenericParameterNames)
@@ -111,7 +124,10 @@ namespace System.Diagnostics
             var innerType = type;
             while (innerType.IsArray)
             {
-                innerType = innerType.GetElementType();
+                if (innerType.GetElementType() is { } inner)
+                {
+                    innerType = inner;
+                }
             }
 
             ProcessType(builder, innerType, options);
@@ -121,21 +137,25 @@ namespace System.Diagnostics
                 builder.Append('[');
                 builder.Append(',', type.GetArrayRank() - 1);
                 builder.Append(']');
-                type = type.GetElementType();
+                if (type.GetElementType() is not { } elementType)
+                {
+                    break;
+                }
+                type = elementType;
             }
         }
 
         private static void ProcessGenericType(StringBuilder builder, Type type, Type[] genericArguments, int length, DisplayNameOptions options)
         {
             var offset = 0;
-            if (type.IsNested)
+            if (type.IsNested && type.DeclaringType is not null)
             {
                 offset = type.DeclaringType.GetGenericArguments().Length;
             }
 
             if (options.FullName)
             {
-                if (type.IsNested)
+                if (type.IsNested && type.DeclaringType is not null)
                 {
                     ProcessGenericType(builder, type.DeclaringType, genericArguments, offset, options);
                     builder.Append('+');
@@ -154,7 +174,15 @@ namespace System.Diagnostics
                 return;
             }
 
-            builder.Append(type.Name, 0, genericPartIndex);
+            if (type.Assembly.ManifestModule.Name == "FSharp.Core.dll" 
+                     && FSharpTypeNames.TryGetValue(type.Name, out var builtInName))
+            {
+                builder.Append(builtInName);
+            }
+            else
+            {
+                builder.Append(type.Name, 0, genericPartIndex);
+            }
 
             builder.Append('<');
             for (var i = offset; i < length; i++)

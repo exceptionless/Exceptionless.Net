@@ -15,14 +15,38 @@ Refer to the Exceptionless documentation here: [Exceptionless Docs](http://docs.
 
 ## Getting Started (Development)
 
-All of our [.NET clients can be installed](https://www.nuget.org/profiles/exceptionless?showAllPackages=True) via the [NuGet package manager](https://docs.nuget.org/consume/Package-Manager-Dialog). If you need help, please contact us via in-app support or [open an issue](https://github.com/exceptionless/Exceptionless.Net/issues/new). We’re always here to help if you have any questions!
+All of our [.NET clients can be installed](https://www.nuget.org/profiles/exceptionless?showAllPackages=True) via the [NuGet package manager](https://docs.nuget.org/consume/Package-Manager-Dialog).
+If you need help, please contact us via in-app support or
+[open an issue](https://github.com/exceptionless/Exceptionless.Net/issues/new).
+We’re always here to help if you have any questions!
 
-**This section is for development purposes only! If you are trying to use the Exceptionless .NET libraries, please get them from NuGet.**
+**This section is for development purposes only! If you are trying to use the
+Exceptionless .NET libraries, please get them from NuGet.**
 
-1. You will need to have [Visual Studio 2019](http://www.visualstudio.com/products/visual-studio-community-vs) and [.NET Core SDK with VS Tooling](https://www.microsoft.com/net/core) installed.
+### Visual Studio
+
+Using Windows and Visual Studio is preferred so all platforms can be built and
+editor design surfaces are available.
+
+1. You will need to install:
+   1. [Visual Studio 2019](https://visualstudio.microsoft.com/vs/community/)
+   2. [.NET Core 5.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
+   3. [.NET Framework 4.6.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/net462)
 2. Open the `Exceptionless.Net.sln` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
 4. Run the project by pressing `F5` to start the console.
+
+### Visual Studio Code
+
+You can also use [Visual Studio Code](https://code.visualstudio.com) and build
+on macOS or Linux. You lose some of the rich design surfaces and the ability to
+build windows specific packages.
+
+1. You will need to install:
+   1. [Visual Studio Code](https://code.visualstudio.com)
+   2. [.NET Core 5.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
+2. Open the cloned Exceptionless.Net folder.
+3. Run the `Exceptionless.SampleConsole` project by pressing `F5` to start the console.
 
 ## Thanks
 

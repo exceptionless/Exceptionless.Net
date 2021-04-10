@@ -7,7 +7,7 @@
     <AssemblyTitle>Exceptionless client for ASP.NET WebForms applications.</AssemblyTitle>
     <Description>Exceptionless client for ASP.NET WebForms applications. $(Description)</Description>
     <PackageTags>$(PackageTags);ASP.NET;WebForms;Wcf</PackageTags>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup Label="Package">
@@ -26,11 +26,11 @@
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' " Label="Build">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' " Label="Build">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' " Label="Framework References">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' " Label="Framework References">
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
