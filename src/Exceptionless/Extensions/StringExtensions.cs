@@ -1,12 +1,58 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
-        public static string ToLowerUnderscoredWords(this string value) {
-            var builder = new StringBuilder(value.Length + 10);
+        [ThreadStatic] private static StringBuilder? s_builder;
+        private static ConcurrentDictionary<string, string> LookUp => s_lookUp ?? CreateLookup();
+        private static ConcurrentDictionary<string, string> s_lookUp;
+
+        private static ConcurrentDictionary<string, string> CreateLookup() {
+            var lookup = Interlocked.CompareExchange(ref s_lookUp, new ConcurrentDictionary<string, string>(), null);
+            if (lookup is null) {
+                // We won the set race; setup Gen2 cleanup
+                lookup = s_lookUp;
+
+                Gen2GcCallback.Register(() => {
+                    // Setup callback to drop the cache at Gen2 so it doesn't keep growing.
+                    s_lookUp = null;
+                    // We don't auto re-register here as that will cause an infinite GC loop on process exit
+                    // for Framework as it will try to guarantee the CriticalFinalizerObject always runs.
+                    return false;
+                });
+            }
+
+            return lookup;
+        }
+
+        public static string ToLowerUnderscoredWords(this string name) {
+            if (string.IsNullOrEmpty(name)) return name;
+
+            var lookUp = LookUp;
+            if (lookUp.TryGetValue(name, out string value)) return value;
+
+            ref var builder = ref s_builder;
+            var sb = builder ?? new StringBuilder(name.Length + 5);
+            // Null out the StringBuilder so if an exception is thrown it doesn't start partially filled
+            builder = null;
+
+            value = ToLowerUnderscoredWordsCreate(name, sb);
+            lookUp[name] = value;
+
+            if (value.Length <= 100) {
+                // String is small, let's reuse the StringBuilder
+                sb.Clear();
+                builder = sb;
+            }
+
+            return value;
+        }
+
+        private static string ToLowerUnderscoredWordsCreate(string value, StringBuilder builder) {
             for (int index = 0; index < value.Length; index++) {
                 char c = value[index];
                 if (Char.IsUpper(c)) {
@@ -23,7 +69,7 @@ namespace Exceptionless.Extensions {
         }
 
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = true) {
-            if (patternsToMatch == null || value == null)
+            if (patternsToMatch is null || value is null)
                 return false;
 
             return patternsToMatch.Any(pattern => IsPatternMatch(value, pattern, ignoreCase));
@@ -62,7 +108,7 @@ namespace Exceptionless.Extensions {
 
         public static string[] SplitAndTrim(this string input, params char[] separator) {
             if (String.IsNullOrEmpty(input))
-                return new string[0];
+                return Array.Empty<string>();
 
             var result = input.Split(separator, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < result.Length; i++)
@@ -77,8 +123,7 @@ namespace Exceptionless.Extensions {
 
             input = input.ToLowerInvariant().Trim();
 
-            bool value;
-            if (bool.TryParse(input, out value))
+            if (bool.TryParse(input, out bool value))
                 return value;
 
             if (String.Equals(input, "yes") || String.Equals(input, "1"))
@@ -90,19 +135,37 @@ namespace Exceptionless.Extensions {
             return @default;
         }
 
-        public static string ToHex(this IEnumerable<byte> bytes) {
-            var sb = new StringBuilder();
-            foreach (byte b in bytes)
-                sb.Append(b.ToString("x2"));
-            return sb.ToString();
+        public static string ToHex(this byte[] bytes) {
+            var hex = new char[bytes.Length * 2];
+
+            int i = 0;
+            foreach (byte b in bytes) {
+                hex[i] = ToLowerHexChar(b >> 4);
+                hex[i + 1] = ToLowerHexChar(b);
+                i += 2;
+            }
+
+            return new string(hex);
         }
 
-       public static bool IsValidIdentifier(this string value) {
-            if (value == null)
+        private static char ToLowerHexChar(int value) {
+            value &= 0xF;
+            value += '0';
+
+            if (value > '9') {
+                value += ('a' - ('9' + 1));
+            }
+
+            return (char)value;
+        }
+
+        public static bool IsValidIdentifier(this string value) {
+            if (value is null)
                 return false;
 
-            for (int index = 0; index < value.Length; index++) {
-                if (!Char.IsLetterOrDigit(value[index]) && value[index] != '-')
+            foreach (var ch in value)
+            {
+                if (!Char.IsLetterOrDigit(ch) && ch != '-')
                     return false;
             }
 

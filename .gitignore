@@ -166,3 +166,4 @@ node_modules
 App_Data
 Exceptionless.sln.GhostDoc.xml
 .vs/config/applicationhost.config
+test/Exceptionless.Performance.Tests/BenchmarkDotNet.Artifacts/
