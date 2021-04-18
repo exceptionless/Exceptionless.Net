@@ -4,7 +4,7 @@ using System.Threading;
 namespace Exceptionless.Tests.Utility {
     public class CountDownLatch {
         private int _remaining;
-        private EventWaitHandle _event;
+        private ManualResetEventSlim _event;
 
         public CountDownLatch(int count) {
             Reset(count);
@@ -14,7 +14,7 @@ namespace Exceptionless.Tests.Utility {
             if (count < 0)
                 throw new ArgumentOutOfRangeException();
             _remaining = count;
-            _event = new ManualResetEvent(false);
+            _event = new ManualResetEventSlim(false);
             if (_remaining == 0)
                 _event.Set();
         }
@@ -26,7 +26,7 @@ namespace Exceptionless.Tests.Utility {
         }
 
         public bool Wait(int millisecondsTimeout) {
-            return _event.WaitOne(millisecondsTimeout);
+            return _event.Wait(millisecondsTimeout);
         }
 
         public int Remaining { get { return _remaining; } }
