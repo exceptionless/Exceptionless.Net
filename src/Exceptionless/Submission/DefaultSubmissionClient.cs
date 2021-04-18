@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -91,7 +92,7 @@ namespace Exceptionless.Submission {
             if (!config.IsValid)
                 return SettingsResponse.InvalidClientConfig;
 
-            string url = $"{GetConfigServiceEndPoint(config)}/projects/config?v={version}";
+            string url = $"{GetConfigServiceEndPoint(config)}/projects/config?v={version.ToString(CultureInfo.InvariantCulture)}";
 
             HttpResponseMessage response;
             try {
@@ -120,7 +121,7 @@ namespace Exceptionless.Submission {
             if (!config.IsValid)
                 return;
 
-            string url = $"{GetHeartbeatServiceEndPoint(config)}/events/session/heartbeat?id={sessionIdOrUserId}&close={closeSession}";
+            string url = $"{GetHeartbeatServiceEndPoint(config)}/events/session/heartbeat?id={sessionIdOrUserId}&close={closeSession.ToString(CultureInfo.InvariantCulture)}";
             try {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 _client.Value.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -165,12 +166,12 @@ namespace Exceptionless.Submission {
         }
 
 #if NET45
-        private bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+        private static bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
             var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
             return callback(certData);
         }
 #else
-        private bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
+        private static bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
             var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
             return callback(certData);
         }
@@ -196,7 +197,7 @@ namespace Exceptionless.Submission {
                 } catch { }
             }
 
-            return !String.IsNullOrEmpty(message) ? message : $"{statusCode} {response.ReasonPhrase}";
+            return !String.IsNullOrEmpty(message) ? message : $"{statusCode.ToString(CultureInfo.InvariantCulture)} {response.ReasonPhrase}";
         }
 
         private string GetResponseText(HttpResponseMessage response) {
