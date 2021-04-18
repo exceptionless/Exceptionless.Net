@@ -3,7 +3,8 @@ using System.Net;
 
 namespace Exceptionless.Submission {
     public class SubmissionResponse {
-        internal static readonly SubmissionResponse Ok200 = new(200, "OK");
+        internal static SubmissionResponse Ok200 { get; } = new(200, "OK");
+        internal static SubmissionResponse InvalidClientConfig500 { get; } = new(500, "Invalid client configuration settings");
 
         public SubmissionResponse(int statusCode, string message = null, Exception exception = null) {
             StatusCode = statusCode;
