@@ -25,10 +25,10 @@ namespace Exceptionless.Submission {
 
         public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             if (!config.IsValid)
-                return new SubmissionResponse(500, message: "Invalid client configuration settings");
+                return SubmissionResponse.InvalidClientConfig500;
 
             string data = serializer.Serialize(events);
-            string url = String.Format("{0}/events", GetServiceEndPoint(config));
+            string url = $"{GetServiceEndPoint(config)}/events";
 
             HttpResponseMessage response;
             try {
@@ -44,19 +44,23 @@ namespace Exceptionless.Submission {
                 return new SubmissionResponse(500, exception: ex);
             }
 
-            int settingsVersion;
-            if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out settingsVersion))
+            if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out int settingsVersion))
                 SettingsManager.CheckVersion(settingsVersion, config);
 
-            return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
+            var message = GetResponseMessage(response);
+            if ((int)response.StatusCode == 200 && "OK".Equals(message, StringComparison.OrdinalIgnoreCase)) {
+                return SubmissionResponse.Ok200;
+            }
+
+            return new SubmissionResponse((int)response.StatusCode, message);
         }
 
         public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             if (!config.IsValid)
-                return new SubmissionResponse(500, message: "Invalid client configuration settings.");
+                return SubmissionResponse.InvalidClientConfig500;
 
             string data = serializer.Serialize(description);
-            string url = String.Format("{0}/events/by-ref/{1}/user-description", GetServiceEndPoint(config), referenceId);
+            string url = $"{GetServiceEndPoint(config)}/events/by-ref/{referenceId}/user-description";
 
             HttpResponseMessage response;
             try {
@@ -72,18 +76,22 @@ namespace Exceptionless.Submission {
                 return new SubmissionResponse(500, exception: ex);
             }
 
-            int settingsVersion;
-            if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out settingsVersion))
+            if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out int settingsVersion))
                 SettingsManager.CheckVersion(settingsVersion, config);
 
-            return new SubmissionResponse((int)response.StatusCode, GetResponseMessage(response));
+            var message = GetResponseMessage(response);
+            if ((int)response.StatusCode == 200 && "OK".Equals(message, StringComparison.OrdinalIgnoreCase)) {
+                return SubmissionResponse.Ok200;
+            }
+
+            return new SubmissionResponse((int)response.StatusCode, message);
         }
 
         public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
             if (!config.IsValid)
-                return new SettingsResponse(false, message: "Invalid client configuration settings.");
+                return SettingsResponse.InvalidClientConfig;
 
-            string url = String.Format("{0}/projects/config?v={1}", GetConfigServiceEndPoint(config), version);
+            string url = $"{GetConfigServiceEndPoint(config)}/projects/config?v={version}";
 
             HttpResponseMessage response;
             try {
@@ -95,14 +103,14 @@ namespace Exceptionless.Submission {
             }
 
             if (response != null && response.StatusCode == HttpStatusCode.NotModified)
-                return new SettingsResponse(false, message: "Settings have not been modified.");
+                return SettingsResponse.NotModified;
 
             if (response == null || response.StatusCode != HttpStatusCode.OK)
                 return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", GetResponseMessage(response)));
 
             var json = GetResponseText(response);
             if (String.IsNullOrWhiteSpace(json))
-                return new SettingsResponse(false, message: "Invalid configuration settings.");
+                return SettingsResponse.InvalidConfig;
 
             var settings = serializer.Deserialize<ClientConfiguration>(json);
             return new SettingsResponse(true, settings.Settings, settings.Version);
@@ -112,7 +120,7 @@ namespace Exceptionless.Submission {
             if (!config.IsValid)
                 return;
 
-            string url = String.Format("{0}/events/session/heartbeat?id={1}&close={2}", GetHeartbeatServiceEndPoint(config), sessionIdOrUserId, closeSession);
+            string url = $"{GetHeartbeatServiceEndPoint(config)}/events/session/heartbeat?id={sessionIdOrUserId}&close={closeSession}";
             try {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 _client.Value.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
