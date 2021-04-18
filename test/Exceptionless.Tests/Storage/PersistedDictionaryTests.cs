@@ -15,7 +15,7 @@ namespace Exceptionless.Tests.Storage {
             dict.Saved += (sender, args) => resetEvent.Set();
             dict["test"] = "test";
             Assert.Equal("test", dict["test"]);
-            bool success = resetEvent.WaitOne(250);
+            bool success = resetEvent.WaitOne(500);
             Assert.True(success, "Failed to save dictionary.");
             Assert.True(storage.Exists("test.json"));
         }
@@ -29,14 +29,14 @@ namespace Exceptionless.Tests.Storage {
             for (int i = 0; i < 10; i++)
                 dict["test" + i] = i.ToString();
             Assert.Equal(10, dict.Count);
-            bool success = latch.Wait(250);
+            bool success = latch.Wait(500);
             Assert.False(success, "Dictionary was saved multiple times.");
             Assert.Equal(1, latch.Remaining);
             Assert.True(storage.Exists("test.json"));
 
             dict["test"] = "test";
             Assert.Equal(11, dict.Count);
-            success = latch.Wait(250);
+            success = latch.Wait(500);
             Assert.True(success, "Failed to save dictionary.");
             Assert.True(storage.Exists("test.json"));
         }
