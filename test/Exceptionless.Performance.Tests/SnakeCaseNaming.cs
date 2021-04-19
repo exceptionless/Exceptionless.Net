@@ -16,14 +16,11 @@ namespace Exceptionless.Performance.Tests {
 
         public IEnumerable<string> Words => new[]
         {
-            "z",
             "A",
-            "AA",
-            "zz",
-            "AzA",
-            "az_A",
-            "azzAzzAzzAzz",
-            "azzzAzzzAzzzAzzzAzzzAzzzAzzz"
+            "property",
+            "Message",
+            "StackTrace",
+            "InnerException",
         };
 
         [GlobalSetup]
