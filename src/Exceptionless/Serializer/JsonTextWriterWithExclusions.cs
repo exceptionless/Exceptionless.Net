@@ -14,8 +14,8 @@ namespace Exceptionless.Serializer
         
         public override bool ShouldWriteProperty(string name) {
             var exclusions = _excludedPropertyNames;
-            return exclusions is not null &&
-                exclusions.Length > 0 && 
+            return exclusions is null ||
+                exclusions.Length == 0 || 
                 !name.AnyWildcardMatches(exclusions, ignoreCase: true);
         }
     }
