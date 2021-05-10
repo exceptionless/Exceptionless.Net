@@ -72,7 +72,7 @@ namespace Exceptionless.Serializer {
 
         private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, string[] excludedPropertyNames) {
             try {
-                if (excludedPropertyNames != null && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, ignoreCase: true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, ignoreCase: true)))
+                if (excludedPropertyNames != null && excludedPropertyNames.Length > 0 && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, ignoreCase: true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, ignoreCase: true)))
                     return false;
 
                 bool isPrimitiveType = DefaultContractResolver.IsJsonPrimitiveType(property.PropertyType);
