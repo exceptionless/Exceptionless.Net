@@ -111,7 +111,7 @@ namespace Exceptionless {
                 int index = 1;
                 while (data.Data.ContainsKey(name))
                     name = dataType.Name + index++;
-            } else if (name.AnyWildcardMatches(exclusions, true)) {
+            } else if (exclusions.Length > 0 && name.AnyWildcardMatches(exclusions, true)) {
                 return;
             }
 
