@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.Plugins;
@@ -9,7 +10,6 @@ using Exceptionless.Models;
 using Exceptionless.Tests.Utility;
 using Xunit;
 using Xunit.Abstractions;
-using Exceptionless.Json;
 using Exceptionless.Extensions;
 
 namespace Exceptionless.Tests.Plugins {
@@ -100,7 +100,7 @@ namespace Exceptionless.Tests.Plugins {
                 }
             }
 
-            var nonCancelled = contexts.Where(c => !c.Cancel).Select(c => (Context: c, Event: c.Event.GetHashCode(), Json: JsonConvert.SerializeObject(c.Event))).ToList();
+            var nonCancelled = contexts.Where(c => !c.Cancel).Select(c => (Context: c, Event: c.Event.GetHashCode(), Json: JsonSerializer.Serialize(c.Event))).ToList();
             var all = contexts.Select(c => (Context: c, Event: c.Event.GetHashCode())).ToList();
 
             Assert.Equal(1, contexts.Count(c => !c.Cancel));
