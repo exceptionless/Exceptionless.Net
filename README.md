@@ -7,11 +7,11 @@
 [![Discord](https://img.shields.io/discord/715744504891703319)](https://discord.gg/6HxgFCx)
 [![Donate](https://img.shields.io/badge/donorbox-donate-blue.svg)](https://donorbox.org/exceptionless?recurring=true)
 
-The definition of the word exceptionless is: to be without exception. [Exceptionless](https://exceptionless.io) provides real-time .NET error reporting for your ASP.NET, Web API, WebForms, WPF, Console, and MVC apps. It organizes the gathered information into simple actionable data that will help your app become exceptionless!
+The definition of the word exceptionless is: to be without exception. [Exceptionless](https://exceptionless.com/) provides real-time .NET error reporting for your ASP.NET, Web API, WebForms, WPF, Console, and MVC apps. It organizes the gathered information into simple actionable data that will help your app become exceptionless!
 
 ## Using Exceptionless
 
-Refer to the Exceptionless documentation here: [Exceptionless Docs](http://docs.exceptionless.io).
+Refer to the Exceptionless documentation here: [Exceptionless Docs](https://exceptionless.com/docs/).
 
 ## Getting Started (Development)
 
