@@ -5,15 +5,18 @@ using Exceptionless.Extensions;
 
 namespace Exceptionless.Serializer
 {
-    internal class JsonTextWriterWithExclusions : JsonTextWriterWithDepth {
-        private readonly ISet<string> _excludedPropertyNames;
+    internal sealed class JsonTextWriterWithExclusions : JsonTextWriterWithDepth {
+        private readonly string[] _excludedPropertyNames;
         
-        public JsonTextWriterWithExclusions(TextWriter textWriter, ISet<string> excludedPropertyNames) : base(textWriter) {
+        public JsonTextWriterWithExclusions(TextWriter textWriter, string[] excludedPropertyNames) : base(textWriter) {
             _excludedPropertyNames = excludedPropertyNames;
         }
         
         public override bool ShouldWriteProperty(string name) {
-            return !name.AnyWildcardMatches(_excludedPropertyNames, true);
+            var exclusions = _excludedPropertyNames;
+            return exclusions is null ||
+                exclusions.Length == 0 || 
+                !name.AnyWildcardMatches(exclusions, ignoreCase: true);
         }
     }
 }

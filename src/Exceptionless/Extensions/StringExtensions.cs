@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
-        public static string ToLowerUnderscoredWords(this string value) {
+        internal static string ToLowerUnderscoredWords(this string value) {
             var builder = new StringBuilder(value.Length + 10);
             for (int index = 0; index < value.Length; index++) {
                 char c = value[index];
@@ -29,7 +29,7 @@ namespace Exceptionless.Extensions {
             return patternsToMatch.Any(pattern => IsPatternMatch(value, pattern, ignoreCase));
         }
 
-        public static bool IsPatternMatch(this string value, string pattern, bool ignoreCase = true) {
+        internal static bool IsPatternMatch(this string value, string pattern, bool ignoreCase = true) {
             if (pattern == null)
                 return value == null;
 
@@ -60,7 +60,7 @@ namespace Exceptionless.Extensions {
             return String.Equals(value, pattern, comparison);
         }
 
-        public static string[] SplitAndTrim(this string input, params char[] separator) {
+        internal static string[] SplitAndTrim(this string input, params char[] separator) {
             if (String.IsNullOrEmpty(input))
                 return new string[0];
 
@@ -71,7 +71,7 @@ namespace Exceptionless.Extensions {
             return result;
         }
 
-        public static bool ToBoolean(this string input, bool @default = false) {
+        internal static bool ToBoolean(this string input, bool @default = false) {
             if (String.IsNullOrEmpty(input))
                 return @default;
 
@@ -90,14 +90,14 @@ namespace Exceptionless.Extensions {
             return @default;
         }
 
-        public static string ToHex(this IEnumerable<byte> bytes) {
+        internal static string ToHex(this IEnumerable<byte> bytes) {
             var sb = new StringBuilder();
             foreach (byte b in bytes)
                 sb.Append(b.ToString("x2"));
             return sb.ToString();
         }
 
-       public static bool IsValidIdentifier(this string value) {
+        internal static bool IsValidIdentifier(this string value) {
             if (value == null)
                 return false;
 
