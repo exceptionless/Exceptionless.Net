@@ -47,11 +47,10 @@ namespace Exceptionless.Serializer {
             if (maxDepth < 1)
                 maxDepth = Int32.MaxValue;
 
-            var excludedPropertyNames = new HashSet<string>(exclusions ?? new string[0], StringComparer.OrdinalIgnoreCase);            
             using (var sw = new StringWriter()) {
-                using (var jw = new JsonTextWriterWithExclusions(sw, excludedPropertyNames)) {
+                using (var jw = new JsonTextWriterWithExclusions(sw, exclusions)) {
                     jw.Formatting = Formatting.None;
-                    Func<JsonProperty, object, bool> include = (property, value) => ShouldSerialize(jw, property, value, maxDepth, excludedPropertyNames);
+                    Func<JsonProperty, object, bool> include = (property, value) => ShouldSerialize(jw, property, value, maxDepth, exclusions);
                     var resolver = new ExceptionlessContractResolver(include);
                     serializer.ContractResolver = resolver;
                     if (continueOnSerializationError)
@@ -71,9 +70,9 @@ namespace Exceptionless.Serializer {
             return JsonConvert.DeserializeObject(json, type, _serializerSettings);
         }
 
-        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, ISet<string> excludedPropertyNames) {
+        private bool ShouldSerialize(JsonTextWriterWithDepth jw, JsonProperty property, object obj, int maxDepth, string[] excludedPropertyNames) {
             try {
-                if (excludedPropertyNames != null && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, true)))
+                if (excludedPropertyNames != null && excludedPropertyNames.Length > 0 && (property.UnderlyingName.AnyWildcardMatches(excludedPropertyNames, ignoreCase: true) || property.PropertyName.AnyWildcardMatches(excludedPropertyNames, ignoreCase: true)))
                     return false;
 
                 bool isPrimitiveType = DefaultContractResolver.IsJsonPrimitiveType(property.PropertyType);
