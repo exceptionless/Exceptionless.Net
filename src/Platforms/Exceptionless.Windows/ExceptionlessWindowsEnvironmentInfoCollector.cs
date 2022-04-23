@@ -23,10 +23,8 @@ namespace Exceptionless {
                 info.Handles = process.HandleCount;
                 info.UserObjects = User32NativeMethods.GetGuiResources(process.Handle, (int)User32NativeMethods.UIFlags.UserObjectCount);
                 info.GDIObjects = User32NativeMethods.GetGuiResources(process.Handle, (int)User32NativeMethods.UIFlags.GDIObjectCount);
-
             }
             catch (Exception ex) {
-
                 _log.FormattedWarn(typeof(ExceptionlessWindowsEnvironmentInfoCollector), "Unable to get process handles, User objects, or GDI objects. Error message: {0}", ex.Message);
             }
         }
