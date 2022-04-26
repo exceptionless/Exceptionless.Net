@@ -96,21 +96,6 @@ namespace Exceptionless.Models.Data {
         public string RuntimeVersion { get; set; }
 
         /// <summary>
-        /// Gets the number of Handles used by the process.
-        /// </summary>
-        public int Handles { get; set; }
-
-        /// <summary>
-        /// Gets the number of User Objects used by the process.
-        /// </summary>
-        public int UserObjects { get; set; }
-
-        /// <summary>
-        /// Gets the number of GDI Objects used by the process.
-        /// </summary>
-        public int GDIObjects { get; set; }
-
-        /// <summary>
         /// Extended data entries for this machine environment.
         /// </summary>
         public DataDictionary Data { get; set; }

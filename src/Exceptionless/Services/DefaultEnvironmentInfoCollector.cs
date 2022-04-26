@@ -13,15 +13,15 @@ using Exceptionless.Models.Data;
 namespace Exceptionless.Services {
     public class DefaultEnvironmentInfoCollector : IEnvironmentInfoCollector {
         private static EnvironmentInfo _environmentInfo;
-        private readonly ExceptionlessConfiguration _config;
-        private readonly IExceptionlessLog _log;
+        protected readonly ExceptionlessConfiguration config;
+        protected readonly IExceptionlessLog log;
 
         public DefaultEnvironmentInfoCollector(ExceptionlessConfiguration config, IExceptionlessLog log) {
-            _config = config;
-            _log = log;
+            this.config = config;
+            this.log = log;
         }
 
-        public EnvironmentInfo GetEnvironmentInfo() {
+        public virtual EnvironmentInfo GetEnvironmentInfo() {
             if (_environmentInfo != null) {
                 PopulateThreadInfo(_environmentInfo);
                 PopulateMemoryInfo(_environmentInfo);
@@ -38,43 +38,26 @@ namespace Exceptionless.Services {
             return _environmentInfo;
         }
 
-        private void PopulateApplicationInfo(EnvironmentInfo info) {
-            try {
-                info.Data.Add("AppDomainName", AppDomain.CurrentDomain.FriendlyName);
-            } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
-            }
-
-            if (_config.IncludeIpAddress) {
-                try {
-                    IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
-                    if (hostEntry != null && hostEntry.AddressList.Any())
-                        info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
-                } catch (Exception ex) {
-                    _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
-                }
-            }
-        }
-
         private void PopulateProcessInfo(EnvironmentInfo info) {
             try {
                 info.ProcessorCount = Environment.ProcessorCount;
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get processor count. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get processor count. Error message: {0}", ex.Message);
             }
 
             try {
-                Process process = Process.GetCurrentProcess();
-                info.ProcessName = process.ProcessName;
-                info.ProcessId = process.Id.ToString(NumberFormatInfo.InvariantInfo);
+                using (Process process = Process.GetCurrentProcess()) {
+                    info.ProcessName = process.ProcessName;
+                    info.ProcessId = process.Id.ToString(NumberFormatInfo.InvariantInfo);
+                }
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process name or id. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process name or id. Error message: {0}", ex.Message);
             }
 
             try {
                 info.CommandLine = Environment.CommandLine;
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get command line. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get command line. Error message: {0}", ex.Message);
             }
         }
 
@@ -82,22 +65,23 @@ namespace Exceptionless.Services {
             try {
                 info.ThreadId = Thread.CurrentThread.ManagedThreadId.ToString(NumberFormatInfo.InvariantInfo);
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get thread id. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get thread id. Error message: {0}", ex.Message);
             }
 
             try {
                 info.ThreadName = Thread.CurrentThread.Name;
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get current thread name. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get current thread name. Error message: {0}", ex.Message);
             }
         }
 
         private void PopulateMemoryInfo(EnvironmentInfo info) {
             try {
-                Process process = Process.GetCurrentProcess();
-                info.ProcessMemorySize = process.PrivateMemorySize64;
+                using (Process process = Process.GetCurrentProcess()) {
+                    info.ProcessMemorySize = process.PrivateMemorySize64;
+                }
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process memory size. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get process memory size. Error message: {0}", ex.Message);
             }
 
 #if NET45
@@ -116,7 +100,7 @@ namespace Exceptionless.Services {
                     info.AvailablePhysicalMemory = Convert.ToInt64(computerInfo.AvailablePhysicalMemory);
                 }
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get physical memory. Error message: {0}", ex.Message);
             }
 #endif
         }
@@ -142,11 +126,11 @@ namespace Exceptionless.Services {
             info.Data["ProcessArchitecture"] = RuntimeInformation.ProcessArchitecture.ToString();
 #endif
 
-            if (_config.IncludeMachineName) {
+            if (config.IncludeMachineName) {
                 try {
                     info.MachineName = Environment.MachineName;
                 } catch (Exception ex) {
-                    _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
+                    log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get machine name. Error message: {0}", ex.Message);
                 }
             }
 
@@ -163,7 +147,7 @@ namespace Exceptionless.Services {
                 computerInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();
 #endif
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);
             }
 
             if (computerInfo == null)
@@ -182,7 +166,7 @@ namespace Exceptionless.Services {
                 info.Architecture = Is64BitOperatingSystem() ? "x64" : "x86";
 #endif
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get populate runtime info. Error message: {0}", ex.Message);
             }
         }
 
@@ -225,7 +209,7 @@ namespace Exceptionless.Services {
 
                 return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out is64)) && is64);
             } catch (Exception ex) {
-                _log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get CPU architecture. Error message: {0}", ex.Message);
+                log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get CPU architecture. Error message: {0}", ex.Message);
             }
 
             return false;
