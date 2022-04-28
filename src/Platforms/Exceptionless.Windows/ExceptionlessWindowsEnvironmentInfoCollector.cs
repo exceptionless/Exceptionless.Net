@@ -23,7 +23,7 @@ namespace Exceptionless {
                 }
             }
             catch (Exception ex) {
-                log.FormattedWarn(typeof(ExceptionlessWindowsEnvironmentInfoCollector), "Unable to get process handles, User objects, or GDI objects. Error message: {0}", ex.Message);
+                Log.FormattedWarn(typeof(ExceptionlessWindowsEnvironmentInfoCollector), "Unable to get process handles, User objects, or GDI objects. Error message: {0}", ex.Message);
             }
         }
 
