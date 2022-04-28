@@ -20,6 +20,8 @@ namespace Exceptionless {
                     info.Data["Handles"] = currentProcess.HandleCount;
                     info.Data["UserObjects"] = User32NativeMethods.GetGuiResources(currentProcess.Handle, (int)User32NativeMethods.UIFlags.UserObjectCount);
                     info.Data["GDIObjects"] = User32NativeMethods.GetGuiResources(currentProcess.Handle, (int)User32NativeMethods.UIFlags.GDIObjectCount);
+                    info.Data["UserObjectsPeak"] = User32NativeMethods.GetGuiResources(currentProcess.Handle, (int)User32NativeMethods.UIFlags.UserObjectsPeakCount);
+                    info.Data["GDIObjectsPeak"] = User32NativeMethods.GetGuiResources(currentProcess.Handle, (int)User32NativeMethods.UIFlags.GDIObjectsPeakCount);
                 }
             }
             catch (Exception ex) {
@@ -57,6 +59,14 @@ namespace Exceptionless {
                 /// Return the count of USER objects.
                 /// </summary>
                 UserObjectCount = 1,
+                /// <summary>
+                /// Return the peak count of GDI objects.
+                /// </summary>
+                GDIObjectsPeakCount = 2,
+                /// <summary>
+                /// Return the peak count of USER objects.
+                /// </summary>
+                UserObjectsPeakCount = 4,
             }
 
         }
