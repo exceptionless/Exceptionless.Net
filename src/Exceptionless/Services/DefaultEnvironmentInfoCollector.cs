@@ -29,6 +29,7 @@ namespace Exceptionless.Services {
             }
 
             var info = new EnvironmentInfo();
+            PopulateApplicationInfo(info);
             PopulateRuntimeInfo(info);
             PopulateProcessInfo(info);
             PopulateThreadInfo(info);
@@ -36,6 +37,24 @@ namespace Exceptionless.Services {
 
             _environmentInfo = info;
             return _environmentInfo;
+        }
+
+        private void PopulateApplicationInfo(EnvironmentInfo info) {
+            try {
+                info.Data.Add("AppDomainName", AppDomain.CurrentDomain.FriendlyName);
+            } catch (Exception ex) {
+                Log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get AppDomain friendly name. Error message: {0}", ex.Message);
+            }
+
+            if (Config.IncludeIpAddress) {
+                try {
+                    IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
+                    if (hostEntry != null && hostEntry.AddressList.Any())
+                        info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
+                } catch (Exception ex) {
+                    Log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get ip address. Error message: {0}", ex.Message);
+                }
+            }
         }
 
         private void PopulateProcessInfo(EnvironmentInfo info) {
