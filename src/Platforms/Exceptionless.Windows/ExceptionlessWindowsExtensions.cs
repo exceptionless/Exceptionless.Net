@@ -4,6 +4,7 @@ using Exceptionless.Dependency;
 using Exceptionless.Dialogs;
 using Exceptionless.Logging;
 using Exceptionless.Plugins.Default;
+using Exceptionless.Services;
 using Exceptionless.Windows.Extensions;
 
 namespace Exceptionless {
@@ -18,6 +19,7 @@ namespace Exceptionless {
                 throw new ArgumentNullException(nameof(client));
 
             client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
+            client.Configuration.Resolver.Register<IEnvironmentInfoCollector, ExceptionlessWindowsEnvironmentInfoCollector>();
             client.Startup();
 
             client.RegisterApplicationThreadExceptionHandler();
