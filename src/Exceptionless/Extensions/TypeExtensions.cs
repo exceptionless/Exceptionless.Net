@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Exceptionless.Extensions {
     internal static class TypeExtensions {
@@ -119,21 +121,32 @@ namespace Exceptionless.Extensions {
                 || type == typeof(decimal);
         }
 
+        private static readonly ConcurrentDictionary<Type, string> TypeNameCache = new ConcurrentDictionary<Type, string>();
         public static string GetRealTypeName(this Type t) {
+            if (TypeNameCache.TryGetValue(t, out string name)) {
+                return name;
+            }
             if (!t.IsGenericType)
-                return t.FullName;
+                return t.FullName.Replace('+','.');
 
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append(t.FullName.Substring(0, t.FullName.IndexOf('`')).Replace("+","."));
+            StringBuilder sb = new StringBuilder();
+            ReadOnlySpan<char> fullName = t.FullName.AsSpan();
+            int plusIndex = fullName.IndexOf('+');
+            if (plusIndex > 0) {
+                sb.Append(fullName.Slice(0, plusIndex).ToArray());
+                sb.Append('.');
+            }
+            int length = fullName.IndexOf('`') - (plusIndex > 0 ? plusIndex + 1 : 0);
+            sb.Append(fullName.Slice(plusIndex > 0 ? plusIndex + 1 : 0, length).ToArray());
             sb.Append('<');
             bool appendComma = false;
             foreach (Type arg in t.GetGenericArguments()) {
-                if (appendComma) sb.Append(',');
+                if (appendComma) { sb.Append(','); }
                 sb.Append(GetRealTypeName(arg));
                 appendComma = true;
             }
             sb.Append('>');
-            return sb.ToString();
+            return TypeNameCache.GetOrAdd(t, sb.ToString());
         }
     }
 }
