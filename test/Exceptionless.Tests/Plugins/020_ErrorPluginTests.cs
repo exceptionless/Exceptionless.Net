@@ -263,7 +263,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void WillUnwrapExceptionTypeName() {
-            const string type = "Exceptionless.Tests.Plugins.PluginTestBase.GenericException<Exceptionless.Tests.Plugins.PluginTestBase.GenericException<System.String>>";
+            const string type = "Exceptionless.Tests.Plugins.PluginTestBase.GenericException<Exceptionless.Tests.Plugins.PluginTestBase.ErrorCategory>";
 
             var errorPlugins = new List<IEventPlugin> {
                 new ErrorPlugin(),
@@ -273,8 +273,8 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             foreach (var plugin in errorPlugins) {
                 var context = new EventPluginContext(client, new Event());
-                var exception = new GenericException<string>("Oops!");
-                var nestedException = new GenericException<GenericException<string>>(exception, "Oops, Again!");
+                var exception = new GenericException<ErrorCategory>(ErrorCategory.FirstErrorBucket);
+                var nestedException = new GenericException<ErrorCategory>(ErrorCategory.SecondErrorBucket,exception);
                 context.ContextData.SetException(nestedException);
                 plugin.Run(context);
                 Assert.False(context.Cancel);
