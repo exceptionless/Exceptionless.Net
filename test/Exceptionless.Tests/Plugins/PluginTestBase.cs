@@ -79,5 +79,11 @@ namespace Exceptionless.Tests.Plugins
             public ExceptionWithOverriddenStackTrace(string message) : base(message) { }
             public override string StackTrace => _stackTrace;
         }
+
+        public class GenericException<T> : Exception {
+            public T Value { get; }
+            public GenericException(string message) : base(message) { }
+            public GenericException(T value, string message) : base (message) { Value = value; }
+        }
     }
 }

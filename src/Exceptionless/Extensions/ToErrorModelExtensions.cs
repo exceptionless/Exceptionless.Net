@@ -44,7 +44,7 @@ namespace Exceptionless {
 
             var error = new Error {
                 Message = exception.GetMessage(),
-                Type = type.FullName
+                Type = type.GetRealTypeName()
             };
 
             if (!isInner)

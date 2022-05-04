@@ -260,5 +260,32 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal("{\"RandomValue\":\"Test\"}", json);
             }
         }
+
+        [Fact]
+        public void WillUnwrapExceptionTypeName() {
+            const string type = "Exceptionless.Tests.Plugins.PluginTestBase.GenericException<Exceptionless.Tests.Plugins.PluginTestBase.GenericException<System.String>>";
+
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            var client = CreateClient();
+            foreach (var plugin in errorPlugins) {
+                var context = new EventPluginContext(client, new Event());
+                var exception = new GenericException<string>("Oops!");
+                var nestedException = new GenericException<GenericException<string>>(exception, "Oops, Again!");
+                context.ContextData.SetException(nestedException);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+                Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
+                var error = context.Event.GetError();
+                if (error != null)
+                    Assert.Equal(type, error.Type);
+                else
+                    Assert.Equal(type, context.Event.GetSimpleError().Type);
+            }
+        }
+
     }
 }

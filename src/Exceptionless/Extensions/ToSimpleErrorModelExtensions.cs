@@ -38,7 +38,7 @@ namespace Exceptionless.Extensions {
 
             var error = new SimpleError {
                 Message = GetMessage(exception),
-                Type = type.FullName,
+                Type = type.GetRealTypeName(),
                 StackTrace = exception.Demystify().StackTrace
             };
 

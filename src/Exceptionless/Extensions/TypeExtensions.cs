@@ -118,5 +118,22 @@ namespace Exceptionless.Extensions {
                 || type == typeof(double)
                 || type == typeof(decimal);
         }
+
+        public static string GetRealTypeName(this Type t) {
+            if (!t.IsGenericType)
+                return t.FullName;
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(t.FullName.Substring(0, t.FullName.IndexOf('`')).Replace("+","."));
+            sb.Append('<');
+            bool appendComma = false;
+            foreach (Type arg in t.GetGenericArguments()) {
+                if (appendComma) sb.Append(',');
+                sb.Append(GetRealTypeName(arg));
+                appendComma = true;
+            }
+            sb.Append('>');
+            return sb.ToString();
+        }
     }
 }
