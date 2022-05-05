@@ -35,7 +35,7 @@ namespace Exceptionless.Extensions {
 
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
-            string typeName = type.GetRealTypeName();
+            string typeName = type.GetTypeFullDisplayName();
 
             var error = new SimpleError {
                 Message = exception.GetMessage(typeName),

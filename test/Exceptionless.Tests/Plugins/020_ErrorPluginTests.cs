@@ -263,7 +263,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void WillUnwrapExceptionTypeName() {
-            const string type = "Exceptionless.Tests.Plugins.PluginTestBase.GenericException<Exceptionless.Tests.Plugins.PluginTestBase.ErrorCategory>";
+            const string type = "Exceptionless.Tests.Plugins.PluginTestBase+GenericException<Exceptionless.Tests.Plugins.PluginTestBase+ErrorCategory>";
 
             var errorPlugins = new List<IEventPlugin> {
                 new ErrorPlugin(),

@@ -120,33 +120,5 @@ namespace Exceptionless.Extensions {
                 || type == typeof(double)
                 || type == typeof(decimal);
         }
-
-        private static readonly ConcurrentDictionary<Type, string> TypeNameCache = new ConcurrentDictionary<Type, string>();
-        public static string GetRealTypeName(this Type t) {
-            if (TypeNameCache.TryGetValue(t, out string name)) {
-                return name;
-            }
-            if (!t.IsGenericType)
-                return t.FullName.Replace('+','.');
-
-            StringBuilder sb = new StringBuilder();
-            ReadOnlySpan<char> fullName = t.FullName.AsSpan();
-            int plusIndex = fullName.IndexOf('+');
-            if (plusIndex > 0) {
-                sb.Append(fullName.Slice(0, plusIndex).ToArray());
-                sb.Append('.');
-            }
-            int length = fullName.IndexOf('`') - (plusIndex > 0 ? plusIndex + 1 : 0);
-            sb.Append(fullName.Slice(plusIndex > 0 ? plusIndex + 1 : 0, length).ToArray());
-            sb.Append('<');
-            bool appendComma = false;
-            foreach (Type arg in t.GetGenericArguments()) {
-                if (appendComma) { sb.Append(','); }
-                sb.Append(GetRealTypeName(arg));
-                appendComma = true;
-            }
-            sb.Append('>');
-            return TypeNameCache.GetOrAdd(t, sb.ToString());
-        }
     }
 }

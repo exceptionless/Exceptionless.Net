@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 
@@ -38,6 +39,15 @@ namespace System.Diagnostics
             { "FSharpAsync`1", "Async" }
         };
 
+        private static readonly ConcurrentDictionary<DisplayNameCacheKey, string> TypeFullDisplayNameCache = new();
+
+        /// <summary>
+        /// Gets the types pretty print full name.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static string GetTypeFullDisplayName(this Type type) => GetTypeDisplayName(type, true, true);
+
         /// <summary>
         /// Pretty print a type name.
         /// </summary>
@@ -47,9 +57,16 @@ namespace System.Diagnostics
         /// <returns>The pretty printed type name.</returns>
         public static string GetTypeDisplayName(Type type, bool fullName = true, bool includeGenericParameterNames = false)
         {
-            var builder = new StringBuilder();
-            ProcessType(builder, type, new DisplayNameOptions(fullName, includeGenericParameterNames));
-            return builder.ToString();
+            var options = new DisplayNameOptions(fullName, includeGenericParameterNames);
+            var key = new DisplayNameCacheKey(type, options);
+            if (TypeFullDisplayNameCache.TryGetValue(key, out string name)) {
+                return name;
+            }
+            else {
+                var builder = new StringBuilder();
+                ProcessType(builder, type, options);
+                return TypeFullDisplayNameCache.GetOrAdd(key, builder.ToString());
+            }
         }
 
         public static StringBuilder AppendTypeDisplayName(this StringBuilder builder, Type type, bool fullName = true, bool includeGenericParameterNames = false)
@@ -213,6 +230,21 @@ namespace System.Diagnostics
             public bool FullName { get; }
 
             public bool IncludeGenericParameterNames { get; }
+        }
+
+        private readonly struct DisplayNameCacheKey : IEquatable<DisplayNameCacheKey> {
+            public DisplayNameCacheKey(Type type, DisplayNameOptions displayNameOptions) {
+                TypeFullName=type.FullName;
+                DisplayNameOptions=displayNameOptions;
+            }
+            public string TypeFullName { get; }
+            public DisplayNameOptions DisplayNameOptions { get; }
+
+            public bool Equals(DisplayNameCacheKey other) {
+                return string.Equals(TypeFullName, other.TypeFullName) &&
+                    DisplayNameOptions.FullName == other.DisplayNameOptions.FullName &&
+                    DisplayNameOptions.IncludeGenericParameterNames == other.DisplayNameOptions.IncludeGenericParameterNames;
+            }
         }
     }
 }
