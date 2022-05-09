@@ -90,6 +90,5 @@ namespace Exceptionless.Tests.Plugins
             FirstErrorBucket,
             SecondErrorBucket,
         }
-
     }
 }

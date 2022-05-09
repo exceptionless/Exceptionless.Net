@@ -126,5 +126,4 @@ namespace Exceptionless.Extensions {
         /// <returns></returns>
         public static string GetTypeDisplayName(this Type type) => System.Diagnostics.TypeNameHelper.GetTypeDisplayName(type, true, true);
     }
-
 }

@@ -286,6 +286,5 @@ namespace Exceptionless.Tests.Plugins {
                     Assert.Equal(type, context.Event.GetSimpleError().Type);
             }
         }
-
     }
 }
