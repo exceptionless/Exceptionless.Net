@@ -289,7 +289,6 @@ namespace Exceptionless.Tests.Plugins {
 
         [Fact]
         public void TrackException() {
-            const int HResult = unchecked((int)0x8007000E);
             var plugin = new ErrorPlugin();
             var client = CreateClient();
             var context = new EventPluginContext(client, new Event());
@@ -300,7 +299,7 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
             var error = context.Event.GetError();
             if (error != null) {
-                Assert.Equal(HResult.ToString(), error.Code);
+                Assert.Equal(E_OUTOFMEMORY.ToString(), error.Code);
             }
         }
     }
