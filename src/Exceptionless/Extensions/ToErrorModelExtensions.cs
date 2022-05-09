@@ -41,7 +41,7 @@ namespace Exceptionless {
         private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, bool isInner = false) {
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
-            string typeName = type.GetTypeFullDisplayName();
+            string typeName = type.GetTypeDisplayName();
 
             var error = new Error {
                 Message = exception.GetMessage(typeName),

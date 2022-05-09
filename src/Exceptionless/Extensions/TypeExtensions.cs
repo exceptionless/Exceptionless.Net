@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Exceptionless.Extensions {
     internal static class TypeExtensions {
@@ -120,5 +118,13 @@ namespace Exceptionless.Extensions {
                 || type == typeof(double)
                 || type == typeof(decimal);
         }
+
+        /// <summary>
+        /// Gets the types pretty print full name.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static string GetTypeDisplayName(this Type type) => System.Diagnostics.TypeNameHelper.GetTypeDisplayName(type, true, true);
     }
+
 }
