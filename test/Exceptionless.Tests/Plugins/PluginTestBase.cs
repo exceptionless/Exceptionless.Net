@@ -90,5 +90,11 @@ namespace Exceptionless.Tests.Plugins
             FirstErrorBucket,
             SecondErrorBucket,
         }
+
+        public class TestOutOfMemoryException : Exception {
+            public TestOutOfMemoryException(string message) : base(message) {
+                HResult = unchecked((int)0x8007000E);
+            }
+        }
     }
 }

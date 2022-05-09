@@ -54,7 +54,7 @@ namespace Exceptionless {
             error.PopulateStackTrace(error, exception, log);
 
             try {
-                PropertyInfo info = type.GetProperty("HResult", BindingFlags.NonPublic | BindingFlags.Instance);
+                PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
                 if (info != null)
                     error.Code = info.GetValue(exception, null).ToString();
             } catch (Exception) { }
