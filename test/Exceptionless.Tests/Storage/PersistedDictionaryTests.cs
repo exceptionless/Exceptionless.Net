@@ -36,7 +36,7 @@ namespace Exceptionless.Tests.Storage {
 
             dict["test"] = "test";
             Assert.Equal(11, dict.Count);
-            success = latch.Wait(5000);
+            success = latch.Wait(1000);
             Assert.True(success, "Failed to save dictionary.");
             Assert.True(storage.Exists("test.json"));
         }
