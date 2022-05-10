@@ -286,5 +286,21 @@ namespace Exceptionless.Tests.Plugins {
                     Assert.Equal(type, context.Event.GetSimpleError().Type);
             }
         }
+
+        [Fact]
+        public void TrackException() {
+            var plugin = new ErrorPlugin();
+            var client = CreateClient();
+            var context = new EventPluginContext(client, new Event());
+            var exception = new TestOutOfMemoryException("Test");
+            context.ContextData.SetException(exception);
+            plugin.Run(context);
+            Assert.False(context.Cancel);
+            Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
+            var error = context.Event.GetError();
+            if (error != null) {
+                Assert.Equal(E_OUTOFMEMORY.ToString(), error.Code);
+            }
+        }
     }
 }
