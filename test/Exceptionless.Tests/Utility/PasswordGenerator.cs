@@ -57,7 +57,7 @@ namespace Exceptionless.Core.Security
             string allowedChars = AllowedAlphaNumericCharacters + AllowedSpecialCharacters;
             byte[] data = new byte[Length];
             char[] password = new char[Length];
-            new RNGCryptoServiceProvider().GetBytes(data);
+            RandomNumberGenerator.Create().GetBytes(data);
 
             int nonAlphanumericCharacters = 0;
 

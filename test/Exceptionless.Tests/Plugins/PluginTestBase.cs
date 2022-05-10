@@ -90,18 +90,5 @@ namespace Exceptionless.Tests.Plugins
             FirstErrorBucket,
             SecondErrorBucket,
         }
-
-        /// <summary>
-        /// Hresult for 'Failed to allocate necessary memory'.
-        /// <see href="https://docs.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values"/>
-        /// </summary>
-        public const int E_OUTOFMEMORY = unchecked((int)0x8007000E);
-
-        public class TestOutOfMemoryException : Exception {
-            public TestOutOfMemoryException(string message) : base(message) {
-                // Out of Memory Exception
-                HResult = E_OUTOFMEMORY;
-            }
-        }
     }
 }
