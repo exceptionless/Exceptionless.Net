@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Exceptionless.DateTimeExtensions" Version="3.4.0" />
-    <PackageReference Include="Exceptionless.RandomData" Version="1.2.0" />
+    <PackageReference Include="Exceptionless.RandomData" Version="1.2.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,8 +4,8 @@
   <PropertyGroup Label="Package">
     <PackageId>Exceptionless.Mvc</PackageId>
     <AssemblyName>Exceptionless.Mvc</AssemblyName>
-    <AssemblyTitle>Exceptionless client for ASP.NET MVC 3+ applications.</AssemblyTitle>
-    <Description>Exceptionless client for ASP.NET MVC 3+ applications. $(Description)</Description>
+    <AssemblyTitle>Exceptionless client for ASP.NET MVC applications.</AssemblyTitle>
+    <Description>Exceptionless client for ASP.NET MVC applications. $(Description)</Description>
     <PackageTags>$(PackageTags);ASP.NET;MVC</PackageTags>
     <TargetFramework>net462</TargetFramework>
   </PropertyGroup>
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Package References">
-    <PackageReference Include="Microsoft.AspNet.Mvc" Version="3.0.20105.1" />
+    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.8" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' " Label="Build">
