@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;
@@ -187,6 +188,22 @@ namespace Exceptionless.Tests.Storage {
                 }
             });
             Assert.Equal(25, working.Count + storage.GetQueueFiles(queueName).Count);
+        }
+
+        [Fact]
+        public void CanRoundTripSettingsWithUpdates() {
+            var settings = new SettingsDictionary {
+                ["MySetting"] = "1111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+            };
+
+            var storage = GetStorage();
+            storage.SaveObject("test.json", settings);
+
+            settings["MySetting"] = "22222";
+            storage.SaveObject("test.json", settings);
+
+            var savedSettings = storage.GetObject<SettingsDictionary>("test.json");
+            Assert.Single(savedSettings);
         }
     }
 }
