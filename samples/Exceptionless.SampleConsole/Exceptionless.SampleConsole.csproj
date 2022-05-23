@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Exceptionless.SampleConsole</AssemblyName>
     <OutputType>Exe</OutputType>
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Exceptionless.DateTimeExtensions" Version="3.4.0" />
-    <PackageReference Include="Exceptionless.RandomData" Version="1.2.0" />
+    <PackageReference Include="Exceptionless.RandomData" Version="1.2.1" />
   </ItemGroup>
 
   <ItemGroup>

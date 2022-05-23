@@ -288,19 +288,23 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
-        public void TrackException() {
+        public void VerifyExceptionHResultIsMappedToErrorCode() {
             var plugin = new ErrorPlugin();
             var client = CreateClient();
             var context = new EventPluginContext(client, new Event());
-            var exception = new TestOutOfMemoryException("Test");
+            var exception = new OutOfMemoryException("Test");
             context.ContextData.SetException(exception);
+
             plugin.Run(context);
+
             Assert.False(context.Cancel);
             Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
+
             var error = context.Event.GetError();
-            if (error != null) {
-                Assert.Equal(E_OUTOFMEMORY.ToString(), error.Code);
-            }
+            Assert.NotNull(error);
+
+            // <see href="https://docs.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values"/>
+            Assert.Equal(unchecked((int)0x8007000E).ToString(), error.Code);
         }
     }
 }
