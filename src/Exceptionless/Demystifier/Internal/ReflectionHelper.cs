@@ -10,7 +10,7 @@ namespace System.Diagnostics.Internal
     /// <summary>
     /// A helper class that contains utilities methods for dealing with reflection.
     /// </summary>
-    public static class ReflectionHelper
+    internal static class ReflectionHelper
     {
         private static PropertyInfo? tranformerNamesLazyPropertyInfo;
 

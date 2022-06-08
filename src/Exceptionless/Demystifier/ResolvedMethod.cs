@@ -7,7 +7,7 @@ using System.Text;
 
 namespace System.Diagnostics
 {
-    public class ResolvedMethod
+    internal class ResolvedMethod
     {
         public MethodBase? MethodBase { get; set; }
 

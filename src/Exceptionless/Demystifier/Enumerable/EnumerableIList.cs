@@ -3,12 +3,12 @@
 
 namespace System.Collections.Generic.Enumerable
 {
-    public static class EnumerableIList
+    internal static class EnumerableIList
     {
         public static EnumerableIList<T> Create<T>(IList<T> list) => new EnumerableIList<T>(list);
     }
 
-    public struct EnumerableIList<T> : IEnumerableIList<T>, IList<T>
+    internal struct EnumerableIList<T> : IEnumerableIList<T>, IList<T>
     {
         private readonly IList<T> _list;
 
