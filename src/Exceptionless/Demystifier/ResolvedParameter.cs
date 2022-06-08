@@ -5,7 +5,7 @@ using System.Text;
 
 namespace System.Diagnostics
 {
-    public class ResolvedParameter
+    internal class ResolvedParameter
     {
         public string? Name { get; set; }
 
