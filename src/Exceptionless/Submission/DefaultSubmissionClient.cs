@@ -132,19 +132,11 @@ namespace Exceptionless.Submission {
         }
 
         protected virtual HttpClient CreateHttpClient(ExceptionlessConfiguration config) {
-#if NET45
-            var handler = new WebRequestHandler { UseDefaultCredentials = true };
-#else
             var handler = new HttpClientHandler { UseDefaultCredentials = true };
-#endif
 
             var callback = config.ServerCertificateValidationCallback;
             if (callback != null) {
-#if NET45
-                handler.ServerCertificateValidationCallback = (s,c,ch,p) => Validate(s,c,ch,p,callback);
-#else
                 handler.ServerCertificateCustomValidationCallback = (m,c,ch,p) => Validate(m,c,ch,p,callback);
-#endif
             }
 
             if (handler.SupportsAutomaticDecompression)
@@ -165,17 +157,10 @@ namespace Exceptionless.Submission {
             return client;
         }
 
-#if NET45
-        private static bool Validate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
-            var certData = new CertificateData(sender, certificate, chain, sslPolicyErrors);
-            return callback(certData);
-        }
-#else
         private static bool Validate(HttpRequestMessage httpRequestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors, Func<CertificateData, bool> callback) {
             var certData = new CertificateData(httpRequestMessage, certificate, chain, sslPolicyErrors);
             return callback(certData);
         }
-#endif
 
         private string GetResponseMessage(HttpResponseMessage response) {
             if (response.IsSuccessStatusCode)
