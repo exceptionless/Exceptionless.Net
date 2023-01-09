@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,7 +80,7 @@ namespace Exceptionless.Queue {
 
                     try {
                         var events = batch.Select(b => b.Item2).ToList();
-                        var response = _client.PostEvents(events, _config, _serializer);
+                        var response = await _client.PostEventsAsync(events, _config, _serializer).ConfigureAwait(false);
                         if (response.Success) {
                             _log.FormattedInfo(typeof(DefaultEventQueue), "Sent {0} events to \"{1}\".", batch.Count, _config.ServerUrl);
                         } else if (response.ServiceUnavailable) {

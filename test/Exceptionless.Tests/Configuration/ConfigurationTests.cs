@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -115,11 +115,11 @@ namespace Exceptionless.Tests.Configuration {
             };
 
             var submissionClient = new Mock<ISubmissionClient>();
-            submissionClient.Setup(m => m.PostEvents(It.IsAny<IEnumerable<Event>>(), config, It.IsAny<IJsonSerializer>()))
-                .Callback(() => SettingsManager.CheckVersion(1, config))
-                .Returns(() => new SubmissionResponse(202, "Accepted"));
-            submissionClient.Setup(m => m.GetSettings(config, 0, It.IsAny<IJsonSerializer>()))
-                .Returns(() => new SettingsResponse(true, new SettingsDictionary { { "Test", "Test" }, { "LocalSettingToOverride", "2" } }, 1));
+            submissionClient.Setup(m => m.PostEventsAsync(It.IsAny<IEnumerable<Event>>(), config, It.IsAny<IJsonSerializer>()))
+                .Callback(() => SettingsManager.CheckVersionAsync(1, config))
+                .ReturnsAsync(() => new SubmissionResponse(202, "Accepted"));
+            submissionClient.Setup(m => m.GetSettingsAsync(config, 0, It.IsAny<IJsonSerializer>()))
+                .ReturnsAsync(() => new SettingsResponse(true, new SettingsDictionary { { "Test", "Test" }, { "LocalSettingToOverride", "2" } }, 1));
 
             config.Resolver.Register<ISubmissionClient>(submissionClient.Object);
             var client = new ExceptionlessClient(config);

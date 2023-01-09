@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.Configuration;
@@ -84,7 +84,7 @@ namespace Exceptionless {
         /// <param name="referenceId">The reference id of the event to update.</param>
         /// <param name="email">The user's email address to set on the event.</param>
         /// <param name="description">The user's description of the event.</param>
-        public bool UpdateUserEmailAndDescription(string referenceId, string email, string description) {
+        public async Task<bool> UpdateUserEmailAndDescriptionAsync(string referenceId, string email, string description) {
             if (String.IsNullOrEmpty(referenceId))
                 throw new ArgumentNullException("referenceId");
 
@@ -110,7 +110,7 @@ namespace Exceptionless {
             }
 
             try {
-                var response = _submissionClient.Value.PostUserDescription(referenceId, new UserDescription(email, description), Configuration, Configuration.Resolver.GetJsonSerializer());
+                var response = await _submissionClient.Value.PostUserDescriptionAsync(referenceId, new UserDescription(email, description), Configuration, Configuration.Resolver.GetJsonSerializer());
                 if (!response.Success)
                     _log.Value.FormattedError(typeof(ExceptionlessClient), response.Exception, "Failed to submit user email and description for event '{0}': {1} {2}", referenceId, response.StatusCode, response.Message);
 

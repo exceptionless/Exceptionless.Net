@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Exceptionless.Dependency;
@@ -147,20 +147,22 @@ namespace Exceptionless.Tests {
         public class MySubmissionClient : ISubmissionClient {
             public int SubmittedEvents { get; private set; }
 
-            public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+            public Task<SubmissionResponse> PostEventsAsync(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
                 SubmittedEvents += events.Count();
-                return new SubmissionResponse(202);
+                return Task.FromResult(new SubmissionResponse(202));
             }
 
-            public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                return new SubmissionResponse(202);
+            public Task<SubmissionResponse> PostUserDescriptionAsync(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+                return Task.FromResult(new SubmissionResponse(202));
             }
 
-            public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
-                return new SettingsResponse(false);
+            public Task<SettingsResponse> GetSettingsAsync(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+                return Task.FromResult(new SettingsResponse(false));
             }
 
-            public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) { }
+            public Task SendHeartbeatAsync(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
+                return Task.CompletedTask;
+            }
         }
     }
 }

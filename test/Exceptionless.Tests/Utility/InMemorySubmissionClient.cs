@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission;
@@ -13,7 +14,7 @@ namespace Exceptionless.Tests.Utility {
 
         public List<Event> Events { get; private set; } 
 
-        public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public Task<SubmissionResponse> PostEventsAsync(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             var data = events.ToList();
             data.ForEach(e => {
                 if (e.Date == DateTimeOffset.MinValue)
@@ -24,23 +25,25 @@ namespace Exceptionless.Tests.Utility {
             });
 
             Events.AddRange(data);
-            return new SubmissionResponse(202, "Accepted");
+            return Task.FromResult(new SubmissionResponse(202, "Accepted"));
         }
 
-        public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public Task<SubmissionResponse> PostUserDescriptionAsync(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             var ev = Events.FirstOrDefault(e => e.ReferenceId == referenceId);
             if (ev == null)
-                return new SubmissionResponse(404, "Not Found");
+                return Task.FromResult(new SubmissionResponse(404, "Not Found"));
 
             ev.Data[Event.KnownDataKeys.UserDescription] = description;
 
-            return new SubmissionResponse(200, "OK");
+            return Task.FromResult(new SubmissionResponse(200, "OK"));
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
-            return new SettingsResponse(true);
+        public Task<SettingsResponse> GetSettingsAsync(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+            return Task.FromResult(new SettingsResponse(true));
         }
 
-        public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {}
+        public Task SendHeartbeatAsync(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
+            return Task.CompletedTask;
+        }
     }
 }
