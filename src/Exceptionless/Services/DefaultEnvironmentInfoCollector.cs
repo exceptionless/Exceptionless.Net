@@ -48,7 +48,7 @@ namespace Exceptionless.Services {
 
             if (Config.IncludeIpAddress) {
                 try {
-                    IPHostEntry hostEntry = Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false).GetAwaiter().GetResult();
+                    var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
                     if (hostEntry != null && hostEntry.AddressList.Any())
                         info.IpAddress = String.Join(", ", hostEntry.AddressList.Where(x => x.AddressFamily == AddressFamily.InterNetwork).Select(a => a.ToString()).ToArray());
                 } catch (Exception ex) {

@@ -49,7 +49,7 @@ namespace Exceptionless {
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
-            _updateSettingsTimer = new Timer(OnUpdateSettings, null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
+            _updateSettingsTimer = new Timer(OnUpdateSettingsAsync, null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
         }
 
         private TimeSpan GetInitialSettingsDelay() {
@@ -67,13 +67,18 @@ namespace Exceptionless {
         }
 
         private bool _isUpdatingSettings;
-        private void OnUpdateSettings(object state) {
+        private async void OnUpdateSettingsAsync(object state) {
             if (_isUpdatingSettings || !Configuration.IsValid)
                 return;
 
             _isUpdatingSettings = true;
-            SettingsManager.UpdateSettings(Configuration);
-            _isUpdatingSettings = false;
+            try {
+                await SettingsManager.UpdateSettingsAsync(Configuration).ConfigureAwait(false);
+            } catch (Exception ex) {
+                _log.Value.FormattedError(typeof(ExceptionlessClient), ex, "An error occurred updating settings: {0}.", ex.Message);
+            } finally {
+                _isUpdatingSettings = false;
+            }
         }
 
         public ExceptionlessConfiguration Configuration { get; private set; }
@@ -144,22 +149,6 @@ namespace Exceptionless {
             }
 
             return _queue.Value.ProcessAsync();
-        }
-
-        /// <summary>
-        /// Process the queue.
-        /// </summary>
-        public void ProcessQueue() {
-            ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-
-        /// <summary>
-        /// Gets a disposable object that when disposed will trigger the client queue to be processed.
-        /// <code>using var _ = client.ProcessQueueDeferred();</code>
-        /// </summary>
-        /// <returns>An <see cref="IDisposable"/> that when disposed will trigger the client queue to be processed.</returns>
-        public IDisposable ProcessQueueDeferred() {
-            return new ProcessQueueScope(this);
         }
 
         /// <summary>

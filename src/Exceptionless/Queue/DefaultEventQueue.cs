@@ -16,8 +16,6 @@ namespace Exceptionless.Queue {
         private readonly IObjectStorage _storage;
         private readonly IJsonSerializer _serializer;
         private Timer _queueTimer;
-        private Task _processingQueueTask;
-        private readonly object _sync = new object();
         private readonly TimeSpan _processQueueInterval = TimeSpan.FromSeconds(10);
         private DateTime? _suspendProcessingUntil;
         private DateTime? _discardQueuedItemsUntil;
@@ -33,7 +31,7 @@ namespace Exceptionless.Queue {
             if (processQueueInterval.HasValue)
                 _processQueueInterval = processQueueInterval.Value;
 
-            _queueTimer = new Timer(OnProcessQueue, null, queueStartDelay ?? TimeSpan.FromSeconds(2), _processQueueInterval);
+            _queueTimer = new Timer(OnProcessQueueAsync, null, queueStartDelay ?? TimeSpan.FromSeconds(2), _processQueueInterval);
         }
 
         public void Enqueue(Event ev) {
@@ -45,27 +43,12 @@ namespace Exceptionless.Queue {
             _storage.Enqueue(_config.GetQueueName(), ev);
         }
 
-        public Task ProcessAsync() {
-            return Task.Run(Process);
-        }
-
-        public Task Process() {
+        public async Task ProcessAsync() {
             if (!_config.Enabled) {
                 _log.Info(typeof(DefaultEventQueue), "Configuration is disabled. The queue will not be processed.");
-                return Task.FromResult(false);
+                return;
             }
 
-            TaskCompletionSource<bool> tcs;
-            lock (_sync) {
-                if (_processingQueueTask != null) {
-                    return _processingQueueTask;
-                } else {
-                    tcs = new TaskCompletionSource<bool>();
-                    _processingQueueTask = tcs.Task;
-                }
-            }
-
-            Task resultTask;
             try {
                 _log.Trace(typeof(DefaultEventQueue), "Processing queue...");
                 string queueName = _config.GetQueueName();
@@ -138,23 +121,20 @@ namespace Exceptionless.Queue {
                     batch = _storage.GetEventBatch(queueName, _serializer, batchSize, maxCreatedDate);
                 }
             } catch (Exception ex) {
-                _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred while processing the queue: ", ex.Message));
+                _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred processing the queue: ", ex.Message));
                 SuspendProcessing();
-            } finally {
-                tcs.SetResult(true);
-                lock (_sync) {
-                    _processingQueueTask = null;
-                    resultTask = tcs.Task;
-                }
             }
-            return resultTask;
         }
 
-        private void OnProcessQueue(object state) {
+        private async void OnProcessQueueAsync(object state) {
             if (IsQueueProcessingSuspended)
                 return;
 
-            Process();
+            try {
+                await ProcessAsync().ConfigureAwait(false);
+            } catch (Exception ex) {
+                _log.Error(typeof(DefaultEventQueue), ex, String.Concat("An error occurred processing the queue: ", ex.Message));
+            }
         }
 
         public void SuspendProcessing(TimeSpan? duration = null, bool discardFutureQueuedItems = false, bool clearQueue = false) {

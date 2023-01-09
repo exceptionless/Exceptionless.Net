@@ -25,7 +25,7 @@ namespace Exceptionless.Mvc {
         }
 
         public void Dispose() {
-            ExceptionlessClient.Default.Shutdown();
+            ExceptionlessClient.Default.ShutdownAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             ExceptionlessClient.Default.UnregisterHttpApplicationErrorHandler(_app);
         }
     }

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
@@ -71,7 +72,7 @@ namespace Exceptionless.Tests {
         }
 
         [Fact]
-        public void CanCallStartupWithCustomSubmissionClient() {
+        public Task CanCallStartupWithCustomSubmissionClient() {
             var client = CreateClient();
             Assert.True(client.Configuration.Resolver.HasRegistration<ISubmissionClient>());
             Assert.True(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
@@ -83,7 +84,7 @@ namespace Exceptionless.Tests {
             client.Startup();
             Assert.True(client.Configuration.Resolver.Resolve<ISubmissionClient>() is MySubmissionClient);
             Assert.False(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
-            client.Shutdown();
+            return client.ShutdownAsync();
         }
 
         [Fact]
@@ -106,7 +107,7 @@ namespace Exceptionless.Tests {
         }
 
         [Fact]
-        public void CanSubmitManyMessages() {
+        public async Task CanSubmitManyMessages() {
             var client = CreateClient();
             client.Configuration.Resolver.Register<ISubmissionClient, MySubmissionClient>();
             client.Startup();
@@ -133,10 +134,10 @@ namespace Exceptionless.Tests {
                 // Count could be higher due to persisted dictionaries via settings manager / other plugins
                 Assert.InRange(storage.Count, iterations, iterations + 1);
 
-                client.ProcessQueue();
+                await client.ProcessQueueAsync();
                 Assert.Equal(iterations, submissionClient.SubmittedEvents);
 
-                client.Shutdown();
+                await client.ShutdownAsync();
             }
         }
 

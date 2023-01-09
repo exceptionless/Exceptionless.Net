@@ -28,7 +28,7 @@ namespace Exceptionless.Tests.Storage {
         protected abstract IObjectStorage GetStorage();
 
         [Fact]
-        public void CanProcessQueueWithUninitializedStorage() {
+        public async Task CanProcessQueueWithUninitializedStorage() {
             var client = new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.ReadFromAttributes();
@@ -40,12 +40,12 @@ namespace Exceptionless.Tests.Storage {
             });
             
             client.Startup();
-            client.ProcessQueue();
+            await client.ProcessQueueAsync();
             var queue = client.Configuration.Resolver.GetEventQueue() as DefaultEventQueue;
             Assert.NotNull(queue);
             Assert.False(queue.IsQueueProcessingSuspended);
             Assert.False(queue.AreQueuedItemsDiscarded);
-            client.Shutdown();
+            await client.ShutdownAsync();
         }
 
         [Fact]

@@ -4,6 +4,8 @@ using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Logging;
 
+#pragma warning disable AsyncFixer03
+
 namespace Exceptionless.Wpf.Extensions {
     public static class ExceptionlessClientExtensions {
         private static DispatcherUnhandledExceptionEventHandler _onApplicationDispatcherUnhandledException;
@@ -16,15 +18,20 @@ namespace Exceptionless.Wpf.Extensions {
                 return;
 
             if (_onApplicationDispatcherUnhandledException == null)
-                _onApplicationDispatcherUnhandledException = (sender, args) => {
+                _onApplicationDispatcherUnhandledException = async (sender, args) => {
                     var contextData = new ContextData();
                     contextData.MarkAsUnhandledError();
                     contextData.SetSubmissionMethod("DispatcherUnhandledException");
 
                     args.Exception.ToExceptionless(contextData, client).Submit();
 
-                    // process queue immediately since the app is about to exit.
-                    client.ProcessQueue();
+                    try {
+                        // process queue immediately since the app is about to exit.
+                        await client.ProcessQueueAsync().ConfigureAwait(false);
+                    } catch (Exception ex) {
+                        var log = client.Configuration.Resolver.GetLog();
+                        log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing application dispatcher exception: ", ex.Message));
+                    }
                 };
 
             try {

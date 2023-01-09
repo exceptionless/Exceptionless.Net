@@ -34,7 +34,7 @@ namespace Exceptionless.Extensions.Logging {
         }
 
         public void Dispose() {
-            _client.ProcessQueue();
+            _client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             if (_shouldDispose)
                 ((IDisposable)_client).Dispose();
         }

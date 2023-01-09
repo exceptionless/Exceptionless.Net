@@ -37,7 +37,7 @@ namespace Exceptionless {
             diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
 
             var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStopping.Register(() => client.ProcessQueue());
+            lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -105,7 +105,7 @@ namespace Exceptionless.Tests.Configuration {
         }
 
         [Fact]
-        public void CanUpdateSettingsFromServer() {
+        public async Task CanUpdateSettingsFromServer() {
             var config = new ExceptionlessConfiguration(DependencyResolver.Default) {
                 ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw",
                 Settings = {
@@ -128,7 +128,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.False(client.Configuration.Settings.ContainsKey("Test"));
             Assert.Equal("1", client.Configuration.Settings["LocalSettingToOverride"]);
             client.SubmitEvent(new Event { Type = "Log", Message = "Test" });
-            client.ProcessQueue();
+            await client.ProcessQueueAsync();
             Assert.True(client.Configuration.Settings.ContainsKey("Test"));
             Assert.Equal("2", client.Configuration.Settings["LocalSettingToOverride"]);
             Assert.Equal(3, client.Configuration.Settings.Count);

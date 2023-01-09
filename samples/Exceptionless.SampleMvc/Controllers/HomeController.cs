@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -62,14 +63,14 @@ namespace Exceptionless.SampleMvc.Controllers {
         }
 
         [HttpPost]
-        public ActionResult Error(string identifier, string emailaddress, string description) {
+        public async Task<ActionResult> Error(string identifier, string emailAddress, string description) {
             if (String.IsNullOrEmpty(identifier))
                 return RedirectToAction("Index", "Home");
 
-            if (String.IsNullOrEmpty(emailaddress) && String.IsNullOrEmpty(description))
+            if (String.IsNullOrEmpty(emailAddress) && String.IsNullOrEmpty(description))
                 return RedirectToAction("Index", "Home");
 
-            ExceptionlessClient.Default.UpdateUserEmailAndDescription(identifier, emailaddress, description);
+            await ExceptionlessClient.Default.UpdateUserEmailAndDescriptionAsync(identifier, emailAddress, description);
 
             return View("ErrorSubmitted");
         }

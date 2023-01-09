@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Exceptionless.Dependency;
@@ -34,13 +35,12 @@ namespace Exceptionless {
         /// Unregisters platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
-        public static void Unregister(this ExceptionlessClient client) {
+        public static async Task UnregisterAsync(this ExceptionlessClient client) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-            client.Shutdown();
+            await client.ShutdownAsync().ConfigureAwait(false);
             client.UnregisterApplicationDispatcherUnhandledExceptionHandler();
-        
             client.SubmittingEvent -= OnSubmittingEvent;
         }
 
