@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Exceptionless;
 
@@ -8,7 +9,7 @@ using Exceptionless;
 namespace Exceptionless.SampleLambda {
     public class Function
     {
-        public string FunctionHandler(string input, ILambdaContext context)
+        public async Task<string> FunctionHandler(string input, ILambdaContext context)
         {
             var client = new ExceptionlessClient(c => {
                 c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
@@ -19,7 +20,7 @@ namespace Exceptionless.SampleLambda {
             });
 
             // will automatically trigger a client.ProcessQueue call when this method completes even if there is an unhandled exception
-            using var _ = client.ProcessQueueDeferred();
+            await using var _ = new ProcessQueueScope(client);
 
             client.SubmitFeatureUsage("Serverless Function");
 
@@ -30,6 +31,18 @@ namespace Exceptionless.SampleLambda {
             }
 
             return input.ToLower();
+        }
+    }
+
+    internal class ProcessQueueScope : IAsyncDisposable {
+        private readonly ExceptionlessClient _exceptionlessClient;
+
+        public ProcessQueueScope(ExceptionlessClient exceptionlessClient) {
+            _exceptionlessClient = exceptionlessClient;
+        }
+
+        public async ValueTask DisposeAsync() {
+            await _exceptionlessClient.ProcessQueueAsync();
         }
     }
 }

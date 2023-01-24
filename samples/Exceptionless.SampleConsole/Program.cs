@@ -12,10 +12,6 @@ using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.NLog;
 using Exceptionless.SampleConsole.Plugins;
-#if NET45
-using log4net;
-using log4net.Config;
-#endif
 using NLog;
 using NLog.Config;
 using NLog.Fluent;
@@ -43,7 +39,7 @@ namespace Exceptionless.SampleConsole {
         };
         private static int _dateSpanIndex = 3;
 
-        public static void Main(string[] args) {
+        public static async Task Main(string[] args) {
             Console.CursorVisible = false;
             if (!Console.IsInputRedirected)
                 StartDisplayingLogMessages();
@@ -77,13 +73,6 @@ namespace Exceptionless.SampleConsole {
             //    .SetProperty("LocalProp", "LocalValue")
             //    .SetProperty("Order", new { Total = 15 })
             //    .Submit();
-#if NET45
-            // Test log4net
-            XmlConfigurator.Configure();
-            GlobalContext.Properties["GlobalProp"] = "GlobalValue";
-            ThreadContext.Properties["LocalProp"] = "LocalValue";
-            //_log4net.Info("Hi");
-#endif
 
             var tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
@@ -116,14 +105,14 @@ namespace Exceptionless.SampleConsole {
                 } else if (keyInfo.Key == ConsoleKey.D6)
                     SendContinuousEvents(250, token, ev: new Event { Type = Event.KnownTypes.Log, Source = "SampleConsole.Program.Main", Message = "Sample console application event" });
                 else if (keyInfo.Key == ConsoleKey.D7)
-                    ExceptionlessClient.Default.SubmitSessionEnd();
+                    await ExceptionlessClient.Default.SubmitSessionEndAsync();
                 else if (keyInfo.Key == ConsoleKey.D8)
                     ExceptionlessClient.Default.Configuration.SetUserIdentity(Guid.NewGuid().ToString("N"));
                 else if (keyInfo.Key == ConsoleKey.P) {
                     Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
                     Console.WriteLine("Telling client to process the queue...");
 
-                    ExceptionlessClient.Default.ProcessQueue();
+                    await ExceptionlessClient.Default.ProcessQueueAsync();
 
                     ClearOutputLines();
                 } else if (keyInfo.Key == ConsoleKey.F) {

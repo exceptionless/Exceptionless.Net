@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Plugins;
 using Exceptionless.Logging;
 using Exceptionless.Models;
+
+#pragma warning disable AsyncFixer03
 
 namespace Exceptionless {
     public static class ExceptionlessClientExtensions {
@@ -40,7 +42,7 @@ namespace Exceptionless {
         /// Unregisters platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
-        public static void Shutdown(this ExceptionlessClient client) {
+        public static async Task ShutdownAsync(this ExceptionlessClient client) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
@@ -48,9 +50,9 @@ namespace Exceptionless {
             client.UnregisterOnProcessExitHandler();
             client.UnregisterTaskSchedulerUnobservedTaskExceptionHandler();
 
-            client.ProcessQueue();
+            await client.ProcessQueueAsync().ConfigureAwait(false);
             if (client.Configuration.SessionsEnabled)
-                client.SubmitSessionEnd();
+                await client.SubmitSessionEndAsync().ConfigureAwait(false);
         }
 
 #region Submission Extensions
@@ -305,16 +307,16 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionIdOrUserId">The session id or user id.</param>
-        public static void SubmitSessionEnd(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+        public static Task SubmitSessionEndAsync(this ExceptionlessClient client, string sessionIdOrUserId = null) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
             sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
             if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
-                return;
+                return Task.CompletedTask;
 
             var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
-            submissionClient.SendHeartbeat(sessionIdOrUserId, true, client.Configuration);
+            return submissionClient.SendHeartbeatAsync(sessionIdOrUserId, true, client.Configuration);
         }
 
         /// <summary>
@@ -322,16 +324,16 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="client">The client instance.</param>
         /// <param name="sessionIdOrUserId">The session id or user id.</param>
-        public static void SubmitSessionHeartbeat(this ExceptionlessClient client, string sessionIdOrUserId = null) {
+        public static Task SubmitSessionHeartbeatAsync(this ExceptionlessClient client, string sessionIdOrUserId = null) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
             sessionIdOrUserId = sessionIdOrUserId ?? client.Configuration.CurrentSessionIdentifier;
             if (String.IsNullOrWhiteSpace(sessionIdOrUserId))
-                return;
+                return Task.CompletedTask;
 
             var submissionClient = client.Configuration.Resolver.GetSubmissionClient();
-            submissionClient.SendHeartbeat(sessionIdOrUserId, false, client.Configuration);
+            return submissionClient.SendHeartbeatAsync(sessionIdOrUserId, false, client.Configuration);
         }
 
 #endregion
@@ -346,22 +348,27 @@ namespace Exceptionless.Extensions {
                 throw new ArgumentNullException(nameof(client));
 
             if (_onAppDomainUnhandledException == null) {
-                _onAppDomainUnhandledException = (sender, args) => {
+                _onAppDomainUnhandledException = async (sender, args) => {
                     var exception = args.ExceptionObject as Exception;
                     if (exception == null)
                         return;
 
-                    var contextData = new ContextData();
-                    contextData.MarkAsUnhandledError();
-                    contextData.SetSubmissionMethod("AppDomainUnhandledException");
+                    try {
+                        var contextData = new ContextData();
+                        contextData.MarkAsUnhandledError();
+                        contextData.SetSubmissionMethod("AppDomainUnhandledException");
 
-                    exception.ToExceptionless(contextData, client).Submit();
+                        exception.ToExceptionless(contextData, client).Submit();
 
-                    // process queue immediately since the app is about to exit.
-                    client.ProcessQueue();
+                        // process queue immediately since the app is about to exit.
+                        await client.ProcessQueueAsync().ConfigureAwait(false);
 
-                    if (client.Configuration.SessionsEnabled)
-                        client.SubmitSessionEnd();
+                        if (client.Configuration.SessionsEnabled)
+                            await client.SubmitSessionEndAsync().ConfigureAwait(false);
+                    } catch (Exception ex) {
+                        var log = client.Configuration.Resolver.GetLog();
+                        log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing AppDomain unhandled exception: ", ex.Message));
+                    }
                 };
             }
 
@@ -390,11 +397,16 @@ namespace Exceptionless.Extensions {
                 throw new ArgumentNullException(nameof(client));
 
             if (_onProcessExit == null) {
-                _onProcessExit = (sender, args) => {
-                    client.ProcessQueue();
+                _onProcessExit = async (sender, args) => {
+                    try {
+                        await client.ProcessQueueAsync().ConfigureAwait(false);
 
-                    if (client.Configuration.SessionsEnabled)
-                        client.SubmitSessionEnd();
+                        if (client.Configuration.SessionsEnabled)
+                            await client.SubmitSessionEndAsync().ConfigureAwait(false);
+                    } catch (Exception ex) {
+                        var log = client.Configuration.Resolver.GetLog();
+                        log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing process exit: ", ex.Message));
+                    }
                 };
             }
 
