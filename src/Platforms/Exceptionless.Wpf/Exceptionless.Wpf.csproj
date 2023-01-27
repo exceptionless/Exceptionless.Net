@@ -44,4 +44,8 @@
     <Resource Include="Images\ErrorFeedback.png" />
     <Folder Include="Properties\" />
   </ItemGroup>
+
+  <ItemGroup Label="Source Links">
+    <Compile Include="..\Exceptionless.Windows\ExceptionlessWindowsEnvironmentInfoCollector.cs" Link="ExceptionlessWindowsEnvironmentInfoCollector.cs" />
+  </ItemGroup>
 </Project>
