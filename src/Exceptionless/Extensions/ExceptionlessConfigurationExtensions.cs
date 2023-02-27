@@ -62,9 +62,9 @@ namespace Exceptionless {
         /// <param name="name">The user's friendly name that the event happened to.</param>
         public static void SetUserIdentity(this ExceptionlessConfiguration config, string identity, string name) {
             if (String.IsNullOrWhiteSpace(identity) && String.IsNullOrWhiteSpace(name))
-                return;
-
-            config.DefaultData[Event.KnownDataKeys.UserInfo] = new UserInfo(identity, name);
+                config.DefaultData.Remove(Event.KnownDataKeys.UserInfo);
+            else
+                config.DefaultData[Event.KnownDataKeys.UserInfo] = new UserInfo(identity, name);
         }
 
         /// <summary>
@@ -72,11 +72,11 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object</param>
         /// <param name="userInfo">The user's identity that the event happened to.</param>
-        public static void SetUserIdentity(this ExceptionlessConfiguration config, UserInfo userInfo) {
-            if (userInfo == null)
-                return;
-
-            config.DefaultData[Event.KnownDataKeys.UserInfo] = userInfo;
+        public static void SetUserIdentity(this ExceptionlessConfiguration config, UserInfo? userInfo) {
+            if (userInfo is null || String.IsNullOrWhiteSpace(userInfo.Identity) && String.IsNullOrWhiteSpace(userInfo.Name))
+                config.DefaultData.Remove(Event.KnownDataKeys.UserInfo);
+            else
+                config.DefaultData[Event.KnownDataKeys.UserInfo] = userInfo;
         }
 
         public static string GetQueueName(this ExceptionlessConfiguration config) {
