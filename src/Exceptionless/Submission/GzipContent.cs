@@ -11,7 +11,7 @@ namespace Exceptionless.Submission {
 
         public GzipContent(HttpContent httpContent) {
             if (httpContent == null)
-                throw new ArgumentNullException("httpContent");
+                throw new ArgumentNullException(nameof(httpContent));
             
             _httpContent = httpContent;
             

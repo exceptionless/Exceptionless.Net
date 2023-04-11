@@ -23,12 +23,12 @@ namespace Exceptionless.Core.Security
         {
             if (length < 1 || length > 128)
             {
-                throw new ArgumentException("The specified password length is invalid.", "length");
+                throw new ArgumentException("The specified password length is invalid.", nameof(length));
             }
 
             if (requiredSpecialCharacters > length || requiredSpecialCharacters < 0)
             {
-                throw new ArgumentException("The specified number of required non-alphanumeric characters is invalid.", "requiredSpecialCharacters");
+                throw new ArgumentException("The specified number of required non-alphanumeric characters is invalid.", nameof(requiredSpecialCharacters));
             }
 
             Length = length;

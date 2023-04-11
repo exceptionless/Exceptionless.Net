@@ -40,7 +40,7 @@ namespace Exceptionless {
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
 
             ServerUrl = DEFAULT_SERVER_URL;
             ConfigServerUrl = DEFAULT_CONFIG_SERVER_URL;

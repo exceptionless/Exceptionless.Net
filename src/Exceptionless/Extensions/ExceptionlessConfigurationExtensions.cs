@@ -135,7 +135,7 @@ namespace Exceptionless {
         /// <param name="assemblies">The assembly that contains the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, params Assembly[] assemblies) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             config.ReadFromAttributes(assemblies.ToList());
         }
@@ -148,7 +148,7 @@ namespace Exceptionless {
         /// <param name="assemblies">A list of assemblies that should be checked for the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, ICollection<Assembly> assemblies = null) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             if (assemblies == null) {
                 Assembly callingAssembly = null;

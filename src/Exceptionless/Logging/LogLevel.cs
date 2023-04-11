@@ -55,36 +55,36 @@ namespace Exceptionless.Logging {
 
         public static bool operator >(LogLevel level1, LogLevel level2) {
             if (level1 == null)
-                throw new ArgumentNullException("level1");
+                throw new ArgumentNullException(nameof(level1));
             if (level2 == null)
-                throw new ArgumentNullException("level2");
+                throw new ArgumentNullException(nameof(level2));
 
             return level1.Ordinal > level2.Ordinal;
         }
 
         public static bool operator >=(LogLevel level1, LogLevel level2) {
             if (level1 == null)
-                throw new ArgumentNullException("level1");
+                throw new ArgumentNullException(nameof(level1));
             if (level2 == null)
-                throw new ArgumentNullException("level2");
+                throw new ArgumentNullException(nameof(level2));
 
             return level1.Ordinal >= level2.Ordinal;
         }
 
         public static bool operator <(LogLevel level1, LogLevel level2) {
             if (level1 == null)
-                throw new ArgumentNullException("level1");
+                throw new ArgumentNullException(nameof(level1));
             if (level2 == null)
-                throw new ArgumentNullException("level2");
+                throw new ArgumentNullException(nameof(level2));
 
             return level1.Ordinal < level2.Ordinal;
         }
 
         public static bool operator <=(LogLevel level1, LogLevel level2) {
             if (level1 == null)
-                throw new ArgumentNullException("level1");
+                throw new ArgumentNullException(nameof(level1));
             if (level2 == null)
-                throw new ArgumentNullException("level2");
+                throw new ArgumentNullException(nameof(level2));
 
             return level1.Ordinal <= level2.Ordinal;
         }
@@ -114,7 +114,7 @@ namespace Exceptionless.Logging {
 
         public static LogLevel FromString(string levelName) {
             if (levelName == null)
-                throw new ArgumentNullException("levelName");
+                throw new ArgumentNullException(nameof(levelName));
             if (levelName.Equals("Trace", StringComparison.OrdinalIgnoreCase) 
                 || levelName.Equals("true", StringComparison.OrdinalIgnoreCase) 
                 || levelName.Equals("1", StringComparison.OrdinalIgnoreCase)
@@ -164,7 +164,7 @@ namespace Exceptionless.Logging {
 
         public int CompareTo(object obj) {
             if (obj == null)
-                throw new ArgumentNullException("obj");
+                throw new ArgumentNullException(nameof(obj));
 
             return Ordinal - ((LogLevel)obj).Ordinal;
         }

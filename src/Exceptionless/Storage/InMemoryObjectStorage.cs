@@ -23,7 +23,7 @@ namespace Exceptionless.Storage {
 
         public T GetObject<T>(string path) where T : class {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
                 Tuple<ObjectInfo, object> value;
@@ -45,7 +45,7 @@ namespace Exceptionless.Storage {
 
         public bool SaveObject<T>(string path, T value) where T : class {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
                 _storage[path] = Tuple.Create(new ObjectInfo {
@@ -63,9 +63,9 @@ namespace Exceptionless.Storage {
 
         public bool RenameObject(string oldpath, string newpath) {
             if (String.IsNullOrWhiteSpace(oldpath))
-                throw new ArgumentNullException("oldpath");
+                throw new ArgumentNullException(nameof(oldpath));
             if (String.IsNullOrWhiteSpace(newpath))
-                throw new ArgumentNullException("newpath");
+                throw new ArgumentNullException(nameof(newpath));
 
             lock (_lock) {
                 if (!_storage.ContainsKey(oldpath))
@@ -82,7 +82,7 @@ namespace Exceptionless.Storage {
 
         public bool DeleteObject(string path) {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
                 if (!_storage.ContainsKey(path))

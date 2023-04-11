@@ -9,10 +9,10 @@ namespace Exceptionless {
     public static class DataDictionaryExtensions {
         public static T GetValue<T>(this DataDictionary items, string key, IJsonSerializer serializer = null) {
             if (items == null)
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
 
             if (String.IsNullOrEmpty(key))
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
 
             object data;
             if (!items.TryGetValue(key, out data))

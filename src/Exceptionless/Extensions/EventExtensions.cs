@@ -185,7 +185,7 @@ namespace Exceptionless {
             if (coordinates.Contains(",") || coordinates.Contains(".") || coordinates.Contains(":"))
                 ev.Geo = coordinates;
             else
-                throw new ArgumentException("Must be either lat,lon or an IP address.", "coordinates");
+                throw new ArgumentException("Must be either lat,lon or an IP address.", nameof(coordinates));
         }
 
         /// <summary>
@@ -196,9 +196,9 @@ namespace Exceptionless {
         /// <param name="longitude">The event longitude.</param>
         public static void SetGeo(this Event ev, double latitude, double longitude) {
             if (latitude < -90.0 || latitude > 90.0)
-                throw new ArgumentOutOfRangeException("latitude", "Must be a valid latitude value between -90.0 and 90.0.");
+                throw new ArgumentOutOfRangeException(nameof(latitude), "Must be a valid latitude value between -90.0 and 90.0.");
             if (longitude < -180.0 || longitude > 180.0)
-                throw new ArgumentOutOfRangeException("longitude", "Must be a valid longitude value between -180.0 and 180.0.");
+                throw new ArgumentOutOfRangeException(nameof(longitude), "Must be a valid longitude value between -180.0 and 180.0.");
 
             ev.Geo = latitude.ToString("#0.0#######", CultureInfo.InvariantCulture) + "," + longitude.ToString("#0.0#######", CultureInfo.InvariantCulture);
         }
@@ -222,7 +222,7 @@ namespace Exceptionless {
         /// <param name="referenceId">The event reference id.</param>
         public static void SetReferenceId(this Event ev, string referenceId) {
             if (!IsValidIdentifier(referenceId))
-                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", "referenceId");
+                throw new ArgumentException("ReferenceId must contain between 8 and 100 alphanumeric or '-' characters.", nameof(referenceId));
 
             ev.ReferenceId = referenceId;
         }
@@ -248,10 +248,10 @@ namespace Exceptionless {
         /// <param name="id">The reference id that points to a specific event</param>
         public static void SetEventReference(this Event ev, string name, string id) {
             if (String.IsNullOrEmpty(name))
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
-                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", "id");
+                throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", nameof(id));
 
             ev.SetProperty($"@ref:{name}", id);
         }

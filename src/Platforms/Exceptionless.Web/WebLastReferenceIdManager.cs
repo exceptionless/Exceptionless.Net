@@ -8,7 +8,7 @@ namespace Exceptionless {
 
         public WebLastReferenceIdManager(IExceptionlessLog log) {
             if (log == null)
-                throw new ArgumentNullException("log");
+                throw new ArgumentNullException(nameof(log));
 
             Log = log;
         }
