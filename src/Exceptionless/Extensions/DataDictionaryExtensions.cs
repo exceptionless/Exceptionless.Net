@@ -16,7 +16,7 @@ namespace Exceptionless {
 
             object data;
             if (!items.TryGetValue(key, out data))
-                throw new KeyNotFoundException(String.Format("The key '{0}' was not found.", key));
+                throw new KeyNotFoundException($"The key '{key}' was not found.");
 
             if (data == null || data is T)
                 return (T)data;

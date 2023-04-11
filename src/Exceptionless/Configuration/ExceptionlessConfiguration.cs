@@ -388,7 +388,7 @@ namespace Exceptionless {
             RemovePlugin(key);
 
             if (!_plugins.TryAdd(key, new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin))))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace Exceptionless {
 
             var plugin = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));
             if (!_plugins.TryAdd(key, plugin))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -432,7 +432,7 @@ namespace Exceptionless {
 
             var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => factory(this)));
             if (!_plugins.TryAdd(key, plugin))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace Exceptionless {
 
             var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => new ActionPlugin(pluginAction)));
             if (!_plugins.TryAdd(key, plugin))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -520,7 +520,7 @@ namespace Exceptionless {
                 result.Messages.Add("ApiKey is not set.");
 
             if (key != null && (key.Length < 10 || key.Contains(" ")))
-                result.Messages.Add(String.Format("ApiKey \"{0}\" is not valid.", key));
+                result.Messages.Add($"ApiKey \"{key}\" is not valid.");
 
             if (String.IsNullOrEmpty(ServerUrl))
                 result.Messages.Add("ServerUrl is not set.");
@@ -561,7 +561,7 @@ namespace Exceptionless {
             }
 
             public override string ToString() {
-                return String.Format("Key: {0}, Priority: {1}", Key, Priority);
+                return $"Key: {Key}, Priority: {Priority}";
             }
 
             public void Dispose() {

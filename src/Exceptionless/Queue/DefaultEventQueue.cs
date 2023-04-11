@@ -141,7 +141,7 @@ namespace Exceptionless.Queue {
             if (!duration.HasValue)
                 duration = TimeSpan.FromMinutes(5);
 
-            _log.Info(typeof(DefaultEventQueue), String.Format("Suspending processing for: {0}.", duration.Value));
+            _log.Info(typeof(DefaultEventQueue), $"Suspending processing for: {duration.Value}.");
             _suspendProcessingUntil = DateTime.Now.Add(duration.Value);
             _queueTimer.Change(duration.Value, _processQueueInterval);
 

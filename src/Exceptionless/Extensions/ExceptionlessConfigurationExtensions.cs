@@ -352,20 +352,20 @@ namespace Exceptionless {
 
                     Type resolverInterface = types.FirstOrDefault(t => t.Name.Equals(resolver.Service) || t.FullName.Equals(resolver.Service));
                     if (resolverInterface == null) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), String.Format("Error retrieving service type \"{0}\".", resolver.Service));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"Error retrieving service type \"{resolver.Service}\".");
                         continue;
                     }
 
                     try {
                         Type implementationType = Type.GetType(resolver.Type);
                         if (!resolverInterface.IsAssignableFrom(implementationType)) {
-                            config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), String.Format("Type \"{0}\" does not implement \"{1}\".", resolver.Type, resolver.Service));
+                            config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"Type \"{resolver.Type}\" does not implement \"{resolver.Service}\".");
                             continue;
                         }
 
                         config.Resolver.Register(resolverInterface, implementationType);
                     } catch (Exception ex) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Format("An error occurred while registering service \"{0}\" implementation \"{1}\".", resolver.Service, resolver.Type));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, $"An error occurred while registering service \"{resolver.Service}\" implementation \"{resolver.Type}\".");
                     }
                 }
             }

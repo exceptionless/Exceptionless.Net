@@ -31,7 +31,7 @@ namespace Exceptionless.Plugins.Default {
             }
 
             if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(context.Event.Type, context.Event.Source)) {
-                context.Log.Info(String.Format("Cancelling event from excluded type: {0} and source: {1}", context.Event.Type, context.Event.Source));
+                context.Log.Info($"Cancelling event from excluded type: {context.Event.Type} and source: {context.Event.Source}");
                 context.Cancel = true;
                 return;
             }

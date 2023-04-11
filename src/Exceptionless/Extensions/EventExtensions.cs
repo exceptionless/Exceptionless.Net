@@ -237,7 +237,7 @@ namespace Exceptionless {
             if (ev == null || String.IsNullOrEmpty(name))
                 return null;
 
-            return ev.Data.GetString(String.Format("@ref:{0}", name));
+            return ev.Data.GetString($"@ref:{name}");
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace Exceptionless {
             if (!IsValidIdentifier(id) || String.IsNullOrEmpty(id))
                 throw new ArgumentException("Id must contain between 8 and 100 alphanumeric or '-' characters.", "id");
 
-            ev.SetProperty(String.Format("@ref:{0}", name), id);
+            ev.SetProperty($"@ref:{name}", id);
         }
 
         private static bool IsValidIdentifier(string value) {

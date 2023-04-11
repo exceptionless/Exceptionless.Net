@@ -36,7 +36,7 @@ namespace Exceptionless.Utility {
 
                     types.AddRange(assembly.GetExportedTypes());
                 } catch (Exception ex) {
-                    log.Error(typeof(AssemblyHelper), ex, String.Format("An error occurred while getting types for assembly \"{0}\".", assembly));
+                    log.Error(typeof(AssemblyHelper), ex, $"An error occurred while getting types for assembly \"{assembly}\".");
                 }
             }
 

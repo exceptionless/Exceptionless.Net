@@ -86,7 +86,7 @@ namespace Exceptionless.ExtendedData {
 
             if (contentLength > MAX_BODY_SIZE) {
                 string value = Math.Round(contentLength / 1024m, 0).ToString("N0");
-                string message = String.Format("Data is too large ({0}kb) to be included.", value);
+                string message = $"Data is too large ({value}kb) to be included.";
                 log.Debug(message);
                 return message;
             }

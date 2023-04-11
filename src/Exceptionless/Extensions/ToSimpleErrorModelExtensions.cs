@@ -104,7 +104,7 @@ namespace Exceptionless.Extensions {
         }
 
         private static string GetMessage(this Exception exception, string typeName) {
-            string defaultMessage = String.Format("Exception of type '{0}' was thrown.", typeName);
+            string defaultMessage = $"Exception of type '{typeName}' was thrown.";
             string message = !String.IsNullOrEmpty(exception.Message) ? exception.Message.Trim() : null;
 
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
