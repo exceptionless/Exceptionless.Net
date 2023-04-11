@@ -25,7 +25,7 @@ namespace Exceptionless.Tests {
             return new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.ReadFromAttributes();
-                c.UserAgent = "testclient/1.0.0.0";
+                c.UserAgent = "test-client/1.0.0.0";
 
                 // Disable updating settings.
                 c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
@@ -36,7 +36,7 @@ namespace Exceptionless.Tests {
         public void CanAddMultipleDataObjectsToEvent() {
             var client = CreateClient();
             var ev = client.CreateLog("Test");
-            Assert.Equal(ev.Target.Type, Event.KnownTypes.Log);
+            Assert.Equal(Event.KnownTypes.Log, ev.Target.Type);
             ev.AddObject(new Person { Name = "Blake" });
             ev.AddObject(new Person { Name = "Eric" });
             ev.AddObject(new Person { Name = "Ryan" });
@@ -116,29 +116,28 @@ namespace Exceptionless.Tests {
             Assert.NotNull(submissionClient);
             Assert.Equal(0, submissionClient.SubmittedEvents);
 
-            using (var storage = client.Configuration.Resolver.Resolve<IObjectStorage>() as InMemoryObjectStorage) {
-                Assert.NotNull(storage);
-                Assert.Equal(0, storage.Count);
+            using var storage = client.Configuration.Resolver.Resolve<IObjectStorage>() as InMemoryObjectStorage;
+            Assert.NotNull(storage);
+            Assert.Equal(0, storage.Count);
 
-                const int iterations = 200;
-                for (int i = 1; i <= iterations; i++) {
-                    _writer.WriteLine($"---- {i} ----");
-                    client.CreateLog(typeof(ExceptionlessClientTests).FullName, i.ToString(), LogLevel.Warn)
-                        .AddTags("Test")
-                        .SetUserIdentity(new UserInfo { Identity = "00001", Name = "test" })
-                        .Submit();
+            const int iterations = 200;
+            for (int i = 1; i <= iterations; i++) {
+                _writer.WriteLine($"---- {i} ----");
+                client.CreateLog(typeof(ExceptionlessClientTests).FullName, i.ToString(), LogLevel.Warn)
+                    .AddTags("Test")
+                    .SetUserIdentity(new UserInfo { Identity = "00001", Name = "test" })
+                    .Submit();
 
-                    Assert.InRange(storage.Count, i, i + 1);
-                }
-
-                // Count could be higher due to persisted dictionaries via settings manager / other plugins
-                Assert.InRange(storage.Count, iterations, iterations + 1);
-
-                await client.ProcessQueueAsync();
-                Assert.Equal(iterations, submissionClient.SubmittedEvents);
-
-                await client.ShutdownAsync();
+                Assert.InRange(storage.Count, i, i + 1);
             }
+
+            // Count could be higher due to persisted dictionaries via settings manager / other plugins
+            Assert.InRange(storage.Count, iterations, iterations + 1);
+
+            await client.ProcessQueueAsync();
+            Assert.Equal(iterations, submissionClient.SubmittedEvents);
+
+            await client.ShutdownAsync();
         }
 
         private class Person {
