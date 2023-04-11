@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -318,13 +318,13 @@ namespace Exceptionless {
 
         public static T GetDataValue<T>(this Event ev, string key, IJsonSerializer serializer = null) {
             if(ev == null || String.IsNullOrEmpty(key) || !ev.Data.ContainsKey(key))
-                return default(T);
+                return default;
 
             try {
                 return ev.Data.GetValue<T>(key, serializer);
             } catch (Exception) { }
 
-            return default(T);
+            return default;
         }
     }
 

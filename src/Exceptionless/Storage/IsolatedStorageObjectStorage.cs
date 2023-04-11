@@ -6,19 +6,14 @@ using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using Exceptionless.Dependency;
-using Exceptionless.Extensions;
-using Exceptionless.Models;
-using Exceptionless.Storage;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Storage {
     public class IsolatedStorageObjectStorage : IObjectStorage {
         private readonly object _lockObject = new object();
         private readonly IDependencyResolver _resolver;
-        private static readonly Encoding _encodingUTF8NoBOM = new UTF8Encoding(false, true);
 
         public IsolatedStorageObjectStorage(IDependencyResolver resolver) {
             _resolver = resolver;
@@ -40,7 +35,7 @@ namespace Exceptionless.Storage {
             stack.Push(initialDirectory);
             Regex searchPatternRegex = null;
             if (!String.IsNullOrEmpty(searchPattern))
-                searchPatternRegex = new Regex("^" + Regex.Escape(searchPattern).Replace(Path.DirectorySeparatorChar + "*", ".*?").Replace(Path.AltDirectorySeparatorChar + "*", ".*?") + "$");
+                searchPatternRegex = new Regex($"^{Regex.Escape(searchPattern).Replace(Path.DirectorySeparatorChar + "*", ".*?").Replace(Path.AltDirectorySeparatorChar + "*", ".*?")}$");
 
             while (stack.Count > 0) {
                 string dir = stack.Pop();
@@ -112,7 +107,7 @@ namespace Exceptionless.Storage {
                 });
 
                 if (buffer == null || buffer.Length == 0)
-                    return default(T);
+                    return default;
                 return _resolver.GetStorageSerializer().Deserialize<T>(new MemoryStream(buffer));
             } catch (Exception ex) {
                 _resolver.GetLog().Error(ex.Message, exception: ex);
