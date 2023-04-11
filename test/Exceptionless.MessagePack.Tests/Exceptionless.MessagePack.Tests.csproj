@@ -43,4 +43,7 @@
     <Reference Include="System" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' " Label="Package References">
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
 </Project>
