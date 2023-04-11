@@ -11,7 +11,7 @@
     <Authors>Exceptionless</Authors>
     <NoWarn>$(NoWarn);CS1591;NU1701</NoWarn>
     <WarningsAsErrors>true</WarningsAsErrors>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
     <PackageIcon>exceptionless-icon.png</PackageIcon>
