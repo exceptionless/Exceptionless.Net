@@ -25,7 +25,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.25" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.32" />
     <PackageReference Include="Microsoft.Net.Http.Headers" Version="2.2.8" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
   </ItemGroup>
