@@ -27,7 +27,7 @@ namespace Exceptionless {
         public ContextData PluginContextData { get; private set; }
 
         /// <summary>
-        /// Wether the event is an unhandled error.
+        /// Whether the event is an unhandled error.
         /// </summary>
         public bool IsUnhandledError {
             get { return PluginContextData != null && PluginContextData.IsUnhandledError; }

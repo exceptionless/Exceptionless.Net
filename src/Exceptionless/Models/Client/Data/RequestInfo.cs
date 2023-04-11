@@ -20,7 +20,7 @@ namespace Exceptionless.Models.Data {
         public string HttpMethod { get; set; }
 
         /// <summary>
-        /// Wether the request was secure or not.
+        /// Whether the request was secure or not.
         /// </summary>
         public bool IsSecure { get; set; }
 
