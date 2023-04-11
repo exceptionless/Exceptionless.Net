@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,14 +38,14 @@ namespace Exceptionless.Extensions {
                 throw new ArgumentException($"Path \"{info.Path}\" must contain the number of attempts.");
 
             version++;
-            string newpath = String.Join(".", parts[0], version, parts[2]);
+            string newPath = String.Join(".", parts[0], version, parts[2]);
             if (parts.Length == 4)
-                newpath += "." + parts[3];
+                newPath += "." + parts[3];
 
             string originalPath = info.Path;
-            info.Path = newpath;
+            info.Path = newPath;
 
-            return storage.RenameObject(originalPath, newpath);
+            return storage.RenameObject(originalPath, newPath);
         }
 
         public static int GetAttempts(this ObjectInfo info) {
@@ -94,7 +94,7 @@ namespace Exceptionless.Extensions {
                 storage.ReleaseFile(file);
         }
 
-        public static IList<Tuple<ObjectInfo, Event>> GetEventBatch(this IObjectStorage storage, string queueName, IJsonSerializer serializer, int batchSize = 50, DateTime? maxCreatedDate = null) {
+        public static IList<Tuple<ObjectInfo, Event>> GetEventBatch(this IObjectStorage storage, string queueName, int batchSize = 50, DateTime? maxCreatedDate = null) {
             var events = new List<Tuple<ObjectInfo, Event>>();
 
             lock (_lockObject) {
@@ -103,16 +103,18 @@ namespace Exceptionless.Extensions {
                         continue;
 
                     try {
-                        storage.IncrementAttempts(file);
-                    } catch {}
-
-                    try {
                         var ev = storage.GetObject<Event>(file.Path);
                         events.Add(Tuple.Create(file, ev));
                         if (events.Count == batchSize)
                             break;
-
-                    } catch {}
+                    } catch {
+                        // Increment the attempts if we couldn't process the file
+                        try {
+                            storage.IncrementAttempts(file);
+                        } catch {
+                            // This should never be hit, but we need to ensure this is safe.
+                        }
+                    }
                 }
 
                 return events;

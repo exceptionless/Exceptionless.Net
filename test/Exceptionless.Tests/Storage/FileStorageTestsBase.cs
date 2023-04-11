@@ -97,14 +97,14 @@ namespace Exceptionless.Tests.Storage {
             Assert.True(storage.GetQueueFiles(queueName).All(f => f.Path.EndsWith("0.json.x")));
             Assert.True(storage.ReleaseFile(storage.GetObjectList().FirstOrDefault()));
 
-            var batch = storage.GetEventBatch(queueName, serializer);
+            var batch = storage.GetEventBatch(queueName);
             Assert.Equal(1, batch.Count);
 
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("1.json.x")));
             Assert.Single(storage.GetObjectList());
 
             Assert.Empty(storage.GetQueueFiles(queueName));
-            Assert.Empty(storage.GetEventBatch(queueName, serializer));
+            Assert.Empty(storage.GetEventBatch(queueName));
 
             Assert.False(storage.LockFile(storage.GetObjectList().FirstOrDefault()));
 
@@ -126,7 +126,7 @@ namespace Exceptionless.Tests.Storage {
             storage.ReleaseStaleLocks(queueName, TimeSpan.Zero);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("3.json")));
 
-            batch = storage.GetEventBatch(queueName, serializer);
+            batch = storage.GetEventBatch(queueName);
             Assert.Equal(1, batch.Count);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("4.json.x")));
             storage.DeleteBatch(batch);
@@ -171,7 +171,7 @@ namespace Exceptionless.Tests.Storage {
             var working = new ConcurrentDictionary<string, object>();
 
             Parallel.For(0, 50, i => {
-                var fileBatch = storage.GetEventBatch(queueName, serializer, 2);
+                var fileBatch = storage.GetEventBatch(queueName, 2);
                 foreach (var f in fileBatch) {
                     if (working.ContainsKey(f.Item1.Path))
                         Debug.WriteLine(f.Item1.Path);
