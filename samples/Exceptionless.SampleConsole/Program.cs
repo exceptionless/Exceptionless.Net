@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -25,8 +25,8 @@ namespace Exceptionless.SampleConsole {
     public class Program {
         private static readonly int[] _delays = { 0, 50, 100, 1000 };
         private static int _delayIndex = 2;
-        private static readonly InMemoryExceptionlessLog _log = new InMemoryExceptionlessLog { MinimumLogLevel = LogLevel.Info };
-        private static readonly object _writeLock = new object();
+        private static readonly InMemoryExceptionlessLog _log = new() { MinimumLogLevel = LogLevel.Info };
+        private static readonly object _writeLock = new();
 
         private static readonly TimeSpan[] _dateSpans = {
             TimeSpan.Zero,
@@ -75,7 +75,7 @@ namespace Exceptionless.SampleConsole {
             //    .Submit();
 
             var tokenSource = new CancellationTokenSource();
-            CancellationToken token = tokenSource.Token;
+            var token = tokenSource.Token;
 
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => ctx.Event.Data[RandomData.GetWord()] = RandomData.GetWord());
             ExceptionlessClient.Default.Configuration.AddPlugin(ctx => {
@@ -141,36 +141,22 @@ namespace Exceptionless.SampleConsole {
 
         private static ConsoleKeyInfo GetKeyFromRedirectedConsole() {
             string input = Console.In.ReadLine();
-            switch (input?.ToLower()) {
-                case "1":
-                    return new ConsoleKeyInfo('1', ConsoleKey.D1, false, false, false);
-                case "2":
-                    return new ConsoleKeyInfo('2', ConsoleKey.D2, false, false, false);
-                case "3":
-                    return new ConsoleKeyInfo('3', ConsoleKey.D3, false, false, false);
-                case "4":
-                    return new ConsoleKeyInfo('4', ConsoleKey.D4, false, false, false);
-                case "5":
-                    return new ConsoleKeyInfo('5', ConsoleKey.D5, false, false, false);
-                case "6":
-                    return new ConsoleKeyInfo('6', ConsoleKey.D6, false, false, false);
-                case "7":
-                    return new ConsoleKeyInfo('7', ConsoleKey.D7, false, false, false);
-                case "8":
-                    return new ConsoleKeyInfo('8', ConsoleKey.D8, false, false, false);
-                case "p":
-                    return new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false);
-                case "f":
-                    return new ConsoleKeyInfo('f', ConsoleKey.F, false, false, false);
-                case "d":
-                    return new ConsoleKeyInfo('d', ConsoleKey.D, false, false, false);
-                case "t":
-                    return new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false);
-                case "q":
-                    return new ConsoleKeyInfo('q', ConsoleKey.Q, false, false, false);
-            }
-
-            return new ConsoleKeyInfo(' ', ConsoleKey.Escape, false, false, false);
+            return input?.ToLower() switch {
+                "1" => new ConsoleKeyInfo('1', ConsoleKey.D1, false, false, false),
+                "2" => new ConsoleKeyInfo('2', ConsoleKey.D2, false, false, false),
+                "3" => new ConsoleKeyInfo('3', ConsoleKey.D3, false, false, false),
+                "4" => new ConsoleKeyInfo('4', ConsoleKey.D4, false, false, false),
+                "5" => new ConsoleKeyInfo('5', ConsoleKey.D5, false, false, false),
+                "6" => new ConsoleKeyInfo('6', ConsoleKey.D6, false, false, false),
+                "7" => new ConsoleKeyInfo('7', ConsoleKey.D7, false, false, false),
+                "8" => new ConsoleKeyInfo('8', ConsoleKey.D8, false, false, false),
+                "p" => new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false),
+                "f" => new ConsoleKeyInfo('f', ConsoleKey.F, false, false, false),
+                "d" => new ConsoleKeyInfo('d', ConsoleKey.D, false, false, false),
+                "t" => new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false),
+                "q" => new ConsoleKeyInfo('q', ConsoleKey.Q, false, false, false),
+                _ => new ConsoleKeyInfo(' ', ConsoleKey.Escape, false, false, false)
+            };
         }
 
         private static void SampleApiUsages() {
@@ -274,7 +260,7 @@ namespace Exceptionless.SampleConsole {
             }
         }
 
-        private static void SendContinuousEvents(int delay, CancellationToken token, int maxEvents = Int32.MaxValue, int maxDaysOld = 90, Event ev = null) {
+        private static void SendContinuousEvents(int delay, CancellationToken token, int maxEvents = Int32.MaxValue, Event ev = null) {
             Console.SetCursorPosition(0, OPTIONS_MENU_LINE_COUNT + 2);
             Console.WriteLine("Press 's' to stop sending.");
             int eventCount = 0;
@@ -303,12 +289,12 @@ namespace Exceptionless.SampleConsole {
             }, token);
         }
 
-        private static readonly RandomEventGenerator _rnd = new RandomEventGenerator();
+        private static readonly RandomEventGenerator _random = new();
         private static void SendEvent(Event ev = null, bool writeToConsole = true) {
-            _rnd.MinDate = DateTime.Now.Subtract(_dateSpans[_dateSpanIndex]);
-            _rnd.MaxDate = DateTime.Now;
+            _random.MinDate = DateTime.Now.Subtract(_dateSpans[_dateSpanIndex]);
+            _random.MaxDate = DateTime.Now;
 
-            ExceptionlessClient.Default.SubmitEvent(ev ?? _rnd.Generate());
+            ExceptionlessClient.Default.SubmitEvent(ev ?? _random.Generate());
 
             if (writeToConsole) {
                 lock (_writeLock) {
