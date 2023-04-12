@@ -13,7 +13,7 @@ namespace Exceptionless.NLog {
         public string ServerUrl { get; set; }
 
         [ArrayParameter(typeof(ExceptionlessField), "field")]
-        public IList<ExceptionlessField> Fields { get; private set; }
+        public IList<ExceptionlessField> Fields { get; set; }
 
         public ExceptionlessTarget() {
             Fields = new List<ExceptionlessField>();
