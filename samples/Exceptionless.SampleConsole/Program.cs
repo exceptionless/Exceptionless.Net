@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -60,12 +60,12 @@ namespace Exceptionless.SampleConsole {
             LogManager.Configuration = config;
 
             var logger = LogManager.GetCurrentClassLogger();
-            logger.Warn()
+            logger.ForWarnEvent()
                 .Message("App Starting...")
                 .Tag("Tag1", "Tag2")
                 .Property("LocalProp", "LocalValue")
                 .Property("Order", new { Total = 15 })
-                .Write();
+                .Log();
 
             // This is how you could log the same message using the fluent api directly.
             //ExceptionlessClient.Default.CreateLog(typeof(Program).Name, "App Starting...", LogLevel.Info)
