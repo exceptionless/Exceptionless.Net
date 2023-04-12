@@ -3,14 +3,27 @@ using System.Collections.Generic;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using NLog;
-using NLog.Fluent;
 
 namespace Exceptionless.NLog {
-    public static class LogBuilderExtensions {
+    public static class LogEventBuilderExtensions {
+        /// <summary>
+        /// Sets the logger name of the logging event.
+        /// </summary>
+        /// <param name="builder">The log builder object.</param>
+        /// <param name="loggerName">The logger name of the logging event.</param>
+        /// <returns>current <see cref="LogEventBuilder"/> for chaining calls.</returns>
+        internal static LogEventBuilder LoggerName(this LogEventBuilder builder, string loggerName = null) {
+            if (builder.LogEvent != null)
+                builder.LogEvent.LoggerName = loggerName;
+            
+            return builder;
+        }
+
         /// <summary>
         /// Marks the event as being a critical occurrence.
         /// </summary>
-        public static LogBuilder Critical(this LogBuilder builder, bool isCritical = true) {
+        [CLSCompliant(false)]
+        public static LogEventBuilder Critical(this LogEventBuilder builder, bool isCritical = true) {
             return isCritical ? builder.Tag("Critical") : builder;
         }
 
@@ -19,8 +32,11 @@ namespace Exceptionless.NLog {
         /// </summary>
         /// <param name="builder">The log builder object.</param>
         /// <param name="tags">The tags to be added to the event.</param>
-        public static LogBuilder Tag(this LogBuilder builder, params string[] tags) {
-            builder.LogEventInfo.AddTags(tags);
+        [CLSCompliant(false)]
+        public static LogEventBuilder Tag(this LogEventBuilder builder, params string[] tags) {
+            if (builder.LogEvent != null)
+                builder.LogEvent.AddTags(tags);
+
             return builder;
         }
 
@@ -29,7 +45,8 @@ namespace Exceptionless.NLog {
         /// </summary>
         /// <param name="builder">The log builder object.</param>
         /// <param name="identity">The user's identity that the event happened to.</param>
-        public static LogBuilder Identity(this LogBuilder builder, string identity) {
+        [CLSCompliant(false)]
+        public static LogEventBuilder Identity(this LogEventBuilder builder, string identity) {
             return builder.Identity(identity, null);
         }
 
@@ -39,15 +56,18 @@ namespace Exceptionless.NLog {
         /// <param name="builder">The log builder object.</param>
         /// <param name="identity">The user's identity that the event happened to.</param>
         /// <param name="name">The user's friendly name that the event happened to.</param>
-        public static LogBuilder Identity(this LogBuilder builder, string identity, string name) {
+        [CLSCompliant(false)]
+        public static LogEventBuilder Identity(this LogEventBuilder builder, string identity, string name) {
             if (String.IsNullOrWhiteSpace(identity) && String.IsNullOrWhiteSpace(name))
                 return builder;
 
             return builder.Property(Event.KnownDataKeys.UserInfo, new UserInfo(identity, name));
         }
 
-        public static LogBuilder ContextProperty(this LogBuilder builder, string key, object value) {
-            builder.LogEventInfo.SetContextDataProperty(key, value);
+        [CLSCompliant(false)]
+        public static LogEventBuilder ContextProperty(this LogEventBuilder builder, string key, object value) {
+            if (builder.LogEvent != null)
+                builder.LogEvent.SetContextDataProperty(key, value);
 
             return builder;
         }
@@ -57,10 +77,14 @@ namespace Exceptionless.NLog {
         /// </summary>
         /// <param name="builder">The log builder object.</param>
         /// <param name="submissionMethod">The submission method.</param>
-        public static LogBuilder MarkUnhandled(this LogBuilder builder, string submissionMethod = null) {
-            builder.LogEventInfo.SetContextDataProperty(IsUnhandledError, true);
+        [CLSCompliant(false)]
+        public static LogEventBuilder MarkUnhandled(this LogEventBuilder builder, string submissionMethod = null) {
+            if (builder.LogEvent != null)
+                return builder;
+
+            builder.LogEvent.SetContextDataProperty(IsUnhandledError, true);
             if (!String.IsNullOrEmpty(submissionMethod))
-                builder.LogEventInfo.SetContextDataProperty(SubmissionMethod, submissionMethod);
+                builder.LogEvent.SetContextDataProperty(SubmissionMethod, submissionMethod);
 
             return builder;
         }

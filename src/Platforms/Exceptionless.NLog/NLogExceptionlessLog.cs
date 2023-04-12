@@ -18,36 +18,36 @@ namespace Exceptionless.NLog {
         public void Error(string message, string source = null, Exception exception = null) {
             if (LogLevel.Error < MinimumLogLevel)
                 return;
-
-            _logger.Error().Message(message).LoggerName(source).Exception(exception).Write();
+            
+            _logger.ForErrorEvent().Message(message).LoggerName(source).Log();
         }
 
         public void Info(string message, string source = null) {
             if (LogLevel.Info < MinimumLogLevel)
                 return;
-
-            _logger.Info().Message(message).LoggerName(source).Write();
+            
+            _logger.ForInfoEvent().Message(message).LoggerName(source).Log();
         }
 
         public void Debug(string message, string source = null) {
             if (LogLevel.Debug < MinimumLogLevel)
                 return;
-
-            _logger.Debug().Message(message).LoggerName(source).Write();
+            
+            _logger.ForDebugEvent().Message(message).LoggerName(source).Log();
         }
 
         public void Warn(string message, string source = null) {
             if (LogLevel.Warn < MinimumLogLevel)
                 return;
-
-            _logger.Warn().Message(message).LoggerName(source).Write();
+            
+            _logger.ForWarnEvent().Message(message).LoggerName(source).Log();
         }
 
         public void Trace(string message, string source = null) {
             if (LogLevel.Trace < MinimumLogLevel)
                 return;
-
-            _logger.Trace().Message(message).LoggerName(source).Write();
+            
+            _logger.ForTraceEvent().Message(message).LoggerName(source).Log();
         }
 
         public void Flush() { }
