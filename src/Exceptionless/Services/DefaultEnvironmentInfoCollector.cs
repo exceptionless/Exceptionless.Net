@@ -137,6 +137,7 @@ namespace Exceptionless.Services {
 #endif
 
         private void PopulateRuntimeInfo(EnvironmentInfo info) {
+            // TODO: Look into supporting RuntimeInformation once .NET 4.6.2 is deprecated.
 #if NETSTANDARD
             info.OSName = GetOSName(RuntimeInformation.OSDescription);
             info.OSVersion = GetVersion(RuntimeInformation.OSDescription)?.ToString();
