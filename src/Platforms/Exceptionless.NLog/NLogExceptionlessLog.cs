@@ -19,7 +19,7 @@ namespace Exceptionless.NLog {
             if (LogLevel.Error < MinimumLogLevel)
                 return;
             
-            _logger.ForErrorEvent().Message(message).LoggerName(source).Log();
+            _logger.ForErrorEvent().Message(message).LoggerName(source).Exception(exception).Log();
         }
 
         public void Info(string message, string source = null) {
