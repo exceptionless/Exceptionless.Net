@@ -90,8 +90,8 @@ namespace Exceptionless.NLog {
         }
 
         internal static HashSet<string> GetTags(this LogEventInfo ev) {
-            if (ev.Properties.ContainsKey(Tags) && ev.Properties[Tags] is HashSet<string>)
-                return (HashSet<string>)ev.Properties[Tags];
+            if (ev.HasProperties && ev.Properties.TryGetValue(Tags, out var tags))
+                return tags as HashSet<string>;
 
             return null;
         }
@@ -109,8 +109,8 @@ namespace Exceptionless.NLog {
         }
 
         internal static IDictionary<string, object> GetContextData(this LogEventInfo ev) {
-            if (ev.Properties.ContainsKey(ContextData) && ev.Properties[ContextData] is IDictionary<string, object>)
-                return (IDictionary<string, object>)ev.Properties[ContextData];
+            if (ev.HasProperties && ev.Properties.TryGetValue(ContextData, out var contextData))
+                return contextData as IDictionary<string, object>;
 
             return null;
         }

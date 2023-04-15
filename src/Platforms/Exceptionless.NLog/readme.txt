@@ -36,12 +36,11 @@ minimum log level that will be used until the client retrieves settings from the
 <?xml version="1.0" encoding="utf-8" ?>
 <nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <targets async="true">
-    <target xsi:type="Exceptionless, Exceptionless.NLog" name="exceptionless" apiKey="API_KEY_HERE">
+  <targets>
+    <target type="Exceptionless, Exceptionless.NLog" name="exceptionless" apiKey="API_KEY_HERE">
       <field name="host" layout="${machinename}" />
-      <field name="identity" layout="${identity}" />
-      <field name="windows-identity" layout="${windows-identity:userName=True:domain=False}" />
       <field name="process" layout="${processname}" />
+      <field name="user" layout="${environment-user}" />
     </target>
   </targets>
 
