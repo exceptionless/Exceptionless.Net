@@ -13,6 +13,8 @@ namespace Exceptionless.NLog {
         public Layout ApiKey { get; set; }
         public Layout ServerUrl { get; set; }
         public Layout UserIdentity { get; set; }
+        public Layout UserIdentityName { get; set; }
+        public Layout UserIdentityEmail { get; set; }
 
         [ArrayParameter(typeof(ExceptionlessField), "field")]
         public IList<ExceptionlessField> Fields { get; set; }
@@ -50,8 +52,12 @@ namespace Exceptionless.NLog {
             var builder = _client.CreateFromLogEvent(logEvent, formattedMessage);
 
             var userIdentity = RenderLogEvent(UserIdentity, logEvent);
-            if (!String.IsNullOrWhiteSpace(userIdentity))
-                builder.Target.SetUserIdentity(userIdentity);
+            var userIdentityName = RenderLogEvent(UserIdentityName, logEvent);
+            builder.Target.SetUserIdentity(userIdentity, userIdentityName);
+
+            var userIdentityEmail = RenderLogEvent(UserIdentityEmail, logEvent);
+            if (!String.IsNullOrWhiteSpace(userIdentityEmail))
+                builder.SetUserDescription(userIdentityEmail, userIdentityName);
 
             foreach (var field in Fields) {
                 var renderedField = RenderLogEvent(field.Layout, logEvent);
