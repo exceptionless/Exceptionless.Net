@@ -74,7 +74,7 @@ namespace Exceptionless.NLog {
             CreateFromLogEvent(client, ev).Submit();
         }
 
-        private static readonly HashSet<string> _ignoredEventProperties = new HashSet<string> {
+        private static readonly HashSet<string> _ignoredEventProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
             "Tags",
             "ContextData"
         };

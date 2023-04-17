@@ -12,7 +12,6 @@ namespace Exceptionless.NLog {
 
         public Layout ApiKey { get; set; }
         public Layout ServerUrl { get; set; }
-        public Layout ReferenceId { get; set; }
         public Layout UserIdentity { get; set; }
 
         [ArrayParameter(typeof(ExceptionlessField), "field")]
@@ -49,10 +48,6 @@ namespace Exceptionless.NLog {
 
             var formattedMessage = RenderLogEvent(Layout, logEvent);
             var builder = _client.CreateFromLogEvent(logEvent, formattedMessage);
-
-            var referenceId = RenderLogEvent(ReferenceId, logEvent);
-            if (!String.IsNullOrWhiteSpace(referenceId))
-                builder.SetReferenceId(referenceId);
 
             var userIdentity = RenderLogEvent(UserIdentity, logEvent);
             if (!String.IsNullOrWhiteSpace(userIdentity))
