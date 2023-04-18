@@ -228,6 +228,7 @@ namespace Exceptionless {
                 IncludeUserName = value;
                 IncludeMachineName = value;
                 IncludeIpAddress = value;
+                IncludeHeaders = value;
                 IncludeCookies = value;
                 IncludePostData = value;
                 IncludeQueryString = value;
@@ -246,6 +247,11 @@ namespace Exceptionless {
         /// Gets or sets a value indicating whether to include Ip Addresses in MachineInfo and RequestInfo.
         /// </summary>
         public bool IncludeIpAddress { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether to include Headers.
+        /// NOTE: DataExclusions are applied to all Headers keys when enabled.
+        /// </summary>
+        public bool IncludeHeaders { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether to include Cookies.
         /// NOTE: DataExclusions are applied to all Cookie keys when enabled.

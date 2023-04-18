@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -50,6 +49,8 @@ namespace Exceptionless.ExtendedData {
                 info.Port = context.Request.Url.Port;
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
+            if (config.IncludeHeaders)
+                info.Headers = context.Request.Headers.ToHeaderDictionary(exclusionList);
 
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
@@ -139,8 +140,15 @@ namespace Exceptionless.ExtendedData {
             }
         }
 
-        private static readonly List<string> _ignoredFormFields = new List<string> {
-            "__*"
+        private static readonly List<string> _ignoredHeaders = new List<string> {
+            "Authorization",
+            "Cookie",
+            "Host",
+            "Method",
+            "Path",
+            "Proxy-Authorization",
+            "Referer",
+            "User-Agent"
         };
 
         private static readonly List<string> _ignoredCookies = new List<string> {
@@ -149,12 +157,40 @@ namespace Exceptionless.ExtendedData {
             "*SessionId*"
         };
 
-        private static Dictionary<string, string> ToDictionary(this HttpCookieCollection cookies, IEnumerable<string> exclusions) {
+        private static readonly List<string> _ignoredFormFields = new List<string> {
+            "__*"
+        };
+
+        private static Dictionary<string, string[]> ToHeaderDictionary(this NameValueCollection headers, string[] exclusions) {
+            var result = new Dictionary<string, string[]>();
+
+            foreach (string key in headers.AllKeys) {
+                if (String.IsNullOrEmpty(key) || _ignoredHeaders.Contains(key) || key.AnyWildcardMatches(exclusions))
+                    continue;
+
+                try {
+                    string value = headers.Get(key);
+                    if (value != null && !result.ContainsKey(key) && value.Length < MAX_DATA_ITEM_LENGTH)
+                        result.Add(key, value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                }
+                catch (Exception ex) {
+                    if (!result.ContainsKey(key))
+                        result.Add(key, new [] { $"EXCEPTION: {ex.Message}" });
+                }
+            }
+
+            return result;
+        }
+
+        private static Dictionary<string, string> ToDictionary(this HttpCookieCollection cookies, string[] exclusions) {
             var d = new Dictionary<string, string>();
 
-            foreach (string key in cookies.AllKeys.Distinct().Where(k => !String.IsNullOrEmpty(k) && !k.AnyWildcardMatches(_ignoredCookies) && !k.AnyWildcardMatches(exclusions))) {
+            foreach (string key in cookies.AllKeys.Distinct()) {
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredCookies) || key.AnyWildcardMatches(exclusions))
+                    continue;
+
                 try {
-                    HttpCookie cookie = cookies.Get(key);
+                    var cookie = cookies.Get(key);
                     if (cookie != null && cookie.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
                         d.Add(key, cookie.Value);
                 } catch (Exception ex) {
@@ -166,12 +202,11 @@ namespace Exceptionless.ExtendedData {
             return d;
         }
 
-        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, IEnumerable<string> exclusions) {
+        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, string[] exclusions) {
             var d = new Dictionary<string, string>();
-
-            var exclusionsArray = exclusions as string[] ?? exclusions.ToArray();
+            
             foreach (string key in values.AllKeys) {
-                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusionsArray))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusions))
                     continue;
 
                 try {
@@ -180,7 +215,7 @@ namespace Exceptionless.ExtendedData {
                         d.Add(key, value);
                 } catch (Exception ex) {
                     if (!d.ContainsKey(key))
-                        d.Add(key, "EXCEPTION: " + ex.Message);
+                        d.Add(key, $"EXCEPTION: {ex.Message}");
                 }
             }
 

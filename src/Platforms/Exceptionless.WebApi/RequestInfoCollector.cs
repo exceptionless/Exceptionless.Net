@@ -37,8 +37,12 @@ namespace Exceptionless.ExtendedData {
                 info.Referrer = context.Request.Headers.Referrer.ToString();
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
+            if (config.IncludeHeaders)
+                info.Headers = context.Request.Headers.ToDictionary(exclusionList);
+
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
+
             if (config.IncludeQueryString)
                 info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
 
@@ -46,8 +50,15 @@ namespace Exceptionless.ExtendedData {
             return info;
         }
 
-        private static readonly List<string> _ignoredFormFields = new List<string> {
-            "__*"
+        private static readonly List<string> _ignoredHeaders = new List<string> {
+            "Authorization",
+            "Cookie",
+            "Host",
+            "Method",
+            "Path",
+            "Proxy-Authorization",
+            "Referer",
+            "User-Agent"
         };
 
         private static readonly List<string> _ignoredCookies = new List<string> {
@@ -56,11 +67,30 @@ namespace Exceptionless.ExtendedData {
             "*SessionId*"
         };
 
-        private static Dictionary<string, string> ToDictionary(this IEnumerable<CookieHeaderValue> cookies, IEnumerable<string> exclusions) {
+        private static readonly List<string> _ignoredFormFields = new List<string> {
+            "__*"
+        };
+
+        // TODO: MAX_DATA_ITEM_LENGTH
+        private static Dictionary<string, string[]> ToDictionary(this HttpRequestHeaders headers, string[] exclusions) {
+            var d = new Dictionary<string, string[]>();
+
+            foreach (var header in headers) {
+                if (!String.IsNullOrEmpty(header.Key) && !_ignoredHeaders.Contains(header.Key) && !header.Key.AnyWildcardMatches(exclusions))
+                    d.Add(header.Key, header.Value.ToArray());
+            }
+
+            return d;
+        }
+
+        private static Dictionary<string, string> ToDictionary(this IEnumerable<CookieHeaderValue> cookies, string[] exclusions) {
             var d = new Dictionary<string, string>();
 
-            foreach (CookieHeaderValue cookie in cookies) {
-                foreach (CookieState innerCookie in cookie.Cookies.Where(k => k != null && !String.IsNullOrEmpty(k.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies) && !k.Name.AnyWildcardMatches(exclusions))) {
+            foreach (var cookie in cookies) {
+                foreach (var innerCookie in cookie.Cookies) {
+                    if (innerCookie == null || String.IsNullOrEmpty(innerCookie.Name) || innerCookie.Name.AnyWildcardMatches(_ignoredCookies) || innerCookie.Name.AnyWildcardMatches(exclusions))
+                        continue;
+
                     if (!d.ContainsKey(innerCookie.Name))
                         d.Add(innerCookie.Name, innerCookie.Value);
                 }
@@ -69,12 +99,11 @@ namespace Exceptionless.ExtendedData {
             return d;
         }
 
-        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, IEnumerable<string> exclusions) {
+        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, string[] exclusions) {
             var d = new Dictionary<string, string>();
-
-            var patternsToMatch = exclusions as string[] ?? exclusions.ToArray();
+            
             foreach (string key in values.AllKeys) {
-                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(patternsToMatch))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusions))
                     continue;
 
                 try {

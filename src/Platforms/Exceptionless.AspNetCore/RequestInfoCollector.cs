@@ -21,7 +21,7 @@ namespace Exceptionless.AspNetCore {
             var info = new RequestInfo {
                 HttpMethod = context.Request.Method,
                 IsSecure = context.Request.IsHttps,
-                Path = context.Request.Path.HasValue ? context.Request.Path.Value : "/",
+                Path = context.Request.Path.HasValue ? context.Request.Path.Value : "/"
             };
 
             if (config.IncludeIpAddress)
@@ -32,13 +32,16 @@ namespace Exceptionless.AspNetCore {
 
             info.Port = context.Request.Host.Port.GetValueOrDefault(info.IsSecure ? 443 : 80);
 
-            if (context.Request.Headers.ContainsKey(HeaderNames.UserAgent))
-                info.UserAgent = context.Request.Headers[HeaderNames.UserAgent].ToString();
+            if (context.Request.Headers.TryGetValue(HeaderNames.UserAgent, out var userAgentHeader))
+                info.UserAgent = userAgentHeader.ToString();
 
-            if (context.Request.Headers.ContainsKey(HeaderNames.Referer))
-                info.Referrer = context.Request.Headers[HeaderNames.Referer].ToString();
+            if (context.Request.Headers.TryGetValue(HeaderNames.Referer, out var refererHeader))
+                info.Referrer = refererHeader.ToString();
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
+            if (config.IncludeHeaders)
+                info.Headers = context.Request.Headers.ToHeaderDictionary(exclusionList);
+
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
 
@@ -93,17 +96,15 @@ namespace Exceptionless.AspNetCore {
                     return message;
                 }
 
-                var maxDataToRead = contentLength == 0 ? MAX_BODY_SIZE : contentLength;
-
                 // pass default values, except for leaveOpen: true. This prevents us from disposing the underlying stream
                 using (var inputStream = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true)) {
                     var sb = new StringBuilder();
                     int numRead;
 
-                    int bufferSize = (int)Math.Min(1024, maxDataToRead);
+                    int bufferSize = (int)Math.Min(1024, contentLength);
 
                     char[] buffer = new char[bufferSize];
-                    while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) <= maxDataToRead) {
+                    while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) <= contentLength) {
                         sb.Append(buffer, 0, numRead);
                     }
                     string postData = sb.ToString();
@@ -121,8 +122,15 @@ namespace Exceptionless.AspNetCore {
             }
         }
 
-        private static readonly List<string> _ignoredFormFields = new List<string> {
-            "__*"
+        private static readonly List<string> _ignoredHeaders = new List<string> {
+            HeaderNames.Authorization,
+            HeaderNames.Cookie,
+            HeaderNames.Host,
+            HeaderNames.Method,
+            HeaderNames.Path,
+            HeaderNames.ProxyAuthorization,
+            HeaderNames.Referer,
+            HeaderNames.UserAgent
         };
 
         private static readonly List<string> _ignoredCookies = new List<string> {
@@ -131,7 +139,24 @@ namespace Exceptionless.AspNetCore {
             "*SessionId*"
         };
 
-        private static Dictionary<string, string> ToDictionary(this IRequestCookieCollection cookies, IList<string> exclusions) {
+        private static readonly List<string> _ignoredFormFields = new List<string> {
+            "__*"
+        };
+
+        private static Dictionary<string, string[]> ToHeaderDictionary(this IEnumerable<KeyValuePair<string, StringValues>> headers, string[] exclusions) {
+            var d = new Dictionary<string, string[]>();
+
+            foreach (var header in headers) {
+                if (String.IsNullOrEmpty(header.Key) || _ignoredHeaders.Contains(header.Key) || header.Key.AnyWildcardMatches(exclusions))
+                    continue;
+
+                d.Add(header.Key, header.Value);
+            }
+
+            return d;
+        }
+
+        private static Dictionary<string, string> ToDictionary(this IRequestCookieCollection cookies, string[] exclusions) {
             var d = new Dictionary<string, string>();
 
             foreach (var kvp in cookies) {
@@ -144,7 +169,7 @@ namespace Exceptionless.AspNetCore {
             return d;
         }
 
-        private static Dictionary<string, string> ToDictionary(this IEnumerable<KeyValuePair<string, StringValues>> values, IEnumerable<string> exclusions) {
+        private static Dictionary<string, string> ToDictionary(this IEnumerable<KeyValuePair<string, StringValues>> values, string[] exclusions) {
             var d = new Dictionary<string, string>();
 
             foreach (var kvp in values) {
