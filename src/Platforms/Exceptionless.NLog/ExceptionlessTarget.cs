@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NLog;
+using NLog.Common;
 using NLog.Config;
 using NLog.Layouts;
 using NLog.Targets;
@@ -61,6 +62,10 @@ namespace Exceptionless.NLog {
             }
 
             builder.Submit();
+        }
+
+        protected override void FlushAsync(AsyncContinuation asyncContinuation) {
+            _client.ProcessQueueAsync().ContinueWith(t => asyncContinuation(t.Exception));
         }
     }
 }
