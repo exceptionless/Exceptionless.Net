@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Exceptionless.Dependency;
 using NLog;
+using NLog.Common;
 using NLog.Config;
 using NLog.Layouts;
 using NLog.Targets;
@@ -29,14 +31,21 @@ namespace Exceptionless.NLog {
             var apiKey = RenderLogEvent(ApiKey, LogEventInfo.CreateNullEvent());
             var serverUrl = RenderLogEvent(ServerUrl, LogEventInfo.CreateNullEvent());
 
-            if (!String.IsNullOrEmpty(apiKey) || !String.IsNullOrEmpty(serverUrl))
+            if (!String.IsNullOrEmpty(apiKey) || !String.IsNullOrEmpty(serverUrl)) {
                 _client = new ExceptionlessClient(config => {
                     if (!String.IsNullOrEmpty(apiKey) && apiKey != "API_KEY_HERE")
                         config.ApiKey = apiKey;
                     if (!String.IsNullOrEmpty(serverUrl))
                         config.ServerUrl = serverUrl;
+                    config.UseLogger(new NLogInternalLoggger());
                     config.UseInMemoryStorage();
                 });
+            }
+            else {
+                if (_client.Configuration.Resolver.HasDefaultRegistration<Logging.IExceptionlessLog, Logging.NullExceptionlessLog>()) {
+                    _client.Configuration.UseLogger(new NLogInternalLoggger());
+                }
+            }
         }
 
         protected override void Write(LogEventInfo logEvent) {
@@ -61,6 +70,10 @@ namespace Exceptionless.NLog {
             }
 
             builder.Submit();
+        }
+
+        protected override void FlushAsync(AsyncContinuation asyncContinuation) {
+            _client.ProcessQueueAsync().ContinueWith(t => asyncContinuation(t.Exception));
         }
     }
 }
