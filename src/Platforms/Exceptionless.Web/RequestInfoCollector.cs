@@ -54,10 +54,7 @@ namespace Exceptionless.ExtendedData {
 
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
-
-            if (config.IncludePostData && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
-                info.PostData = GetPostData(context, config, exclusionList);
-
+            
             if (config.IncludeQueryString) {
                 try {
                     info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
@@ -65,6 +62,9 @@ namespace Exceptionless.ExtendedData {
                     config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
                 }
             }
+
+            if (config.IncludePostData && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+                info.PostData = GetPostData(context, config, exclusionList);
 
             return info;
         }

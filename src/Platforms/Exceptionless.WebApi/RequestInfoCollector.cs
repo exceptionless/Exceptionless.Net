@@ -48,7 +48,10 @@ namespace Exceptionless.ExtendedData {
             if (config.IncludeQueryString)
                 info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
 
-            // TODO Collect form data.
+            // TODO: support getting post data asyncly.
+            //if (config.IncludePostData && context.Request.Method != HttpMethod.Get)
+            //    info.PostData = GetPostData(context, config, exclusionList);
+
             return info;
         }
 
