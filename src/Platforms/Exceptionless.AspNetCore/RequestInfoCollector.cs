@@ -14,6 +14,8 @@ using System.Text;
 namespace Exceptionless.AspNetCore {
     public static class RequestInfoCollector {
         private const int MAX_BODY_SIZE = 50 * 1024;
+        private const int MAX_DATA_ITEM_LENGTH = 1000;
+
         public static RequestInfo Collect(HttpContext context, ExceptionlessConfiguration config) {
             if (context == null)
                 return null;
@@ -150,7 +152,11 @@ namespace Exceptionless.AspNetCore {
                 if (String.IsNullOrEmpty(header.Key) || _ignoredHeaders.Contains(header.Key) || header.Key.AnyWildcardMatches(exclusions))
                     continue;
 
-                d.Add(header.Key, header.Value);
+                string[] values = header.Value.Where(hv => hv != null && hv.Length < MAX_DATA_ITEM_LENGTH).ToArray();
+                if (values.Length == 0)
+                    continue;
+
+                d[header.Key] = values;
             }
 
             return d;
@@ -163,7 +169,10 @@ namespace Exceptionless.AspNetCore {
                 if (String.IsNullOrEmpty(kvp.Key) || kvp.Key.AnyWildcardMatches(_ignoredCookies) || kvp.Key.AnyWildcardMatches(exclusions))
                     continue;
 
-                d.Add(kvp.Key, kvp.Value);
+                if (kvp.Value == null || kvp.Value.Length >= MAX_DATA_ITEM_LENGTH)
+                    continue;
+                
+                d[kvp.Key] = kvp.Value;
             }
 
             return d;
@@ -178,10 +187,12 @@ namespace Exceptionless.AspNetCore {
 
                 try {
                     string value = kvp.Value.ToString();
-                    d.Add(kvp.Key, value);
+                    if (value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+                    
+                    d[kvp.Key] = value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(kvp.Key))
-                        d.Add(kvp.Key, ex.Message);
+                    d[kvp.Key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 

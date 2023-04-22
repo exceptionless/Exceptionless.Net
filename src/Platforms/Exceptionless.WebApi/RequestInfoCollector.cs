@@ -12,6 +12,8 @@ using Exceptionless.Models.Data;
 
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
+        private const int MAX_DATA_ITEM_LENGTH = 1000;
+
         public static RequestInfo Collect(HttpActionContext context, ExceptionlessConfiguration config) {
             if (context == null)
                 return null;
@@ -70,14 +72,19 @@ namespace Exceptionless.ExtendedData {
         private static readonly List<string> _ignoredFormFields = new List<string> {
             "__*"
         };
-
-        // TODO: MAX_DATA_ITEM_LENGTH
+        
         private static Dictionary<string, string[]> ToDictionary(this HttpRequestHeaders headers, string[] exclusions) {
             var d = new Dictionary<string, string[]>();
 
             foreach (var header in headers) {
-                if (!String.IsNullOrEmpty(header.Key) && !_ignoredHeaders.Contains(header.Key) && !header.Key.AnyWildcardMatches(exclusions))
-                    d.Add(header.Key, header.Value.ToArray());
+                if (String.IsNullOrEmpty(header.Key) || _ignoredHeaders.Contains(header.Key) || header.Key.AnyWildcardMatches(exclusions))
+                    continue;
+
+                string[] values = header.Value.Where(hv => hv != null && hv.Length < MAX_DATA_ITEM_LENGTH).ToArray();
+                if (values.Length == 0)
+                    continue;
+
+                d[header.Key] = values;
             }
 
             return d;
@@ -91,8 +98,13 @@ namespace Exceptionless.ExtendedData {
                     if (innerCookie == null || String.IsNullOrEmpty(innerCookie.Name) || innerCookie.Name.AnyWildcardMatches(_ignoredCookies) || innerCookie.Name.AnyWildcardMatches(exclusions))
                         continue;
 
-                    if (!d.ContainsKey(innerCookie.Name))
-                        d.Add(innerCookie.Name, innerCookie.Value);
+                    if (d.ContainsKey(innerCookie.Name))
+                        continue;
+
+                    if (innerCookie.Value == null || innerCookie.Value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d.Add(innerCookie.Name, innerCookie.Value);
                 }
             }
 
@@ -108,10 +120,12 @@ namespace Exceptionless.ExtendedData {
 
                 try {
                     string value = values.Get(key);
-                    d.Add(key, value);
+                    if (value == null || value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d[key] = value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(key))
-                        d.Add(key, ex.Message);
+                    d[key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 

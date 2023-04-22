@@ -12,8 +12,8 @@ using Exceptionless.Models.Data;
 
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
+        private const int MAX_BODY_SIZE = 50 * 1024;
         private const int MAX_DATA_ITEM_LENGTH = 1000;
-        private const int MAX_BODY_SIZE = 50*1024;
 
         public static RequestInfo Collect(HttpContextBase context, ExceptionlessConfiguration config) {
             if (context == null)
@@ -170,12 +170,13 @@ namespace Exceptionless.ExtendedData {
 
                 try {
                     string value = headers.Get(key);
-                    if (value != null && !result.ContainsKey(key) && value.Length < MAX_DATA_ITEM_LENGTH)
-                        result.Add(key, value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                    if (value == null || value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    result[key] = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 }
                 catch (Exception ex) {
-                    if (!result.ContainsKey(key))
-                        result.Add(key, new [] { $"EXCEPTION: {ex.Message}" });
+                    result[key] = new[] { $"EXCEPTION: {ex.Message}" };
                 }
             }
 
@@ -191,11 +192,12 @@ namespace Exceptionless.ExtendedData {
 
                 try {
                     var cookie = cookies.Get(key);
-                    if (cookie != null && cookie.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
-                        d.Add(key, cookie.Value);
+                    if (cookie == null || cookie.Value == null || cookie.Value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d[key] = cookie.Value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(key))
-                        d.Add(key, ex.Message);
+                    d[key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 
@@ -211,11 +213,12 @@ namespace Exceptionless.ExtendedData {
 
                 try {
                     string value = values.Get(key);
-                    if (value != null && !d.ContainsKey(key) && value.Length < MAX_DATA_ITEM_LENGTH)
-                        d.Add(key, value);
+                    if (value == null || d.ContainsKey(key) || value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d[key] = value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(key))
-                        d.Add(key, $"EXCEPTION: {ex.Message}");
+                    d[key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 
