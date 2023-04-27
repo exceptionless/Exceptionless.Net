@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Logging;

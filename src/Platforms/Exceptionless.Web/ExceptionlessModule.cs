@@ -1,4 +1,3 @@
-using System;
 using System.Web;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins.Default;

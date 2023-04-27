@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless.Submission.Net {
+﻿namespace Exceptionless.Submission.Net {
     public static class ExceptionlessHeaders {
         public const string Bearer = "Bearer";
         public const string LegacyConfigurationVersion = "v";

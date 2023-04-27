@@ -1,5 +1,4 @@
-﻿using System;
-using Exceptionless.Dependency;
+﻿using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 

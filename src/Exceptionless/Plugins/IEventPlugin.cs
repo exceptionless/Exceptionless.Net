@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless.Plugins {
+﻿namespace Exceptionless.Plugins {
     public interface IEventPlugin {
         /// <summary>
         /// Runs the plugin.

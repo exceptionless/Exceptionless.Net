@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless.Plugins.Default {
+﻿namespace Exceptionless.Plugins.Default {
     [Priority(15)]
     public class ConfigurationDefaultsPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless {
+﻿namespace Exceptionless {
     internal class DefaultLastReferenceIdManager : ILastReferenceIdManager {
         private string _lastReferenceId;
 

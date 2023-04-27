@@ -14,7 +14,6 @@ using Exceptionless.NLog;
 using Exceptionless.SampleConsole.Plugins;
 using NLog;
 using NLog.Config;
-using NLog.Fluent;
 using LogLevel = Exceptionless.Logging.LogLevel;
 
 // example of setting an attribute value in config.

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless.Models {
+﻿namespace Exceptionless.Models {
     public class ClientConfiguration {
         public ClientConfiguration() {
             Settings = new SettingsDictionary();

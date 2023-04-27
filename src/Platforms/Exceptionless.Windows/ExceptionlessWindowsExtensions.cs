@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Exceptionless.Dependency;
 using Exceptionless.Dialogs;
-using Exceptionless.Logging;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Services;
 using Exceptionless.Windows.Extensions;

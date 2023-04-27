@@ -1,5 +1,4 @@
-﻿using System;
-using Exceptionless.Storage;
+﻿using Exceptionless.Storage;
 using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Storage {

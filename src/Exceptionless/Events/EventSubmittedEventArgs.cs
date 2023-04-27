@@ -1,4 +1,3 @@
-using System;
 using Exceptionless.Models;
 using Exceptionless.Plugins;
 

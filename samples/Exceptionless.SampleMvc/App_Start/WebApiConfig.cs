@@ -1,5 +1,4 @@
-﻿using System;
-using System.Web.Http;
+﻿using System.Web.Http;
 
 namespace Exceptionless.SampleMvc.App_Start {
     public static class WebApiConfig {

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Exceptionless.Dependency;
-using Exceptionless.Extensions;
-using Exceptionless.Models;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Storage {

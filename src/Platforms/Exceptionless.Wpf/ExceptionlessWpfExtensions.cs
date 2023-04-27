@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Threading;
 using Exceptionless.Dependency;
 using Exceptionless.Dialogs;
-using Exceptionless.Logging;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Services;
 using Exceptionless.Wpf.Extensions;
