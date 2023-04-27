@@ -48,7 +48,7 @@ namespace Exceptionless {
                 Type = typeName
             };
 
-            if (!isInner)
+            if (!isInner && client.Configuration.IncludeModules)
                 error.Modules = GetLoadedModules(log);
 
             error.PopulateStackTrace(error, exception, log);

@@ -43,7 +43,7 @@ namespace Exceptionless.Extensions {
                 StackTrace = exception.Demystify().StackTrace
             };
 
-            if (!isInner)
+            if (!isInner && client.Configuration.IncludeModules)
                 error.Modules = ToErrorModelExtensions.GetLoadedModules(log);
 
             var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions).ToList();
