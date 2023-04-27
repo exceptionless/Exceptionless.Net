@@ -33,6 +33,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.True(client.Configuration.IncludeUserName);
             Assert.True(client.Configuration.IncludeMachineName);
             Assert.True(client.Configuration.IncludeIpAddress);
+            Assert.True(client.Configuration.IncludeHeaders);
             Assert.True(client.Configuration.IncludeCookies);
             Assert.True(client.Configuration.IncludePostData);
             Assert.True(client.Configuration.IncludeQueryString);
@@ -42,6 +43,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.False(client.Configuration.IncludeUserName);
             Assert.False(client.Configuration.IncludeMachineName);
             Assert.False(client.Configuration.IncludeIpAddress);
+            Assert.False(client.Configuration.IncludeHeaders);
             Assert.False(client.Configuration.IncludeCookies);
             Assert.False(client.Configuration.IncludePostData);
             Assert.False(client.Configuration.IncludeQueryString);
@@ -51,6 +53,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.False(client.Configuration.IncludeUserName);
             Assert.True(client.Configuration.IncludeMachineName);
             Assert.False(client.Configuration.IncludeIpAddress);
+            Assert.False(client.Configuration.IncludeHeaders);
             Assert.False(client.Configuration.IncludeCookies);
             Assert.False(client.Configuration.IncludePostData);
             Assert.False(client.Configuration.IncludeQueryString);

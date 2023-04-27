@@ -54,6 +54,7 @@ namespace Exceptionless {
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
             IncludePrivateInformation = true;
+            IncludeModules = true;
 
             _resolver = resolver;
 
@@ -267,6 +268,11 @@ namespace Exceptionless {
         /// NOTE: DataExclusions are applied to all Query String keys when enabled.
         /// </summary>
         public bool IncludeQueryString { get; set; }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether to include module information.
+        /// </summary>
+        public bool IncludeModules { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to automatically send session start, session heartbeats and session end events.

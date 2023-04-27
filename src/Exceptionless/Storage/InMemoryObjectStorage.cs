@@ -53,7 +53,7 @@ namespace Exceptionless.Storage {
                 }, (object)value);
 
                 if (_storage.Count > MaxObjects)
-                    _storage.Remove(_storage.OrderByDescending(kvp => kvp.Value.Item1.Created).First().Key);
+                    _storage.Remove(_storage.OrderBy(kvp => kvp.Value.Item1.Created).First().Key);
             }
 
             return true;
