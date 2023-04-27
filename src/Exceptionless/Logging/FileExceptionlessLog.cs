@@ -17,7 +17,7 @@ namespace Exceptionless.Logging {
 
         public FileExceptionlessLog(string filePath, bool append = false) {
             if (String.IsNullOrEmpty(filePath))
-                throw new ArgumentNullException("filePath");
+                throw new ArgumentNullException(nameof(filePath));
 
             FilePath = filePath;
             MinimumLogLevel = LogLevel.Trace;
@@ -141,16 +141,14 @@ namespace Exceptionless.Logging {
 
                     try {
                         using (var writer = GetWriter(append)) {
-                            LogEntry entry;
-                            while (_buffer.TryDequeue(out entry)) {
+                            while (_buffer.TryDequeue(out var entry)) {
                                 if (entry != null && entry.LogLevel >= MinimumLogLevel)
                                     writer.Value.WriteLine($"{FormatLongDate(entry.Timestamp)} {entry.LogLevel.ToString().PadRight(5)} {entry.Message}");
                             }
                         }
                     } catch (Exception ex) {
                         System.Diagnostics.Trace.TraceError("Unable flush the logs. " + ex.Message);
-                        LogEntry entry;
-                        while (_buffer.TryDequeue(out entry)) {
+                        while (_buffer.TryDequeue(out var entry)) {
                             System.Diagnostics.Trace.WriteLine(entry);
                         }
                     }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Web;
 using Exceptionless.ExtendedData;
 using Exceptionless.Models;

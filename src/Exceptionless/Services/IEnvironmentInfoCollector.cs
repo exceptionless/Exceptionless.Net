@@ -1,5 +1,4 @@
-﻿using System;
-using Exceptionless.Models.Data;
+﻿using Exceptionless.Models.Data;
 
 namespace Exceptionless.Services {
     public interface IEnvironmentInfoCollector {

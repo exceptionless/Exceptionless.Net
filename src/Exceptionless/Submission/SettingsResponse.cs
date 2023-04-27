@@ -3,9 +3,9 @@ using Exceptionless.Models;
 
 namespace Exceptionless.Submission {
     public class SettingsResponse {
-        internal static SettingsResponse NotModified { get; } = new(success: false, message: "Settings have not been modified.");
-        internal static SettingsResponse InvalidConfig { get; } = new(success: false, message: "Invalid configuration settings.");
-        internal static SettingsResponse InvalidClientConfig { get; } = new(success: false, message: "Invalid client configuration settings.");
+        internal static SettingsResponse NotModified { get; } = new SettingsResponse(success: false, message: "Settings have not been modified.");
+        internal static SettingsResponse InvalidConfig { get; } = new SettingsResponse(success: false, message: "Invalid configuration settings.");
+        internal static SettingsResponse InvalidClientConfig { get; } = new SettingsResponse(success: false, message: "Invalid client configuration settings.");
 
         public SettingsResponse(bool success, SettingsDictionary settings = null, int settingsVersion = -1, Exception exception = null, string message = null) {
             Success = success;

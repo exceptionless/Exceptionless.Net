@@ -23,8 +23,7 @@ namespace Exceptionless.Dialogs {
                 EmailAddressTextBox.Text = userInfo.Identity;
             } else {
                 var storage = client.Configuration.Resolver.Resolve<PersistedDictionary>();
-                string emailAddress;
-                if (storage != null && storage.TryGetValue("EmailAddress", out emailAddress))
+                if (storage != null && storage.TryGetValue("EmailAddress", out string emailAddress))
                     EmailAddressTextBox.Text = emailAddress;
             }
 

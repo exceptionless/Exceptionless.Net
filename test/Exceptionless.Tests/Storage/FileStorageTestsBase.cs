@@ -27,7 +27,7 @@ namespace Exceptionless.Tests.Storage {
         protected abstract IObjectStorage GetStorage();
 
         [Fact]
-        public void CanProcessQueueWithUninitializedStorage() {
+        public async Task CanProcessQueueWithUninitializedStorage() {
             var client = new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.ReadFromAttributes();
@@ -39,12 +39,12 @@ namespace Exceptionless.Tests.Storage {
             });
             
             client.Startup();
-            client.ProcessQueue();
+            await client.ProcessQueueAsync();
             var queue = client.Configuration.Resolver.GetEventQueue() as DefaultEventQueue;
             Assert.NotNull(queue);
             Assert.False(queue.IsQueueProcessingSuspended);
             Assert.False(queue.AreQueuedItemsDiscarded);
-            client.Shutdown();
+            await client.ShutdownAsync();
         }
 
         [Fact]
@@ -96,14 +96,14 @@ namespace Exceptionless.Tests.Storage {
             Assert.True(storage.GetQueueFiles(queueName).All(f => f.Path.EndsWith("0.json.x")));
             Assert.True(storage.ReleaseFile(storage.GetObjectList().FirstOrDefault()));
 
-            var batch = storage.GetEventBatch(queueName, serializer);
+            var batch = storage.GetEventBatch(queueName);
             Assert.Equal(1, batch.Count);
 
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("1.json.x")));
             Assert.Single(storage.GetObjectList());
 
             Assert.Empty(storage.GetQueueFiles(queueName));
-            Assert.Empty(storage.GetEventBatch(queueName, serializer));
+            Assert.Empty(storage.GetEventBatch(queueName));
 
             Assert.False(storage.LockFile(storage.GetObjectList().FirstOrDefault()));
 
@@ -125,7 +125,7 @@ namespace Exceptionless.Tests.Storage {
             storage.ReleaseStaleLocks(queueName, TimeSpan.Zero);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("3.json")));
 
-            batch = storage.GetEventBatch(queueName, serializer);
+            batch = storage.GetEventBatch(queueName);
             Assert.Equal(1, batch.Count);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("4.json.x")));
             storage.DeleteBatch(batch);
@@ -170,7 +170,7 @@ namespace Exceptionless.Tests.Storage {
             var working = new ConcurrentDictionary<string, object>();
 
             Parallel.For(0, 50, i => {
-                var fileBatch = storage.GetEventBatch(queueName, serializer, 2);
+                var fileBatch = storage.GetEventBatch(queueName, 2);
                 foreach (var f in fileBatch) {
                     if (working.ContainsKey(f.Item1.Path))
                         Debug.WriteLine(f.Item1.Path);
@@ -187,6 +187,22 @@ namespace Exceptionless.Tests.Storage {
                 }
             });
             Assert.Equal(25, working.Count + storage.GetQueueFiles(queueName).Count);
+        }
+
+        [Fact]
+        public void CanRoundTripSettingsWithUpdates() {
+            var settings = new SettingsDictionary {
+                ["MySetting"] = "1111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+            };
+
+            var storage = GetStorage();
+            storage.SaveObject("test.json", settings);
+
+            settings["MySetting"] = "22222";
+            storage.SaveObject("test.json", settings);
+
+            var savedSettings = storage.GetObject<SettingsDictionary>("test.json");
+            Assert.Single(savedSettings);
         }
     }
 }

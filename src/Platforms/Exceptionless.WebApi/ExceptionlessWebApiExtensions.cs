@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.ExceptionHandling;
@@ -35,11 +36,11 @@ namespace Exceptionless {
         /// Unregisters platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
-        public static void UnregisterWebApi(this ExceptionlessClient client) {
+        public static async Task UnregisterWebApiAsync(this ExceptionlessClient client) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-            client.Shutdown();
+            await client.ShutdownAsync().ConfigureAwait(false);
             client.Configuration.RemovePlugin<ExceptionlessWebApiPlugin>();
         }
 
@@ -87,8 +88,7 @@ namespace Exceptionless {
         }
 
         internal static HttpActionContext GetHttpActionContext(this IDictionary<string, object> data) {
-            object context;
-            if (data.TryGetValue("HttpActionContext", out context))
+            if (data.TryGetValue("HttpActionContext", out object context))
                 return context as HttpActionContext;
 
             return null;

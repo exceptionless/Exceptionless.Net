@@ -40,7 +40,7 @@ namespace Exceptionless {
 
         public ExceptionlessConfiguration(IDependencyResolver resolver) {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
 
             ServerUrl = DEFAULT_SERVER_URL;
             ConfigServerUrl = DEFAULT_CONFIG_SERVER_URL;
@@ -54,6 +54,7 @@ namespace Exceptionless {
             DefaultData = new DataDictionary();
             Settings = new SettingsDictionary();
             IncludePrivateInformation = true;
+            IncludeModules = true;
 
             _resolver = resolver;
 
@@ -228,6 +229,7 @@ namespace Exceptionless {
                 IncludeUserName = value;
                 IncludeMachineName = value;
                 IncludeIpAddress = value;
+                IncludeHeaders = value;
                 IncludeCookies = value;
                 IncludePostData = value;
                 IncludeQueryString = value;
@@ -247,6 +249,11 @@ namespace Exceptionless {
         /// </summary>
         public bool IncludeIpAddress { get; set; }
         /// <summary>
+        /// Gets or sets a value indicating whether to include Headers.
+        /// NOTE: DataExclusions are applied to all Headers keys when enabled.
+        /// </summary>
+        public bool IncludeHeaders { get; set; }
+        /// <summary>
         /// Gets or sets a value indicating whether to include Cookies.
         /// NOTE: DataExclusions are applied to all Cookie keys when enabled.
         /// </summary>
@@ -261,6 +268,11 @@ namespace Exceptionless {
         /// NOTE: DataExclusions are applied to all Query String keys when enabled.
         /// </summary>
         public bool IncludeQueryString { get; set; }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether to include module information.
+        /// </summary>
+        public bool IncludeModules { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to automatically send session start, session heartbeats and session end events.
@@ -388,7 +400,7 @@ namespace Exceptionless {
             RemovePlugin(key);
 
             if (!_plugins.TryAdd(key, new PluginRegistration(key, GetPriority(typeof(T)), new Lazy<IEventPlugin>(() => plugin))))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -409,7 +421,7 @@ namespace Exceptionless {
 
             var plugin = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));
             if (!_plugins.TryAdd(key, plugin))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -432,7 +444,7 @@ namespace Exceptionless {
 
             var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => factory(this)));
             if (!_plugins.TryAdd(key, plugin))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -463,7 +475,7 @@ namespace Exceptionless {
 
             var plugin = new PluginRegistration(key, priority, new Lazy<IEventPlugin>(() => new ActionPlugin(pluginAction)));
             if (!_plugins.TryAdd(key, plugin))
-                Resolver.GetLog().Error(String.Format("Unable to add plugin: {0}", key));
+                Resolver.GetLog().Error($"Unable to add plugin: {key}");
         }
 
         /// <summary>
@@ -479,8 +491,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key for the plugin to be removed.</param>
         public void RemovePlugin(string key) {
-            PluginRegistration plugin;
-            if (_plugins.TryRemove(key, out plugin))
+            if (_plugins.TryRemove(key, out var plugin))
                 plugin.Dispose();
         }
 
@@ -520,7 +531,7 @@ namespace Exceptionless {
                 result.Messages.Add("ApiKey is not set.");
 
             if (key != null && (key.Length < 10 || key.Contains(" ")))
-                result.Messages.Add(String.Format("ApiKey \"{0}\" is not valid.", key));
+                result.Messages.Add($"ApiKey \"{key}\" is not valid.");
 
             if (String.IsNullOrEmpty(ServerUrl))
                 result.Messages.Add("ServerUrl is not set.");
@@ -561,7 +572,7 @@ namespace Exceptionless {
             }
 
             public override string ToString() {
-                return String.Format("Key: {0}, Priority: {1}", Key, Priority);
+                return $"Key: {Key}, Priority: {Priority}";
             }
 
             public void Dispose() {

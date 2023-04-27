@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless.Models.Data {
+﻿namespace Exceptionless.Models.Data {
     public class SimpleInnerError : IData {
         public SimpleInnerError() {
             Data = new DataDictionary();

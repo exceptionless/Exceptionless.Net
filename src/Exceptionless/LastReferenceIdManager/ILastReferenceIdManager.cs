@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless {
+﻿namespace Exceptionless {
     public interface ILastReferenceIdManager {
         /// <summary>
         ///  Gets the last event id that was submitted to the server.

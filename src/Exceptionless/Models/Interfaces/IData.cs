@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Exceptionless.Models {
+﻿namespace Exceptionless.Models {
     public interface IData {
         DataDictionary Data { get; set; }
     }

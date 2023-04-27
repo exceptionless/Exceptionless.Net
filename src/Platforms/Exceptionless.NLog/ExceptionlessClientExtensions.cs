@@ -8,6 +8,10 @@ using NLog;
 namespace Exceptionless.NLog {
     public static class ExceptionlessClientExtensions {
         public static EventBuilder CreateFromLogEvent(this ExceptionlessClient client, LogEventInfo ev) {
+            return CreateFromLogEvent(client, ev, ev.FormattedMessage);
+        }
+
+        public static EventBuilder CreateFromLogEvent(this ExceptionlessClient client, LogEventInfo ev, string formattedMessage) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
@@ -20,10 +24,10 @@ namespace Exceptionless.NLog {
             builder.Target.Date = ev.TimeStamp;
             builder.SetSource(ev.LoggerName);
 
-            if (ev.Properties.Count > 0) {
+            if (ev.HasProperties) {
                 foreach (var property in ev.Properties) {
                     string propertyKey = property.Key.ToString();
-                    if (_ignoredEventProperties.Contains(propertyKey, StringComparer.OrdinalIgnoreCase))
+                    if (_ignoredEventProperties.Contains(propertyKey))
                         continue;
 
                     if (propertyKey.Equals("@value", StringComparison.OrdinalIgnoreCase)) {
@@ -53,8 +57,8 @@ namespace Exceptionless.NLog {
                 builder.SetType(Event.KnownTypes.Error);
             }
 
-            if (!String.IsNullOrWhiteSpace(ev.FormattedMessage))
-                builder.SetMessage(ev.FormattedMessage);
+            if (!String.IsNullOrWhiteSpace(formattedMessage))
+                builder.SetMessage(formattedMessage);
 
             var tags = ev.GetTags();
             if (tags != null)
@@ -70,10 +74,7 @@ namespace Exceptionless.NLog {
             CreateFromLogEvent(client, ev).Submit();
         }
 
-        private static readonly List<string> _ignoredEventProperties = new List<string> {
-            "CallerFilePath",
-            "CallerMemberName",
-            "CallerLineNumber",
+        private static readonly HashSet<string> _ignoredEventProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
             "Tags",
             "ContextData"
         };

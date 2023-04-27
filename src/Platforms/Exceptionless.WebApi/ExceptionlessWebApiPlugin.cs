@@ -45,7 +45,7 @@ namespace Exceptionless.WebApi {
             context.Event.Type = Event.KnownTypes.NotFound;
             context.Event.Source = ri.GetFullPath(includeHttpMethod: true, includeHost: false, includeQueryString: false);
             if (!context.Client.Configuration.Settings.GetTypeAndSourceEnabled(context.Event.Type, context.Event.Source)) {
-                context.Log.Info(String.Format("Cancelling event from excluded type: {0} and source: {1}", context.Event.Type, context.Event.Source));
+                context.Log.Info($"Cancelling event from excluded type: {context.Event.Type} and source: {context.Event.Source}");
                 context.Cancel = true;
             }
         }
@@ -66,8 +66,7 @@ namespace Exceptionless.WebApi {
 
             const string RequestContextKey = "MS_RequestContext";
 
-            object context;
-            if (!request.Properties.TryGetValue(RequestContextKey, out context) || context == null)
+            if (!request.Properties.TryGetValue(RequestContextKey, out object context) || context == null)
                 return Thread.CurrentPrincipal;
 
             if (_principalGetAccessor == null) {

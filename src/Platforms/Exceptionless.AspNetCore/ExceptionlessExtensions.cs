@@ -37,7 +37,7 @@ namespace Exceptionless {
             diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
 
             var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStopping.Register(() => client.ProcessQueue());
+            lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }
@@ -91,8 +91,7 @@ namespace Exceptionless {
         }
 
         internal static HttpContext GetHttpContext(this IDictionary<string, object> data) {
-            object context;
-            if (data.TryGetValue("HttpContext", out context))
+            if (data.TryGetValue("HttpContext", out object context))
                 return context as HttpContext;
 
             return null;

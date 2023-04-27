@@ -1,5 +1,4 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Default2.aspx.cs" Inherits="Exceptionless.SampleWeb.Default2" %>
-<%@ Import Namespace="System" %>
 
 <!DOCTYPE html>
 

@@ -260,5 +260,51 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal("{\"RandomValue\":\"Test\"}", json);
             }
         }
+
+        [Fact]
+        public void WillUnwrapExceptionTypeName() {
+            const string type = "Exceptionless.Tests.Plugins.PluginTestBase+GenericException<Exceptionless.Tests.Plugins.PluginTestBase+ErrorCategory>";
+
+            var errorPlugins = new List<IEventPlugin> {
+                new ErrorPlugin(),
+                new SimpleErrorPlugin()
+            };
+
+            var client = CreateClient();
+            foreach (var plugin in errorPlugins) {
+                var context = new EventPluginContext(client, new Event());
+                var exception = new GenericException<ErrorCategory>(ErrorCategory.FirstErrorBucket);
+                var nestedException = new GenericException<ErrorCategory>(ErrorCategory.SecondErrorBucket,exception);
+                context.ContextData.SetException(nestedException);
+                plugin.Run(context);
+                Assert.False(context.Cancel);
+                Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
+                var error = context.Event.GetError();
+                if (error != null)
+                    Assert.Equal(type, error.Type);
+                else
+                    Assert.Equal(type, context.Event.GetSimpleError().Type);
+            }
+        }
+
+        [Fact]
+        public void VerifyExceptionHResultIsMappedToErrorCode() {
+            var plugin = new ErrorPlugin();
+            var client = CreateClient();
+            var context = new EventPluginContext(client, new Event());
+            var exception = new OutOfMemoryException("Test");
+            context.ContextData.SetException(exception);
+
+            plugin.Run(context);
+
+            Assert.False(context.Cancel);
+            Assert.Equal(Event.KnownTypes.Error, context.Event.Type);
+
+            var error = context.Event.GetError();
+            Assert.NotNull(error);
+
+            // <see href="https://docs.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values"/>
+            Assert.Equal(unchecked((int)0x8007000E).ToString(), error.Code);
+        }
     }
 }

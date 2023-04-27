@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 
 namespace Exceptionless.Submission {
     public interface ISubmissionClient {
-        SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer);
-        SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer);
-        SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer);
-        void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config);
+        Task<SubmissionResponse> PostEventsAsync(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer);
+        Task<SubmissionResponse> PostUserDescriptionAsync(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer);
+        Task<SettingsResponse> GetSettingsAsync(ExceptionlessConfiguration config, int version, IJsonSerializer serializer);
+        Task SendHeartbeatAsync(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config);
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Exceptionless.Dependency;
 using Exceptionless.Models;
 using Exceptionless.Storage;

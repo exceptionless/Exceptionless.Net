@@ -6,7 +6,7 @@ using System.Text;
 
 namespace System.Diagnostics 
 {
-    public static class StringBuilderExtentions
+    internal static class StringBuilderExtentions
     {
         public static StringBuilder AppendDemystified(this StringBuilder builder, Exception exception)
         {

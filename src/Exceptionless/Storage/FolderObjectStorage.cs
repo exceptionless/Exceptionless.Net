@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Exceptionless.Dependency;
-using Exceptionless.Extensions;
-using Exceptionless.Models;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Storage {
@@ -31,7 +29,7 @@ namespace Exceptionless.Storage {
 
         public T GetObject<T>(string path) where T : class {
             if (String.IsNullOrEmpty(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             try {
                 using (var reader = File.OpenRead(Path.Combine(Folder, path))) {
@@ -61,7 +59,7 @@ namespace Exceptionless.Storage {
 
         public bool SaveObject<T>(string path, T value) where T : class {
             if (String.IsNullOrEmpty(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             try {
                 string directory = Path.GetDirectoryName(Path.Combine(Folder, path));
@@ -81,9 +79,9 @@ namespace Exceptionless.Storage {
 
         public bool RenameObject(string oldpath, string newpath) {
             if (String.IsNullOrEmpty(oldpath))
-                throw new ArgumentNullException("oldpath");
+                throw new ArgumentNullException(nameof(oldpath));
             if (String.IsNullOrEmpty(newpath))
-                throw new ArgumentNullException("newpath");
+                throw new ArgumentNullException(nameof(newpath));
 
             try {
                 lock (_lockObject) {
@@ -99,7 +97,7 @@ namespace Exceptionless.Storage {
 
         public bool DeleteObject(string path) {
             if (String.IsNullOrEmpty(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             try {
                 File.Delete(Path.Combine(Folder, path));

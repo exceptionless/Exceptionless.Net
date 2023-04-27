@@ -8,7 +8,6 @@ using System.Text;
 using Exceptionless.Extensions;
 using Exceptionless.Json;
 using Exceptionless.Json.Converters;
-using Exceptionless.Json.Linq;
 using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Serializer {

@@ -9,14 +9,13 @@ namespace Exceptionless {
     public static class DataDictionaryExtensions {
         public static T GetValue<T>(this DataDictionary items, string key, IJsonSerializer serializer = null) {
             if (items == null)
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
 
             if (String.IsNullOrEmpty(key))
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
 
-            object data;
-            if (!items.TryGetValue(key, out data))
-                throw new KeyNotFoundException(String.Format("The key '{0}' was not found.", key));
+            if (!items.TryGetValue(key, out object data))
+                throw new KeyNotFoundException($"The key '{key}' was not found.");
 
             if (data == null || data is T)
                 return (T)data;
@@ -34,7 +33,7 @@ namespace Exceptionless {
         /// <param name="value">The property value to add.</param>
         /// <param name="maxDepth">The max depth of the object to include. Used when the property value is an object.</param>
         /// <param name="excludedPropertyNames">Any property names that should be excluded in complex object values.</param>
-        /// <param name="ignoreSerializationErrors">Specifies wether complex object properties that throw errors while serializing be ignored</param>
+        /// <param name="ignoreSerializationErrors">Specifies whether complex object properties that throw errors while serializing be ignored</param>
         /// <param name="client">
         /// The ExceptionlessClient instance used for configuration. If a client is not specified, it will use
         /// ExceptionlessClient.Default.
@@ -54,7 +53,7 @@ namespace Exceptionless {
         /// <param name="name">The name of the object to add. If not specified, the name will be implied from the object type.</param>
         /// <param name="maxDepth">The max depth of the object to include.</param>
         /// <param name="excludedPropertyNames">Any property names that should be excluded</param>
-        /// <param name="ignoreSerializationErrors">Specifies wether properties that throw errors while serializing be ignored</param>
+        /// <param name="ignoreSerializationErrors">Specifies whether properties that throw errors while serializing be ignored</param>
         /// <param name="client">
         /// The ExceptionlessClient instance used for configuration. If a client is not specified, it will use
         /// ExceptionlessClient.Default.

@@ -41,19 +41,20 @@ namespace Exceptionless {
         private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, bool isInner = false) {
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
+            string typeName = type.GetTypeDisplayName();
 
             var error = new Error {
-                Message = exception.GetMessage(),
-                Type = type.FullName
+                Message = exception.GetMessage(typeName),
+                Type = typeName
             };
 
-            if (!isInner)
+            if (!isInner && client.Configuration.IncludeModules)
                 error.Modules = GetLoadedModules(log);
 
             error.PopulateStackTrace(error, exception, log);
 
             try {
-                PropertyInfo info = type.GetProperty("HResult", BindingFlags.NonPublic | BindingFlags.Instance);
+                PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
                 if (info != null)
                     error.Code = info.GetValue(exception, null).ToString();
             } catch (Exception) { }
@@ -132,8 +133,8 @@ namespace Exceptionless {
             "31bf3856ad364e35"
         };
 
-        private static string GetMessage(this Exception exception) {
-            string defaultMessage = String.Format("Exception of type '{0}' was thrown.", exception.GetType().FullName);
+        private static string GetMessage(this Exception exception, string typeName) {
+            string defaultMessage = $"Exception of type '{typeName}' was thrown.";
             string message = !String.IsNullOrEmpty(exception.Message) ? exception.Message.Trim() : null;
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
         }

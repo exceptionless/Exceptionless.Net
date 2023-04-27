@@ -79,5 +79,16 @@ namespace Exceptionless.Tests.Plugins
             public ExceptionWithOverriddenStackTrace(string message) : base(message) { }
             public override string StackTrace => _stackTrace;
         }
+
+        public class GenericException<T> : Exception where T : struct {
+            public T Value { get; }
+            public GenericException(T value) { Value = value; }
+            public GenericException(T value, Exception innerException) : base("", innerException) { Value = value; }
+        }
+
+        public enum ErrorCategory {
+            FirstErrorBucket,
+            SecondErrorBucket,
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace Exceptionless.Extensions.Hosting {
             _exceptionlessClient.RegisterAppDomainUnhandledExceptionHandler();
             _exceptionlessClient.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
 
-            appLifetime.ApplicationStopping.Register(() => _exceptionlessClient.ProcessQueue());
+            appLifetime.ApplicationStopping.Register(() => _exceptionlessClient.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
         }
 
         public Task StartAsync(CancellationToken cancellationToken) {

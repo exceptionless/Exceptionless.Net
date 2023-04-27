@@ -1,5 +1,3 @@
-using System;
-
 namespace Exceptionless.Models.Data {
     public class EnvironmentInfo : IData {
         public EnvironmentInfo() {

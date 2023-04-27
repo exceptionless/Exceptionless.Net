@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Exceptionless.Dependency;
 using NLog;
 using NLog.Common;
 using NLog.Config;
+using NLog.Layouts;
 using NLog.Targets;
 
 namespace Exceptionless.NLog {
@@ -10,27 +12,40 @@ namespace Exceptionless.NLog {
     public class ExceptionlessTarget : TargetWithLayout {
         private ExceptionlessClient _client = ExceptionlessClient.Default;
 
-        public string ApiKey { get; set; }
-        public string ServerUrl { get; set; }
+        public Layout ApiKey { get; set; }
+        public Layout ServerUrl { get; set; }
+        public Layout UserIdentity { get; set; }
+        public Layout UserIdentityName { get; set; }
 
         [ArrayParameter(typeof(ExceptionlessField), "field")]
-        public IList<ExceptionlessField> Fields { get; private set; }
+        public IList<ExceptionlessField> Fields { get; set; }
 
         public ExceptionlessTarget() {
             Fields = new List<ExceptionlessField>();
+            Layout = "${message}";
         }
 
         protected override void InitializeTarget() {
             base.InitializeTarget();
 
-            if (!String.IsNullOrEmpty(ApiKey) || !String.IsNullOrEmpty(ServerUrl))
+            var apiKey = RenderLogEvent(ApiKey, LogEventInfo.CreateNullEvent());
+            var serverUrl = RenderLogEvent(ServerUrl, LogEventInfo.CreateNullEvent());
+
+            if (!String.IsNullOrEmpty(apiKey) || !String.IsNullOrEmpty(serverUrl)) {
                 _client = new ExceptionlessClient(config => {
-                    if (!String.IsNullOrEmpty(ApiKey) && ApiKey != "API_KEY_HERE")
-                        config.ApiKey = ApiKey;
-                    if (!String.IsNullOrEmpty(ServerUrl))
-                        config.ServerUrl = ServerUrl;
+                    if (!String.IsNullOrEmpty(apiKey) && apiKey != "API_KEY_HERE")
+                        config.ApiKey = apiKey;
+                    if (!String.IsNullOrEmpty(serverUrl))
+                        config.ServerUrl = serverUrl;
+                    config.UseLogger(new NLogInternalLoggger());
                     config.UseInMemoryStorage();
                 });
+            }
+            else {
+                if (_client.Configuration.Resolver.HasDefaultRegistration<Logging.IExceptionlessLog, Logging.NullExceptionlessLog>()) {
+                    _client.Configuration.UseLogger(new NLogInternalLoggger());
+                }
+            }
         }
 
         protected override void Write(LogEventInfo logEvent) {
@@ -41,14 +56,24 @@ namespace Exceptionless.NLog {
             if (logEvent.Level < minLogLevel)
                 return;
 
-            var builder = _client.CreateFromLogEvent(logEvent);
+            var formattedMessage = RenderLogEvent(Layout, logEvent);
+            var builder = _client.CreateFromLogEvent(logEvent, formattedMessage);
+
+            var userIdentity = RenderLogEvent(UserIdentity, logEvent);
+            var userIdentityName = RenderLogEvent(UserIdentityName, logEvent);
+            builder.Target.SetUserIdentity(userIdentity, userIdentityName);
+
             foreach (var field in Fields) {
-                var renderedField = field.Layout.Render(logEvent);
+                var renderedField = RenderLogEvent(field.Layout, logEvent);
                 if (!String.IsNullOrWhiteSpace(renderedField))
                     builder.AddObject(renderedField, field.Name);
             }
 
             builder.Submit();
+        }
+
+        protected override void FlushAsync(AsyncContinuation asyncContinuation) {
+            _client.ProcessQueueAsync().ContinueWith(t => asyncContinuation(t.Exception));
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Exceptionless.Tests.Utility {
 
         public void Reset(int count) {
             if (count < 0)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(count));
             _remaining = count;
             _event = new ManualResetEventSlim(false);
             if (_remaining == 0)

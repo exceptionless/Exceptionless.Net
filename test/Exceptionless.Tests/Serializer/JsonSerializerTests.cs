@@ -207,7 +207,7 @@ namespace Exceptionless.Tests.Serializer {
                 var serializer = GetSerializer();
                 string json = serializer.Serialize(ev);
 
-                Assert.Contains(String.Format("\"line_number\":{0}", error.Inner.Inner.StackTrace.Single().LineNumber), json);
+                Assert.Contains($"\"line_number\":{error.Inner.Inner.StackTrace.Single().LineNumber}", json);
             }
         }
 

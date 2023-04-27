@@ -1,5 +1,4 @@
-﻿using System;
-using Exceptionless.Dependency;
+﻿using Exceptionless.Dependency;
 using Xunit;
 
 namespace Exceptionless.Tests.Dependency {

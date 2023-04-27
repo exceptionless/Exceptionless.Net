@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Exceptionless.Dependency;
 using Exceptionless.Dialogs;
-using Exceptionless.Logging;
 using Exceptionless.Plugins.Default;
+using Exceptionless.Services;
 using Exceptionless.Wpf.Extensions;
 
 namespace Exceptionless {
     public static class ExceptionlessWpfExtensions {
         /// <summary>
-        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers. 
+        /// Reads configuration settings, configures various plugins and wires up to platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
         /// <param name="showDialog">Controls whether a dialog is shown when an unhandled exception occurs.</param>
@@ -19,8 +20,9 @@ namespace Exceptionless {
                 throw new ArgumentNullException(nameof(client));
 
             client.Configuration.AddPlugin<SetEnvironmentUserPlugin>();
+            client.Configuration.Resolver.Register<IEnvironmentInfoCollector, ExceptionlessWindowsEnvironmentInfoCollector>();
             client.Startup();
-            
+
             client.RegisterApplicationDispatcherUnhandledExceptionHandler();
 
             if (!showDialog)
@@ -34,13 +36,12 @@ namespace Exceptionless {
         /// Unregisters platform specific exception handlers.
         /// </summary>
         /// <param name="client">The ExceptionlessClient.</param>
-        public static void Unregister(this ExceptionlessClient client) {
+        public static async Task UnregisterAsync(this ExceptionlessClient client) {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-            client.Shutdown();
+            await client.ShutdownAsync().ConfigureAwait(false);
             client.UnregisterApplicationDispatcherUnhandledExceptionHandler();
-        
             client.SubmittingEvent -= OnSubmittingEvent;
         }
 

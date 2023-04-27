@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Exceptionless {
     internal static class CollectionEqualityExtensions {
@@ -47,8 +45,7 @@ namespace Exceptionless {
             foreach (var key in source.Keys) {
                 var sourceValue = source[key];
 
-                TValue otherValue;
-                if (!other.TryGetValue(key, out otherValue)) {
+                if (!other.TryGetValue(key, out var otherValue)) {
                     return false;
                 }
 

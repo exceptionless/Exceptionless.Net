@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
@@ -24,7 +25,7 @@ namespace Exceptionless.Tests {
             return new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.ReadFromAttributes();
-                c.UserAgent = "testclient/1.0.0.0";
+                c.UserAgent = "test-client/1.0.0.0";
 
                 // Disable updating settings.
                 c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
@@ -35,7 +36,7 @@ namespace Exceptionless.Tests {
         public void CanAddMultipleDataObjectsToEvent() {
             var client = CreateClient();
             var ev = client.CreateLog("Test");
-            Assert.Equal(ev.Target.Type, Event.KnownTypes.Log);
+            Assert.Equal(Event.KnownTypes.Log, ev.Target.Type);
             ev.AddObject(new Person { Name = "Blake" });
             ev.AddObject(new Person { Name = "Eric" });
             ev.AddObject(new Person { Name = "Ryan" });
@@ -71,7 +72,7 @@ namespace Exceptionless.Tests {
         }
 
         [Fact]
-        public void CanCallStartupWithCustomSubmissionClient() {
+        public Task CanCallStartupWithCustomSubmissionClient() {
             var client = CreateClient();
             Assert.True(client.Configuration.Resolver.HasRegistration<ISubmissionClient>());
             Assert.True(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
@@ -83,7 +84,7 @@ namespace Exceptionless.Tests {
             client.Startup();
             Assert.True(client.Configuration.Resolver.Resolve<ISubmissionClient>() is MySubmissionClient);
             Assert.False(client.Configuration.Resolver.HasDefaultRegistration<ISubmissionClient, DefaultSubmissionClient>());
-            client.Shutdown();
+            return client.ShutdownAsync();
         }
 
         [Fact]
@@ -106,7 +107,7 @@ namespace Exceptionless.Tests {
         }
 
         [Fact]
-        public void CanSubmitManyMessages() {
+        public async Task CanSubmitManyMessages() {
             var client = CreateClient();
             client.Configuration.Resolver.Register<ISubmissionClient, MySubmissionClient>();
             client.Startup();
@@ -115,29 +116,28 @@ namespace Exceptionless.Tests {
             Assert.NotNull(submissionClient);
             Assert.Equal(0, submissionClient.SubmittedEvents);
 
-            using (var storage = client.Configuration.Resolver.Resolve<IObjectStorage>() as InMemoryObjectStorage) {
-                Assert.NotNull(storage);
-                Assert.Equal(0, storage.Count);
+            using var storage = client.Configuration.Resolver.Resolve<IObjectStorage>() as InMemoryObjectStorage;
+            Assert.NotNull(storage);
+            Assert.Equal(0, storage.Count);
 
-                const int iterations = 200;
-                for (int i = 1; i <= iterations; i++) {
-                    _writer.WriteLine($"---- {i} ----");
-                    client.CreateLog(typeof(ExceptionlessClientTests).FullName, i.ToString(), LogLevel.Warn)
-                        .AddTags("Test")
-                        .SetUserIdentity(new UserInfo { Identity = "00001", Name = "test" })
-                        .Submit();
+            const int iterations = 200;
+            for (int i = 1; i <= iterations; i++) {
+                _writer.WriteLine($"---- {i} ----");
+                client.CreateLog(typeof(ExceptionlessClientTests).FullName, i.ToString(), LogLevel.Warn)
+                    .AddTags("Test")
+                    .SetUserIdentity(new UserInfo { Identity = "00001", Name = "test" })
+                    .Submit();
 
-                    Assert.InRange(storage.Count, i, i + 1);
-                }
-
-                // Count could be higher due to persisted dictionaries via settings manager / other plugins
-                Assert.InRange(storage.Count, iterations, iterations + 1);
-
-                client.ProcessQueue();
-                Assert.Equal(iterations, submissionClient.SubmittedEvents);
-
-                client.Shutdown();
+                Assert.InRange(storage.Count, i, i + 1);
             }
+
+            // Count could be higher due to persisted dictionaries via settings manager / other plugins
+            Assert.InRange(storage.Count, iterations, iterations + 1);
+
+            await client.ProcessQueueAsync();
+            Assert.Equal(iterations, submissionClient.SubmittedEvents);
+
+            await client.ShutdownAsync();
         }
 
         private class Person {
@@ -147,20 +147,22 @@ namespace Exceptionless.Tests {
         public class MySubmissionClient : ISubmissionClient {
             public int SubmittedEvents { get; private set; }
 
-            public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+            public Task<SubmissionResponse> PostEventsAsync(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
                 SubmittedEvents += events.Count();
-                return new SubmissionResponse(202);
+                return Task.FromResult(new SubmissionResponse(202));
             }
 
-            public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
-                return new SubmissionResponse(202);
+            public Task<SubmissionResponse> PostUserDescriptionAsync(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+                return Task.FromResult(new SubmissionResponse(202));
             }
 
-            public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
-                return new SettingsResponse(false);
+            public Task<SettingsResponse> GetSettingsAsync(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+                return Task.FromResult(new SettingsResponse(false));
             }
 
-            public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) { }
+            public Task SendHeartbeatAsync(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
+                return Task.CompletedTask;
+            }
         }
     }
 }

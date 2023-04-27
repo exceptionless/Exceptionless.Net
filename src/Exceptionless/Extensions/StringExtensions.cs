@@ -77,8 +77,7 @@ namespace Exceptionless.Extensions {
 
             input = input.ToLowerInvariant().Trim();
 
-            bool value;
-            if (bool.TryParse(input, out value))
+            if (bool.TryParse(input, out bool value))
                 return value;
 
             if (String.Equals(input, "yes") || String.Equals(input, "1"))

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,8 +12,8 @@ using Exceptionless.Models.Data;
 
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
+        private const int MAX_BODY_SIZE = 50 * 1024;
         private const int MAX_DATA_ITEM_LENGTH = 1000;
-        private const int MAX_BODY_SIZE = 50*1024;
 
         public static RequestInfo Collect(HttpContextBase context, ExceptionlessConfiguration config) {
             if (context == null)
@@ -50,13 +49,12 @@ namespace Exceptionless.ExtendedData {
                 info.Port = context.Request.Url.Port;
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
+            if (config.IncludeHeaders)
+                info.Headers = context.Request.Headers.ToHeaderDictionary(exclusionList);
 
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
-
-            if (config.IncludePostData && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
-                info.PostData = GetPostData(context, config, exclusionList);
-
+            
             if (config.IncludeQueryString) {
                 try {
                     info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
@@ -64,6 +62,9 @@ namespace Exceptionless.ExtendedData {
                     config.Resolver.GetLog().Error(ex, "An error occurred while getting the query string");
                 }
             }
+
+            if (config.IncludePostData && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+                info.PostData = GetPostData(context, config, exclusionList);
 
             return info;
         }
@@ -86,7 +87,7 @@ namespace Exceptionless.ExtendedData {
 
             if (contentLength > MAX_BODY_SIZE) {
                 string value = Math.Round(contentLength / 1024m, 0).ToString("N0");
-                string message = String.Format("Data is too large ({0}kb) to be included.", value);
+                string message = $"Data is too large ({value}kb) to be included.";
                 log.Debug(message);
                 return message;
             }
@@ -139,8 +140,15 @@ namespace Exceptionless.ExtendedData {
             }
         }
 
-        private static readonly List<string> _ignoredFormFields = new List<string> {
-            "__*"
+        private static readonly List<string> _ignoredHeaders = new List<string> {
+            "Authorization",
+            "Cookie",
+            "Host",
+            "Method",
+            "Path",
+            "Proxy-Authorization",
+            "Referer",
+            "User-Agent"
         };
 
         private static readonly List<string> _ignoredCookies = new List<string> {
@@ -149,38 +157,68 @@ namespace Exceptionless.ExtendedData {
             "*SessionId*"
         };
 
-        private static Dictionary<string, string> ToDictionary(this HttpCookieCollection cookies, IEnumerable<string> exclusions) {
+        private static readonly List<string> _ignoredFormFields = new List<string> {
+            "__*"
+        };
+
+        private static Dictionary<string, string[]> ToHeaderDictionary(this NameValueCollection headers, string[] exclusions) {
+            var result = new Dictionary<string, string[]>();
+
+            foreach (string key in headers.AllKeys) {
+                if (String.IsNullOrEmpty(key) || _ignoredHeaders.Contains(key) || key.AnyWildcardMatches(exclusions))
+                    continue;
+
+                try {
+                    string value = headers.Get(key);
+                    if (value == null || value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    result[key] = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                }
+                catch (Exception ex) {
+                    result[key] = new[] { $"EXCEPTION: {ex.Message}" };
+                }
+            }
+
+            return result;
+        }
+
+        private static Dictionary<string, string> ToDictionary(this HttpCookieCollection cookies, string[] exclusions) {
             var d = new Dictionary<string, string>();
 
-            foreach (string key in cookies.AllKeys.Distinct().Where(k => !String.IsNullOrEmpty(k) && !k.AnyWildcardMatches(_ignoredCookies) && !k.AnyWildcardMatches(exclusions))) {
+            foreach (string key in cookies.AllKeys.Distinct()) {
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredCookies) || key.AnyWildcardMatches(exclusions))
+                    continue;
+
                 try {
-                    HttpCookie cookie = cookies.Get(key);
-                    if (cookie != null && cookie.Value != null && cookie.Value.Length < MAX_DATA_ITEM_LENGTH && !d.ContainsKey(key))
-                        d.Add(key, cookie.Value);
+                    var cookie = cookies.Get(key);
+                    if (cookie == null || cookie.Value == null || cookie.Value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d[key] = cookie.Value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(key))
-                        d.Add(key, ex.Message);
+                    d[key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 
             return d;
         }
 
-        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, IEnumerable<string> exclusions) {
+        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, string[] exclusions) {
             var d = new Dictionary<string, string>();
-
-            var exclusionsArray = exclusions as string[] ?? exclusions.ToArray();
+            
             foreach (string key in values.AllKeys) {
-                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusionsArray))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusions))
                     continue;
 
                 try {
                     string value = values.Get(key);
-                    if (value != null && !d.ContainsKey(key) && value.Length < MAX_DATA_ITEM_LENGTH)
-                        d.Add(key, value);
+                    if (value == null || d.ContainsKey(key) || value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d[key] = value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(key))
-                        d.Add(key, "EXCEPTION: " + ex.Message);
+                    d[key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 

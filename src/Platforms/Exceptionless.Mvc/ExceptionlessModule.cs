@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Exceptionless.Dependency;
@@ -25,7 +24,7 @@ namespace Exceptionless.Mvc {
         }
 
         public void Dispose() {
-            ExceptionlessClient.Default.Shutdown();
+            ExceptionlessClient.Default.ShutdownAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             ExceptionlessClient.Default.UnregisterHttpApplicationErrorHandler(_app);
         }
     }

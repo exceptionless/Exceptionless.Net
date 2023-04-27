@@ -35,14 +35,15 @@ namespace Exceptionless.Extensions {
 
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
+            string typeName = type.GetTypeDisplayName();
 
             var error = new SimpleError {
-                Message = GetMessage(exception),
-                Type = type.FullName,
+                Message = exception.GetMessage(typeName),
+                Type = typeName,
                 StackTrace = exception.Demystify().StackTrace
             };
 
-            if (!isInner)
+            if (!isInner && client.Configuration.IncludeModules)
                 error.Modules = ToErrorModelExtensions.GetLoadedModules(log);
 
             var exclusions = _exceptionExclusions.Union(client.Configuration.DataExclusions).ToList();
@@ -102,8 +103,8 @@ namespace Exceptionless.Extensions {
             return false;
         }
 
-        private static string GetMessage(Exception exception) {
-            string defaultMessage = String.Format("Exception of type '{0}' was thrown.", exception.GetType().FullName);
+        private static string GetMessage(this Exception exception, string typeName) {
+            string defaultMessage = $"Exception of type '{typeName}' was thrown.";
             string message = !String.IsNullOrEmpty(exception.Message) ? exception.Message.Trim() : null;
 
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;

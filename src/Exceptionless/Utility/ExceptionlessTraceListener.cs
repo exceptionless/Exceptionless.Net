@@ -22,8 +22,7 @@ namespace Exceptionless.Diagnostics {
         }
 
         public ExceptionlessTraceListener(string maxEntriesToStore) : this() {
-            int value;
-            if (Int32.TryParse(maxEntriesToStore, out value))
+            if (Int32.TryParse(maxEntriesToStore, out int value))
                 MaxEntriesToStore = value;
         }
 

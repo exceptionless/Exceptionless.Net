@@ -33,6 +33,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.True(client.Configuration.IncludeUserName);
             Assert.True(client.Configuration.IncludeMachineName);
             Assert.True(client.Configuration.IncludeIpAddress);
+            Assert.True(client.Configuration.IncludeHeaders);
             Assert.True(client.Configuration.IncludeCookies);
             Assert.True(client.Configuration.IncludePostData);
             Assert.True(client.Configuration.IncludeQueryString);
@@ -42,6 +43,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.False(client.Configuration.IncludeUserName);
             Assert.False(client.Configuration.IncludeMachineName);
             Assert.False(client.Configuration.IncludeIpAddress);
+            Assert.False(client.Configuration.IncludeHeaders);
             Assert.False(client.Configuration.IncludeCookies);
             Assert.False(client.Configuration.IncludePostData);
             Assert.False(client.Configuration.IncludeQueryString);
@@ -51,6 +53,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.False(client.Configuration.IncludeUserName);
             Assert.True(client.Configuration.IncludeMachineName);
             Assert.False(client.Configuration.IncludeIpAddress);
+            Assert.False(client.Configuration.IncludeHeaders);
             Assert.False(client.Configuration.IncludeCookies);
             Assert.False(client.Configuration.IncludePostData);
             Assert.False(client.Configuration.IncludeQueryString);
@@ -105,7 +108,7 @@ namespace Exceptionless.Tests.Configuration {
         }
 
         [Fact]
-        public void CanUpdateSettingsFromServer() {
+        public async Task CanUpdateSettingsFromServer() {
             var config = new ExceptionlessConfiguration(DependencyResolver.Default) {
                 ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw",
                 Settings = {
@@ -115,11 +118,11 @@ namespace Exceptionless.Tests.Configuration {
             };
 
             var submissionClient = new Mock<ISubmissionClient>();
-            submissionClient.Setup(m => m.PostEvents(It.IsAny<IEnumerable<Event>>(), config, It.IsAny<IJsonSerializer>()))
-                .Callback(() => SettingsManager.CheckVersion(1, config))
-                .Returns(() => new SubmissionResponse(202, "Accepted"));
-            submissionClient.Setup(m => m.GetSettings(config, 0, It.IsAny<IJsonSerializer>()))
-                .Returns(() => new SettingsResponse(true, new SettingsDictionary { { "Test", "Test" }, { "LocalSettingToOverride", "2" } }, 1));
+            submissionClient.Setup(m => m.PostEventsAsync(It.IsAny<IEnumerable<Event>>(), config, It.IsAny<IJsonSerializer>()))
+                .Callback(() => SettingsManager.CheckVersionAsync(1, config))
+                .ReturnsAsync(() => new SubmissionResponse(202, "Accepted"));
+            submissionClient.Setup(m => m.GetSettingsAsync(config, 0, It.IsAny<IJsonSerializer>()))
+                .ReturnsAsync(() => new SettingsResponse(true, new SettingsDictionary { { "Test", "Test" }, { "LocalSettingToOverride", "2" } }, 1));
 
             config.Resolver.Register<ISubmissionClient>(submissionClient.Object);
             var client = new ExceptionlessClient(config);
@@ -128,7 +131,7 @@ namespace Exceptionless.Tests.Configuration {
             Assert.False(client.Configuration.Settings.ContainsKey("Test"));
             Assert.Equal("1", client.Configuration.Settings["LocalSettingToOverride"]);
             client.SubmitEvent(new Event { Type = "Log", Message = "Test" });
-            client.ProcessQueue();
+            await client.ProcessQueueAsync();
             Assert.True(client.Configuration.Settings.ContainsKey("Test"));
             Assert.Equal("2", client.Configuration.Settings["LocalSettingToOverride"]);
             Assert.Equal(3, client.Configuration.Settings.Count);

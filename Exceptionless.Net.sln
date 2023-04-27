@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29209.152
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33103.201
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{728C18BC-4085-4492-B0B2-8211CA209A50}"
 	ProjectSection(SolutionItems) = preProject
@@ -81,6 +81,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleLambda", "samples\Exceptionless.SampleLambda\Exceptionless.SampleLambda.csproj", "{4B26BF7F-85FB-4B41-BF93-661E83A4EDD7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleLambdaAspNetCore", "samples\Exceptionless.SampleLambdaAspNetCore\Exceptionless.SampleLambdaAspNetCore.csproj", "{D9987952-B891-48B4-AA93-59AA39F33FC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleBlazorWebAssemblyApp", "samples\Exceptionless.SampleBlazorWebAssemblyApp\Exceptionless.SampleBlazorWebAssemblyApp.csproj", "{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -192,6 +194,10 @@ Global
 		{D9987952-B891-48B4-AA93-59AA39F33FC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9987952-B891-48B4-AA93-59AA39F33FC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9987952-B891-48B4-AA93-59AA39F33FC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -222,6 +228,7 @@ Global
 		{693ED127-0124-4697-8369-700717615E85} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{4B26BF7F-85FB-4B41-BF93-661E83A4EDD7} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 		{D9987952-B891-48B4-AA93-59AA39F33FC4} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
+		{07D30684-0A2F-47E1-A3A7-6BEC248FBA06} = {2CEE12C6-3840-4C01-A952-D3026B0A662A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EBB2CC85-FF87-431B-865F-2F110B2A10E6}

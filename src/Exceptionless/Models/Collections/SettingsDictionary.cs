@@ -20,9 +20,7 @@ namespace Exceptionless.Models {
         }
 
         public string GetString(string name, string @default) {
-            string value;
-
-            if (name != null && TryGetValue(name, out value))
+            if (name != null && TryGetValue(name, out string value))
                 return value;
 
             return @default;
@@ -33,8 +31,7 @@ namespace Exceptionless.Models {
         }
 
         public bool GetBoolean(string name, bool @default) {
-            string temp = null;
-            if (String.IsNullOrWhiteSpace(name) || !TryGetValue(name, out temp))
+            if (String.IsNullOrWhiteSpace(name) || !TryGetValue(name, out string temp))
                 return @default;
 
             if (String.IsNullOrEmpty(temp))
@@ -48,14 +45,13 @@ namespace Exceptionless.Models {
         }
 
         public int GetInt32(string name, int @default) {
-            int value;
             string temp = null;
 
             bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
-            result = int.TryParse(temp, out value);
+            result = int.TryParse(temp, out int value);
             return result ? value : @default;
         }
 
@@ -64,26 +60,24 @@ namespace Exceptionless.Models {
         }
 
         public long GetInt64(string name, long @default) {
-            long value;
             string temp = null;
 
             bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
-            result = long.TryParse(temp, out value);
+            result = long.TryParse(temp, out long value);
             return result ? value : @default;
         }
 
         public double GetDouble(string name, double @default = 0d) {
-            double value;
             string temp = null;
 
             bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
-            result = double.TryParse(temp, out value);
+            result = double.TryParse(temp, out double value);
             return result ? value : @default;
         }
 
@@ -92,14 +86,13 @@ namespace Exceptionless.Models {
         }
 
         public DateTime GetDateTime(string name, DateTime @default) {
-            DateTime value;
             string temp = null;
 
             bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
-            result = DateTime.TryParse(temp, out value);
+            result = DateTime.TryParse(temp, out var value);
             return result ? value : @default;
         }
 
@@ -108,14 +101,13 @@ namespace Exceptionless.Models {
         }
 
         public DateTimeOffset GetDateTimeOffset(string name, DateTimeOffset @default) {
-            DateTimeOffset value;
             string temp = null;
 
             bool result = name != null && TryGetValue(name, out temp);
             if (!result)
                 return @default;
 
-            result = DateTimeOffset.TryParse(temp, out value);
+            result = DateTimeOffset.TryParse(temp, out var value);
             return result ? value : @default;
         }
 
@@ -169,8 +161,7 @@ namespace Exceptionless.Models {
 }
 
             foreach (var eventType in _eventTypes) {
-                ConcurrentDictionary<string, bool> sourceDictionary;
-                if (eventType.Key == null || !_typeSourceEnabled.TryGetValue(eventType.Key, out sourceDictionary))
+                if (eventType.Key == null || !_typeSourceEnabled.TryGetValue(eventType.Key, out var sourceDictionary))
                     continue;
 
                 if (!args.Item.Key.StartsWith(eventType.Value))
@@ -197,8 +188,7 @@ namespace Exceptionless.Models {
             if (source == null)
                 source = String.Empty;
 
-            LogLevel minLogLevel;
-            if (_minLogLevels.TryGetValue(source, out minLogLevel))
+            if (_minLogLevels.TryGetValue(source, out var minLogLevel))
                 return minLogLevel;
 
             string setting = GetTypeAndSourceSetting("log", source, LogLevel.Warn.ToString());
@@ -218,10 +208,8 @@ namespace Exceptionless.Models {
             if (type == null)
                 return true;
 
-            ConcurrentDictionary<string, bool> sourceDictionary;
-            if (source != null && _typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
-                bool sourceEnabled;
-                if (sourceDictionary.TryGetValue(source, out sourceEnabled))
+            if (source != null && _typeSourceEnabled.TryGetValue(type, out var sourceDictionary)) {
+                if (sourceDictionary.TryGetValue(source, out bool sourceEnabled))
                     return sourceEnabled;
             }
 
@@ -234,9 +222,8 @@ namespace Exceptionless.Models {
             if (type == null)
                 return defaultValue;
 
-            ConcurrentDictionary<string, bool> sourceDictionary;
             string sourcePrefix;
-            if (!_typeSourceEnabled.TryGetValue(type, out sourceDictionary)) {
+            if (!_typeSourceEnabled.TryGetValue(type, out var sourceDictionary)) {
                 sourceDictionary = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 _typeSourceEnabled.TryAdd(type, sourceDictionary);
                 sourcePrefix = "@@" + type + ":";
@@ -247,8 +234,7 @@ namespace Exceptionless.Models {
             }
 
             // check for exact source match
-            string settingValue;
-            if (TryGetValue(sourcePrefix + source, out settingValue))
+            if (TryGetValue(sourcePrefix + source, out string settingValue))
                 return settingValue;
 
             // check for wildcard match
@@ -274,8 +260,7 @@ namespace Exceptionless.Models {
                 if (v.Key == null)
                     continue;
 
-                string temp;
-                if (!TryGetValue(v.Key, out temp) || v.Value != temp)
+                if (!TryGetValue(v.Key, out string temp) || v.Value != temp)
                     this[v.Key] = v.Value;
             }
         }

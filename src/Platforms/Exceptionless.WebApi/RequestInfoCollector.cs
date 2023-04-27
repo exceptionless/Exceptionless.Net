@@ -12,6 +12,8 @@ using Exceptionless.Models.Data;
 
 namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
+        private const int MAX_DATA_ITEM_LENGTH = 1000;
+
         public static RequestInfo Collect(HttpActionContext context, ExceptionlessConfiguration config) {
             if (context == null)
                 return null;
@@ -37,17 +39,31 @@ namespace Exceptionless.ExtendedData {
                 info.Referrer = context.Request.Headers.Referrer.ToString();
 
             var exclusionList = config.DataExclusions as string[] ?? config.DataExclusions.ToArray();
+            if (config.IncludeHeaders)
+                info.Headers = context.Request.Headers.ToDictionary(exclusionList);
+
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Headers.GetCookies().ToDictionary(exclusionList);
+
             if (config.IncludeQueryString)
                 info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
 
-            // TODO Collect form data.
+            // TODO: support getting post data asyncly.
+            //if (config.IncludePostData && context.Request.Method != HttpMethod.Get)
+            //    info.PostData = GetPostData(context, config, exclusionList);
+
             return info;
         }
 
-        private static readonly List<string> _ignoredFormFields = new List<string> {
-            "__*"
+        private static readonly List<string> _ignoredHeaders = new List<string> {
+            "Authorization",
+            "Cookie",
+            "Host",
+            "Method",
+            "Path",
+            "Proxy-Authorization",
+            "Referer",
+            "User-Agent"
         };
 
         private static readonly List<string> _ignoredCookies = new List<string> {
@@ -56,33 +72,63 @@ namespace Exceptionless.ExtendedData {
             "*SessionId*"
         };
 
-        private static Dictionary<string, string> ToDictionary(this IEnumerable<CookieHeaderValue> cookies, IEnumerable<string> exclusions) {
+        private static readonly List<string> _ignoredFormFields = new List<string> {
+            "__*"
+        };
+        
+        private static Dictionary<string, string[]> ToDictionary(this HttpRequestHeaders headers, string[] exclusions) {
+            var d = new Dictionary<string, string[]>();
+
+            foreach (var header in headers) {
+                if (String.IsNullOrEmpty(header.Key) || _ignoredHeaders.Contains(header.Key) || header.Key.AnyWildcardMatches(exclusions))
+                    continue;
+
+                string[] values = header.Value.Where(hv => hv != null && hv.Length < MAX_DATA_ITEM_LENGTH).ToArray();
+                if (values.Length == 0)
+                    continue;
+
+                d[header.Key] = values;
+            }
+
+            return d;
+        }
+
+        private static Dictionary<string, string> ToDictionary(this IEnumerable<CookieHeaderValue> cookies, string[] exclusions) {
             var d = new Dictionary<string, string>();
 
-            foreach (CookieHeaderValue cookie in cookies) {
-                foreach (CookieState innerCookie in cookie.Cookies.Where(k => k != null && !String.IsNullOrEmpty(k.Name) && !k.Name.AnyWildcardMatches(_ignoredCookies) && !k.Name.AnyWildcardMatches(exclusions))) {
-                    if (!d.ContainsKey(innerCookie.Name))
-                        d.Add(innerCookie.Name, innerCookie.Value);
+            foreach (var cookie in cookies) {
+                foreach (var innerCookie in cookie.Cookies) {
+                    if (innerCookie == null || String.IsNullOrEmpty(innerCookie.Name) || innerCookie.Name.AnyWildcardMatches(_ignoredCookies) || innerCookie.Name.AnyWildcardMatches(exclusions))
+                        continue;
+
+                    if (d.ContainsKey(innerCookie.Name))
+                        continue;
+
+                    if (innerCookie.Value == null || innerCookie.Value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d.Add(innerCookie.Name, innerCookie.Value);
                 }
             }
 
             return d;
         }
 
-        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, IEnumerable<string> exclusions) {
+        private static Dictionary<string, string> ToDictionary(this NameValueCollection values, string[] exclusions) {
             var d = new Dictionary<string, string>();
-
-            var patternsToMatch = exclusions as string[] ?? exclusions.ToArray();
+            
             foreach (string key in values.AllKeys) {
-                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(patternsToMatch))
+                if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusions))
                     continue;
 
                 try {
                     string value = values.Get(key);
-                    d.Add(key, value);
+                    if (value == null || value.Length >= MAX_DATA_ITEM_LENGTH)
+                        continue;
+
+                    d[key] = value;
                 } catch (Exception ex) {
-                    if (!d.ContainsKey(key))
-                        d.Add(key, ex.Message);
+                    d[key] = $"EXCEPTION: {ex.Message}";
                 }
             }
 

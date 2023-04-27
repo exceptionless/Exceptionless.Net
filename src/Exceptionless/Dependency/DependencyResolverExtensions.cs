@@ -25,17 +25,17 @@ namespace Exceptionless.Dependency {
 
         public static object Resolve(this IDependencyResolver resolver, Type type) {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
 
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return resolver.Resolve(type);
         }
 
         public static TService Resolve<TService>(this IDependencyResolver resolver, TService defaultImplementation = null) where TService : class {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
             
             var serviceImpl = resolver.Resolve(typeof(TService));
             return serviceImpl as TService ?? defaultImplementation;
@@ -43,21 +43,21 @@ namespace Exceptionless.Dependency {
 
         public static void Register<TService>(this IDependencyResolver resolver, TService implementation) {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
 
             resolver.Register(typeof(TService), () => implementation);
         }
 
         public static void Register<TService>(this IDependencyResolver resolver) {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
 
             resolver.Register(typeof(TService), typeof(TService));
         }
 
         public static void Register<TService, TImplementation>(this IDependencyResolver resolver) where TImplementation : TService {
             if (resolver == null)
-                throw new ArgumentNullException("resolver");
+                throw new ArgumentNullException(nameof(resolver));
 
             resolver.Register(typeof(TService), typeof(TImplementation));
         }

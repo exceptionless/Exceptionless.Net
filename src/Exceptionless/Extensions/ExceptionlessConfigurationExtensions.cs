@@ -62,9 +62,9 @@ namespace Exceptionless {
         /// <param name="name">The user's friendly name that the event happened to.</param>
         public static void SetUserIdentity(this ExceptionlessConfiguration config, string identity, string name) {
             if (String.IsNullOrWhiteSpace(identity) && String.IsNullOrWhiteSpace(name))
-                return;
-
-            config.DefaultData[Event.KnownDataKeys.UserInfo] = new UserInfo(identity, name);
+                config.DefaultData.Remove(Event.KnownDataKeys.UserInfo);
+            else
+                config.DefaultData[Event.KnownDataKeys.UserInfo] = new UserInfo(identity, name);
         }
 
         /// <summary>
@@ -72,11 +72,11 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object</param>
         /// <param name="userInfo">The user's identity that the event happened to.</param>
-        public static void SetUserIdentity(this ExceptionlessConfiguration config, UserInfo userInfo) {
-            if (userInfo == null)
-                return;
-
-            config.DefaultData[Event.KnownDataKeys.UserInfo] = userInfo;
+        public static void SetUserIdentity(this ExceptionlessConfiguration config, UserInfo? userInfo) {
+            if (userInfo is null || String.IsNullOrWhiteSpace(userInfo.Identity) && String.IsNullOrWhiteSpace(userInfo.Name))
+                config.DefaultData.Remove(Event.KnownDataKeys.UserInfo);
+            else
+                config.DefaultData[Event.KnownDataKeys.UserInfo] = userInfo;
         }
 
         public static string GetQueueName(this ExceptionlessConfiguration config) {
@@ -135,7 +135,7 @@ namespace Exceptionless {
         /// <param name="assemblies">The assembly that contains the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, params Assembly[] assemblies) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             config.ReadFromAttributes(assemblies.ToList());
         }
@@ -148,7 +148,7 @@ namespace Exceptionless {
         /// <param name="assemblies">A list of assemblies that should be checked for the Exceptionless configuration attributes.</param>
         public static void ReadFromAttributes(this ExceptionlessConfiguration config, ICollection<Assembly> assemblies = null) {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             if (assemblies == null) {
                 Assembly callingAssembly = null;
@@ -352,20 +352,20 @@ namespace Exceptionless {
 
                     Type resolverInterface = types.FirstOrDefault(t => t.Name.Equals(resolver.Service) || t.FullName.Equals(resolver.Service));
                     if (resolverInterface == null) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), String.Format("Error retrieving service type \"{0}\".", resolver.Service));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"Error retrieving service type \"{resolver.Service}\".");
                         continue;
                     }
 
                     try {
                         Type implementationType = Type.GetType(resolver.Type);
                         if (!resolverInterface.IsAssignableFrom(implementationType)) {
-                            config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), String.Format("Type \"{0}\" does not implement \"{1}\".", resolver.Type, resolver.Service));
+                            config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"Type \"{resolver.Type}\" does not implement \"{resolver.Service}\".");
                             continue;
                         }
 
                         config.Resolver.Register(resolverInterface, implementationType);
                     } catch (Exception ex) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Format("An error occurred while registering service \"{0}\" implementation \"{1}\".", resolver.Service, resolver.Type));
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, $"An error occurred while registering service \"{resolver.Service}\" implementation \"{resolver.Type}\".");
                     }
                 }
             }
@@ -380,8 +380,7 @@ namespace Exceptionless {
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;
 
-            bool enabled;
-            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled) && !enabled)
+            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out bool enabled) && !enabled)
                 config.Enabled = false;
 
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
@@ -399,13 +398,11 @@ namespace Exceptionless {
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;
 
-            bool enabled;
-            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out enabled) && !enabled)
+            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out bool enabled) && !enabled)
                 config.Enabled = false;
 
-            bool processQueueOnCompletedRequest;
             string processQueueOnCompletedRequestValue = GetEnvironmentalVariable("Exceptionless:ProcessQueueOnCompletedRequest") ??
-                GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
+                                                         GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
 
             // if we are running in a serverless environment default this config to true
             if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)) {
@@ -419,7 +416,7 @@ namespace Exceptionless {
                     processQueueOnCompletedRequestValue = Boolean.TrueString;
             }
 
-            if (Boolean.TryParse(processQueueOnCompletedRequestValue, out processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
+            if (Boolean.TryParse(processQueueOnCompletedRequestValue, out bool processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
                 config.ProcessQueueOnCompletedRequest = true;
 
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl") ?? GetEnvironmentalVariable("Exceptionless__ServerUrl");

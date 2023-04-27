@@ -2,7 +2,7 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0-windows;net462</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net462</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
@@ -32,7 +32,7 @@
     <ProjectReference Include="..\..\Exceptionless\Exceptionless.csproj" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0-windows' " Label="Build">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0-windows' " Label="Build">
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
@@ -43,5 +43,9 @@
   <ItemGroup>
     <Resource Include="Images\ErrorFeedback.png" />
     <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup Label="Source Links">
+    <Compile Include="..\Exceptionless.Windows\ExceptionlessWindowsEnvironmentInfoCollector.cs" Link="ExceptionlessWindowsEnvironmentInfoCollector.cs" />
   </ItemGroup>
 </Project>

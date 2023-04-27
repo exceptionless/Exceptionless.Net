@@ -23,11 +23,10 @@ namespace Exceptionless.Storage {
 
         public T GetObject<T>(string path) where T : class {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
-                Tuple<ObjectInfo, object> value;
-                if (!_storage.TryGetValue(path, out value))
+                if (!_storage.TryGetValue(path, out var value))
                     throw new FileNotFoundException();
 
                 return value.Item2 as T;
@@ -35,8 +34,7 @@ namespace Exceptionless.Storage {
         }
 
         public ObjectInfo GetObjectInfo(string path) {
-            Tuple<ObjectInfo, object> value;
-            return _storage.TryGetValue(path, out value) ? value.Item1 : null;
+            return _storage.TryGetValue(path, out var value) ? value.Item1 : null;
         }
 
         public bool Exists(string path) {
@@ -45,7 +43,7 @@ namespace Exceptionless.Storage {
 
         public bool SaveObject<T>(string path, T value) where T : class {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
                 _storage[path] = Tuple.Create(new ObjectInfo {
@@ -55,7 +53,7 @@ namespace Exceptionless.Storage {
                 }, (object)value);
 
                 if (_storage.Count > MaxObjects)
-                    _storage.Remove(_storage.OrderByDescending(kvp => kvp.Value.Item1.Created).First().Key);
+                    _storage.Remove(_storage.OrderBy(kvp => kvp.Value.Item1.Created).First().Key);
             }
 
             return true;
@@ -63,9 +61,9 @@ namespace Exceptionless.Storage {
 
         public bool RenameObject(string oldpath, string newpath) {
             if (String.IsNullOrWhiteSpace(oldpath))
-                throw new ArgumentNullException("oldpath");
+                throw new ArgumentNullException(nameof(oldpath));
             if (String.IsNullOrWhiteSpace(newpath))
-                throw new ArgumentNullException("newpath");
+                throw new ArgumentNullException(nameof(newpath));
 
             lock (_lock) {
                 if (!_storage.ContainsKey(oldpath))
@@ -82,7 +80,7 @@ namespace Exceptionless.Storage {
 
         public bool DeleteObject(string path) {
             if (String.IsNullOrWhiteSpace(path))
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
                 if (!_storage.ContainsKey(path))

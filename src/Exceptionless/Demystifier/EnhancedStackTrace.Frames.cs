@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace System.Diagnostics
 {
-    public partial class EnhancedStackTrace
+    internal partial class EnhancedStackTrace
     {
         private static readonly Type? StackTraceHiddenAttributeType = Type.GetType("System.Diagnostics.StackTraceHiddenAttribute", false);
 

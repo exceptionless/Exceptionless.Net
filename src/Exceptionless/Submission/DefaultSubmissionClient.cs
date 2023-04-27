@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -24,7 +25,7 @@ namespace Exceptionless.Submission {
             _client = new Lazy<HttpClient>(() => CreateHttpClient(config));
         }
 
-        public SubmissionResponse PostEvents(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public async Task<SubmissionResponse> PostEventsAsync(IEnumerable<Event> events, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             if (!config.IsValid)
                 return SubmissionResponse.InvalidClientConfig500;
 
@@ -40,15 +41,15 @@ namespace Exceptionless.Submission {
                     content = new GzipContent(content);
 
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
-                response = _client.Value.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
+                response = await _client.Value.PostAsync(url, content).ConfigureAwait(false);
             } catch (Exception ex) {
                 return new SubmissionResponse(500, exception: ex);
             }
 
             if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out int settingsVersion))
-                SettingsManager.CheckVersion(settingsVersion, config);
+                await SettingsManager.CheckVersionAsync(settingsVersion, config).ConfigureAwait(false);
 
-            var message = GetResponseMessage(response);
+            string message = await GetResponseMessageAsync(response).ConfigureAwait(false);
             if ((int)response.StatusCode == 200 && "OK".Equals(message, StringComparison.OrdinalIgnoreCase)) {
                 return SubmissionResponse.Ok200;
             }
@@ -56,7 +57,7 @@ namespace Exceptionless.Submission {
             return new SubmissionResponse((int)response.StatusCode, message);
         }
 
-        public SubmissionResponse PostUserDescription(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
+        public async Task<SubmissionResponse> PostUserDescriptionAsync(string referenceId, UserDescription description, ExceptionlessConfiguration config, IJsonSerializer serializer) {
             if (!config.IsValid)
                 return SubmissionResponse.InvalidClientConfig500;
 
@@ -72,15 +73,15 @@ namespace Exceptionless.Submission {
                     content = new GzipContent(content);
 
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
-                response = _client.Value.PostAsync(url, content).ConfigureAwait(false).GetAwaiter().GetResult();
+                response = await _client.Value.PostAsync(url, content).ConfigureAwait(false);
             } catch (Exception ex) {
                 return new SubmissionResponse(500, exception: ex);
             }
 
             if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out int settingsVersion))
-                SettingsManager.CheckVersion(settingsVersion, config);
+                await SettingsManager.CheckVersionAsync(settingsVersion, config).ConfigureAwait(false);
 
-            var message = GetResponseMessage(response);
+            string message = await GetResponseMessageAsync(response).ConfigureAwait(false);
             if ((int)response.StatusCode == 200 && "OK".Equals(message, StringComparison.OrdinalIgnoreCase)) {
                 return SubmissionResponse.Ok200;
             }
@@ -88,7 +89,7 @@ namespace Exceptionless.Submission {
             return new SubmissionResponse((int)response.StatusCode, message);
         }
 
-        public SettingsResponse GetSettings(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
+        public async Task<SettingsResponse> GetSettingsAsync(ExceptionlessConfiguration config, int version, IJsonSerializer serializer) {
             if (!config.IsValid)
                 return SettingsResponse.InvalidClientConfig;
 
@@ -97,7 +98,7 @@ namespace Exceptionless.Submission {
             HttpResponseMessage response;
             try {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
-                response = _client.Value.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                response = await _client.Value.GetAsync(url).ConfigureAwait(false);
             } catch (Exception ex) {
                 var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
                 return new SettingsResponse(false, message: message);
@@ -106,10 +107,12 @@ namespace Exceptionless.Submission {
             if (response != null && response.StatusCode == HttpStatusCode.NotModified)
                 return SettingsResponse.NotModified;
 
-            if (response == null || response.StatusCode != HttpStatusCode.OK)
-                return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", GetResponseMessage(response)));
+            if (response == null || response.StatusCode != HttpStatusCode.OK) {
+                string message = await GetResponseMessageAsync(response).ConfigureAwait(false);
+                return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", message));
+            }
 
-            var json = GetResponseText(response);
+            string json = await GetResponseTextAsync(response).ConfigureAwait(false);
             if (String.IsNullOrWhiteSpace(json))
                 return SettingsResponse.InvalidConfig;
 
@@ -117,14 +120,14 @@ namespace Exceptionless.Submission {
             return new SettingsResponse(true, settings.Settings, settings.Version);
         }
 
-        public void SendHeartbeat(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
+        public async Task SendHeartbeatAsync(string sessionIdOrUserId, bool closeSession, ExceptionlessConfiguration config) {
             if (!config.IsValid)
                 return;
 
             string url = $"{GetHeartbeatServiceEndPoint(config)}/events/session/heartbeat?id={sessionIdOrUserId}&close={closeSession.ToString(CultureInfo.InvariantCulture)}";
             try {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
-                _client.Value.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                await _client.Value.GetAsync(url).ConfigureAwait(false);
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();
                 log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()));
@@ -135,7 +138,10 @@ namespace Exceptionless.Submission {
 #if NET45
             var handler = new WebRequestHandler { UseDefaultCredentials = true };
 #else
-            var handler = new HttpClientHandler { UseDefaultCredentials = true };
+            var handler = new HttpClientHandler();
+            try {
+                handler.UseDefaultCredentials = true;
+            } catch (PlatformNotSupportedException) { }
 #endif
 
             var callback = config.ServerCertificateValidationCallback;
@@ -177,8 +183,8 @@ namespace Exceptionless.Submission {
         }
 #endif
 
-        private string GetResponseMessage(HttpResponseMessage response) {
-            if (response.IsSuccessStatusCode)
+        private async Task<string> GetResponseMessageAsync(HttpResponseMessage response) {
+            if (response == null || response.IsSuccessStatusCode)
                 return null;
 
             int statusCode = (int)response.StatusCode;
@@ -187,7 +193,7 @@ namespace Exceptionless.Submission {
             if (statusCode == 404)
                 return "404 Page not found.";
 
-            string responseText = GetResponseText(response);
+            string responseText = await GetResponseTextAsync(response).ConfigureAwait(false);
             string message = responseText.Length < 500 ? responseText : "";
 
             if (responseText.Trim().StartsWith("{")) {
@@ -200,17 +206,16 @@ namespace Exceptionless.Submission {
             return !String.IsNullOrEmpty(message) ? message : $"{statusCode.ToString(CultureInfo.InvariantCulture)} {response.ReasonPhrase}";
         }
 
-        private string GetResponseText(HttpResponseMessage response) {
+        private async Task<string> GetResponseTextAsync(HttpResponseMessage response) {
             try {
-                return response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             } catch {}
 
             return null;
         }
 
         private string GetSettingsVersionHeader(HttpResponseHeaders headers) {
-            IEnumerable<string> values;
-            if (headers != null && headers.TryGetValues(ExceptionlessHeaders.ConfigurationVersion, out values))
+            if (headers != null && headers.TryGetValues(ExceptionlessHeaders.ConfigurationVersion, out var values))
                 return values.FirstOrDefault();
 
             return null;

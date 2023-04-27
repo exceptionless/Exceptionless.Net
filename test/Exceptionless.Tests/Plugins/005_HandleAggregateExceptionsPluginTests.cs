@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
@@ -38,7 +39,7 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Fact]
-        public void MultipleInnerException() {
+        public async Task MultipleInnerException() {
             var submissionClient = new InMemorySubmissionClient();
             var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
             client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
@@ -52,7 +53,7 @@ namespace Exceptionless.Tests.Plugins {
             plugin.Run(context);
             Assert.True(context.Cancel);
 
-            client.ProcessQueue();
+            await client.ProcessQueueAsync();
             Assert.Equal(2, submissionClient.Events.Count);
         }
     }

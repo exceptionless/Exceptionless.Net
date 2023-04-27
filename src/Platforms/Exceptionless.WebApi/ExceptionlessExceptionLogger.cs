@@ -1,5 +1,4 @@
-﻿using System;
-using System.Web.Http.ExceptionHandling;
+﻿using System.Web.Http.ExceptionHandling;
 using Exceptionless.Plugins;
 
 namespace Exceptionless.WebApi {

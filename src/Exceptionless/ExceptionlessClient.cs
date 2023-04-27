@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.Configuration;
@@ -31,7 +31,7 @@ namespace Exceptionless {
 
         public ExceptionlessClient(ExceptionlessConfiguration configuration) {
             if (configuration == null)
-                throw new ArgumentNullException("configuration");
+                throw new ArgumentNullException(nameof(configuration));
 
             Configuration = configuration;
             Configuration.Changed += OnConfigurationChanged;
@@ -49,7 +49,7 @@ namespace Exceptionless {
 
             _submissionClient = new Lazy<ISubmissionClient>(() => Configuration.Resolver.GetSubmissionClient());
             _lastReferenceIdManager = new Lazy<ILastReferenceIdManager>(() => Configuration.Resolver.GetLastReferenceIdManager());
-            _updateSettingsTimer = new Timer(OnUpdateSettings, null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
+            _updateSettingsTimer = new Timer(OnUpdateSettingsAsync, null, GetInitialSettingsDelay(), Configuration.UpdateSettingsWhenIdleInterval ?? TimeSpan.FromMilliseconds(-1));
         }
 
         private TimeSpan GetInitialSettingsDelay() {
@@ -67,13 +67,18 @@ namespace Exceptionless {
         }
 
         private bool _isUpdatingSettings;
-        private void OnUpdateSettings(object state) {
+        private async void OnUpdateSettingsAsync(object state) {
             if (_isUpdatingSettings || !Configuration.IsValid)
                 return;
 
             _isUpdatingSettings = true;
-            SettingsManager.UpdateSettings(Configuration);
-            _isUpdatingSettings = false;
+            try {
+                await SettingsManager.UpdateSettingsAsync(Configuration).ConfigureAwait(false);
+            } catch (Exception ex) {
+                _log.Value.FormattedError(typeof(ExceptionlessClient), ex, "An error occurred updating settings: {0}.", ex.Message);
+            } finally {
+                _isUpdatingSettings = false;
+            }
         }
 
         public ExceptionlessConfiguration Configuration { get; private set; }
@@ -84,9 +89,9 @@ namespace Exceptionless {
         /// <param name="referenceId">The reference id of the event to update.</param>
         /// <param name="email">The user's email address to set on the event.</param>
         /// <param name="description">The user's description of the event.</param>
-        public bool UpdateUserEmailAndDescription(string referenceId, string email, string description) {
+        public async Task<bool> UpdateUserEmailAndDescriptionAsync(string referenceId, string email, string description) {
             if (String.IsNullOrEmpty(referenceId))
-                throw new ArgumentNullException("referenceId");
+                throw new ArgumentNullException(nameof(referenceId));
 
             if (String.IsNullOrEmpty(email) && String.IsNullOrEmpty(description))
                 return true;
@@ -110,7 +115,7 @@ namespace Exceptionless {
             }
 
             try {
-                var response = _submissionClient.Value.PostUserDescription(referenceId, new UserDescription(email, description), Configuration, Configuration.Resolver.GetJsonSerializer());
+                var response = await _submissionClient.Value.PostUserDescriptionAsync(referenceId, new UserDescription(email, description), Configuration, Configuration.Resolver.GetJsonSerializer());
                 if (!response.Success)
                     _log.Value.FormattedError(typeof(ExceptionlessClient), response.Exception, "Failed to submit user email and description for event '{0}': {1} {2}", referenceId, response.StatusCode, response.Message);
 
@@ -147,22 +152,6 @@ namespace Exceptionless {
         }
 
         /// <summary>
-        /// Process the queue.
-        /// </summary>
-        public void ProcessQueue() {
-            ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-
-        /// <summary>
-        /// Gets a disposable object that when disposed will trigger the client queue to be processed.
-        /// <code>using var _ = client.ProcessQueueDeferred();</code>
-        /// </summary>
-        /// <returns>An <see cref="IDisposable"/> that when disposed will trigger the client queue to be processed.</returns>
-        public IDisposable ProcessQueueDeferred() {
-            return new ProcessQueueScope(this);
-        }
-
-        /// <summary>
         /// Submits the event to be sent to the server.
         /// </summary>
         /// <param name="ev">The event data.</param>
@@ -172,7 +161,7 @@ namespace Exceptionless {
         /// </param>
         public void SubmitEvent(Event ev, ContextData pluginContextData = null) {
             if (ev == null)
-                throw new ArgumentNullException("ev");
+                throw new ArgumentNullException(nameof(ev));
 
             if (!Configuration.Enabled) {
                 _log.Value.Info(typeof(ExceptionlessClient), "Configuration is disabled. The event will not be submitted.");

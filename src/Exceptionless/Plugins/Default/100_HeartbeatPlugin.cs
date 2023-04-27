@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Threading;
 using Exceptionless.Dependency;
+using Exceptionless.Logging;
 
 namespace Exceptionless.Plugins.Default {
     [Priority(100)]
@@ -55,7 +56,7 @@ namespace Exceptionless.Plugins.Default {
             SessionIdentifier = sessionIdentifier;
             _interval = interval;
             _client = client;
-            _timer = new Timer(SendHeartbeat, null, _interval, _interval);
+            _timer = new Timer(SendHeartbeatAsync, null, _interval, _interval);
         }
         
         public string SessionIdentifier { get; private set; }
@@ -64,8 +65,13 @@ namespace Exceptionless.Plugins.Default {
             _timer.Change(_interval, _interval);
         }
 
-        private void SendHeartbeat(object state) {
-            _client.SubmitSessionHeartbeat(SessionIdentifier);
+        private async void SendHeartbeatAsync(object state) {
+            try {
+                await _client.SubmitSessionHeartbeatAsync(SessionIdentifier).ConfigureAwait(false);
+            } catch (Exception ex) {
+                var log = _client.Configuration.Resolver.GetLog();
+                log.Error(typeof(SessionHeartbeat), ex, String.Concat("An error occurred sending session heartbeat: ", ex.Message));
+            }
         }
 
         public void Dispose() {
