@@ -485,8 +485,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key for the plugin to be removed.</param>
         public void RemovePlugin(string key) {
-            PluginRegistration plugin;
-            if (_plugins.TryRemove(key, out plugin))
+            if (_plugins.TryRemove(key, out var plugin))
                 plugin.Dispose();
         }
 

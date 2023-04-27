@@ -208,8 +208,7 @@ namespace Exceptionless.Services {
 
             var parts = description.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length > 0) {
-                Version version;
-                if (Version.TryParse(parts[parts.Length - 1], out version))
+                if (Version.TryParse(parts[parts.Length - 1], out var version))
                     return version;
             }
 
@@ -224,10 +223,9 @@ namespace Exceptionless.Services {
 
             try {
                 // Detect whether the current process is a 32-bit process running on a 64-bit system.
-                bool is64;
                 bool methodExist = KernelNativeMethods.MethodExists("kernel32.dll", "IsWow64Process");
 
-                return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out is64)) && is64);
+                return ((methodExist && KernelNativeMethods.IsWow64Process(KernelNativeMethods.GetCurrentProcess(), out bool is64)) && is64);
             } catch (Exception ex) {
                 Log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get CPU architecture. Error message: {0}", ex.Message);
             }

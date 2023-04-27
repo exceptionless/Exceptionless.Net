@@ -91,8 +91,7 @@ namespace Exceptionless {
         }
 
         internal static HttpContext GetHttpContext(this IDictionary<string, object> data) {
-            object context;
-            if (data.TryGetValue("HttpContext", out context))
+            if (data.TryGetValue("HttpContext", out object context))
                 return context as HttpContext;
 
             return null;

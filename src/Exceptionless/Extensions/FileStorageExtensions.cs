@@ -53,8 +53,7 @@ namespace Exceptionless.Extensions {
             if (parts.Length != 3)
                 return 0;
 
-            int attempts;
-            return !Int32.TryParse(parts[1], out attempts) ? 0 : attempts;
+            return !Int32.TryParse(parts[1], out int attempts) ? 0 : attempts;
         }
 
         public static bool LockFile(this IObjectStorage storage, ObjectInfo info) {

@@ -13,8 +13,7 @@ namespace Exceptionless.Plugins.Default {
             if (context.Event.Data.ContainsKey(Event.KnownDataKeys.Version))
                 return;
 
-            object value;
-            if (context.Client.Configuration.DefaultData.TryGetValue(Event.KnownDataKeys.Version, out value) && value is string) {
+            if (context.Client.Configuration.DefaultData.TryGetValue(Event.KnownDataKeys.Version, out object value) && value is string) {
                 context.Event.Data[Event.KnownDataKeys.Version] = value;
                 return;
             }

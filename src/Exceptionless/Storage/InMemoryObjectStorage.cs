@@ -26,8 +26,7 @@ namespace Exceptionless.Storage {
                 throw new ArgumentNullException(nameof(path));
 
             lock (_lock) {
-                Tuple<ObjectInfo, object> value;
-                if (!_storage.TryGetValue(path, out value))
+                if (!_storage.TryGetValue(path, out var value))
                     throw new FileNotFoundException();
 
                 return value.Item2 as T;
@@ -35,8 +34,7 @@ namespace Exceptionless.Storage {
         }
 
         public ObjectInfo GetObjectInfo(string path) {
-            Tuple<ObjectInfo, object> value;
-            return _storage.TryGetValue(path, out value) ? value.Item1 : null;
+            return _storage.TryGetValue(path, out var value) ? value.Item1 : null;
         }
 
         public bool Exists(string path) {

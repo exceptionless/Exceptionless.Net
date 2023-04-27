@@ -14,8 +14,7 @@ namespace Exceptionless {
             if (String.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
 
-            object data;
-            if (!items.TryGetValue(key, out data))
+            if (!items.TryGetValue(key, out object data))
                 throw new KeyNotFoundException($"The key '{key}' was not found.");
 
             if (data == null || data is T)

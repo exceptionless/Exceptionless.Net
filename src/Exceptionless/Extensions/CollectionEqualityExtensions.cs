@@ -47,8 +47,7 @@ namespace Exceptionless {
             foreach (var key in source.Keys) {
                 var sourceValue = source[key];
 
-                TValue otherValue;
-                if (!other.TryGetValue(key, out otherValue)) {
+                if (!other.TryGetValue(key, out var otherValue)) {
                     return false;
                 }
 

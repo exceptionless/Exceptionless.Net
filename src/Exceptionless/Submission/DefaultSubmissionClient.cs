@@ -215,8 +215,7 @@ namespace Exceptionless.Submission {
         }
 
         private string GetSettingsVersionHeader(HttpResponseHeaders headers) {
-            IEnumerable<string> values;
-            if (headers != null && headers.TryGetValues(ExceptionlessHeaders.ConfigurationVersion, out values))
+            if (headers != null && headers.TryGetValues(ExceptionlessHeaders.ConfigurationVersion, out var values))
                 return values.FirstOrDefault();
 
             return null;

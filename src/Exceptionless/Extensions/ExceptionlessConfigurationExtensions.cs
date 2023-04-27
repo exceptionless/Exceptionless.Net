@@ -380,8 +380,7 @@ namespace Exceptionless {
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;
 
-            bool enabled;
-            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out enabled) && !enabled)
+            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out bool enabled) && !enabled)
                 config.Enabled = false;
 
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
@@ -399,13 +398,11 @@ namespace Exceptionless {
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;
 
-            bool enabled;
-            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out enabled) && !enabled)
+            if (Boolean.TryParse(GetEnvironmentalVariable("Exceptionless:Enabled") ?? GetEnvironmentalVariable("Exceptionless__Enabled"), out bool enabled) && !enabled)
                 config.Enabled = false;
 
-            bool processQueueOnCompletedRequest;
             string processQueueOnCompletedRequestValue = GetEnvironmentalVariable("Exceptionless:ProcessQueueOnCompletedRequest") ??
-                GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
+                                                         GetEnvironmentalVariable("Exceptionless__ProcessQueueOnCompletedRequest");
 
             // if we are running in a serverless environment default this config to true
             if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)) {
@@ -419,7 +416,7 @@ namespace Exceptionless {
                     processQueueOnCompletedRequestValue = Boolean.TrueString;
             }
 
-            if (Boolean.TryParse(processQueueOnCompletedRequestValue, out processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
+            if (Boolean.TryParse(processQueueOnCompletedRequestValue, out bool processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
                 config.ProcessQueueOnCompletedRequest = true;
 
             string serverUrl = GetEnvironmentalVariable("Exceptionless:ServerUrl") ?? GetEnvironmentalVariable("Exceptionless__ServerUrl");

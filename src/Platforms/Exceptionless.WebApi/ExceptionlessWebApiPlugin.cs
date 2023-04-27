@@ -66,8 +66,7 @@ namespace Exceptionless.WebApi {
 
             const string RequestContextKey = "MS_RequestContext";
 
-            object context;
-            if (!request.Properties.TryGetValue(RequestContextKey, out context) || context == null)
+            if (!request.Properties.TryGetValue(RequestContextKey, out object context) || context == null)
                 return Thread.CurrentPrincipal;
 
             if (_principalGetAccessor == null) {
