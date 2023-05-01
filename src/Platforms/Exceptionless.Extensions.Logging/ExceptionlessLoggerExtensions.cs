@@ -89,7 +89,7 @@ namespace Exceptionless {
         /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
         /// <param name="client">If a client is not specified then the <see cref="ExceptionlessClient.Default"/> will be used.</param>
         /// <returns>The <see cref="ILoggerFactory"/>.</returns>
-        [Obsolete("Use ExceptionlessLoggerExtensions.AddExceptionless(ILoggingBuilder,ExceptionlessClient) instead.")]
+        [Obsolete("Use ExceptionlessLoggerExtensions.AddExceptionless(ILoggingBuilder, ExceptionlessClient) instead.")]
         public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, ExceptionlessClient client = null) {
             factory.AddProvider(new ExceptionlessLoggerProvider(client ?? ExceptionlessClient.Default));
             return factory;
@@ -102,7 +102,7 @@ namespace Exceptionless {
         /// <param name="apiKey">The project api key.</param>
         /// <param name="serverUrl">The Server Url</param>
         /// <returns>The <see cref="ILoggerFactory"/>.</returns>
-        [Obsolete("Use ExceptionlessLoggerExtensions.AddExceptionless(ILoggingBuilder,string,string) instead.")]
+        [Obsolete("Use ExceptionlessLoggerExtensions.AddExceptionless(ILoggingBuilder, string, string) instead.")]
         public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, string apiKey, string serverUrl = null) {
             if (String.IsNullOrEmpty(apiKey) && String.IsNullOrEmpty(serverUrl))
                 return factory.AddExceptionless();
@@ -125,7 +125,7 @@ namespace Exceptionless {
         /// <param name="factory">The <see cref="ILoggerFactory"/>.</param>
         /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> that applies additional settings and plugins. The project api key must be specified.</param>
         /// <returns>The <see cref="ILoggerFactory"/>.</returns>
-        [Obsolete("Use ExceptionlessLoggerExtensions.AddExceptionless(ILoggingBuilder,Action<ExceptionlessConfiguration>) instead.")]
+        [Obsolete("Use ExceptionlessLoggerExtensions.AddExceptionless(ILoggingBuilder, Action<ExceptionlessConfiguration>) instead.")]
         public static ILoggerFactory AddExceptionless(this ILoggerFactory factory, Action<ExceptionlessConfiguration> configure) {
             factory.AddProvider(new ExceptionlessLoggerProvider(configure));
             return factory;

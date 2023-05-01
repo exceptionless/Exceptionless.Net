@@ -18,7 +18,11 @@ namespace Exceptionless.Log4net {
                     config.ApiKey = ApiKey;
                 if (!String.IsNullOrEmpty(ServerUrl))
                     config.ServerUrl = ServerUrl;
+
                 config.UseInMemoryStorage();
+
+                // Rely on Logging Rules
+                config.SetDefaultMinLogLevel(Logging.LogLevel.Trace);
             });
         }
 

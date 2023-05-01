@@ -20,7 +20,7 @@ namespace Exceptionless.Log4net {
                 builder.SetSource(ev.LoggerName);
 
             var props = ev.GetProperties();
-            foreach (var key in props.GetKeys().Where(key => !_ignoredEventProperties.Contains(key, StringComparer.OrdinalIgnoreCase))) {
+            foreach (string key in props.GetKeys().Where(key => !_ignoredEventProperties.Contains(key, StringComparer.OrdinalIgnoreCase))) {
                 string propName = key;
                 if (propName.StartsWith("log4net:"))
                     propName = propName.Substring(8);

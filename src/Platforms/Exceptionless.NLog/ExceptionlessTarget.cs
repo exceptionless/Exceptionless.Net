@@ -28,8 +28,8 @@ namespace Exceptionless.NLog {
         protected override void InitializeTarget() {
             base.InitializeTarget();
 
-            var apiKey = RenderLogEvent(ApiKey, LogEventInfo.CreateNullEvent());
-            var serverUrl = RenderLogEvent(ServerUrl, LogEventInfo.CreateNullEvent());
+            string apiKey = RenderLogEvent(ApiKey, LogEventInfo.CreateNullEvent());
+            string serverUrl = RenderLogEvent(ServerUrl, LogEventInfo.CreateNullEvent());
 
             if (!String.IsNullOrEmpty(apiKey) || !String.IsNullOrEmpty(serverUrl)) {
                 _client = new ExceptionlessClient(config => {
@@ -37,12 +37,17 @@ namespace Exceptionless.NLog {
                         config.ApiKey = apiKey;
                     if (!String.IsNullOrEmpty(serverUrl))
                         config.ServerUrl = serverUrl;
+
                     config.UseLogger(new NLogInternalLoggger());
                     config.UseInMemoryStorage();
-                    config.SetDefaultMinLogLevel(Logging.LogLevel.Trace);   // Rely on NLog Logging Rules
+
+                    // Rely on Logging Rules
+                    config.SetDefaultMinLogLevel(Logging.LogLevel.Trace);
                 });
-            }
-            else {
+            } else {
+                // Rely on Logging Rules
+                _client.Configuration.SetDefaultMinLogLevel(Logging.LogLevel.Trace);
+
                 if (_client.Configuration.Resolver.HasDefaultRegistration<Logging.IExceptionlessLog, Logging.NullExceptionlessLog>()) {
                     _client.Configuration.UseLogger(new NLogInternalLoggger());
                 }

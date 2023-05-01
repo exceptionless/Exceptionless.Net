@@ -11,6 +11,9 @@ namespace Exceptionless.Extensions.Logging {
         /// </summary>
         public ExceptionlessLoggerProvider(ExceptionlessClient client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+
+            // Rely on Logging Rules
+            _client.Configuration.SetDefaultMinLogLevel(Exceptionless.Logging.LogLevel.Trace);
         }
 
         /// <summary>
@@ -18,8 +21,12 @@ namespace Exceptionless.Extensions.Logging {
         /// </summary>
         /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> which will be used to configure created loggers.</param>
         public ExceptionlessLoggerProvider(Action<ExceptionlessConfiguration> configure) {
-            configure?.Invoke(ExceptionlessClient.Default.Configuration);
             _client = ExceptionlessClient.Default;
+
+            // Rely on Logging Rules
+            _client.Configuration.SetDefaultMinLogLevel(Exceptionless.Logging.LogLevel.Trace);
+            
+            configure?.Invoke(_client.Configuration);
             _shouldDispose = true;
         }
 
