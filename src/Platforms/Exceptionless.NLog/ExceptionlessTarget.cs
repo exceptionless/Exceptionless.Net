@@ -39,6 +39,7 @@ namespace Exceptionless.NLog {
                         config.ServerUrl = serverUrl;
                     config.UseLogger(new NLogInternalLoggger());
                     config.UseInMemoryStorage();
+                    config.SetDefaultMinLogLevel(Logging.LogLevel.Trace);   // Rely on NLog Logging Rules
                 });
             }
             else {
