@@ -13,17 +13,17 @@ namespace Exceptionless.Serializer {
         }
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) {
-            JsonProperty property = base.CreateProperty(member, memberSerialization);
+            var property = base.CreateProperty(member, memberSerialization);
             if (_includeProperty == null)
                 return property;
             
-            Predicate<object> shouldSerialize = property.ShouldSerialize;
+            var shouldSerialize = property.ShouldSerialize;
             property.ShouldSerialize = obj => _includeProperty(property, obj) && (shouldSerialize == null || shouldSerialize(obj));
             return property;
         }
 
         protected override JsonDictionaryContract CreateDictionaryContract(Type objectType) {
-            JsonDictionaryContract contract = base.CreateDictionaryContract(objectType);
+            var contract = base.CreateDictionaryContract(objectType);
             contract.DictionaryKeyResolver = propertyName => propertyName;
             return contract;
         }

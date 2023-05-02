@@ -104,7 +104,7 @@ namespace Exceptionless {
                 : client.Configuration.DataExclusions.ToArray();
 
             string name = !String.IsNullOrWhiteSpace(info.Name) ? info.Name.Trim() : null;
-            Type dataType = info.Data.GetType();
+            var dataType = info.Data.GetType();
             if (String.IsNullOrEmpty(name)) {
                 name = dataType.Name;
                 int index = 1;
@@ -115,10 +115,7 @@ namespace Exceptionless {
             }
 
             if (dataType == typeof(bool) || dataType == typeof(string) || dataType.IsNumeric()) {
-                if (data.Data.ContainsKey(name))
-                    data.Data[name] = info.Data;
-                else
-                    data.Data.Add(name, info.Data);
+                data.Data[name] = info.Data;
 
                 return;
             }
@@ -129,7 +126,7 @@ namespace Exceptionless {
                     json = info.Data.ToString();
                 } else {
                     var serializer = client.Configuration.Resolver.GetJsonSerializer();
-                    json = serializer.Serialize(info.Data, exclusions, info.MaxDepthToSerialize.HasValue ? info.MaxDepthToSerialize.Value : 5, info.IgnoreSerializationErrors);
+                    json = serializer.Serialize(info.Data, exclusions, info.MaxDepthToSerialize.GetValueOrDefault(5), info.IgnoreSerializationErrors);
                 }
             } catch (Exception ex) {
                 json = ex.ToString();
@@ -138,10 +135,7 @@ namespace Exceptionless {
             if (String.IsNullOrEmpty(json))
                 return;
 
-            if (data.Data.ContainsKey(name))
-                data.Data[name] = json;
-            else
-                data.Data.Add(name, json);
+            data.Data[name] = json;
         }
     }
 }

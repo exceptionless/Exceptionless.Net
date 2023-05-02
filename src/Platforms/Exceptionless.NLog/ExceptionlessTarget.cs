@@ -58,19 +58,19 @@ namespace Exceptionless.NLog {
             if (!_client.Configuration.IsValid)
                 return;
 
-            LogLevel minLogLevel = LogLevel.FromOrdinal(_client.Configuration.Settings.GetMinLogLevel(logEvent.LoggerName).Ordinal);
+            var minLogLevel = LogLevel.FromOrdinal(_client.Configuration.Settings.GetMinLogLevel(logEvent.LoggerName).Ordinal);
             if (logEvent.Level < minLogLevel)
                 return;
 
-            var formattedMessage = RenderLogEvent(Layout, logEvent);
+            string formattedMessage = RenderLogEvent(Layout, logEvent);
             var builder = _client.CreateFromLogEvent(logEvent, formattedMessage);
 
-            var userIdentity = RenderLogEvent(UserIdentity, logEvent);
-            var userIdentityName = RenderLogEvent(UserIdentityName, logEvent);
+            string userIdentity = RenderLogEvent(UserIdentity, logEvent);
+            string userIdentityName = RenderLogEvent(UserIdentityName, logEvent);
             builder.Target.SetUserIdentity(userIdentity, userIdentityName);
 
             foreach (var field in Fields) {
-                var renderedField = RenderLogEvent(field.Layout, logEvent);
+                string renderedField = RenderLogEvent(field.Layout, logEvent);
                 if (!String.IsNullOrWhiteSpace(renderedField))
                     builder.AddObject(renderedField, field.Name);
             }
