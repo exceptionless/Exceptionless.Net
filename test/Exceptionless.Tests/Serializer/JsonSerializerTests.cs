@@ -31,7 +31,7 @@ namespace Exceptionless.Tests.Serializer {
             };
             ev.Data["FirstName"] = "Blake";
 
-            var exclusions = new[] { nameof(Event.Type), nameof(Event.Source), "Date", nameof(Event.Geo), nameof(Event.Count), nameof(Event.ReferenceId), nameof(Event.Tags), nameof(Event.Value) };
+            string[] exclusions = new[] { nameof(Event.Type), nameof(Event.Source), "Date", nameof(Event.Geo), nameof(Event.Count), nameof(Event.ReferenceId), nameof(Event.Tags), nameof(Event.Value) };
             var serializer = GetSerializer();
             string json = serializer.Serialize(ev, exclusions);
             Assert.Equal(@"{""message"":""Testing"",""data"":{""FirstName"":""Blake""}}", json);
@@ -44,7 +44,7 @@ namespace Exceptionless.Tests.Serializer {
                 Message = "Testing"
             };
             var serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Rating), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
@@ -86,7 +86,7 @@ namespace Exceptionless.Tests.Serializer {
                 }
             };
 
-            var exclusions = new[] { nameof(user.PasswordHash), nameof(user.Billing.CardNumberRedacted), nameof(user.Billing.EncryptedCardNumber) };
+            string[] exclusions = new[] { nameof(user.PasswordHash), nameof(user.Billing.CardNumberRedacted), nameof(user.Billing.EncryptedCardNumber) };
             var serializer = GetSerializer();
             string json = serializer.Serialize(user, exclusions, maxDepth: 2);
             Assert.Equal(@"{""first_name"":""John"",""last_name"":""Doe"",""billing"":{""expiration_month"":10,""expiration_year"":2020}}", json);
@@ -97,7 +97,7 @@ namespace Exceptionless.Tests.Serializer {
             var data = new SampleModel();
             var serializer = GetSerializer();
             string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
-            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""dictionary"":null,""collection"":null,""nested"":null}", json);
+            Assert.Equal(@"{""number"":0,""rating"":0.0,""bool"":false,""message"":null,""dictionary"":null,""collection"":null,""nested"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -111,6 +111,7 @@ namespace Exceptionless.Tests.Serializer {
         public void ShouldSerializeValues() {
             var data = new SampleModel {
                 Number = 1,
+                Rating = 4.50m,
                 Bool = true,
                 Message = "test",
                 Collection = new List<string> { "one" },
@@ -121,7 +122,7 @@ namespace Exceptionless.Tests.Serializer {
 
             var serializer = GetSerializer();
             string json = serializer.Serialize(data);
-            Assert.Equal(@"{""number"":1,""bool"":true,""date"":""9999-12-31T23:59:59.9999999"",""message"":""test"",""date_offset"":""9999-12-31T23:59:59.9999999+00:00"",""dictionary"":{""key"":""value""},""collection"":[""one""],""nested"":null}", json);
+            Assert.Equal(@"{""number"":1,""rating"":4.50,""bool"":true,""date"":""9999-12-31T23:59:59.9999999"",""message"":""test"",""date_offset"":""9999-12-31T23:59:59.9999999+00:00"",""dictionary"":{""key"":""value""},""collection"":[""one""],""nested"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -235,6 +236,7 @@ namespace Exceptionless.Tests.Serializer {
 
     public class SampleModel {
         public int Number { get; set; }
+        public decimal Rating { get; set; }
         public bool Bool { get; set; }
         public DateTime Date { get; set; }
         public string Message { get; set; }

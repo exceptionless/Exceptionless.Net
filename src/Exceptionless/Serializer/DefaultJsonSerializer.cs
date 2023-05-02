@@ -18,6 +18,7 @@ namespace Exceptionless.Serializer {
             _serializerSettings = new JsonSerializerSettings {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 PreserveReferencesHandling = PreserveReferencesHandling.None,
+                FloatParseHandling = FloatParseHandling.Decimal,
                 ContractResolver = new ExceptionlessContractResolver()
             };
 
