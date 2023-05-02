@@ -38,7 +38,12 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="other">A <see cref="JRaw"/> object to copy from.</param>
         public JRaw(JRaw other)
-            : base(other)
+            : base(other, settings: null)
+        {
+        }
+
+        internal JRaw(JRaw other, JsonCloneSettings? settings)
+            : base(other, settings)
         {
         }
 
@@ -67,9 +72,9 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        internal override JToken CloneToken()
+        internal override JToken CloneToken(JsonCloneSettings? settings)
         {
-            return new JRaw(this);
+            return new JRaw(this, settings);
         }
     }
 }

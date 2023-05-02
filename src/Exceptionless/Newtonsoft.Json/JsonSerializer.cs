@@ -514,7 +514,7 @@ namespace Exceptionless.Json
         /// <summary>
         /// Gets or sets the maximum depth allowed when reading JSON. Reading past this depth will throw a <see cref="JsonReaderException"/>.
         /// A null value means there is no maximum.
-        /// The default value is <c>null</c>.
+        /// The default value is <c>64</c>.
         /// </summary>
         public virtual int? MaxDepth
         {
@@ -865,12 +865,9 @@ namespace Exceptionless.Json
         /// <typeparam name="T">The type of the object to deserialize.</typeparam>
         /// <returns>The instance of <typeparamref name="T"/> being deserialized.</returns>
         [DebuggerStepThrough]
-        [return: MaybeNull]
-        public T Deserialize<T>(JsonReader reader)
+        public T? Deserialize<T>(JsonReader reader)
         {
-#pragma warning disable CS8601 // Possible null reference assignment.
-            return (T)Deserialize(reader, typeof(T));
-#pragma warning restore CS8601 // Possible null reference assignment.
+            return (T?)Deserialize(reader, typeof(T));
         }
 
         /// <summary>
@@ -916,7 +913,7 @@ namespace Exceptionless.Json
             return value;
         }
 
-        private void SetupReader(JsonReader reader, out CultureInfo? previousCulture, out DateTimeZoneHandling? previousDateTimeZoneHandling, out DateParseHandling? previousDateParseHandling, out FloatParseHandling? previousFloatParseHandling, out int? previousMaxDepth, out string? previousDateFormatString)
+        internal void SetupReader(JsonReader reader, out CultureInfo? previousCulture, out DateTimeZoneHandling? previousDateTimeZoneHandling, out DateParseHandling? previousDateParseHandling, out FloatParseHandling? previousFloatParseHandling, out int? previousMaxDepth, out string? previousDateFormatString)
         {
             if (_culture != null && !_culture.Equals(reader.Culture))
             {

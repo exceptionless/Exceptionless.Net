@@ -1,35 +1,36 @@
 # Pull sources
 if (Test-Path json.zip) {
-	del json.zip
+	Remove-Item json.zip
 }
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/12.0.3.zip -OutFile json.zip
+Invoke-WebRequest https://github.com/JamesNK/Newtonsoft.Json/archive/13.0.3.zip -OutFile json.zip
 
 if (Test-Path json-temp) {
-	rmdir './json-temp' -Recurse -Force
+	Remove-Item './json-temp' -Recurse -Force
 }
 [System.Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.FileSystem") | Out-Null
 [System.IO.Compression.ZipFile]::ExtractToDirectory($pwd.Path + "/json.zip", $pwd.Path + "/json-temp")
 
 if (Test-Path Newtonsoft.Json) {
-	rmdir './Newtonsoft.Json' -Recurse -Force
+	Remove-Item './Newtonsoft.Json' -Recurse -Force
 }
 
-cd 'json-temp/Newtonsoft.Json*'
+Set-Location 'json-temp/Newtonsoft.Json*'
 Copy-Item 'Src/Newtonsoft.Json' -Destination '../../' -Recurse
-cd '../../'
+Set-Location '../../'
 
-rmdir './json-temp' -Recurse -Force
-del json.zip
+Remove-Item './json-temp' -Recurse -Force -ErrorAction SilentlyContinue *> $null
+Remove-Item json.zip
+Remove-Item './json-temp' -Recurse -Force -ErrorAction SilentlyContinue *> $null
 
 Get-ChildItem './Newtonsoft.Json' *.cs -recurse |
     Foreach-Object {
-        $c = ($_ | Get-Content) 
+        $c = ($_ | Get-Content)
         $c = $c -replace 'Newtonsoft.Json','Exceptionless.Json'
         $c = $c -replace 'JsonIgnoreAttribute','ExceptionlessIgnoreAttribute'
         if($_.name -ne 'JsonIgnoreAttribute.cs'){
-            $c = $c -replace 'public( (?:static|sealed|abstract|partial))? (class|struct|interface|enum)','internal$1 $2'
+            $c = $c -replace 'public((?: (?:readonly|static|sealed|abstract|partial))+)? (class|struct|interface|enum)','internal$1 $2'
             $c = $c -replace 'public delegate void','internal delegate void'
             $c = $c -replace '\[CLSCompliant\(false\)\]',''
         }
@@ -38,6 +39,9 @@ Get-ChildItem './Newtonsoft.Json' *.cs -recurse |
 
 Rename-Item -Path "./Newtonsoft.Json/JsonIgnoreAttribute.cs" "ExceptionlessIgnoreAttribute.cs"
 
-del './Newtonsoft.Json/*.csproj' -Force
-del './Newtonsoft.Json/Newtonsoft.Json.ruleset' -Force
-del './Newtonsoft.Json/Properties' -Force -Recurse
+Remove-Item './Newtonsoft.Json/*.csproj' -Force
+Remove-Item './Newtonsoft.Json/CompatibilitySuppressions.xml' -Force -Recurse
+Remove-Item './Newtonsoft.Json/Newtonsoft.Json.ruleset' -Force
+Remove-Item './Newtonsoft.Json/Properties' -Force -Recurse
+Remove-Item './Newtonsoft.Json/packageIcon.png' -Force -Recurse
+Remove-Item './Newtonsoft.Json/README.md' -Force -Recurse

@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -45,6 +45,7 @@ using Exceptionless.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 #endif
+using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Json.Linq
 {
@@ -130,7 +131,7 @@ namespace Exceptionless.Json.Linq
             }
         }
 
-        internal abstract JToken CloneToken();
+        internal abstract JToken CloneToken(JsonCloneSettings? settings);
         internal abstract bool DeepEquals(JToken node);
 
         /// <summary>
@@ -240,7 +241,7 @@ namespace Exceptionless.Json.Linq
             }
 
             int index = _parent.IndexOfItem(this);
-            _parent.AddInternal(index + 1, content, false);
+            _parent.TryAddInternal(index + 1, content, false, copyAnnotations: true);
         }
 
         /// <summary>
@@ -255,7 +256,7 @@ namespace Exceptionless.Json.Linq
             }
 
             int index = _parent.IndexOfItem(this);
-            _parent.AddInternal(index, content, false);
+            _parent.TryAddInternal(index, content, false, copyAnnotations: true);
         }
 
         /// <summary>
@@ -334,7 +335,7 @@ namespace Exceptionless.Json.Linq
         /// <typeparam name="T">The type to convert the token to.</typeparam>
         /// <param name="key">The token key.</param>
         /// <returns>The converted token value.</returns>
-        public virtual T Value<T>(object key)
+        public virtual T? Value<T>(object key)
         {
             JToken? token = this[key];
 
@@ -378,7 +379,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <typeparam name="T">The type to convert the values to.</typeparam>
         /// <returns>A <see cref="IEnumerable{T}"/> containing the child values of this <see cref="JToken"/>, in document order.</returns>
-        public virtual IEnumerable<T> Values<T>()
+        public virtual IEnumerable<T?> Values<T>()
         {
             throw new InvalidOperationException("Cannot access child value on {0}.".FormatWith(CultureInfo.InvariantCulture, GetType()));
         }
@@ -485,7 +486,7 @@ namespace Exceptionless.Json.Linq
             return (Array.IndexOf(validTypes, o.Type) != -1) || (nullable && (o.Type == JTokenType.Null || o.Type == JTokenType.Undefined));
         }
 
-#region Cast from operators
+        #region Cast from operators
         /// <summary>
         /// Performs an explicit conversion from <see cref="Exceptionless.Json.Linq.JToken"/> to <see cref="System.Boolean"/>.
         /// </summary>
@@ -1332,7 +1333,7 @@ namespace Exceptionless.Json.Linq
 
             if (v.Value is string)
             {
-                return Convert.FromBase64String(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+                return Convert.FromBase64String(Convert.ToString(v.Value, CultureInfo.InvariantCulture)!);
             }
 #if HAVE_BIG_INTEGER
             if (v.Value is BigInteger integer)
@@ -1367,7 +1368,7 @@ namespace Exceptionless.Json.Linq
                 return new Guid(bytes);
             }
 
-            return (v.Value is Guid guid) ? guid : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is Guid guid) ? guid : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture)!);
         }
 
         /// <summary>
@@ -1398,7 +1399,7 @@ namespace Exceptionless.Json.Linq
                 return new Guid(bytes);
             }
 
-            return (v.Value is Guid guid) ? guid : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is Guid guid) ? guid : new Guid(Convert.ToString(v.Value, CultureInfo.InvariantCulture)!);
         }
 
         /// <summary>
@@ -1414,7 +1415,7 @@ namespace Exceptionless.Json.Linq
                 throw new ArgumentException("Can not convert {0} to TimeSpan.".FormatWith(CultureInfo.InvariantCulture, GetType(value)));
             }
 
-            return (v.Value is TimeSpan span) ? span : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is TimeSpan span) ? span : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture)!);
         }
 
         /// <summary>
@@ -1440,7 +1441,7 @@ namespace Exceptionless.Json.Linq
                 return null;
             }
 
-            return (v.Value is TimeSpan span) ? span : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is TimeSpan span) ? span : ConvertUtils.ParseTimeSpan(Convert.ToString(v.Value, CultureInfo.InvariantCulture)!);
         }
 
         /// <summary>
@@ -1466,7 +1467,7 @@ namespace Exceptionless.Json.Linq
                 return null;
             }
 
-            return (v.Value is Uri uri) ? uri : new Uri(Convert.ToString(v.Value, CultureInfo.InvariantCulture));
+            return (v.Value is Uri uri) ? uri : new Uri(Convert.ToString(v.Value, CultureInfo.InvariantCulture)!);
         }
 
 #if HAVE_BIG_INTEGER
@@ -1497,9 +1498,9 @@ namespace Exceptionless.Json.Linq
             return ConvertUtils.ToBigInteger(v.Value);
         }
 #endif
-#endregion
+        #endregion
 
-#region Cast to operators
+        #region Cast to operators
         /// <summary>
         /// Performs an implicit conversion from <see cref="Boolean"/> to <see cref="JToken"/>.
         /// </summary>
@@ -1863,7 +1864,7 @@ namespace Exceptionless.Json.Linq
         {
             return new JValue(value);
         }
-#endregion
+        #endregion
 
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -1929,12 +1930,9 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <typeparam name="T">The object type that the token will be deserialized to.</typeparam>
         /// <returns>The new object created from the JSON value.</returns>
-        [return: MaybeNull]
-        public T ToObject<T>()
+        public T? ToObject<T>()
         {
-#pragma warning disable CS8601 // Possible null reference assignment.
-            return (T)ToObject(typeof(T));
-#pragma warning restore CS8601 // Possible null reference assignment.
+            return (T?)ToObject(typeof(T));
         }
 
         /// <summary>
@@ -1959,15 +1957,15 @@ namespace Exceptionless.Json.Linq
                         }
                         catch (Exception ex)
                         {
-                            Type enumType = objectType.IsEnum() ? objectType : Nullable.GetUnderlyingType(objectType);
+                            Type enumType = objectType.IsEnum() ? objectType : Nullable.GetUnderlyingType(objectType)!;
                             throw new ArgumentException("Could not convert '{0}' to {1}.".FormatWith(CultureInfo.InvariantCulture, (string?)this, enumType.Name), ex);
                         }
                     }
 
                     if (Type == JTokenType.Integer)
                     {
-                        Type enumType = objectType.IsEnum() ? objectType : Nullable.GetUnderlyingType(objectType);
-                        return Enum.ToObject(enumType, ((JValue)this).Value);
+                        Type enumType = objectType.IsEnum() ? objectType : Nullable.GetUnderlyingType(objectType)!;
+                        return Enum.ToObject(enumType, ((JValue)this).Value!);
                     }
                 }
 
@@ -2065,12 +2063,9 @@ namespace Exceptionless.Json.Linq
         /// <typeparam name="T">The object type that the token will be deserialized to.</typeparam>
         /// <param name="jsonSerializer">The <see cref="JsonSerializer"/> that will be used when creating the object.</param>
         /// <returns>The new object created from the JSON value.</returns>
-        [return: MaybeNull]
-        public T ToObject<T>(JsonSerializer jsonSerializer)
+        public T? ToObject<T>(JsonSerializer jsonSerializer)
         {
-#pragma warning disable CS8601 // Possible null reference assignment.
-            return (T)ToObject(typeof(T), jsonSerializer);
-#pragma warning restore CS8601 // Possible null reference assignment.
+            return (T?)ToObject(typeof(T), jsonSerializer);
         }
 
         /// <summary>
@@ -2079,12 +2074,19 @@ namespace Exceptionless.Json.Linq
         /// <param name="objectType">The object type that the token will be deserialized to.</param>
         /// <param name="jsonSerializer">The <see cref="JsonSerializer"/> that will be used when creating the object.</param>
         /// <returns>The new object created from the JSON value.</returns>
-        public object? ToObject(Type objectType, JsonSerializer jsonSerializer)
+        public object? ToObject(Type? objectType, JsonSerializer jsonSerializer)
         {
             ValidationUtils.ArgumentNotNull(jsonSerializer, nameof(jsonSerializer));
 
             using (JTokenReader jsonReader = new JTokenReader(this))
             {
+                // Hacky fix to ensure the serializer settings are set onto the new reader.
+                // This is required because the serializer won't update settings when used inside of a converter.
+                if (jsonSerializer is JsonSerializerProxy proxy)
+                {
+                    proxy._serializer.SetupReader(jsonReader, out _, out _, out _, out _, out _, out _);
+                }
+
                 return jsonSerializer.Deserialize(jsonReader, objectType);
             }
         }
@@ -2313,7 +2315,7 @@ namespace Exceptionless.Json.Linq
         /// <returns>A <see cref="JToken"/>, or <c>null</c>.</returns>
         public JToken? SelectToken(string path)
         {
-            return SelectToken(path, false);
+            return SelectToken(path, settings: null);
         }
 
         /// <summary>
@@ -2326,10 +2328,27 @@ namespace Exceptionless.Json.Linq
         /// <returns>A <see cref="JToken"/>.</returns>
         public JToken? SelectToken(string path, bool errorWhenNoMatch)
         {
+            JsonSelectSettings? settings = errorWhenNoMatch
+                ? new JsonSelectSettings { ErrorWhenNoMatch = true }
+                : null;
+
+            return SelectToken(path, settings);
+        }
+
+        /// <summary>
+        /// Selects a <see cref="JToken"/> using a JSONPath expression. Selects the token that matches the object path.
+        /// </summary>
+        /// <param name="path">
+        /// A <see cref="String"/> that contains a JSONPath expression.
+        /// </param>
+        /// <param name="settings">The <see cref="JsonSelectSettings"/> used to select tokens.</param>
+        /// <returns>A <see cref="JToken"/>.</returns>
+        public JToken? SelectToken(string path, JsonSelectSettings? settings)
+        {
             JPath p = new JPath(path);
 
             JToken? token = null;
-            foreach (JToken t in p.Evaluate(this, this, errorWhenNoMatch))
+            foreach (JToken t in p.Evaluate(this, this, settings))
             {
                 if (token != null)
                 {
@@ -2351,7 +2370,7 @@ namespace Exceptionless.Json.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the selected elements.</returns>
         public IEnumerable<JToken> SelectTokens(string path)
         {
-            return SelectTokens(path, false);
+            return SelectTokens(path, settings: null);
         }
 
         /// <summary>
@@ -2364,8 +2383,25 @@ namespace Exceptionless.Json.Linq
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the selected elements.</returns>
         public IEnumerable<JToken> SelectTokens(string path, bool errorWhenNoMatch)
         {
-            JPath p = new JPath(path);
-            return p.Evaluate(this, this, errorWhenNoMatch);
+            JsonSelectSettings? settings = errorWhenNoMatch
+                ? new JsonSelectSettings { ErrorWhenNoMatch = true }
+                : null;
+
+            return SelectTokens(path, settings);
+        }
+
+        /// <summary>
+        /// Selects a collection of elements using a JSONPath expression.
+        /// </summary>
+        /// <param name="path">
+        /// A <see cref="String"/> that contains a JSONPath expression.
+        /// </param>
+        /// <param name="settings">The <see cref="JsonSelectSettings"/> used to select tokens.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="JToken"/> that contains the selected elements.</returns>
+        public IEnumerable<JToken> SelectTokens(string path, JsonSelectSettings? settings)
+        {
+            var p = new JPath(path);
+            return p.Evaluate(this, this, settings);
         }
 
 #if HAVE_DYNAMIC
@@ -2407,7 +2443,17 @@ namespace Exceptionless.Json.Linq
         /// <returns>A new instance of the <see cref="JToken"/>.</returns>
         public JToken DeepClone()
         {
-            return CloneToken();
+            return CloneToken(settings: null);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="JToken"/>. All child tokens are recursively cloned.
+        /// </summary>
+        /// <param name="settings">A <see cref="JsonCloneSettings"/> object to configure cloning settings.</param>
+        /// <returns>A new instance of the <see cref="JToken"/>.</returns>
+        public JToken DeepClone(JsonCloneSettings settings)
+        {
+            return CloneToken(settings);
         }
 
         /// <summary>
@@ -2453,7 +2499,7 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <typeparam name="T">The type of the annotation to retrieve.</typeparam>
         /// <returns>The first annotation object that matches the specified type, or <c>null</c> if no annotation is of the specified type.</returns>
-        public T Annotation<T>() where T : class
+        public T? Annotation<T>() where T : class
         {
             if (_annotations != null)
             {
@@ -2704,6 +2750,18 @@ namespace Exceptionless.Json.Linq
                         _annotations = null;
                     }
                 }
+            }
+        }
+
+        internal void CopyAnnotations(JToken target, JToken source)
+        {
+            if (source._annotations is object[] annotations)
+            {
+                target._annotations = annotations.ToArray();
+            }
+            else
+            {
+                target._annotations = source._annotations;
             }
         }
     }

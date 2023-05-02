@@ -36,7 +36,7 @@ using Exceptionless.Json.Serialization;
 
 namespace Exceptionless.Json.Utilities
 {
-    internal class ThreadSafeStore<TKey, TValue>
+    internal class ThreadSafeStore<TKey, TValue> where TKey : notnull
     {
 #if HAVE_CONCURRENT_DICTIONARY
         private readonly ConcurrentDictionary<TKey, TValue> _concurrentStore;

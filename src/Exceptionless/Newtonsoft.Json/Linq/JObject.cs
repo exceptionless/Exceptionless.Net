@@ -93,7 +93,12 @@ namespace Exceptionless.Json.Linq
         /// </summary>
         /// <param name="other">A <see cref="JObject"/> object to copy from.</param>
         public JObject(JObject other)
-            : base(other)
+            : base(other, settings: null)
+        {
+        }
+
+        internal JObject(JObject other, JsonCloneSettings? settings)
+            : base(other, settings)
         {
         }
 
@@ -135,15 +140,15 @@ namespace Exceptionless.Json.Linq
             return _properties.IndexOfReference(item);
         }
 
-        internal override void InsertItem(int index, JToken? item, bool skipParentCheck)
+        internal override bool InsertItem(int index, JToken? item, bool skipParentCheck, bool copyAnnotations)
         {
             // don't add comments to JObject, no name to reference comment by
             if (item != null && item.Type == JTokenType.Comment)
             {
-                return;
+                return false;
             }
 
-            base.InsertItem(index, item, skipParentCheck);
+            return base.InsertItem(index, item, skipParentCheck, copyAnnotations);
         }
 
         internal override void ValidateToken(JToken o, JToken? existing)
@@ -244,9 +249,9 @@ namespace Exceptionless.Json.Linq
 #endif
         }
 
-        internal override JToken CloneToken()
+        internal override JToken CloneToken(JsonCloneSettings? settings)
         {
-            return new JObject(this);
+            return new JObject(this, settings);
         }
 
         /// <summary>
@@ -742,7 +747,7 @@ namespace Exceptionless.Json.Linq
             return ((ICustomTypeDescriptor)this).GetProperties(null);
         }
 
-        PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
+        PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[]? attributes)
         {
             PropertyDescriptor[] propertiesArray = new PropertyDescriptor[Count];
             int i = 0;
@@ -790,7 +795,7 @@ namespace Exceptionless.Json.Linq
             return null;
         }
 
-        EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes)
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[]? attributes)
         {
             return EventDescriptorCollection.Empty;
         }
@@ -800,7 +805,7 @@ namespace Exceptionless.Json.Linq
             return EventDescriptorCollection.Empty;
         }
 
-        object? ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
+        object? ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor? pd)
         {
             if (pd is JPropertyDescriptor)
             {

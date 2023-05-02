@@ -119,7 +119,7 @@ namespace Exceptionless.Json.Converters
                 switch (reader.TokenType)
                 {
                     case JsonToken.PropertyName:
-                        string propertyName = reader.Value!.ToString();
+                        string propertyName = reader.Value!.ToString()!;
 
                         if (!reader.Read())
                         {

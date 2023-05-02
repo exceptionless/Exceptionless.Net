@@ -248,7 +248,7 @@ namespace Exceptionless.Json.Serialization
 
             IsNullable = ReflectionUtils.IsNullable(underlyingType);
              
-            NonNullableUnderlyingType = (IsNullable && ReflectionUtils.IsNullableType(underlyingType)) ? Nullable.GetUnderlyingType(underlyingType) : underlyingType;
+            NonNullableUnderlyingType = (IsNullable && ReflectionUtils.IsNullableType(underlyingType)) ? Nullable.GetUnderlyingType(underlyingType)! : underlyingType;
 
             _createdType = CreatedType = NonNullableUnderlyingType;
 

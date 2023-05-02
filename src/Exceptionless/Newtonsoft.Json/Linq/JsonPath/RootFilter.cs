@@ -10,7 +10,7 @@ namespace Exceptionless.Json.Linq.JsonPath
         {
         }
 
-        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, bool errorWhenNoMatch)
+        public override IEnumerable<JToken> ExecuteFilter(JToken root, IEnumerable<JToken> current, JsonSelectSettings? settings)
         {
             return new[] { root };
         }

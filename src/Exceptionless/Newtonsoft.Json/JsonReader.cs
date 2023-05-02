@@ -227,6 +227,8 @@ namespace Exceptionless.Json
 
         /// <summary>
         /// Gets or sets the maximum depth allowed when reading JSON. Reading past this depth will throw a <see cref="JsonReaderException"/>.
+        /// A null value means there is no maximum. 
+        /// The default value is <c>64</c>.
         /// </summary>
         public int? MaxDepth
         {
@@ -327,6 +329,7 @@ namespace Exceptionless.Json
             _dateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
             _dateParseHandling = DateParseHandling.DateTime;
             _floatParseHandling = FloatParseHandling.Double;
+            _maxDepth = 64;
 
             CloseInput = true;
         }
@@ -493,7 +496,7 @@ namespace Exceptionless.Json
                     }
                     else
                     {
-                        s = v is Uri uri ? uri.OriginalString : v.ToString();
+                        s = v is Uri uri ? uri.OriginalString : v.ToString()!;
                     }
 
                     SetToken(JsonToken.String, s, false);
@@ -937,7 +940,7 @@ namespace Exceptionless.Json
             if (Value != null && Value.ToString() == JsonTypeReflector.TypePropertyName)
             {
                 ReaderReadAndAssert();
-                if (Value != null && Value.ToString().StartsWith("System.Byte[]", StringComparison.Ordinal))
+                if (Value != null && Value.ToString()!.StartsWith("System.Byte[]", StringComparison.Ordinal))
                 {
                     ReaderReadAndAssert();
                     if (Value.ToString() == JsonTypeReflector.ValuePropertyName)

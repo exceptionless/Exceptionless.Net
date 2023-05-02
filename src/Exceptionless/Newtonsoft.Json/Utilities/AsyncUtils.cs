@@ -61,9 +61,9 @@ namespace Exceptionless.Json.Utilities
         public static Task<T> FromCanceled<T>(this CancellationToken cancellationToken)
         {
             MiscellaneousUtils.Assert(cancellationToken.IsCancellationRequested);
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
+#pragma warning disable CS8603 // Possible null reference return.
             return new Task<T>(() => default, cancellationToken);
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         // Task.Delay(0) is optimised as a cached task within the framework, and indeed
@@ -95,11 +95,11 @@ namespace Exceptionless.Json.Utilities
             return cancellationToken.IsCancellationRequested ? FromCanceled<int>(cancellationToken) : reader.ReadAsync(buffer, index, count);
         }
 
-        public static bool IsCompletedSucessfully(this Task task)
+        public static bool IsCompletedSuccessfully(this Task task)
         {
             // IsCompletedSucessfully is the faster method, but only currently exposed on .NET Core 2.0
-#if NETCOREAPP2_0
-            return task.IsCompletedSucessfully;
+#if NETCOREAPP2_0_OR_GREATER
+            return task.IsCompletedSuccessfully;
 #else
             return task.Status == TaskStatus.RanToCompletion;
 #endif

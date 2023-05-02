@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -31,9 +31,9 @@ namespace Exceptionless.Json.Serialization
 {
     internal static class CachedAttributeGetter<T> where T : Attribute
     {
-        private static readonly ThreadSafeStore<object, T> TypeAttributeCache = new ThreadSafeStore<object, T>(JsonTypeReflector.GetAttribute<T>);
+        private static readonly ThreadSafeStore<object, T?> TypeAttributeCache = new ThreadSafeStore<object, T?>(JsonTypeReflector.GetAttribute<T>);
 
-        public static T GetAttribute(object type)
+        public static T? GetAttribute(object type)
         {
             return TypeAttributeCache.Get(type);
         }

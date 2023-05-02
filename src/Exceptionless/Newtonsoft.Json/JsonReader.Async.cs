@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -34,7 +34,25 @@ using Exceptionless.Json.Utilities;
 namespace Exceptionless.Json
 {
     internal abstract partial class JsonReader
+#if HAVE_ASYNC_DISPOSABLE
+        : IAsyncDisposable
+#endif
     {
+#if HAVE_ASYNC_DISPOSABLE
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            try
+            {
+                Dispose(true);
+                return default;
+            }
+            catch (Exception exc)
+            {
+                return ValueTask.FromException(exc);
+            }
+        }
+#endif
+
         /// <summary>
         /// Asynchronously reads the next JSON token from the source.
         /// </summary>

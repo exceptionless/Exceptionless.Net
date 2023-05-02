@@ -62,7 +62,7 @@ namespace Exceptionless.Json
         // array that gives a new state based on the current state an the token being written
         private static readonly State[][] StateArray;
 
-        internal static readonly State[][] StateArrayTempate = new[]
+        internal static readonly State[][] StateArrayTemplate = new[]
         {
             //                                      Start                    PropertyName            ObjectStart         Object            ArrayStart              Array                   ConstructorStart        Constructor             Closed       Error
             //
@@ -78,9 +78,9 @@ namespace Exceptionless.Json
 
         internal static State[][] BuildStateArray()
         {
-            List<State[]> allStates = StateArrayTempate.ToList();
-            State[] errorStates = StateArrayTempate[0];
-            State[] valueStates = StateArrayTempate[7];
+            List<State[]> allStates = StateArrayTemplate.ToList();
+            State[] errorStates = StateArrayTemplate[0];
+            State[] valueStates = StateArrayTemplate[7];
 
             EnumInfo enumValuesAndNames = EnumUtils.GetEnumValuesAndNames(typeof(JsonToken));
 
@@ -545,11 +545,11 @@ namespace Exceptionless.Json
                     break;
                 case JsonToken.StartConstructor:
                     ValidationUtils.ArgumentNotNull(value, nameof(value));
-                    WriteStartConstructor(value.ToString());
+                    WriteStartConstructor(value.ToString()!);
                     break;
                 case JsonToken.PropertyName:
                     ValidationUtils.ArgumentNotNull(value, nameof(value));
-                    WritePropertyName(value.ToString());
+                    WritePropertyName(value.ToString()!);
                     break;
                 case JsonToken.Comment:
                     WriteComment(value?.ToString());
@@ -587,8 +587,9 @@ namespace Exceptionless.Json
                     }
                     break;
                 case JsonToken.String:
-                    ValidationUtils.ArgumentNotNull(value, nameof(value));
-                    WriteValue(value.ToString());
+                    // Allow for a null string. This matches JTokenReader behavior which can read
+                    // a JsonToken.String with a null value.
+                    WriteValue(value?.ToString());
                     break;
                 case JsonToken.Boolean:
                     ValidationUtils.ArgumentNotNull(value, nameof(value));

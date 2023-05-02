@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -88,7 +88,7 @@ namespace Exceptionless.Json.Linq
                     return JEnumerable<JToken>.Empty;
                 }
 
-                return new JEnumerable<JToken>(_enumerable.Values<T, JToken>(key));
+                return new JEnumerable<JToken>(_enumerable.Values<T, JToken>(key)!);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Exceptionless.Json.Linq
         /// <returns>
         /// 	<c>true</c> if the specified <see cref="Object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is JEnumerable<T> enumerable)
             {

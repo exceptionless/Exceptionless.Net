@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 // Copyright (c) 2007 James Newton-King
 //
 // Permission is hereby granted, free of charge, to any person
@@ -33,6 +33,7 @@ using System.Security;
 using System.Security.Permissions;
 #endif
 using Exceptionless.Json.Utilities;
+using System.Runtime.CompilerServices;
 #if !HAVE_LINQ
 using Exceptionless.Json.Utilities.LinqBridge;
 #else
@@ -66,7 +67,7 @@ namespace Exceptionless.Json.Serialization
         private static ReflectionObject? _metadataTypeAttributeReflectionObject;
 #endif
 
-        public static T GetCachedAttribute<T>(object attributeProvider) where T : Attribute
+        public static T? GetCachedAttribute<T>(object attributeProvider) where T : Attribute
         {
             return CachedAttributeGetter<T>.GetAttribute(attributeProvider);
         }
@@ -99,7 +100,7 @@ namespace Exceptionless.Json.Serialization
         public static DataContractAttribute? GetDataContractAttribute(Type type)
         {
             // DataContractAttribute does not have inheritance
-            Type currentType = type;
+            Type? currentType = type;
 
             while (currentType != null)
             {
@@ -132,11 +133,11 @@ namespace Exceptionless.Json.Serialization
             {
                 if (propertyInfo.IsVirtual())
                 {
-                    Type currentType = propertyInfo.DeclaringType;
+                    Type? currentType = propertyInfo.DeclaringType;
 
                     while (result == null && currentType != null)
                     {
-                        PropertyInfo baseProperty = (PropertyInfo)ReflectionUtils.GetMemberInfoFromType(currentType, propertyInfo);
+                        PropertyInfo? baseProperty = (PropertyInfo?)ReflectionUtils.GetMemberInfoFromType(currentType, propertyInfo);
                         if (baseProperty != null && baseProperty.IsVirtual())
                         {
                             result = CachedAttributeGetter<DataMemberAttribute>.GetAttribute(baseProperty);
@@ -248,7 +249,7 @@ namespace Exceptionless.Json.Serialization
 
                             return param.GetType();
                         }).ToArray();
-                        ConstructorInfo parameterizedConstructorInfo = type.GetConstructor(paramTypes);
+                        ConstructorInfo? parameterizedConstructorInfo = type.GetConstructor(paramTypes);
 
                         if (parameterizedConstructorInfo != null)
                         {
@@ -308,9 +309,9 @@ namespace Exceptionless.Json.Serialization
         }
 #endif
 
-        private static T GetAttribute<T>(Type type) where T : Attribute
+        private static T? GetAttribute<T>(Type type) where T : Attribute
         {
-            T attribute;
+            T? attribute;
 
 #if !(NET20 || DOTNET)
             Type? metadataType = GetAssociatedMetadataType(type);
@@ -342,15 +343,15 @@ namespace Exceptionless.Json.Serialization
             return null;
         }
 
-        private static T GetAttribute<T>(MemberInfo memberInfo) where T : Attribute
+        private static T? GetAttribute<T>(MemberInfo memberInfo) where T : Attribute
         {
-            T attribute;
+            T? attribute;
 
 #if !(NET20 || DOTNET)
-            Type? metadataType = GetAssociatedMetadataType(memberInfo.DeclaringType);
+            Type? metadataType = GetAssociatedMetadataType(memberInfo.DeclaringType!);
             if (metadataType != null)
             {
-                MemberInfo metadataTypeMemberInfo = ReflectionUtils.GetMemberInfoFromType(metadataType, memberInfo);
+                MemberInfo? metadataTypeMemberInfo = ReflectionUtils.GetMemberInfoFromType(metadataType, memberInfo);
 
                 if (metadataTypeMemberInfo != null)
                 {
@@ -373,7 +374,7 @@ namespace Exceptionless.Json.Serialization
             {
                 foreach (Type typeInterface in memberInfo.DeclaringType.GetInterfaces())
                 {
-                    MemberInfo interfaceTypeMemberInfo = ReflectionUtils.GetMemberInfoFromType(typeInterface, memberInfo);
+                    MemberInfo? interfaceTypeMemberInfo = ReflectionUtils.GetMemberInfoFromType(typeInterface, memberInfo);
 
                     if (interfaceTypeMemberInfo != null)
                     {
@@ -423,7 +424,7 @@ namespace Exceptionless.Json.Serialization
         }
 #endif
 
-        public static T GetAttribute<T>(object provider) where T : Attribute
+        public static T? GetAttribute<T>(object provider) where T : Attribute
         {
             if (provider is Type type)
             {
@@ -459,7 +460,9 @@ namespace Exceptionless.Json.Serialization
             {
                 if (_dynamicCodeGeneration == null)
                 {
-#if HAVE_CAS
+#if HAVE_DYNAMIC_CODE_COMPILED
+                    _dynamicCodeGeneration = RuntimeFeature.IsDynamicCodeCompiled;
+#elif HAVE_CAS
                     try
                     {
                         new ReflectionPermission(ReflectionPermissionFlag.MemberAccess).Demand();

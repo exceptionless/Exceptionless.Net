@@ -396,10 +396,23 @@ namespace Exceptionless.Json.Serialization
 
         internal static bool TryConvertToString(object value, Type type, [NotNullWhen(true)]out string? s)
         {
+#if HAVE_DATE_ONLY
+            if (value is DateOnly dateOnly)
+            {
+                s = dateOnly.ToString("yyyy'-'MM'-'dd", CultureInfo.InvariantCulture);
+                return true;
+            }
+            if (value is TimeOnly timeOnly)
+            {
+                s = timeOnly.ToString("HH':'mm':'ss.FFFFFFF", CultureInfo.InvariantCulture);
+                return true;
+            }
+#endif
+
 #if HAVE_TYPE_DESCRIPTOR
             if (JsonTypeReflector.CanTypeDescriptorConvertString(type, out TypeConverter converter))
             {
-                s = converter.ConvertToInvariantString(value);
+                s = converter.ConvertToInvariantString(value)!;
                 return true;
             }
 #endif
@@ -414,7 +427,7 @@ namespace Exceptionless.Json.Serialization
 
             if (value is Type t)
             {
-                s = t.AssemblyQualifiedName;
+                s = t.AssemblyQualifiedName!;
                 return true;
             }
 
@@ -532,7 +545,7 @@ namespace Exceptionless.Json.Serialization
             OnSerialized(writer, contract, value);
         }
 
-        private bool CalculatePropertyValues(JsonWriter writer, object value, JsonContainerContract contract, JsonProperty? member, JsonProperty property, [NotNullWhen(true)]out JsonContract? memberContract, [NotNullWhen(true)]out object? memberValue)
+        private bool CalculatePropertyValues(JsonWriter writer, object value, JsonContainerContract contract, JsonProperty? member, JsonProperty property, [NotNullWhen(true)]out JsonContract? memberContract, out object? memberValue)
         {
             if (!property.Ignored && property.Readable && ShouldSerialize(writer, property, value) && IsSpecified(writer, property, value))
             {
@@ -546,14 +559,14 @@ namespace Exceptionless.Json.Serialization
 
                 if (ShouldWriteProperty(memberValue, contract as JsonObjectContract, property))
                 {
-                    if (ShouldWriteReference(memberValue, property, memberContract!, contract, member))
+                    if (ShouldWriteReference(memberValue, property, memberContract, contract, member))
                     {
                         property.WritePropertyName(writer);
                         WriteReference(writer, memberValue!);
                         return false;
                     }
 
-                    if (!CheckForCircularReference(writer, memberValue, property, memberContract!, contract, member))
+                    if (!CheckForCircularReference(writer, memberValue, property, memberContract, contract, member))
                     {
                         return false;
                     }
@@ -572,7 +585,9 @@ namespace Exceptionless.Json.Serialization
                         }
                     }
 
+#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
                     return true;
+#pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
                 }
             }
 
@@ -780,7 +795,7 @@ namespace Exceptionless.Json.Serialization
 
                 if (isTopLevel)
                 {
-                    object value = values.GetValue(newIndices);
+                    object value = values.GetValue(newIndices)!;
 
                     try
                     {
@@ -881,7 +896,7 @@ namespace Exceptionless.Json.Serialization
                 if (ShouldWriteReference(serializationEntry.Value, null, valueContract, contract, member))
                 {
                     writer.WritePropertyName(serializationEntry.Name);
-                    WriteReference(writer, serializationEntry.Value);
+                    WriteReference(writer, serializationEntry.Value!);
                 }
                 else if (CheckForCircularReference(writer, serializationEntry.Value, null, valueContract, contract, member))
                 {
@@ -1182,7 +1197,7 @@ namespace Exceptionless.Json.Serialization
                             return enumName;
                         }
 
-                        return Convert.ToString(name, CultureInfo.InvariantCulture);
+                        return Convert.ToString(name, CultureInfo.InvariantCulture)!;
                     }
                 }
             }
@@ -1194,7 +1209,7 @@ namespace Exceptionless.Json.Serialization
             else
             {
                 escape = true;
-                return name.ToString();
+                return name.ToString()!;
             }
         }
 

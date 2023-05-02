@@ -98,7 +98,7 @@ namespace Exceptionless.Json.Converters
 
 #if HAVE_DATE_TIME_OFFSET
             Type t = (ReflectionUtils.IsNullableType(objectType))
-                ? Nullable.GetUnderlyingType(objectType)
+                ? Nullable.GetUnderlyingType(objectType)!
                 : objectType;
             if (t == typeof(DateTimeOffset))
             {

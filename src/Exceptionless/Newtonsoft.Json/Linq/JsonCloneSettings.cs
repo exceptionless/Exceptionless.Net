@@ -24,36 +24,34 @@
 #endregion
 
 using System;
-using System.Runtime.Serialization;
 
-namespace Exceptionless.Json.Serialization
+namespace Exceptionless.Json.Linq
 {
-    internal class SerializationBinderAdapter : ISerializationBinder
+    /// <summary>
+    /// Specifies the settings used when cloning JSON.
+    /// </summary>
+    internal class JsonCloneSettings
     {
-#pragma warning disable 618
-        public readonly SerializationBinder SerializationBinder;
-#pragma warning restore 618
-
-#pragma warning disable 618
-        public SerializationBinderAdapter(SerializationBinder serializationBinder)
+        internal static readonly JsonCloneSettings SkipCopyAnnotations = new JsonCloneSettings
         {
-            SerializationBinder = serializationBinder;
-        }
-#pragma warning restore 618
+            CopyAnnotations = false
+        };
 
-        public Type BindToType(string? assemblyName, string typeName)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonCloneSettings"/> class.
+        /// </summary>
+        public JsonCloneSettings()
         {
-            return SerializationBinder.BindToType(assemblyName!, typeName)!;
+            CopyAnnotations = true;
         }
 
-        public void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
-        {
-#if HAVE_SERIALIZATION_BINDER_BIND_TO_NAME
-            SerializationBinder.BindToName(serializedType, out assemblyName, out typeName);
-#else
-            assemblyName = null;
-            typeName = null;
-#endif
-        }
+        /// <summary>
+        /// Gets or sets a flag that indicates whether to copy annotations when cloning a <see cref="JToken"/>.
+        /// The default value is <c>true</c>.
+        /// </summary>
+        /// <value>
+        /// A flag that indicates whether to copy annotations when cloning a <see cref="JToken"/>.
+        /// </value>
+        public bool CopyAnnotations { get; set; }
     }
 }

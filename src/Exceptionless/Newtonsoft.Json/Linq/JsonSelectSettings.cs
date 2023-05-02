@@ -24,36 +24,30 @@
 #endregion
 
 using System;
-using System.Runtime.Serialization;
 
-namespace Exceptionless.Json.Serialization
+namespace Exceptionless.Json.Linq
 {
-    internal class SerializationBinderAdapter : ISerializationBinder
+    /// <summary>
+    /// Specifies the settings used when selecting JSON.
+    /// </summary>
+    internal class JsonSelectSettings
     {
-#pragma warning disable 618
-        public readonly SerializationBinder SerializationBinder;
-#pragma warning restore 618
-
-#pragma warning disable 618
-        public SerializationBinderAdapter(SerializationBinder serializationBinder)
-        {
-            SerializationBinder = serializationBinder;
-        }
-#pragma warning restore 618
-
-        public Type BindToType(string? assemblyName, string typeName)
-        {
-            return SerializationBinder.BindToType(assemblyName!, typeName)!;
-        }
-
-        public void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
-        {
-#if HAVE_SERIALIZATION_BINDER_BIND_TO_NAME
-            SerializationBinder.BindToName(serializedType, out assemblyName, out typeName);
-#else
-            assemblyName = null;
-            typeName = null;
+#if HAVE_REGEX_TIMEOUTS
+        /// <summary>
+        /// Gets or sets a timeout that will be used when executing regular expressions.
+        /// </summary>
+        /// <value>The timeout that will be used when executing regular expressions.</value>
+        public TimeSpan? RegexMatchTimeout { get; set; }
 #endif
-        }
+
+        /// <summary>
+        /// Gets or sets a flag that indicates whether an error should be thrown if
+        /// no tokens are found when evaluating part of the expression.
+        /// </summary>
+        /// <value>
+        /// A flag that indicates whether an error should be thrown if
+        /// no tokens are found when evaluating part of the expression.
+        /// </value>
+        public bool ErrorWhenNoMatch { get; set; }
     }
 }
