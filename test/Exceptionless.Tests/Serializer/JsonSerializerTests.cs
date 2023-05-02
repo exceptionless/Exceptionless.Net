@@ -6,6 +6,7 @@ using System.Reflection;
 using Xunit;
 using Exceptionless.Extensions;
 using Exceptionless.Models;
+using Exceptionless.Models.Data;
 using Exceptionless.Serializer;
 using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
@@ -44,7 +45,7 @@ namespace Exceptionless.Tests.Serializer {
                 Message = "Testing"
             };
             var serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Rating), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
+            string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Rating), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Direction), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
             Assert.Equal(@"{""message"":""Testing""}", json);
         }
 
@@ -69,7 +70,7 @@ namespace Exceptionless.Tests.Serializer {
             var data = new DefaultsModel();
             var serializer = GetSerializer();
             string json = serializer.Serialize(data);
-            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""collection"":null,""dictionary"":null}", json);
+            Assert.Equal(@"{""number"":0,""bool"":false,""message"":null,""collection"":null,""dictionary"":null,""data_dictionary"":null}", json);
         }
 
         [Fact]
@@ -97,7 +98,7 @@ namespace Exceptionless.Tests.Serializer {
             var data = new SampleModel();
             var serializer = GetSerializer();
             string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
-            Assert.Equal(@"{""number"":0,""rating"":0.0,""bool"":false,""message"":null,""dictionary"":null,""collection"":null,""nested"":null}", json);
+            Assert.Equal(@"{""number"":0,""rating"":0.0,""bool"":false,""direction"":""North"",""message"":null,""dictionary"":null,""collection"":null,""nested"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -122,7 +123,7 @@ namespace Exceptionless.Tests.Serializer {
 
             var serializer = GetSerializer();
             string json = serializer.Serialize(data);
-            Assert.Equal(@"{""number"":1,""rating"":4.50,""bool"":true,""date"":""9999-12-31T23:59:59.9999999"",""message"":""test"",""date_offset"":""9999-12-31T23:59:59.9999999+00:00"",""dictionary"":{""key"":""value""},""collection"":[""one""],""nested"":null}", json);
+            Assert.Equal(@"{""number"":1,""rating"":4.50,""bool"":true,""direction"":""North"",""date"":""9999-12-31T23:59:59.9999999"",""message"":""test"",""date_offset"":""9999-12-31T23:59:59.9999999+00:00"",""dictionary"":{""key"":""value""},""collection"":[""one""],""nested"":null}", json);
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -151,13 +152,37 @@ namespace Exceptionless.Tests.Serializer {
         [Fact]
         public void WillIgnoreEmptyCollections() {
             var data = new DefaultsModel {
-                Message = "Testing",
                 Collection = new Collection<string>(),
-                Dictionary = new Dictionary<string, string>()
+                Dictionary = new Dictionary<string, string>(),
+                DataDictionary = new DataDictionary()
             };
             var serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
-            Assert.Equal(@"{""message"":""Testing""}", json);
+            string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
+            Assert.Equal("{}", json);
+        }
+
+        [Fact]
+        public void WillIgnoreNullCollections() {
+            var data = new DefaultsModel {
+                Collection = null,
+                Dictionary = null,
+                DataDictionary = null
+            };
+            var serializer = GetSerializer();
+            string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
+            Assert.Equal(@"{""collection"":null,""dictionary"":null,""data_dictionary"":null}", json);
+        }
+
+        [Fact]
+        public void WillRespectCollectionKeyNames() {
+            var data = new DefaultsModel {
+                Collection = new Collection<string>() { "Collection" },
+                Dictionary = new Dictionary<string, string>() { { "ItEm", "Value" } },
+                DataDictionary = new DataDictionary() { { "ItEm", "Value" } }
+            };
+            var serializer = GetSerializer();
+            string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
+            Assert.Equal(@"{""collection"":[""Collection""],""dictionary"":{""ItEm"":""Value""},""data_dictionary"":{""ItEm"":""Value""}}", json);
         }
 
         // TODO: Ability to deserialize objects without underscores
@@ -212,6 +237,21 @@ namespace Exceptionless.Tests.Serializer {
             }
         }
 
+        [Fact]
+        public void WillHandleRequestInfoConverterPostDataAsJSON() {
+            var requestInfo = new RequestInfo {
+                PostData = new { Age = 21 }
+            };
+            
+            string[] propertiesToExclude = typeof(RequestInfo).GetProperties().Select(p => p.Name)
+                .Except(new []{ nameof(RequestInfo.PostData) })
+                .ToArray();
+
+            var serializer = GetSerializer();
+            string json = serializer.Serialize(requestInfo, propertiesToExclude);
+            Assert.Equal(@"{""post_data"":{""age"":21}}", json);
+        }
+
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
@@ -238,6 +278,7 @@ namespace Exceptionless.Tests.Serializer {
         public int Number { get; set; }
         public decimal Rating { get; set; }
         public bool Bool { get; set; }
+        public Direction Direction { get; set; }
         public DateTime Date { get; set; }
         public string Message { get; set; }
         public DateTimeOffset DateOffset { get; set; }
@@ -252,6 +293,14 @@ namespace Exceptionless.Tests.Serializer {
         public string Message { get; set; }
         public ICollection<string> Collection { get; set; }
         public IDictionary<string, string> Dictionary { get; set; }
+        public DataDictionary DataDictionary { get; set; }
+    }
+
+    public enum Direction {
+        North = 0,
+        East = 1,
+        South = 2,
+        West = 3
     }
 
     public class User {
