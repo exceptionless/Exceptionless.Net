@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class UserDescription : IData {
         public UserDescription() {
             Data = new DataDictionary();

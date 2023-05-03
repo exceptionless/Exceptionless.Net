@@ -1,4 +1,5 @@
 ﻿namespace Exceptionless.Models {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class ClientConfiguration {
         public ClientConfiguration() {
             Settings = new SettingsDictionary();

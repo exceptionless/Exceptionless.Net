@@ -18,10 +18,10 @@ namespace Exceptionless.Serializer {
             var dictionary = new DataDictionary();
             foreach (string key in result.Keys) {
                 object value = result[key];
-                if (value is JObject)
-                    dictionary[key] = value.ToString();
-                else if (value is JArray)
-                    dictionary[key] = value.ToString();
+                if (value is JObject jObject)
+                    dictionary[key] = jObject.ToString(serializer.Formatting);
+                else if (value is JArray jArray)
+                    dictionary[key] = jArray.ToString(serializer.Formatting);
                 else
                     dictionary[key] = value;
             }

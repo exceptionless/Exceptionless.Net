@@ -1,4 +1,5 @@
 ﻿namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class SimpleError : SimpleInnerError {
         public SimpleError() {
             Modules = new ModuleCollection();

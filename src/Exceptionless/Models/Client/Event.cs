@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace Exceptionless.Models {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class Event : IData {
         public Event() {
             Tags = new TagSet();
