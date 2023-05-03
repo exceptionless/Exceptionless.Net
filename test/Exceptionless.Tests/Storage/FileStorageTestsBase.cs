@@ -156,7 +156,6 @@ namespace Exceptionless.Tests.Storage {
             Reset();
 
             var storage = GetStorage();
-            IJsonSerializer serializer = new DefaultJsonSerializer();
             const string queueName = "test";
 
             Parallel.For(0, 25, i => {

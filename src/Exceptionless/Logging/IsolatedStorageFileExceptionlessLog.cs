@@ -51,7 +51,7 @@ namespace Exceptionless.Logging {
                     if (File.Exists(fullPath))
                         return new FileInfo(fullPath).Length;
                 } catch (IOException ex) {
-                    System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting size of file: {0}", ex.Message);
+                    System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting size of file: {0}", ex.ToString());
                 }
             }
 
