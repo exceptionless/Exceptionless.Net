@@ -49,13 +49,11 @@ namespace Exceptionless.Serializer {
 
             using (var sw = new StringWriter()) {
                 using (var jw = new JsonTextWriterWithExclusions(sw, exclusions)) {
-                    jw.Formatting = Formatting.None;
                     Func<JsonProperty, object, bool> include = (property, value) => ShouldSerialize(jw, property, value, maxDepth, exclusions);
-                    var resolver = new ExceptionlessContractResolver(include);
-                    serializer.ContractResolver = resolver;
+                    serializer.ContractResolver = new ExceptionlessContractResolver(include);
                     if (continueOnSerializationError)
                         serializer.Error += (sender, args) => { args.ErrorContext.Handled = true; };
-
+                    
                     serializer.Serialize(jw, model);
                 }
 
