@@ -326,18 +326,24 @@ namespace Exceptionless.Tests.Serializer {
 
 
         [Fact]
-        public void CanExcludeProperties() {
+        public void Serialize_ModelWithExclusions_ShouldExcludeProperties() {
+            // Arrange
             var data = new SampleModel {
                 Date = DateTime.Now,
                 Message = "Testing"
             };
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Rating), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Direction), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
+
+            // Assert
             Assert.Equal("{\"Message\":\"Testing\"}", json);
         }
 
         [Fact]
-        public void CanExcludeNestedProperties() {
+        public void Serialize_ModelWithNestedExclusions_WillExcludeNestedProperties() {
+            // Arrange
             var data = new NestedModel {
                 Number = 1,
                 Message = "Testing",
@@ -348,20 +354,30 @@ namespace Exceptionless.Tests.Serializer {
             };
 
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data, new[] { nameof(NestedModel.Number) });
+
+            // Assert
             Assert.Equal("{\"Message\":\"Testing\",\"Nested\":{\"Message\":\"Nested\",\"Nested\":null}}", json);
         }
 
         [Fact]
-        public void ShouldIncludeNullObjects() {
+        public void Serialize_ModelWithNullValues_ShouldIncludeNullObjects() {
+            // Arrange
             var data = new DefaultsModel();
             var serializer = GetSerializer();
+            
+            // Act
             string json = serializer.Serialize(data);
+
+            // Assert
             Assert.Equal("{\"Number\":0,\"Bool\":false,\"Message\":null,\"Collection\":null,\"Dictionary\":null,\"DataDictionary\":null}", json);
         }
 
         [Fact]
-        public void CanExcludeMultiwordProperties() {
+        public void Serialize_ModelWithComplexPropertyNames_ShouldExcludeMultiWordProperties() {
+            // Arrange
             var user = new User {
                 FirstName = "John",
                 LastName = "Doe",
@@ -376,16 +392,26 @@ namespace Exceptionless.Tests.Serializer {
 
             string[] exclusions = new[] { nameof(user.PasswordHash), nameof(user.Billing.CardNumberRedacted), nameof(user.Billing.EncryptedCardNumber) };
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(user, exclusions, maxDepth: 2);
+
+            // Assert
             Assert.Equal("{\"FirstName\":\"John\",\"LastName\":\"Doe\",\"Billing\":{\"ExpirationMonth\":10,\"ExpirationYear\":2020}}", json);
         }
 
         [Fact]
-        public void ShouldIncludeDefaultValues() {
+        public void Serialize_ModelWithDefaultValues_ShouldIncludeDefaultValues() {
+            // Arrange
             var data = new SampleModel();
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
+
+            // Assert
             Assert.Equal("{\"Number\":0,\"Rating\":0.0,\"Bool\":false,\"Direction\":\"North\",\"Message\":null,\"Dictionary\":null,\"Collection\":null,\"Nested\":null}", json);
+            
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -396,7 +422,8 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
-        public void ShouldSerializeValues() {
+        public void Serialize_ModelWithDataTypes_ShouldSerializeValues() {
+            // Arrange
             var data = new SampleModel {
                 Number = 1,
                 Rating = 4.50m,
@@ -409,8 +436,13 @@ namespace Exceptionless.Tests.Serializer {
             };
 
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data);
+
+            // Assert
             Assert.Equal("{\"Number\":1,\"Rating\":4.50,\"Bool\":true,\"Direction\":\"North\",\"Date\":\"9999-12-31T23:59:59.9999999\",\"Message\":\"test\",\"DateOffset\":\"9999-12-31T23:59:59.9999999+00:00\",\"Dictionary\":{\"key\":\"value\"},\"Collection\":[\"one\"],\"Nested\":null}", json);
+            
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
             Assert.Equal(data.Bool, model.Bool);
@@ -421,7 +453,8 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
-        public void CanSetMaxDepth() {
+        public void Serialize_NestedModel_ShouldRespectSetMaxDepth() {
+            // Arrange
             var data = new NestedModel {
                 Message = "Level 1",
                 Nested = new NestedModel {
@@ -432,55 +465,68 @@ namespace Exceptionless.Tests.Serializer {
                 }
             };
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data, new[] { nameof(NestedModel.Number) }, maxDepth: 2);
+
+            // Assert
             Assert.Equal("{\"Message\":\"Level 1\",\"Nested\":{\"Message\":\"Level 2\"}}", json);
         }
 
         [Fact]
-        public void WillIgnoreEmptyCollections() {
-            var data = new DefaultsModel {
-                Collection = new Collection<string>(),
-                Dictionary = new Dictionary<string, string>(),
-                DataDictionary = new DataDictionary()
-            };
-            var serializer = GetSerializer();
-            string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
-            Assert.Equal("{\"Collection\":[],\"Dictionary\":{},\"DataDictionary\":{}}", json);
-        }
-
-        [Fact]
-        public void WillIgnoreNullCollections() {
+        public void Serialize_ModelWithNullCollections_ShouldBeSerialized() {
+            // Arrange
             var data = new DefaultsModel {
                 Collection = null,
                 Dictionary = null,
                 DataDictionary = null
             };
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
+
+            // Assert
             Assert.Equal("{\"Collection\":null,\"Dictionary\":null,\"DataDictionary\":null}", json);
         }
 
         [Fact]
-        public void WillRespectCollectionKeyNames() {
+        public void Serialize_ModelWithEmptyCollections_ShouldBeSerialized() {
+            // Arrange
+            var data = new DefaultsModel {
+                Collection = new Collection<string>(),
+                Dictionary = new Dictionary<string, string>(),
+                DataDictionary = new DataDictionary()
+            };
+            var serializer = GetSerializer();
+
+            // Act
+            string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
+
+            // Assert
+            Assert.Equal("{\"Collection\":[],\"Dictionary\":{},\"DataDictionary\":{}}", json);
+        }
+
+        [Fact]
+        public void Serialize_ModelWithDictionaryValues_ShouldRespectDictionaryKeyNames() {
+            // Arrange
             var data = new DefaultsModel {
                 Collection = new Collection<string>() { "Collection" },
                 Dictionary = new Dictionary<string, string>() { { "ItEm", "Value" } },
                 DataDictionary = new DataDictionary() { { "ItEm", "Value" } }
             };
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
+
+            // Assert
             Assert.Equal("{\"Collection\":[\"Collection\"],\"Dictionary\":{\"ItEm\":\"Value\"},\"DataDictionary\":{\"ItEm\":\"Value\"}}", json);
         }
 
         [Fact]
-        public void WillDeserializeReferenceIds() {
-            var serializer = GetSerializer();
-            var ev = (Event)serializer.Deserialize(@"{""reference_id"": ""123"" }", typeof(Event));
-            Assert.Equal("123", ev.ReferenceId);
-        }
-
-        [Fact]
-        public void WillSerializeDeepExceptionWithStackInformation() {
+        public void Serialize_ExceptionWithInnerException_ShouldSerializeDeepExceptionWithStackInformation() {
+            // Arrange
             try {
                 try {
                     try {
@@ -504,14 +550,18 @@ namespace Exceptionless.Tests.Serializer {
                 };
 
                 var serializer = GetSerializer();
+
+                // Act
                 string json = serializer.Serialize(ev);
 
+                // Assert
                 Assert.Contains($"\"line_number\":{error.Inner.Inner.StackTrace.Single().LineNumber}", json);
             }
         }
 
         [Fact]
-        public void WillHandleRequestInfoConverterPostDataAsJSON() {
+        public void Serialize_PostDataConverter_ShouldHandleRequestInfoConverterPostDataAsJSON() {
+            // Arrange
             var requestInfo = new RequestInfo {
                 PostData = new { Age = 21 }
             };
@@ -521,24 +571,36 @@ namespace Exceptionless.Tests.Serializer {
                 .ToArray();
 
             var serializer = GetSerializer();
+
+            // Act
             string json = serializer.Serialize(requestInfo, propertiesToExclude);
+
+            // Assert
             Assert.Equal("{\"post_data\":{\"Age\":21}}", json);
+        }
+
+        [Fact]
+        public void Deserialize_Event_ShouldDeserializeReferenceIds() {
+            // Arrange
+            var serializer = GetSerializer();
+
+            // Act
+            var ev = (Event)serializer.Deserialize(@"{""reference_id"": ""123"" }", typeof(Event));
+
+            // Assert
+            Assert.Equal("123", ev.ReferenceId);
         }
 
         private ExceptionlessClient CreateClient() {
             return new ExceptionlessClient(c => {
                 c.UseLogger(new XunitExceptionlessLog(_writer) { MinimumLogLevel = LogLevel.Trace });
                 c.ReadFromAttributes();
-                c.UserAgent = "testclient/1.0.0.0";
+                c.UserAgent = "test-client/1.0.0.0";
 
                 // Disable updating settings.
                 c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
         }
-    }
-
-    public class Blah {
-        public string BlahId { get; set; }
     }
 
     public class NestedModel {
