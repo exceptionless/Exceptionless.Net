@@ -5,23 +5,6 @@ using System.Text;
 
 namespace Exceptionless.Extensions {
     public static class StringExtensions {
-        internal static string ToLowerUnderscoredWords(this string value) {
-            var builder = new StringBuilder(value.Length + 10);
-            for (int index = 0; index < value.Length; index++) {
-                char c = value[index];
-                if (Char.IsUpper(c)) {
-                    if (index > 0 && value[index - 1] != '_')
-                        builder.Append('_');
-
-                    builder.Append(Char.ToLower(c));
-                } else {
-                    builder.Append(c);
-                }
-            }
-
-            return builder.ToString();
-        }
-
         public static bool AnyWildcardMatches(this string value, IEnumerable<string> patternsToMatch, bool ignoreCase = true) {
             if (patternsToMatch == null || value == null)
                 return false;

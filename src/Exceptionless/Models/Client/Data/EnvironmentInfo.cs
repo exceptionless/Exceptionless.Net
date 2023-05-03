@@ -1,4 +1,5 @@
 namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class EnvironmentInfo : IData {
         public EnvironmentInfo() {
             Data = new DataDictionary();
@@ -66,11 +67,13 @@ namespace Exceptionless.Models.Data {
         /// <summary>
         /// The OS name that the error occurred on.
         /// </summary>
+        [JsonProperty("o_s_name")]
         public string OSName { get; set; }
 
         /// <summary>
         /// The OS version that the error occurred on.
         /// </summary>
+        [JsonProperty("o_s_version")]
         public string OSVersion { get; set; }
 
         /// <summary>

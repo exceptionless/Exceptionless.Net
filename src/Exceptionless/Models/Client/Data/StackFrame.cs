@@ -1,4 +1,5 @@
 ﻿namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class StackFrame : Method {
         public string FileName { get; set; }
         public int LineNumber { get; set; }

@@ -2,6 +2,7 @@
 using System.Text;
 
 namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class Module : IData {
         public Module() {
             Data = new DataDictionary();

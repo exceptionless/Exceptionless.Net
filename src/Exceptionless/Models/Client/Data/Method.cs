@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class Method : IData {
         public Method() {
             Data = new DataDictionary();

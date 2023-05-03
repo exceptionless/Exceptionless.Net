@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using Exceptionless.Json;
 using Exceptionless.Json.Serialization;
-using Exceptionless.Extensions;
 
 namespace Exceptionless.Serializer {
     internal class ExceptionlessContractResolver : DefaultContractResolver {
@@ -20,16 +19,6 @@ namespace Exceptionless.Serializer {
             var shouldSerialize = property.ShouldSerialize;
             property.ShouldSerialize = obj => _includeProperty(property, obj) && (shouldSerialize == null || shouldSerialize(obj));
             return property;
-        }
-
-        protected override JsonDictionaryContract CreateDictionaryContract(Type objectType) {
-            var contract = base.CreateDictionaryContract(objectType);
-            contract.DictionaryKeyResolver = propertyName => propertyName;
-            return contract;
-        }
-
-        protected override string ResolvePropertyName(string propertyName) {
-            return propertyName.ToLowerUnderscoredWords();
         }
     }
 }

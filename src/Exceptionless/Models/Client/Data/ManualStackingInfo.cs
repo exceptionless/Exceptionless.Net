@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Exceptionless.Extensions;
 
 namespace Exceptionless.Models.Data {
+    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class ManualStackingInfo {
         public ManualStackingInfo() {
             SignatureData = new Dictionary<string, string>();
