@@ -9,7 +9,7 @@ namespace Exceptionless.Logging {
     public class IsolatedStorageFileExceptionlessLog : FileExceptionlessLog {
         public IsolatedStorageFileExceptionlessLog(string filePath, bool append = false) : base(filePath, append) {}
 
-        protected override void Init() {}
+        protected override void Initialize() {}
 
         private IsolatedStorageFile GetStore() {
 #if NETSTANDARD

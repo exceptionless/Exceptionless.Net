@@ -4,13 +4,8 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer {
     public class JsonStorageSerializerTests : StorageSerializerTestBase {
-        protected override void Initialize(IDependencyResolver resolver) {
-            base.Initialize(resolver);
-            resolver.Register<IStorageSerializer, DefaultJsonSerializer>();
-        }
-
-        protected override IStorageSerializer GetSerializer(IDependencyResolver resolver) {
-            return resolver.Resolve<IStorageSerializer>();
+        public JsonStorageSerializerTests() {
+            Resolver.Register<IStorageSerializer, DefaultJsonSerializer>();
         }
 
         [Fact(Skip = "The json serializer deserialize anonymous(object) types as dictionary.")]

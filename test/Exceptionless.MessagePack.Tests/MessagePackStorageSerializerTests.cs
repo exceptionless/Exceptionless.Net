@@ -5,13 +5,8 @@ using Xunit;
 
 namespace Exceptionless.MessagePack.Tests {
     public class MessagePackStorageSerializerTests : StorageSerializerTestBase {
-        protected override void Initialize(IDependencyResolver resolver) {
-            base.Initialize(resolver);
-            resolver.Register<IStorageSerializer>(new MessagePackStorageSerializer(resolver));
-        }
-
-        protected override IStorageSerializer GetSerializer(IDependencyResolver resolver) {
-            return resolver.Resolve<IStorageSerializer>();
+        public MessagePackStorageSerializerTests() {
+            Resolver.Register<IStorageSerializer>(new MessagePackStorageSerializer(Resolver));
         }
 
         [Fact]

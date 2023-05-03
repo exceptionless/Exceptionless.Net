@@ -59,7 +59,7 @@ namespace Exceptionless.Tests.Plugins
             public int Id { get; set; }
         }
 
-        public class MyApplicationException : Exception {
+        public sealed class MyApplicationException : Exception {
             public MyApplicationException(string message) : base(message) {
                 SetsDataProperty = Data;
             }

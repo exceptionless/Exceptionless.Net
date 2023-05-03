@@ -9,7 +9,7 @@ using NLog.Targets;
 
 namespace Exceptionless.NLog {
     [Target("Exceptionless")]
-    public class ExceptionlessTarget : TargetWithLayout {
+    public sealed class ExceptionlessTarget : TargetWithLayout {
         private ExceptionlessClient _client = ExceptionlessClient.Default;
 
         public Layout ApiKey { get; set; }

@@ -23,13 +23,13 @@ namespace Exceptionless.Logging {
             MinimumLogLevel = LogLevel.Trace;
             _append = append;
 
-            Init();
+            Initialize();
 
             // flush the log every 3 seconds instead of on every write
             _flushTimer = new Timer(OnFlushTimer, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
         }
 
-        protected virtual void Init() {
+        protected virtual void Initialize() {
             if (!Path.IsPathRooted(FilePath))
                 FilePath = Path.GetFullPath(FilePath);
 

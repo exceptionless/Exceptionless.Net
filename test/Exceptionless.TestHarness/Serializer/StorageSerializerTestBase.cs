@@ -13,20 +13,15 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer {
     public abstract class StorageSerializerTestBase {
-        private readonly IDependencyResolver _resolver;
+        protected readonly IDependencyResolver Resolver = new DefaultDependencyResolver();
+
         public StorageSerializerTestBase() {
-            _resolver = new DefaultDependencyResolver();
-            _resolver.Register<IObjectStorage, InMemoryObjectStorage>();
-            _resolver.Register<IJsonSerializer, DefaultJsonSerializer>();
-            _resolver.Register<IExceptionlessLog, InMemoryExceptionlessLog>();
-            _resolver.Register<IEnvironmentInfoCollector, DefaultEnvironmentInfoCollector>();
-            _resolver.Register<ExceptionlessConfiguration>(new ExceptionlessConfiguration(_resolver));
-            Initialize(_resolver);
+            Resolver.Register<IObjectStorage, InMemoryObjectStorage>();
+            Resolver.Register<IJsonSerializer, DefaultJsonSerializer>();
+            Resolver.Register<IExceptionlessLog, InMemoryExceptionlessLog>();
+            Resolver.Register<IEnvironmentInfoCollector, DefaultEnvironmentInfoCollector>();
+            Resolver.Register<ExceptionlessConfiguration>(new ExceptionlessConfiguration(Resolver));
         }
-
-        protected virtual void Initialize(IDependencyResolver resolver) { }
-
-        protected abstract IStorageSerializer GetSerializer(IDependencyResolver resolver);
 
         private Event CreateSimpleEvent() {
             var ev= new Event {
@@ -47,7 +42,7 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         private void AssertEventSerialize(Event evt) {
-            var serializer = GetSerializer(_resolver);
+            var serializer = Resolver.Resolve<IStorageSerializer>();
             Event newEvent;
             using (var memory = new MemoryStream()) {
                 serializer.Serialize(evt, memory);
@@ -55,9 +50,9 @@ namespace Exceptionless.Tests.Serializer {
                 newEvent = serializer.Deserialize<Event>(memory);
             }
 
-            var jsonSerializer = _resolver.GetJsonSerializer();
-            var expected = jsonSerializer.Serialize(evt);
-            var actual = jsonSerializer.Serialize(newEvent);
+            var jsonSerializer = Resolver.GetJsonSerializer();
+            string expected = jsonSerializer.Serialize(evt);
+            string actual = jsonSerializer.Serialize(newEvent);
 
             Assert.Equal(expected, actual);
         }
@@ -78,13 +73,13 @@ namespace Exceptionless.Tests.Serializer {
 
         public virtual void CanSerializeTags() {
             var evt = CreateSimpleEvent();
-            evt.AddTags("Critial", "Startup", "AspNetCore");
+            evt.AddTags("Critical", "Startup", "AspNetCore");
             AssertEventSerialize(evt);
         }
 
         public virtual void CanSerializeEnvironmentInfo() {
             var evt = CreateSimpleEvent();
-            evt.Data[Event.KnownDataKeys.EnvironmentInfo] = _resolver.Resolve<IEnvironmentInfoCollector>().GetEnvironmentInfo();
+            evt.Data[Event.KnownDataKeys.EnvironmentInfo] = Resolver.Resolve<IEnvironmentInfoCollector>().GetEnvironmentInfo();
             AssertEventSerialize(evt);
         }
 
@@ -142,7 +137,7 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         public virtual void CanSerializeSimpleError() {
-            var client = new ExceptionlessClient(new ExceptionlessConfiguration(_resolver));
+            var client = new ExceptionlessClient(new ExceptionlessConfiguration(Resolver));
             var exception = new ArgumentException("The argument cannot be null or empty", "value");
 
             var evt = CreateSimpleEvent();
@@ -151,7 +146,7 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         public virtual void CanSerializeError() {
-            var client = new ExceptionlessClient(new ExceptionlessConfiguration(_resolver));
+            var client = new ExceptionlessClient(new ExceptionlessConfiguration(Resolver));
             var exception = new ArgumentException("The argument cannot be null or empty", "value");
 
             var evt = CreateSimpleEvent();
