@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Exceptionless.Extensions {
@@ -89,6 +90,26 @@ namespace Exceptionless.Extensions {
             }
 
             return true;
+        }
+
+        /// <summary>Compute hash on input string</summary>
+        /// <param name="input">The string to compute hash on.</param>
+        /// <param name="algorithm"> </param>
+        /// <returns>The hash as a hexadecimal String.</returns>
+        internal static string ComputeHash(this string input, HashAlgorithm algorithm) {
+            if (String.IsNullOrEmpty(input))
+                throw new ArgumentNullException(nameof(input));
+
+            byte[] data = algorithm.ComputeHash(Encoding.Unicode.GetBytes(input));
+
+            return ToHex(data);
+        }
+
+        /// <summary>Compute SHA256 hash on input string</summary>
+        /// <param name="input">The string to compute hash on.</param>
+        /// <returns>The hash as a hexadecimal String.</returns>
+        internal static string ToSHA256(this string input) {
+            return ComputeHash(input, SHA256.Create());
         }
     }
 }

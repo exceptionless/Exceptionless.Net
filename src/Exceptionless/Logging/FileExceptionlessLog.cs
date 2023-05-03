@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Security;
+#if NET45
+using System.Security.AccessControl;
+using System.Security.Principal;
+#endif
 using System.Text;
 using System.Threading;
+using Exceptionless.Extensions;
 using Exceptionless.Utility;
 
 namespace Exceptionless.Logging {
     public class FileExceptionlessLog : IExceptionlessLog, IDisposable {
-        private static Mutex _flushLock = new Mutex(false, nameof(FileExceptionlessLog));
-
+        private Mutex _flushMutex;
         private Timer _flushTimer;
         private readonly bool _append;
         private bool _firstWrite = true;
-        private bool _isFlushing = false;
-        private bool _isCheckingFileSize = false;
+        private bool _isFlushing;
+        private bool _isCheckingFileSize;
 
         public FileExceptionlessLog(string filePath, bool append = false) {
             if (String.IsNullOrEmpty(filePath))
@@ -25,6 +30,7 @@ namespace Exceptionless.Logging {
 
             Initialize();
 
+            _flushMutex = CreateSystemFileMutex(FilePath);
             // flush the log every 3 seconds instead of on every write
             _flushTimer = new Timer(OnFlushTimer, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
         }
@@ -57,7 +63,7 @@ namespace Exceptionless.Logging {
                 if (File.Exists(FilePath))
                     return File.ReadAllText(FilePath);
             } catch (IOException ex) {
-                System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting size of file: {0}", ex.Message);
+                System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting size of file: {0}", ex.ToString());
             }
 
             return String.Empty;
@@ -68,7 +74,7 @@ namespace Exceptionless.Logging {
                 if (File.Exists(FilePath))
                     return new FileInfo(FilePath).Length;
             } catch (Exception ex) {
-                System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting size of file: {0}", ex.Message);
+                System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting size of file: {0}", ex.ToString());
             }
 
             return -1;
@@ -132,7 +138,7 @@ namespace Exceptionless.Logging {
                 _isFlushing = true;
 
                 Run.WithRetries(() => {
-                    if (!_flushLock.WaitOne(TimeSpan.FromSeconds(5)))
+                    if (!_flushMutex.WaitOne(TimeSpan.FromSeconds(5)))
                         return;
 
                     hasFlushLock = true;
@@ -155,10 +161,10 @@ namespace Exceptionless.Logging {
                     }
                 });
             } catch (Exception ex) {
-                System.Diagnostics.Trace.WriteLine("Exceptionless: Error flushing log contents to disk: {0}", ex.Message);
+                System.Diagnostics.Trace.WriteLine("Exceptionless: Error flushing log contents to disk: {0}", ex.ToString());
             } finally {
                 if (hasFlushLock)
-                    _flushLock.ReleaseMutex();
+                    _flushMutex.ReleaseMutex();
                 _isFlushing = false;
             }
         }
@@ -217,15 +223,14 @@ namespace Exceptionless.Logging {
             string lastLines = String.Empty;
             try {
                 Run.WithRetries(() => {
-                    if (!_flushLock.WaitOne(TimeSpan.FromSeconds(5)))
+                    if (!_flushMutex.WaitOne(TimeSpan.FromSeconds(5)))
                         return;
 
-                    lastLines = GetLastLinesFromFile(FilePath);
-
-                    _flushLock.ReleaseMutex();
+                    lastLines = GetLastLinesFromFile();
+                    _flushMutex.ReleaseMutex();
                 });
             } catch (Exception ex) {
-                System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting last X lines from the log file: {0}", ex.Message);
+                System.Diagnostics.Trace.WriteLine("Exceptionless: Error getting last X lines from the log file: {0}", ex.ToString());
             }
 
             if (String.IsNullOrEmpty(lastLines)) {
@@ -236,16 +241,16 @@ namespace Exceptionless.Logging {
             // overwrite the log file and initialize it with the last X lines it had
             try {
                 Run.WithRetries(() => {
-                    if (!_flushLock.WaitOne(TimeSpan.FromSeconds(5)))
+                    if (!_flushMutex.WaitOne(TimeSpan.FromSeconds(5)))
                         return;
 
                     using (var writer = GetWriter(true))
                         writer.Value.Write(lastLines);
 
-                    _flushLock.ReleaseMutex();
+                    _flushMutex.ReleaseMutex();
                 });
             } catch (Exception ex) {
-                System.Diagnostics.Trace.WriteLine("Exceptionless: Error rewriting the log file after trimming it: {0}", ex.Message);
+                System.Diagnostics.Trace.WriteLine("Exceptionless: Error rewriting the log file after trimming it: {0}", ex.ToString());
             }
 
             _isCheckingFileSize = false;
@@ -263,9 +268,14 @@ namespace Exceptionless.Logging {
             }
 
             Flush();
+
+            if (_flushMutex != null) {
+                _flushMutex.Close();
+                _flushMutex = null;
+            }
         }
 
-        protected string GetLastLinesFromFile(string path, int lines = 100) {
+        protected string GetLastLinesFromFile(int lines = 100) {
             byte[] buffer = Encoding.ASCII.GetBytes("\n");
 
             using (var fs = GetReader()) {
@@ -296,6 +306,49 @@ namespace Exceptionless.Logging {
 
                 return Encoding.ASCII.GetString(buffer);
             }
+        }
+
+        /// <summary>
+        /// Allows file based locking across processes
+        /// </summary>
+        private Mutex CreateSystemFileMutex(string fileNameOrPath) {
+#if NET45
+            var security = new MutexSecurity();
+            var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), MutexRights.FullControl, AccessControlType.Allow);
+            security.AddAccessRule(allowEveryoneRule);
+
+            string name = GetFileBasedMutexName(fileNameOrPath);
+
+            try {
+                return new Mutex(false, name, out bool _, security);
+            } catch (Exception ex) {
+                if (ex is SecurityException || ex is UnauthorizedAccessException || ex is NotSupportedException || ex is NotImplementedException) {
+                    System.Diagnostics.Trace.WriteLine("Exceptionless: Error creating global mutex falling back to previous implementation: {0}", ex.ToString());
+                    return new Mutex(false, nameof(FileExceptionlessLog));
+                }
+
+                System.Diagnostics.Trace.WriteLine("Exceptionless: Error creating global mutex: {0}", ex.ToString());
+                throw;
+            }
+#else
+            System.Diagnostics.Trace.WriteLine("Exceptionless: This platform does not support taking out a global mutex");
+            return new Mutex(false, nameof(FileExceptionlessLog));
+#endif
+        }
+
+        private string GetFileBasedMutexName(string fileNameOrPath) {
+            const string prefix = "Global\\Exceptionless-Log-";
+            string name = fileNameOrPath.ToLowerInvariant().Replace('\\', '_').Replace('/', '_');
+
+            const int maxLength = 260;
+            if ((prefix.Length + name.Length) <= maxLength) {
+                return $"{prefix}{name}";
+            }
+            
+            // If name exceeds max length hash it and append part of the file name.
+            string hash = name.ToSHA256();
+            int startIndex = name.Length - (maxLength - prefix.Length - hash.Length);
+            return $"{prefix}{hash}{name.Substring(startIndex)}";
         }
 
         private class LogEntry {
