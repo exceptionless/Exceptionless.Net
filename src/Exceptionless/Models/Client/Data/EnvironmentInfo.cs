@@ -67,13 +67,13 @@ namespace Exceptionless.Models.Data {
         /// <summary>
         /// The OS name that the error occurred on.
         /// </summary>
-        [JsonProperty("o_s_name")]
+        [Json.JsonProperty("o_s_name")]
         public string OSName { get; set; }
 
         /// <summary>
         /// The OS version that the error occurred on.
         /// </summary>
-        [JsonProperty("o_s_version")]
+        [Json.JsonProperty("o_s_version")]
         public string OSVersion { get; set; }
 
         /// <summary>
