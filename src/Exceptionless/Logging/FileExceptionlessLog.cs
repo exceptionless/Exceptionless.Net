@@ -312,19 +312,19 @@ namespace Exceptionless.Logging {
         /// Allows file based locking across processes
         /// </summary>
         private Mutex CreateSystemFileMutex(string fileNameOrPath) {
+            string name = GetFileBasedMutexName(fileNameOrPath);
+
 #if NET45
             var security = new MutexSecurity();
             var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), MutexRights.FullControl, AccessControlType.Allow);
             security.AddAccessRule(allowEveryoneRule);
-
-            string name = GetFileBasedMutexName(fileNameOrPath);
 
             try {
                 return new Mutex(false, name, out bool _, security);
             } catch (Exception ex) {
                 if (ex is SecurityException || ex is UnauthorizedAccessException || ex is NotSupportedException || ex is NotImplementedException) {
                     System.Diagnostics.Trace.WriteLine("Exceptionless: Error creating global mutex falling back to previous implementation: {0}", ex.ToString());
-                    return new Mutex(false, nameof(FileExceptionlessLog));
+                    return new Mutex(false, name);
                 }
 
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error creating global mutex: {0}", ex.ToString());
@@ -332,7 +332,7 @@ namespace Exceptionless.Logging {
             }
 #else
             System.Diagnostics.Trace.WriteLine("Exceptionless: This platform does not support taking out a global mutex");
-            return new Mutex(false, nameof(FileExceptionlessLog));
+            return new Mutex(false, name);
 #endif
         }
 
