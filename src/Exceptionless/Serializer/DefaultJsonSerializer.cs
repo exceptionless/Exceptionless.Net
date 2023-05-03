@@ -77,26 +77,6 @@ namespace Exceptionless.Serializer {
                 bool isPastMaxDepth = !(isPrimitiveType ? jw.CurrentDepth <= maxDepth : jw.CurrentDepth < maxDepth);
                 if (isPastMaxDepth)
                     return false;
-
-                if (isPrimitiveType)
-                    return true;
-
-                object value = property.ValueProvider.GetValue(obj);
-                if (value == null)
-                    return true;
-
-                if (typeof(ICollection).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo())) {
-                    var collection = value as ICollection;
-                    if (collection != null)
-                        return collection.Count > 0;
-                }
-
-                var collectionType = value.GetType().GetInterfaces().FirstOrDefault(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
-                if (collectionType != null) {
-                    var countProperty = collectionType.GetProperty("Count");
-                    if (countProperty != null)
-                        return (int)countProperty.GetValue(value, null) > 0;
-                }
             } catch (Exception) {}
 
             return true;

@@ -55,7 +55,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(ev);
 
             // Assert
-            Assert.Equal("{\"type\":\"log\",\"source\":\"SampleApp\",\"date\":\"2023-05-02T14:30:00+00:00\",\"tags\":[\"Critical\",\"tag2\"],\"message\":\"An error occurred\",\"geo\":\"40.7128,-74.0060\",\"value\":42.0,\"count\":2,\"data\":{\"FirstName\":\"Blake\",\"@level\":\"Warn\",\"@trace\":[\"log 1\"],\"@user_description\":{\"email_address\":\"test@example.com\",\"description\":\"Test user description\"}},\"reference_id\":\"ref123\"}", json);
+            Assert.Equal("{\"type\":\"log\",\"source\":\"SampleApp\",\"date\":\"2023-05-02T14:30:00+00:00\",\"tags\":[\"Critical\",\"tag2\"],\"message\":\"An error occurred\",\"geo\":\"40.7128,-74.0060\",\"value\":42.0,\"count\":2,\"data\":{\"FirstName\":\"Blake\",\"@level\":\"Warn\",\"@trace\":[\"log 1\"],\"@user_description\":{\"email_address\":\"test@example.com\",\"description\":\"Test user description\",\"data\":{}}},\"reference_id\":\"ref123\"}", json);
         }
 
         [Fact]
@@ -157,7 +157,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(error);
 
             // Assert
-            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b03f5f7f11d50a3a\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"code\":\"1001\",\"data\":{\"@ext\":{\"OrderNumber\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.ArgumentException\",\"code\":\"2002\",\"inner\":null,\"stack_trace\":[{\"file_name\":null,\"line_number\":20,\"column\":0,\"is_signature_target\":false,\"declaring_namespace\":null,\"declaring_type\":null,\"name\":\"InnerMethodName\",\"module_id\":0}],\"target_method\":null},\"stack_trace\":[{\"file_name\":\"TestFile.cs\",\"line_number\":20,\"column\":5,\"is_signature_target\":true,\"declaring_namespace\":\"TestNamespace\",\"declaring_type\":\"TestClass\",\"name\":\"InnerMethodName\",\"module_id\":1,\"data\":{\"StackFrameKey\":\"StackFrameValue\"},\"generic_arguments\":[\"T\"],\"parameters\":[{\"name\":\"param1\",\"type\":\"System.String\",\"type_namespace\":\"System\",\"data\":{\"ParameterKey\":\"ParameterValue\"},\"generic_arguments\":[\"U\"]}]}],\"target_method\":null}", json);
+            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b03f5f7f11d50a3a\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"code\":\"1001\",\"data\":{\"@ext\":{\"OrderNumber\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.ArgumentException\",\"code\":\"2002\",\"data\":{},\"inner\":null,\"stack_trace\":[{\"file_name\":null,\"line_number\":20,\"column\":0,\"is_signature_target\":false,\"declaring_namespace\":null,\"declaring_type\":null,\"name\":\"InnerMethodName\",\"module_id\":0,\"data\":{},\"generic_arguments\":[],\"parameters\":[]}],\"target_method\":null},\"stack_trace\":[{\"file_name\":\"TestFile.cs\",\"line_number\":20,\"column\":5,\"is_signature_target\":true,\"declaring_namespace\":\"TestNamespace\",\"declaring_type\":\"TestClass\",\"name\":\"InnerMethodName\",\"module_id\":1,\"data\":{\"StackFrameKey\":\"StackFrameValue\"},\"generic_arguments\":[\"T\"],\"parameters\":[{\"name\":\"param1\",\"type\":\"System.String\",\"type_namespace\":\"System\",\"data\":{\"ParameterKey\":\"ParameterValue\"},\"generic_arguments\":[\"U\"]}]}],\"target_method\":null}", json);
         }
 
         [Fact]
@@ -264,7 +264,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(simpleError);
 
             // Assert
-            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b77a5c561934e089\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"stack_trace\":\"at TestClass.TestMethod()\",\"data\":{\"@ext\":{\"OrderNumber\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.NullReferenceException\",\"stack_trace\":\"at InnerTestClass.InnerTestMethod()\",\"inner\":null}}", json);
+            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b77a5c561934e089\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"stack_trace\":\"at TestClass.TestMethod()\",\"data\":{\"@ext\":{\"OrderNumber\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.NullReferenceException\",\"stack_trace\":\"at InnerTestClass.InnerTestMethod()\",\"data\":{},\"inner\":null}}", json);
         }
 
         [Fact]
@@ -281,7 +281,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(userDescription);
 
             // Assert
-            Assert.Equal("{\"email_address\":\"test@example.com\",\"description\":\"Test user description\"}", json);
+            Assert.Equal("{\"email_address\":\"test@example.com\",\"description\":\"Test user description\",\"data\":{}}", json);
         }
 
         [Fact]
@@ -445,7 +445,7 @@ namespace Exceptionless.Tests.Serializer {
             };
             var serializer = GetSerializer();
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
-            Assert.Equal("{}", json);
+            Assert.Equal("{\"Collection\":[],\"Dictionary\":{},\"DataDictionary\":{}}", json);
         }
 
         [Fact]
