@@ -65,6 +65,7 @@ namespace Exceptionless {
             }
 
             log.Info(typeof(ExceptionlessClient), "Shutdown finished");
+            log.Flush();
         }
 
 #region Submission Extensions
@@ -384,6 +385,7 @@ namespace Exceptionless.Extensions {
                         }
 
                         log.Info(typeof(ExceptionlessClient), "AppDomain.CurrentDomain.UnhandledException finished");
+                        log.Flush();
                     } catch (Exception ex) {
                         log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing AppDomain unhandled exception: ", ex.Message));
                     }
@@ -428,6 +430,7 @@ namespace Exceptionless.Extensions {
                         }
 
                         log.Info(typeof(ExceptionlessClient), "ProcessExit finished");
+                        log.Flush();
                     } catch (Exception ex) {
                         log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing process exit: ", ex.Message));
                     }
