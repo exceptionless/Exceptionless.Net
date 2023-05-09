@@ -28,6 +28,9 @@ namespace Exceptionless {
             if (client.Configuration.UpdateSettingsWhenIdleInterval == null)
                 client.Configuration.UpdateSettingsWhenIdleInterval = TimeSpan.FromMinutes(2);
 
+            var log = client.Configuration.Resolver.GetLog();
+            log.FormattedInfo(typeof(ExceptionlessClient), "Startup called ApiKey={0} ServerUrl={1}", client.Configuration.ApiKey, client.Configuration.ServerUrl);
+
             client.RegisterAppDomainUnhandledExceptionHandler();
 
             // make sure that queued events are sent when the app exits
@@ -36,6 +39,8 @@ namespace Exceptionless {
 
             if (client.Configuration.SessionsEnabled)
                 client.SubmitSessionStart();
+
+            log.Info(typeof(ExceptionlessClient), "Startup finished");
         }
 
         /// <summary>
@@ -46,13 +51,20 @@ namespace Exceptionless {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
+            var log = client.Configuration.Resolver.GetLog();
+            log.Info(typeof(ExceptionlessClient), "Shutdown called");
+
             client.UnregisterAppDomainUnhandledExceptionHandler();
             client.UnregisterOnProcessExitHandler();
             client.UnregisterTaskSchedulerUnobservedTaskExceptionHandler();
 
             await client.ProcessQueueAsync().ConfigureAwait(false);
-            if (client.Configuration.SessionsEnabled)
+            if (client.Configuration.SessionsEnabled) {
+                log.Info(typeof(ExceptionlessClient), "Sending Session End Heartbeat");
                 await client.SubmitSessionEndAsync().ConfigureAwait(false);
+            }
+
+            log.Info(typeof(ExceptionlessClient), "Shutdown finished");
         }
 
 #region Submission Extensions
@@ -348,12 +360,15 @@ namespace Exceptionless.Extensions {
                 throw new ArgumentNullException(nameof(client));
 
             if (_onAppDomainUnhandledException == null) {
-                _onAppDomainUnhandledException = async (sender, args) => {
+                _onAppDomainUnhandledException = (sender, args) => {
                     var exception = args.ExceptionObject as Exception;
                     if (exception == null)
                         return;
 
+                    var log = client.Configuration.Resolver.GetLog();
                     try {
+                        log.Info(typeof(ExceptionlessClient), "AppDomain.CurrentDomain.UnhandledException called");
+
                         var contextData = new ContextData();
                         contextData.MarkAsUnhandledError();
                         contextData.SetSubmissionMethod("AppDomainUnhandledException");
@@ -361,12 +376,15 @@ namespace Exceptionless.Extensions {
                         exception.ToExceptionless(contextData, client).Submit();
 
                         // process queue immediately since the app is about to exit.
-                        await client.ProcessQueueAsync().ConfigureAwait(false);
+                        client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
-                        if (client.Configuration.SessionsEnabled)
-                            await client.SubmitSessionEndAsync().ConfigureAwait(false);
+                        if (client.Configuration.SessionsEnabled) {
+                            log.Info(typeof(ExceptionlessClient), "Sending Session End Heartbeat");
+                            client.SubmitSessionEndAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                        }
+
+                        log.Info(typeof(ExceptionlessClient), "AppDomain.CurrentDomain.UnhandledException finished");
                     } catch (Exception ex) {
-                        var log = client.Configuration.Resolver.GetLog();
                         log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing AppDomain unhandled exception: ", ex.Message));
                     }
                 };
@@ -397,14 +415,20 @@ namespace Exceptionless.Extensions {
                 throw new ArgumentNullException(nameof(client));
 
             if (_onProcessExit == null) {
-                _onProcessExit = async (sender, args) => {
+                _onProcessExit = (sender, args) => {
+                    var log = client.Configuration.Resolver.GetLog();
                     try {
-                        await client.ProcessQueueAsync().ConfigureAwait(false);
+                        log.Info(typeof(ExceptionlessClient), "ProcessExit called");
 
-                        if (client.Configuration.SessionsEnabled)
-                            await client.SubmitSessionEndAsync().ConfigureAwait(false);
+                        client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        if (client.Configuration.SessionsEnabled) {
+                            log.Info(typeof(ExceptionlessClient), "Sending Session End Heartbeat");
+                            client.SubmitSessionEndAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                        }
+
+                        log.Info(typeof(ExceptionlessClient), "ProcessExit finished");
                     } catch (Exception ex) {
-                        var log = client.Configuration.Resolver.GetLog();
                         log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing process exit: ", ex.Message));
                     }
                 };

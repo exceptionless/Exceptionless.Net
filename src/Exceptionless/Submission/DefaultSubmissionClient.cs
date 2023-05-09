@@ -43,7 +43,7 @@ namespace Exceptionless.Submission {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 response = await _client.Value.PostAsync(url, content).ConfigureAwait(false);
             } catch (Exception ex) {
-                return new SubmissionResponse(500, exception: ex);
+                return new SubmissionResponse(500, message: ex.GetMessage(), exception: ex);
             }
 
             if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out int settingsVersion))
@@ -75,7 +75,7 @@ namespace Exceptionless.Submission {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 response = await _client.Value.PostAsync(url, content).ConfigureAwait(false);
             } catch (Exception ex) {
-                return new SubmissionResponse(500, exception: ex);
+                return new SubmissionResponse(500, message: ex.GetMessage(), exception: ex);
             }
 
             if (Int32.TryParse(GetSettingsVersionHeader(response.Headers), out int settingsVersion))
@@ -100,8 +100,7 @@ namespace Exceptionless.Submission {
                 _client.Value.AddAuthorizationHeader(config.ApiKey);
                 response = await _client.Value.GetAsync(url).ConfigureAwait(false);
             } catch (Exception ex) {
-                var message = String.Concat("Unable to retrieve configuration settings. Exception: ", ex.GetMessage());
-                return new SettingsResponse(false, message: message);
+                return new SettingsResponse(false, message: ex.GetMessage(), exception: ex);
             }
 
             if (response != null && response.StatusCode == HttpStatusCode.NotModified)
@@ -109,7 +108,7 @@ namespace Exceptionless.Submission {
 
             if (response == null || response.StatusCode != HttpStatusCode.OK) {
                 string message = await GetResponseMessageAsync(response).ConfigureAwait(false);
-                return new SettingsResponse(false, message: String.Concat("Unable to retrieve configuration settings: ", message));
+                return new SettingsResponse(false, message: message);
             }
 
             string json = await GetResponseTextAsync(response).ConfigureAwait(false);
@@ -130,7 +129,7 @@ namespace Exceptionless.Submission {
                 await _client.Value.GetAsync(url).ConfigureAwait(false);
             } catch (Exception ex) {
                 var log = config.Resolver.GetLog();
-                log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()));
+                log.Error(String.Concat("Error submitting heartbeat: ", ex.GetMessage()), exception: ex);
             }
         }
 

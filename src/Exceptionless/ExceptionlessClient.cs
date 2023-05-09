@@ -148,6 +148,7 @@ namespace Exceptionless {
                 }
             }
 
+            _log.Value.Info(typeof(ExceptionlessClient), "Processing event queue");
             return _queue.Value.ProcessAsync();
         }
 
