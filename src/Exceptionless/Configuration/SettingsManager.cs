@@ -75,6 +75,8 @@ namespace Exceptionless.Configuration {
             if (config == null || !config.IsValid || !config.Enabled || _isUpdatingSettings)
                 return;
 
+            var log = config.Resolver.GetLog();
+
             try {
                 _isUpdatingSettings = true;
                 if (!version.HasValue || version < 0)
@@ -84,8 +86,18 @@ namespace Exceptionless.Configuration {
                 var client = config.Resolver.GetSubmissionClient();
 
                 var response = await client.GetSettingsAsync(config, version.Value, serializer).ConfigureAwait(false);
-                if (!response.Success || response.Settings == null)
+                if (!response.Success) {
+                    string message = String.IsNullOrEmpty(response.Message)
+                        ? "An error occurred retrieving configuration settings."
+                        : String.Concat("An error occurred retrieving configuration settings: ", response.Message);
+                    log.Error(typeof(SettingsManager), response.Exception, message);
                     return;
+                }
+
+                if (response.Settings == null) {
+                    log.Warn(typeof(SettingsManager), "Error occurred updating settings: Server settings was null");
+                    return;
+                }
 
                 var savedServerSettings = GetSavedServerSettings(config);
                 config.Settings.Apply(response.Settings);
@@ -101,7 +113,7 @@ namespace Exceptionless.Configuration {
                 var fileStorage = config.Resolver.GetFileStorage();
                 fileStorage.SaveObject(GetConfigPath(config), response.Settings);
             } catch (Exception ex) {
-                config.Resolver.GetLog().Error(typeof(SettingsManager), ex, "Error occurred updating settings.");
+                log.Error(typeof(SettingsManager), ex, "Error occurred updating settings.");
             } finally {
                 _isUpdatingSettings = false;
             }
