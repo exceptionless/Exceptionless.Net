@@ -138,7 +138,7 @@ namespace Exceptionless.Logging {
                 _isFlushing = true;
 
                 Run.WithRetries(() => {
-                    if (!_flushMutex.WaitOne(TimeSpan.FromSeconds(5)))
+                    if (_flushMutex == null || !_flushMutex.WaitOne(TimeSpan.FromSeconds(5)))
                         return;
 
                     hasFlushLock = true;
@@ -163,8 +163,11 @@ namespace Exceptionless.Logging {
             } catch (Exception ex) {
                 System.Diagnostics.Trace.WriteLine("Exceptionless: Error flushing log contents to disk: {0}", ex.ToString());
             } finally {
-                if (hasFlushLock)
-                    _flushMutex.ReleaseMutex();
+                if (hasFlushLock) {
+                    // Ensure the mutex hasn't been disposed.
+                    _flushMutex?.ReleaseMutex();
+                }
+
                 _isFlushing = false;
             }
         }
@@ -293,7 +296,7 @@ namespace Exceptionless.Logging {
                     if (lineCount != lines)
                         continue;
 
-                    var returnBuffer = new byte[fs.Value.Length - fs.Value.Position];
+                    byte[] returnBuffer = new byte[fs.Value.Length - fs.Value.Position];
                     fs.Value.Read(returnBuffer, 0, returnBuffer.Length);
 
                     return Encoding.ASCII.GetString(returnBuffer);
