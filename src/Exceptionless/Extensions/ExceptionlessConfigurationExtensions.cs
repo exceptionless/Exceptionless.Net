@@ -15,6 +15,10 @@ using Exceptionless.Serializer;
 using Exceptionless.Storage;
 using Exceptionless.Diagnostics;
 
+#if NETSTANDARD
+using Microsoft.Extensions.Configuration;
+#endif
+
 #if NET45
 using System.Configuration;
 using Exceptionless.Extensions;
@@ -386,6 +390,86 @@ namespace Exceptionless {
             string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
+        }
+#endif
+
+#if NETSTANDARD
+        /// <summary>
+        /// Sets the configuration from .net configuration settings.
+        /// </summary>
+        /// <param name="config">The configuration object you want to apply the settings to.</param>
+        /// <param name="settings">The configuration settings</param>
+        public static void ReadFromConfiguration(this ExceptionlessConfiguration config, IConfiguration settings) {
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
+            var section = settings.GetSection("Exceptionless");
+            if (Boolean.TryParse(section["Enabled"], out bool enabled) && !enabled)
+                config.Enabled = false;
+
+            string apiKey = section["ApiKey"];
+            if (!String.IsNullOrEmpty(apiKey) && apiKey != "API_KEY_HERE")
+                config.ApiKey = apiKey;
+
+            string serverUrl = section["ServerUrl"];
+            if (!String.IsNullOrEmpty(serverUrl))
+                config.ServerUrl = serverUrl;
+
+            if (TimeSpan.TryParse(section["QueueMaxAge"], out var queueMaxAge))
+                config.QueueMaxAge = queueMaxAge;
+
+            if (Int32.TryParse(section["QueueMaxAttempts"], out int queueMaxAttempts))
+                config.QueueMaxAttempts = queueMaxAttempts;
+
+            string storagePath = section["StoragePath"];
+            if (!String.IsNullOrEmpty(storagePath))
+                config.Resolver.Register(typeof(IObjectStorage), () => new FolderObjectStorage(config.Resolver, storagePath));
+
+            string storageSerializer = section["StorageSerializer"];
+            if (!String.IsNullOrEmpty(storageSerializer)) {
+                try {
+                    var serializerType = Type.GetType(storageSerializer);
+                    if (!typeof(IStorageSerializer).GetTypeInfo().IsAssignableFrom(serializerType)) {
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"The storage serializer {storageSerializer} does not implemented interface {typeof(IStorageSerializer)}.");
+                    }
+                    else {
+                        config.Resolver.Register(typeof(IStorageSerializer), serializerType);
+                    }
+                }
+                catch (Exception ex) {
+                    config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, $"The storage serializer {storageSerializer} type could not be resolved: ${ex.Message}");
+                }
+            }
+
+            if (Boolean.TryParse(section["EnableLogging"], out bool enableLogging) && enableLogging) {
+                string logPath = section["LogPath"];
+                if (!String.IsNullOrEmpty(logPath))
+                    config.UseFileLogger(logPath);
+                else if (!String.IsNullOrEmpty(storagePath))
+                    config.UseFileLogger(System.IO.Path.Combine(storagePath, "exceptionless.log"));
+            }
+
+            if (Boolean.TryParse(section["IncludePrivateInformation"], out bool includePrivateInformation) && !includePrivateInformation)
+                config.IncludePrivateInformation = false;
+
+            if (Boolean.TryParse(section["ProcessQueueOnCompletedRequest"], out bool processQueueOnCompletedRequest) && processQueueOnCompletedRequest)
+                config.ProcessQueueOnCompletedRequest = true;
+
+            foreach (var tag in section.GetSection("DefaultTags").GetChildren())
+                config.DefaultTags.Add(tag.Value);
+
+            foreach (var data in section.GetSection("DefaultData").GetChildren())
+                if (data.Value != null)
+                    config.DefaultData[data.Key] = data.Value;
+
+            foreach (var setting in section.GetSection("Settings").GetChildren())
+                if (setting.Value != null)
+                    config.Settings[setting.Key] = setting.Value;
+
+            // TODO: Support Registrations
         }
 #endif
 
