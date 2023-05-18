@@ -6,8 +6,6 @@ using Exceptionless.Plugins;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 
-#pragma warning disable AsyncFixer03
-
 namespace Exceptionless {
     public static class ExceptionlessClientExtensions {
         /// <summary>
@@ -385,9 +383,10 @@ namespace Exceptionless.Extensions {
                         }
 
                         log.Info(typeof(ExceptionlessClient), "AppDomain.CurrentDomain.UnhandledException finished");
-                        log.Flush();
                     } catch (Exception ex) {
                         log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing AppDomain unhandled exception: ", ex.Message));
+                    } finally {
+                        log.Flush();    
                     }
                 };
             }
@@ -430,9 +429,10 @@ namespace Exceptionless.Extensions {
                         }
 
                         log.Info(typeof(ExceptionlessClient), "ProcessExit finished");
-                        log.Flush();
                     } catch (Exception ex) {
                         log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing process exit: ", ex.Message));
+                    } finally {
+                        log.Flush();
                     }
                 };
             }
