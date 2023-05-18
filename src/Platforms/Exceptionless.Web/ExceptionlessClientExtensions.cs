@@ -17,16 +17,30 @@ namespace Exceptionless.Web.Extensions {
                     if (HttpContext.Current == null)
                         return;
 
-                    Exception exception = HttpContext.Current.Server.GetLastError();
+                    var exception = HttpContext.Current.Server.GetLastError();
                     if (exception == null)
                         return;
 
-                    var contextData = new ContextData();
-                    contextData.MarkAsUnhandledError();
-                    contextData.SetSubmissionMethod("HttpApplicationError");
-                    contextData.Add("HttpContext", HttpContext.Current.ToWrapped());
+                    var log = client.Configuration.Resolver.GetLog();
+                    try {
+                        log.Info(typeof(ExceptionlessClient), "HttpApplication.Error called");
 
-                    exception.ToExceptionless(contextData, client).Submit();
+                        var contextData = new ContextData();
+                        contextData.MarkAsUnhandledError();
+                        contextData.SetSubmissionMethod("HttpApplicationError");
+                        contextData.Add("HttpContext", HttpContext.Current.ToWrapped());
+
+                        exception.ToExceptionless(contextData, client).Submit();
+
+                        // process queue immediately since the app is about to exit.
+                        client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        log.Info(typeof(ExceptionlessClient), "HttpApplication.Error finished");
+                    } catch (Exception ex) {
+                        log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing HttpApplication unhandled exception: ", ex.Message));
+                    } finally {
+                        log.Flush();
+                    }
                 };
 
             try {

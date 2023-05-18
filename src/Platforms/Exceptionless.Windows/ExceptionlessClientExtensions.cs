@@ -13,14 +13,28 @@ namespace Exceptionless.Windows.Extensions {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-            if (_onApplicationThreadException == null)
+            if (_onApplicationThreadException == null) {
                 _onApplicationThreadException = (sender, args) => {
-                    var contextData = new ContextData();
-                    contextData.MarkAsUnhandledError();
-                    contextData.SetSubmissionMethod("ApplicationThreadException");
+                    var log = client.Configuration.Resolver.GetLog();
+                    try {
+                        log.Info(typeof(ExceptionlessClient), "Application.ThreadException called");
+                        var contextData = new ContextData();
+                        contextData.MarkAsUnhandledError();
+                        contextData.SetSubmissionMethod("ApplicationThreadException");
 
-                    args.Exception.ToExceptionless(contextData, client).Submit();
+                        args.Exception.ToExceptionless(contextData, client).Submit();
+
+                        // process queue immediately since the app is about to exit.
+                        client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        log.Info(typeof(ExceptionlessClient), "Application.ThreadException finished");
+                    } catch (Exception ex) {
+                        log.Error(typeof(ExceptionlessClientExtensions), ex, String.Concat("An error occurred while processing Application Thread Exception: ", ex.Message));
+                    } finally {
+                        log.Flush();
+                    }
                 };
+            }
 
             try {
                 Application.ThreadException -= _onApplicationThreadException;
