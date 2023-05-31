@@ -41,7 +41,7 @@ namespace Exceptionless.Tests.Plugins {
         [Fact]
         public async Task MultipleInnerException() {
             var submissionClient = new InMemorySubmissionClient();
-            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
+            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest");
             client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
 
             var plugin = new HandleAggregateExceptionsPlugin();

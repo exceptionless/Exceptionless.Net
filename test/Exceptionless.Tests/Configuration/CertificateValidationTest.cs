@@ -63,7 +63,7 @@ namespace Exceptionless.Tests.Configuration {
         }
 
         private ExceptionlessClient GetClient(Func<CertificateData, bool> validator, string serverUrl) {
-            return new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw") {
+            return new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest") {
                 Configuration = {
                     ServerUrl = serverUrl,
                     ServerCertificateValidationCallback = validator
