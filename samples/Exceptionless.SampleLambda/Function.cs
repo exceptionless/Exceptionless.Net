@@ -11,8 +11,8 @@ namespace Exceptionless.SampleLambda {
         public async Task<string> FunctionHandler(string input, ILambdaContext context)
         {
             var client = new ExceptionlessClient(c => {
-                c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
-                c.ServerUrl = "http://localhost:5000";
+                c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
+                c.ServerUrl = "https://localhost:5201";
 
                 // read configuration values from environment variables
                 c.ReadFromEnvironmentalVariables();

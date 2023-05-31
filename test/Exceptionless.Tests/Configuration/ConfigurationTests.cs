@@ -15,7 +15,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", ServerUrl = "http://localhost:45000")]
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", ServerUrl = "https://localhost:5201")]
 [assembly: ExceptionlessSetting("testing", "configuration")]
 namespace Exceptionless.Tests.Configuration {
     public class ConfigurationTests {
@@ -26,9 +26,9 @@ namespace Exceptionless.Tests.Configuration {
 
         [Fact]
         public void CanConfigureApiKeyFromClientConstructor() {
-            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw");
+            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest");
             Assert.NotNull(client);
-            Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", client.Configuration.ApiKey);
+            Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", client.Configuration.ApiKey);
             Assert.True(client.Configuration.IncludePrivateInformation);
             Assert.True(client.Configuration.IncludeUserName);
             Assert.True(client.Configuration.IncludeMachineName);
@@ -64,14 +64,14 @@ namespace Exceptionless.Tests.Configuration {
             const string version = "1.2.3";
             
             var client = new ExceptionlessClient(c => {
-                c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
-                c.ServerUrl = "http://localhost:45000";
+                c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
+                c.ServerUrl = "https://localhost:5201";
                 c.SetVersion(version);
                 c.IncludeUserName = false;
             });
 
-            Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", client.Configuration.ApiKey);
-            Assert.Equal("http://localhost:45000", client.Configuration.ServerUrl);
+            Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", client.Configuration.ApiKey);
+            Assert.Equal("https://localhost:5201", client.Configuration.ServerUrl);
             Assert.Equal(version, client.Configuration.DefaultData[Event.KnownDataKeys.Version].ToString());
 
             Assert.True(client.Configuration.IncludePrivateInformation);
@@ -91,8 +91,8 @@ namespace Exceptionless.Tests.Configuration {
             Assert.Empty(config.Settings);
 
             config.ReadFromAttributes(typeof(ConfigurationTests).GetTypeInfo().Assembly);
-            Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw", config.ApiKey);
-            Assert.Equal("http://localhost:45000", config.ServerUrl);
+            Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", config.ApiKey);
+            Assert.Equal("https://localhost:5201", config.ServerUrl);
             Assert.Single(config.Settings);
             Assert.Equal("configuration", config.Settings["testing"]);
         }
@@ -101,7 +101,7 @@ namespace Exceptionless.Tests.Configuration {
         public void WillLockConfig() {
             var client = new ExceptionlessClient();
             client.Configuration.Resolver.Register<ISubmissionClient, InMemorySubmissionClient>();
-            client.Configuration.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw";
+            client.Configuration.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
             client.SubmitEvent(new Event());
             Assert.Throws<ArgumentException>(() => client.Configuration.ApiKey = "blah");
             Assert.Throws<ArgumentException>(() => client.Configuration.ServerUrl = "blah");
@@ -110,7 +110,7 @@ namespace Exceptionless.Tests.Configuration {
         [Fact]
         public async Task CanUpdateSettingsFromServer() {
             var config = new ExceptionlessConfiguration(DependencyResolver.Default) {
-                ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271n1l6xw",
+                ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest",
                 Settings = {
                     ["LocalSetting"] = "1",
                     ["LocalSettingToOverride"] = "1"
