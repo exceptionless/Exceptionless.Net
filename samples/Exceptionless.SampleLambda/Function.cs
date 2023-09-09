@@ -12,7 +12,7 @@ namespace Exceptionless.SampleLambda {
         {
             var client = new ExceptionlessClient(c => {
                 c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
-                c.ServerUrl = "https://localhost:5201";
+                c.ServerUrl = "http://localhost:5200";
 
                 // read configuration values from environment variables
                 c.ReadFromEnvironmentalVariables();

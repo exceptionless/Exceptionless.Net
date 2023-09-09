@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using Exceptionless.Configuration;
 
-[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", ServerUrl = "https://localhost:5201")]
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", ServerUrl = "http://localhost:5200")]
 
 namespace Exceptionless.SampleWindows {
     internal static class Program {

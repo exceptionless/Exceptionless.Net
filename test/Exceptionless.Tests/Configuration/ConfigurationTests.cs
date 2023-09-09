@@ -15,7 +15,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", ServerUrl = "https://localhost:5201")]
+[assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", ServerUrl = "http://localhost:5200")]
 [assembly: ExceptionlessSetting("testing", "configuration")]
 namespace Exceptionless.Tests.Configuration {
     public class ConfigurationTests {
@@ -65,13 +65,13 @@ namespace Exceptionless.Tests.Configuration {
             
             var client = new ExceptionlessClient(c => {
                 c.ApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
-                c.ServerUrl = "https://localhost:5201";
+                c.ServerUrl = "http://localhost:5200";
                 c.SetVersion(version);
                 c.IncludeUserName = false;
             });
 
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", client.Configuration.ApiKey);
-            Assert.Equal("https://localhost:5201", client.Configuration.ServerUrl);
+            Assert.Equal("http://localhost:5200", client.Configuration.ServerUrl);
             Assert.Equal(version, client.Configuration.DefaultData[Event.KnownDataKeys.Version].ToString());
 
             Assert.True(client.Configuration.IncludePrivateInformation);
@@ -92,7 +92,7 @@ namespace Exceptionless.Tests.Configuration {
 
             config.ReadFromAttributes(typeof(ConfigurationTests).GetTypeInfo().Assembly);
             Assert.Equal("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", config.ApiKey);
-            Assert.Equal("https://localhost:5201", config.ServerUrl);
+            Assert.Equal("http://localhost:5200", config.ServerUrl);
             Assert.Single(config.Settings);
             Assert.Equal("configuration", config.Settings["testing"]);
         }
