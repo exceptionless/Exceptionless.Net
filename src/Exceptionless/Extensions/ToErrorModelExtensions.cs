@@ -57,7 +57,9 @@ namespace Exceptionless {
                 PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
                 if (info != null)
                     error.Code = info.GetValue(exception, null).ToString();
-            } catch (Exception) { }
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error populating HResult Code: " + ex.Message);
+            }
 
 #if NET45
             try {
@@ -93,7 +95,9 @@ namespace Exceptionless {
                 var extraProperties = type.GetPublicProperties().Where(p => !p.Name.AnyWildcardMatches(exclusions, true)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);
-                    } catch { }
+                    } catch (Exception ex) {
+                        log.Error(typeof(ExceptionlessClient), ex, String.Format("Error getting extra exception property {0} value: {1}", p.Name, ex.Message));
+                    }
                     return null;
                 });
 
@@ -107,7 +111,9 @@ namespace Exceptionless {
                         MaxDepthToSerialize = 5
                     }, client);
                 }
-            } catch { }
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error populating extra exception properties: " + ex.Message);
+            }
 
             if (exception.InnerException != null)
                 error.Inner = ToErrorModelInternal(exception.InnerException, client, true);
@@ -164,7 +170,9 @@ namespace Exceptionless {
                             var attrs = assembly.GetCustomAttributes(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute)).ToList();
                             if (attrs.Count > 0)
                                 continue;
-                        } catch {}
+                        } catch (Exception ex) {
+                            log.Error(typeof(ExceptionlessClient), ex, "Error while checking if assembly " + assembly.FullName + " should be added to modules:" + ex.Message);
+                        }
                     }
 
                     var module = assembly.ToModuleInfo();
@@ -185,10 +193,15 @@ namespace Exceptionless {
             try {
                 var st = new EnhancedStackTrace(exception);
                 frames = st.GetFrames();
-            } catch {}
+            }
+            catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error getting stack frames: " + ex.Message);
+            }
 
-            if (frames == null)
+            if (frames == null || frames.Length == 0) {
+                log.Info(typeof(ExceptionlessClient), "Error " + error.Message + " contained no stack frames");
                 return;
+            }
 
             foreach (StackFrame frame in frames) {
                 var stackFrame = new Models.Data.StackFrame {

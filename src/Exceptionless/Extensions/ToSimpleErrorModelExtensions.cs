@@ -69,7 +69,9 @@ namespace Exceptionless.Extensions {
                 var extraProperties = type.GetPublicProperties().Where(p => !p.Name.AnyWildcardMatches(exclusions, true)).ToDictionary(p => p.Name, p => {
                     try {
                         return p.GetValue(exception, null);
-                    } catch {}
+                    } catch (Exception ex) {
+                        log.Error(typeof(ExceptionlessClient), ex, String.Format("Error getting extra exception property {0} value: {1}", p.Name, ex.Message));
+                    }
                     return null;
                 });
 
@@ -83,7 +85,9 @@ namespace Exceptionless.Extensions {
                         MaxDepthToSerialize = 5
                     }, client);
                 }
-            } catch {}
+            } catch (Exception ex) {
+                log.Error(typeof(ExceptionlessClient), ex, "Error populating extra exception properties: " + ex.Message);
+            }
 
             if (exception.InnerException != null)
                 error.Inner = exception.InnerException.ToSimpleErrorModel(client);
