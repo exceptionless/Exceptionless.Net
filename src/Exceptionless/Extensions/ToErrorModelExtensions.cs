@@ -199,7 +199,7 @@ namespace Exceptionless {
             }
 
             if (frames == null || frames.Length == 0) {
-                log.Info(typeof(ExceptionlessClient), "Error " + error.Message + " contained no stack frames");
+                log.Debug(typeof(ExceptionlessClient), "Error " + error.Message + " contained no stack frames");
                 return;
             }
 
