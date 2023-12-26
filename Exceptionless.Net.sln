@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		build\common.props = build\common.props
 		CONTRIBUTING.md = CONTRIBUTING.md
+		global.json = global.json
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
@@ -82,7 +83,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleLambda"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleLambdaAspNetCore", "samples\Exceptionless.SampleLambdaAspNetCore\Exceptionless.SampleLambdaAspNetCore.csproj", "{D9987952-B891-48B4-AA93-59AA39F33FC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptionless.SampleBlazorWebAssemblyApp", "samples\Exceptionless.SampleBlazorWebAssemblyApp\Exceptionless.SampleBlazorWebAssemblyApp.csproj", "{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exceptionless.SampleBlazorWebAssemblyApp", "samples\Exceptionless.SampleBlazorWebAssemblyApp\Exceptionless.SampleBlazorWebAssemblyApp.csproj", "{07D30684-0A2F-47E1-A3A7-6BEC248FBA06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

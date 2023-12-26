@@ -2,10 +2,10 @@
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <TargetFramework>net6.0</TargetFramework>
+<TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <TargetFrameworks>net6.0;net462</TargetFrameworks>
+<TargetFrameworks>net8.0;net462</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,7 +19,7 @@
     <None Include="app.config" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' " Label="Build">
+<PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' " Label="Build">
     <DefineConstants>$(DefineConstants);NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
