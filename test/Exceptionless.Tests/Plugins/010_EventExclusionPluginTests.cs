@@ -49,7 +49,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("Test", "Trace", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", true)]
         [InlineData("Test", "Warn", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Debug", false)]
         [InlineData("Test", "Warn", SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Off", true)]
-        public void LogLevels(string source, string level, string settingKey, string settingValue, bool cancelled) {
+        public void LogLevels(string? source, string? level, string? settingKey, string? settingValue, bool cancelled) {
             var client = CreateClient();
             if (settingKey != null)
                 client.Configuration.Settings.Add(settingKey, settingValue);
@@ -79,7 +79,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("404", "/unknown", "@@404:/unknown", "false", true)]
         [InlineData("404", "/unknown", "@@404:/unknown", "true", false)]
         [InlineData("404", "/example.php", "@@404:*.php", "false", true)]
-        public void SourceType(string type, string source, string settingKey, string settingValue, bool cancelled) {
+        public void SourceType(string? type, string? source, string? settingKey, string? settingValue, bool cancelled) {
             var client = CreateClient();
             if (settingKey != null)
                 client.Configuration.Settings.Add(settingKey, settingValue);
@@ -99,7 +99,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("Test", "Warn", null, null, false)]
         [InlineData("Test", "Error", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
         [InlineData("Test", "Debug", SettingsDictionary.KnownKeys.LogLevelPrefix + "Test", "Debug", false)]
-        public void LogLevelsWithInfoDefault(string source, string level, string settingKey, string settingValue, bool cancelled) {
+        public void LogLevelsWithInfoDefault(string? source, string? level, string? settingKey, string? settingValue, bool cancelled) {
             var client = CreateClient();
             client.Configuration.Settings.Add(SettingsDictionary.KnownKeys.LogLevelPrefix + "*", "Info");
             if (settingKey != null)
@@ -122,7 +122,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("@@error:System.Exception", true)]
         [InlineData("@@error:*Exception", true)]
         [InlineData("@@error:*", true)]
-        public void ExceptionType(string settingKey, bool cancelled) {
+        public void ExceptionType(string? settingKey, bool cancelled) {
             var client = CreateClient();
             if (settingKey != null)
                 client.Configuration.Settings.Add(settingKey, Boolean.FalseString);

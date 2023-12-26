@@ -15,7 +15,7 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData(Event.KnownTypes.NotFound, null, false)]
         [InlineData(Event.KnownTypes.Session, null, true)]
         [InlineData(Event.KnownTypes.Session, "123456789", false)]
-        public void CancelSessionsWithNoUserTest(string eventType, string identity, bool cancelled) {
+        public void CancelSessionsWithNoUserTest(string eventType, string? identity, bool cancelled) {
             var ev = new Event { Type = eventType };
             ev.SetUserIdentity(identity);
 

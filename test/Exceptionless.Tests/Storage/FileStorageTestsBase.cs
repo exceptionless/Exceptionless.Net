@@ -97,7 +97,7 @@ namespace Exceptionless.Tests.Storage {
             Assert.True(storage.ReleaseFile(storage.GetObjectList().FirstOrDefault()));
 
             var batch = storage.GetEventBatch(queueName);
-            Assert.Equal(1, batch.Count);
+            Assert.Single(batch);
 
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("1.json.x")));
             Assert.Single(storage.GetObjectList());
@@ -126,7 +126,7 @@ namespace Exceptionless.Tests.Storage {
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("3.json")));
 
             batch = storage.GetEventBatch(queueName);
-            Assert.Equal(1, batch.Count);
+            Assert.Single(batch);
             Assert.True(storage.GetObjectList().All(f => f.Path.StartsWith(Path.Combine(queueName, "q")) && f.Path.EndsWith("4.json.x")));
             storage.DeleteBatch(batch);
             Assert.Empty(storage.GetQueueFiles(queueName));
