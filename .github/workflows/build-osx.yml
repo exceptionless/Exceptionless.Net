@@ -23,7 +23,7 @@ jobs:
     - name: Build Version
       shell: bash
       run: |
-        dotnet tool install --global minver-cli --version 4.3.0
+        dotnet tool install --global minver-cli --version 5.0.0
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
