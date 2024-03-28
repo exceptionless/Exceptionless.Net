@@ -4,11 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using Exceptionless.Logging;
 using Exceptionless.Models.Data;
+using Exceptionless.Utility;
 
 namespace Exceptionless.Services {
     public class DefaultEnvironmentInfoCollector : IEnvironmentInfoCollector {
@@ -154,31 +157,30 @@ namespace Exceptionless.Services {
                 }
             }
 
-#if NETSTANDARD
-            Microsoft.Extensions.PlatformAbstractions.PlatformServices computerInfo = null;
-#elif NET45
+#if NET45
             Microsoft.VisualBasic.Devices.ComputerInfo computerInfo = null;
-#endif
 
             try {
-#if NETSTANDARD
-                computerInfo = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default;
-#elif NET45
                 computerInfo = new Microsoft.VisualBasic.Devices.ComputerInfo();
-#endif
             } catch (Exception ex) {
                 Log.FormattedWarn(typeof(DefaultEnvironmentInfoCollector), "Unable to get computer info. Error message: {0}", ex.Message);
             }
 
             if (computerInfo == null)
                 return;
+#endif
 
             try {
 #if NETSTANDARD
-                info.RuntimeVersion = computerInfo.Application.RuntimeFramework.Version.ToString();
-                info.Data["ApplicationBasePath"] = computerInfo.Application.ApplicationBasePath;
-                info.Data["ApplicationName"] = computerInfo.Application.ApplicationName;
-                info.Data["RuntimeFramework"] = computerInfo.Application.RuntimeFramework.FullName;
+                info.RuntimeVersion = Environment.Version.ToString();
+                info.Data["ApplicationBasePath"] = AppContext.BaseDirectory ?? AppDomain.CurrentDomain.BaseDirectory;
+
+
+                var entryAssembly = AssemblyHelper.GetEntryAssembly(Log);
+                if (entryAssembly != null) {
+                    info.Data["ApplicationName"] = entryAssembly.GetName().Name;
+                    info.Data["RuntimeFramework"] = entryAssembly.GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName;
+                }
 #elif NET45
                 info.OSName = computerInfo.OSFullName;
                 info.OSVersion = computerInfo.OSVersion;
