@@ -29,7 +29,7 @@ editor design surfaces are available.
 
 1. You will need to install:
    1. [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/)
-   2. [.NET Core 6.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
+   2. [.NET Core 6.x & 8.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
    3. [.NET Framework 4.6.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/net462)
 2. Open the `Exceptionless.Net.sln` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
@@ -43,7 +43,7 @@ build windows specific packages.
 
 1. You will need to install:
    1. [Visual Studio Code](https://code.visualstudio.com)
-   2. [.NET Core 6.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
+   2. [.NET Core 6.x & 8.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
 2. Open the cloned Exceptionless.Net folder.
 3. Run the `Exceptionless.SampleConsole` project by pressing `F5` to start the console.
 
