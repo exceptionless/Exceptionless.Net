@@ -25,6 +25,6 @@
   </PropertyGroup>
 
   <ItemGroup Label="Package References">
-    <PackageReference Include="MessagePack" Version="2.5.108" />
+    <PackageReference Include="MessagePack" Version="2.5.187" />
   </ItemGroup>
 </Project>
