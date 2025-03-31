@@ -391,9 +391,9 @@ namespace Exceptionless {
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
 
-            string tags = ConfigurationManager.AppSettings["Exceptionless:Tags"];
-            if (!String.IsNullOrEmpty(tags))
-                foreach (var tag in tags.SplitAndTrim(',').Where(tag => !String.IsNullOrEmpty(tag)))
+            string defaultTags = ConfigurationManager.AppSettings["Exceptionless:DefaultTags"];
+            if (!String.IsNullOrEmpty(defaultTags))
+                foreach (var tag in defaultTags.SplitAndTrim(',').Where(tag => !String.IsNullOrEmpty(tag)))
                     config.DefaultTags.Add(tag);
         }
 #endif
