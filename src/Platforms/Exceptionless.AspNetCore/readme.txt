@@ -26,21 +26,22 @@ for detailed information on how to configure the client to meet your requirement
 -------------------------------------
       ASP.NET Core Integration
 -------------------------------------
-You must import the "Exceptionless" namespace and add the following code to register and configure
-the ExceptionlessClient inside of the ConfigureServices method:
+You must import the "Exceptionless" namespace and add the following code to register and configure the Exceptionless client:
 
-services.AddExceptionless("API_KEY_HERE");
+using Exceptionless;
 
-In order to start gathering unhandled exceptions, you will need to register the Exceptionless
-middleware in the Configure method like this:
+var builder = WebApplication.CreateBuilder(args); 
+builder.Services.AddExceptionless("API_KEY_HERE");
 
+In order to start gathering unhandled exceptions, you will need to register the Exceptionless middleware in your application 
+like this after building your application:
+
+var app = builder.Build(); 
 app.UseExceptionless();
 
-Alternatively, you can also use the different overloads of the AddExceptionless method
-for different configuration options.
-
-Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
-for examples on sending events to Exceptionless.
+Alternatively, you can use different overloads of the AddExceptionless method for other configuration options.
+Please visit the documentation at https://exceptionless.com/docs/clients/dotnet/sending-events/ for additional examples 
+and guidance on sending events to Exceptionless.
 
 -------------------------------------
    Manually reporting an exception

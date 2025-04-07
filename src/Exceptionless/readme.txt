@@ -26,7 +26,7 @@ for detailed information on how to configure the client to meet your requirement
 -------------------------------------
 		.NET Core Integration
 -------------------------------------
-This library is platform agnostic and is compiled against different runtimes. Depending on the
+This library is platform-agnostic and is compiled against different runtimes. Depending on the
 referenced runtime, Exceptionless will attempt to wire up to available error handlers and attempt to
 discover configuration settings available to that runtime. For these reasons if you are on a known
 platform then use the platform specific package to save you time configuring while giving you more

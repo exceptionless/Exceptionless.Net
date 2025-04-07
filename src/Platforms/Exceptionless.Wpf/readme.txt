@@ -37,7 +37,7 @@ assembly attribute and your own api key to your project (E.G., AssemblyInfo clas
 
 [assembly: Exceptionless.Configuration.Exceptionless("API_KEY_HERE")]
 
-Finally, you must import the "Exceptionless" namespace and call the following line
+Finally, during app startup you must import the "Exceptionless" namespace and call the following line
 of code to start reporting unhandled exceptions.
 
 Exceptionless.ExceptionlessClient.Default.Register()
