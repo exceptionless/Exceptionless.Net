@@ -7,15 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Setup .NET Core 6
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.x
     - name: Setup .NET Core 8
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.x
     - name: Build Reason
@@ -23,7 +23,7 @@ jobs:
     - name: Build Version
       shell: bash
       run: |
-        dotnet tool install --global minver-cli --version 5.0.0
+        dotnet tool install --global minver-cli --version 6.0.0
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
