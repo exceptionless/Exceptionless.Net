@@ -16,7 +16,7 @@
     <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
     <PackageIcon>exceptionless-icon.png</PackageIcon>
     <PackageTags>Exceptionless;Error;Error-Handling;Error-Handler;Error-Reporting;Error-Management;Error-Monitoring;Handling;Management;Monitoring;Report;Reporting;Crash-Reporting;Exception;Exception-Handling;Exception-Handler;Exception-Reporting;Exceptions;Log;Logs;Logging;Unhandled;Unhandled-Exceptions;Feature;Configuration;Debug;FeatureToggle;Metrics;ELMAH</PackageTags>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageLicenseExpression>APACHE-2.0</PackageLicenseExpression>
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -46,7 +46,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(SolutionDir)LICENSE.txt" Pack="true" Visible="false" PackagePath="$(PackageLicenseFile)" />
     <None Include="$(SolutionDir)build/exceptionless-icon.png" Pack="true" PackagePath="$(PackageIcon)" />
   </ItemGroup>
 
