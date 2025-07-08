@@ -4,7 +4,7 @@
 # User-specific files
 *.suo
 *.user
-*.sln.docstates
+*.slnx.docstates
 *.ide
 
 # Build results
@@ -164,5 +164,5 @@ dist
 lib
 node_modules
 App_Data
-Exceptionless.sln.GhostDoc.xml
+Exceptionless.slnx.GhostDoc.xml
 .vs/config/applicationhost.config

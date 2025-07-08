@@ -23,12 +23,12 @@ jobs:
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
-      run: dotnet build --configuration Release Exceptionless.Net.Windows.sln
+      run: dotnet build --configuration Release Exceptionless.Net.Windows.slnx
     - name: Run Tests
-      run: dotnet test --configuration Release --no-build Exceptionless.Net.Windows.sln
+      run: dotnet test --configuration Release --no-build Exceptionless.Net.Windows.slnx
     - name: Package
       if: github.event_name != 'pull_request'
-      run: dotnet pack --configuration Release --no-build Exceptionless.Net.Windows.sln
+      run: dotnet pack --configuration Release --no-build Exceptionless.Net.Windows.slnx
     - name: Install GitHub Package Tool
       if: github.event_name != 'pull_request'
       run: dotnet tool install gpr -g

@@ -9,7 +9,7 @@
         "build",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary",
-        "Exceptionless.Net.NonWindows.sln"
+        "Exceptionless.Net.NonWindows.slnx"
       ],
       "group": {
         "kind": "build",
@@ -28,7 +28,7 @@
         "test",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary",
-        "Exceptionless.Net.NonWindows.sln"
+        "Exceptionless.Net.NonWindows.slnx"
       ],
       "group": {
         "kind": "test",

@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Platforms/">
+    <Project Path="src/Platforms/Exceptionless.AspNetCore/Exceptionless.AspNetCore.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Extensions.Hosting/Exceptionless.Extensions.Hosting.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Extensions.Logging/Exceptionless.Extensions.Logging.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Log4net/Exceptionless.Log4net.csproj" />
+    <Project Path="src/Platforms/Exceptionless.MessagePack/Exceptionless.MessagePack.csproj" />
+    <Project Path="src/Platforms/Exceptionless.NLog/Exceptionless.NLog.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="build/common.props" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="LICENSE.txt" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/Exceptionless.MessagePack.Tests/Exceptionless.MessagePack.Tests.csproj" />
+    <Project Path="test/Exceptionless.TestHarness/Exceptionless.TestHarness.csproj" />
+    <Project Path="test/Exceptionless.Tests/Exceptionless.Tests.csproj" />
+  </Folder>
+  <Project Path="src/Exceptionless/Exceptionless.csproj" />
+</Solution>

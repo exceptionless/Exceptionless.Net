@@ -31,7 +31,7 @@ editor design surfaces are available.
    1. [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/)
    2. [.NET Core 6.x & 8.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
    3. [.NET Framework 4.6.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/net462)
-2. Open the `Exceptionless.Net.sln` Visual Studio solution file.
+2. Open the `Exceptionless.Net.slnx` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
 4. Run the project by pressing `F5` to start the console.
 

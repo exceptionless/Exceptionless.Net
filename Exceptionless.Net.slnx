@@ -1,0 +1,55 @@
+<Solution>
+  <Folder Name="/Platforms/">
+    <Project Path="src/Platforms/Exceptionless.AspNetCore/Exceptionless.AspNetCore.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Extensions.Hosting/Exceptionless.Extensions.Hosting.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Extensions.Logging/Exceptionless.Extensions.Logging.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Log4net/Exceptionless.Log4net.csproj" />
+    <Project Path="src/Platforms/Exceptionless.MessagePack/Exceptionless.MessagePack.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Mvc/Exceptionless.Mvc.csproj" />
+    <Project Path="src/Platforms/Exceptionless.NLog/Exceptionless.NLog.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Web/Exceptionless.Web.csproj" />
+    <Project Path="src/Platforms/Exceptionless.WebApi/Exceptionless.WebApi.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Windows/Exceptionless.Windows.csproj" />
+    <Project Path="src/Platforms/Exceptionless.Wpf/Exceptionless.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="samples/Exceptionless.SampleAspNetCore/Exceptionless.SampleAspNetCore.csproj" />
+    <Project Path="samples/Exceptionless.SampleBlazorWebAssemblyApp/Exceptionless.SampleBlazorWebAssemblyApp.csproj" />
+    <Project Path="samples/Exceptionless.SampleConsole/Exceptionless.SampleConsole.csproj" />
+    <Project Path="samples/Exceptionless.SampleHosting/Exceptionless.SampleHosting.csproj" />
+    <Project Path="samples/Exceptionless.SampleLambda/Exceptionless.SampleLambda.csproj" />
+    <Project Path="samples/Exceptionless.SampleLambdaAspNetCore/Exceptionless.SampleLambdaAspNetCore.csproj" />
+    <Project Path="samples/Exceptionless.SampleMvc/Exceptionless.SampleMvc.csproj">
+      <BuildDependency Project="src/Exceptionless/Exceptionless.csproj" />
+      <BuildDependency Project="src/Platforms/Exceptionless.Mvc/Exceptionless.Mvc.csproj" />
+      <BuildDependency Project="src/Platforms/Exceptionless.WebApi/Exceptionless.WebApi.csproj" />
+    </Project>
+    <Project Path="samples/Exceptionless.SampleWcf/Exceptionless.SampleWcf.csproj">
+      <BuildDependency Project="src/Exceptionless/Exceptionless.csproj" />
+      <BuildDependency Project="src/Platforms/Exceptionless.Web/Exceptionless.Web.csproj" />
+    </Project>
+    <Project Path="samples/Exceptionless.SampleWeb/Exceptionless.SampleWeb.csproj">
+      <BuildDependency Project="src/Exceptionless/Exceptionless.csproj" />
+      <BuildDependency Project="src/Platforms/Exceptionless.Web/Exceptionless.Web.csproj" />
+    </Project>
+    <Project Path="samples/Exceptionless.SampleWebApi/Exceptionless.SampleWebApi.csproj" />
+    <Project Path="samples/Exceptionless.SampleWindows/Exceptionless.SampleWindows.csproj" />
+    <Project Path="samples/Exceptionless.SampleWpf/Exceptionless.SampleWpf.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/build-linux.yml" />
+    <File Path=".github/workflows/build-osx.yml" />
+    <File Path=".github/workflows/build-windows.yml" />
+    <File Path="build/common.props" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="global.json" />
+    <File Path="LICENSE.txt" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/Exceptionless.MessagePack.Tests/Exceptionless.MessagePack.Tests.csproj" />
+    <Project Path="test/Exceptionless.TestHarness/Exceptionless.TestHarness.csproj" />
+    <Project Path="test/Exceptionless.Tests/Exceptionless.Tests.csproj" />
+  </Folder>
+  <Project Path="src/Exceptionless/Exceptionless.csproj" />
+</Solution>

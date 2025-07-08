@@ -23,6 +23,6 @@ jobs:
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
-      run: dotnet build --configuration Release Exceptionless.Net.NonWindows.sln
+      run: dotnet build --configuration Release Exceptionless.Net.NonWindows.slnx
     - name: Run Tests
-      run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.sln
+      run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.slnx
