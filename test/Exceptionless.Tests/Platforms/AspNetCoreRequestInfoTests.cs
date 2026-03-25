@@ -68,9 +68,13 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         private static DefaultHttpContext CreateFormHttpContext() {
+            const string formBody = "name=world";
+            var bodyBytes = Encoding.UTF8.GetBytes(formBody);
             var context = new DefaultHttpContext();
             context.Request.Method = HttpMethods.Post;
             context.Request.ContentType = "application/x-www-form-urlencoded";
+            context.Request.ContentLength = bodyBytes.Length;
+            context.Request.Body = new MemoryStream(bodyBytes);
             context.Request.Form = new FormCollection(new Dictionary<string, StringValues> {
                 ["name"] = "world"
             });
