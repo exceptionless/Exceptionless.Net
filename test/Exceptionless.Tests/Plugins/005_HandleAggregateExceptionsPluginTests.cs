@@ -7,7 +7,6 @@ using Exceptionless.Models;
 using Exceptionless.Submission;
 using Exceptionless.Tests.Utility;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class HandleAggregateExceptionsPluginTests : PluginTestBase {

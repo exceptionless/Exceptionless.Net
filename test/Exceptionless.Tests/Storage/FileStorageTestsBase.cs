@@ -15,7 +15,6 @@ using Exceptionless.Storage;
 using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Storage {
     public abstract class FileStorageTestsBase {

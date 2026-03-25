@@ -5,8 +5,8 @@ using MessagePack;
 using MessagePack.Formatters;
 
 namespace Exceptionless.MessagePack {
-    internal class DataDictionaryFormatter : IMessagePackFormatter<DataDictionary> {
-        public void Serialize(ref MessagePackWriter writer, DataDictionary value, MessagePackSerializerOptions options) {
+    internal class DataDictionaryFormatter : IMessagePackFormatter<DataDictionary?> {
+        public void Serialize(ref MessagePackWriter writer, DataDictionary? value, MessagePackSerializerOptions options) {
             if (value == null) {
                 writer.WriteNil();
                 return;
@@ -65,7 +65,7 @@ namespace Exceptionless.MessagePack {
             }
         }
 
-        public DataDictionary Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) {
+        public DataDictionary? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) {
             if (reader.IsNil)
                 return null;
             

@@ -78,7 +78,7 @@ namespace Exceptionless.ExtendedData {
         private static readonly List<string> _ignoredFormFields = new List<string> {
             "__*"
         };
-        
+
         private static Dictionary<string, string[]> ToDictionary(this HttpRequestHeaders headers, string[] exclusions) {
             var d = new Dictionary<string, string[]>();
 
@@ -119,7 +119,7 @@ namespace Exceptionless.ExtendedData {
 
         private static Dictionary<string, string> ToDictionary(this NameValueCollection values, string[] exclusions) {
             var d = new Dictionary<string, string>();
-            
+
             foreach (string key in values.AllKeys) {
                 if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusions))
                     continue;

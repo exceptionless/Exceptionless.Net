@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
@@ -7,12 +7,23 @@ using Exceptionless.AspNetCore;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
+        /// <summary>
+        /// Registers the Exceptionless <see cref="IExceptionHandler"/> for capturing unhandled exceptions
+        /// in apps that use <c>UseExceptionHandler()</c>.
+        /// </summary>
+        public static IServiceCollection AddExceptionlessExceptionHandler(this IServiceCollection services) {
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, ExceptionlessExceptionHandler>());
+            return services;
+        }
+
         /// <summary>
         /// Adds the Exceptionless middleware for capturing unhandled exceptions and ensures that the Exceptionless pending queue is processed before the host shuts down.
         /// </summary>
@@ -34,7 +45,7 @@ namespace Exceptionless {
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
 
             var diagnosticListener = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
-            diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
+            diagnosticListener?.Subscribe(new ExceptionlessDiagnosticListener(client));
 
             var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());

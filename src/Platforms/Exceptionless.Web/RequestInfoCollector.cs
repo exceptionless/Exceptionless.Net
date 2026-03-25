@@ -54,7 +54,7 @@ namespace Exceptionless.ExtendedData {
 
             if (config.IncludeCookies)
                 info.Cookies = context.Request.Cookies.ToDictionary(exclusionList);
-            
+
             if (config.IncludeQueryString) {
                 try {
                     info.QueryString = context.Request.QueryString.ToDictionary(exclusionList);
@@ -124,7 +124,7 @@ namespace Exceptionless.ExtendedData {
                     int numRead;
 
                     int bufferSize = Math.Min(1024, maxDataToRead);
-                    
+
                     char[] buffer = new char[bufferSize];
                     while ((numRead = inputStream.ReadBlock(buffer, 0, bufferSize)) > 0 && (sb.Length + numRead) < maxDataToRead) {
                         sb.Append(buffer, 0, numRead);
@@ -210,7 +210,7 @@ namespace Exceptionless.ExtendedData {
 
         private static Dictionary<string, string> ToDictionary(this NameValueCollection values, string[] exclusions) {
             var d = new Dictionary<string, string>();
-            
+
             foreach (string key in values.AllKeys) {
                 if (String.IsNullOrEmpty(key) || key.AnyWildcardMatches(_ignoredFormFields) || key.AnyWildcardMatches(exclusions))
                     continue;

@@ -28,6 +28,17 @@ namespace Exceptionless.NLog {
         protected override void InitializeTarget() {
             base.InitializeTarget();
 
+            foreach (var field in Fields) {
+                if (field == null)
+                    throw new NLogConfigurationException("Exceptionless field configuration cannot be null.");
+
+                if (String.IsNullOrWhiteSpace(field.Name))
+                    throw new NLogConfigurationException("Exceptionless field name is required.");
+
+                if (field.Layout == null)
+                    throw new NLogConfigurationException($"Exceptionless field '{field.Name}' must define a layout.");
+            }
+
             string apiKey = RenderLogEvent(ApiKey, LogEventInfo.CreateNullEvent());
             string serverUrl = RenderLogEvent(ServerUrl, LogEventInfo.CreateNullEvent());
 

@@ -8,7 +8,6 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Tests.Utility;
 using Xunit;
-using Xunit.Abstractions;
 using Exceptionless.Json;
 using Exceptionless.Extensions;
 

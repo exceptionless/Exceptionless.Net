@@ -3,7 +3,7 @@ using System.Collections;
 using Exceptionless.Logging;
 using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Exceptionless.Tests.Plugins
 {

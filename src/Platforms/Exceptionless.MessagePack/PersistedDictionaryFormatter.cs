@@ -7,6 +7,8 @@ namespace Exceptionless.MessagePack {
     internal class PersistedDictionaryFormatter : DictionaryFormatterBase<string, string, PersistedDictionary> {
         private readonly IDependencyResolver _resolver;
 
+        internal PersistedDictionaryFormatter() : this(DependencyResolver.Default) { }
+
         public PersistedDictionaryFormatter(IDependencyResolver resolver) {
             _resolver = resolver;
         }

@@ -18,7 +18,7 @@ namespace Exceptionless.SampleHosting {
                     // Log levels can be controlled remotely per log source from the Exceptionless app in near real-time.
                     builder.AddExceptionless();
                 })
-                .UseExceptionless() // listens for host shutdown and 
+                .UseExceptionless() // initializes the client and flushes the queue during host shutdown
                 .ConfigureServices(services => {
                     // Reads settings from IConfiguration then adds additional configuration from this lambda.
                     // This also configures ExceptionlessClient.Default
@@ -64,7 +64,7 @@ namespace Exceptionless.SampleHosting {
                                     handledException.ToExceptionless().Submit();
                                 }
 
-                                // Unhandled exceptions will get reported since called UseExceptionless in the Startup.cs which registers a listener for unhandled exceptions.
+                                // Unhandled exceptions will get reported because host-level Exceptionless integration is enabled in Program.cs.
                                 throw new Exception($"Unhandled Exception: {Guid.NewGuid()}");
                             });
                         });

@@ -2,7 +2,7 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
@@ -22,15 +22,7 @@
     <ProjectReference Include="..\Exceptionless.Extensions.Hosting\Exceptionless.Extensions.Hosting.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Package References">
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.32" />
-    <PackageReference Include="Microsoft.Net.Http.Headers" Version="2.2.8" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
+  <ItemGroup Label="Framework References">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " Label="Build">
-    <DefineConstants>$(DefineConstants);NETSTANDARD2_0</DefineConstants>
-  </PropertyGroup>
 </Project>

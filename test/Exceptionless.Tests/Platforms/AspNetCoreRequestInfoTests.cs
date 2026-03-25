@@ -1,3 +1,4 @@
+#if NET10_0_OR_GREATER
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -82,3 +83,4 @@ namespace Exceptionless.Tests.Platforms {
         }
     }
 }
+#endif

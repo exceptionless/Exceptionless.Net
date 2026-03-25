@@ -2,6 +2,7 @@ using System;
 using Exceptionless.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace Exceptionless {
@@ -13,8 +14,43 @@ namespace Exceptionless {
         /// <returns></returns>
         public static IHostBuilder UseExceptionless(this IHostBuilder hostBuilder) {
             return hostBuilder.ConfigureServices(delegate (HostBuilderContext context, IServiceCollection collection) {
-                collection.AddSingleton<IHostedService, ExceptionlessLifetimeService>();
+                collection.AddExceptionlessLifetimeService();
             });
+        }
+
+        /// <summary>
+        /// Ensures that the Exceptionless pending queue is processed before the host shuts down using the .NET 8+ builder API.
+        /// </summary>
+        public static IHostApplicationBuilder UseExceptionless(this IHostApplicationBuilder builder) {
+            builder.Services.AddExceptionlessLifetimeService();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds the given pre-configured <see cref="ExceptionlessClient"/> to the host builder and registers lifecycle hooks.
+        /// </summary>
+        public static IHostApplicationBuilder AddExceptionless(this IHostApplicationBuilder builder, ExceptionlessClient client) {
+            builder.Services.AddExceptionless(client);
+            builder.Services.AddExceptionlessLifetimeService();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds an <see cref="ExceptionlessClient"/> to the host builder and registers lifecycle hooks.
+        /// </summary>
+        public static IHostApplicationBuilder AddExceptionless(this IHostApplicationBuilder builder, string apiKey) {
+            builder.Services.AddExceptionless(apiKey);
+            builder.Services.AddExceptionlessLifetimeService();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds an <see cref="ExceptionlessClient"/> to the host builder using the builder configuration and registers lifecycle hooks.
+        /// </summary>
+        public static IHostApplicationBuilder AddExceptionless(this IHostApplicationBuilder builder, Action<ExceptionlessConfiguration> configure = null) {
+            builder.Services.AddExceptionless(builder.Configuration, configure);
+            builder.Services.AddExceptionlessLifetimeService();
+            return builder;
         }
 
         /// <summary>
@@ -77,6 +113,11 @@ namespace Exceptionless {
 
                 return client;
             });
+        }
+
+        private static IServiceCollection AddExceptionlessLifetimeService(this IServiceCollection services) {
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, ExceptionlessLifetimeService>());
+            return services;
         }
     }
 }
