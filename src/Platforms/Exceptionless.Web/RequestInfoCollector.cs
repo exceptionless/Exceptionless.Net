@@ -108,9 +108,11 @@ namespace Exceptionless.ExtendedData {
                     return message;
                 }
 
+                // Form check must come after seekability and position checks above: accessing
+                // Request.Form triggers reading the request body stream.
                 if (context.Request.Form.Count > 0) {
                     log.Debug("Reading POST data from Request.Form");
-
+                    context.Request.InputStream.Position = originalPosition;
                     return context.Request.Form.ToDictionary(exclusionList);
                 }
 

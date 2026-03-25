@@ -62,7 +62,7 @@ namespace Exceptionless.AspNetCore {
             var log = config.Resolver.GetLog();
 
             long contentLength = context.Request.ContentLength.GetValueOrDefault();
-            if(contentLength == 0) {
+            if (contentLength == 0) {
                 string message = "Content-length was zero, empty post.";
                 log.Debug(message);
                 return message;
@@ -95,8 +95,11 @@ namespace Exceptionless.AspNetCore {
                     return message;
                 }
 
+                // Form check must come after seekability and position checks above: accessing
+                // Request.Form triggers reading the request body stream.
                 if (context.Request.HasFormContentType && context.Request.Form.Count > 0) {
                     log.Debug("Reading POST data from Request.Form");
+                    context.Request.Body.Position = originalPosition;
                     return context.Request.Form.ToDictionary(exclusionList);
                 }
 

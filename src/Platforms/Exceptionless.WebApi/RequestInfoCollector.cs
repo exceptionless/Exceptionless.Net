@@ -51,7 +51,7 @@ namespace Exceptionless.ExtendedData {
             // POST data collection is not implemented for WebApi due to async complexities and
             // the difficulty of reading the request body without interfering with model binding.
             // Other platforms (AspNetCore, Web) now only collect POST data for unhandled errors.
-            // TODO: support getting post data asyncly.
+            // TODO: support getting post data asynchronously.
             //if (config.IncludePostData && isUnhandledError && context.Request.Method != HttpMethod.Get)
             //    info.PostData = GetPostData(context, config, exclusionList);
 
