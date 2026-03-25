@@ -68,8 +68,9 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="context">The http context to gather information from.</param>
         /// <param name="config">The config.</param>
-        public static RequestInfo GetRequestInfo(this HttpContext context, ExceptionlessConfiguration config) {
-            return RequestInfoCollector.Collect(context, config);
+        /// <param name="isUnhandledError">Whether this is an unhandled error. POST data is only collected for unhandled errors to avoid consuming the request stream.</param>
+        public static RequestInfo GetRequestInfo(this HttpContext context, ExceptionlessConfiguration config, bool isUnhandledError = false) {
+            return RequestInfoCollector.Collect(context, config, isUnhandledError);
         }
 
         /// <summary>

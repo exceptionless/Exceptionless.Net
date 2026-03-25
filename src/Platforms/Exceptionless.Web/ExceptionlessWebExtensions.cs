@@ -11,11 +11,12 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="context">The http context to gather information from.</param>
         /// <param name="config">The config.</param>
-        public static RequestInfo GetRequestInfo(this HttpContext context, ExceptionlessConfiguration config) {
+        /// <param name="isUnhandledError">Whether this is an unhandled error. POST data is only collected for unhandled errors to avoid consuming the request stream.</param>
+        public static RequestInfo GetRequestInfo(this HttpContext context, ExceptionlessConfiguration config, bool isUnhandledError = false) {
             if (context == null)
                 return null;
 
-            return GetRequestInfo(context.ToWrapped(), config);
+            return GetRequestInfo(context.ToWrapped(), config, isUnhandledError);
         }
 
         /// <summary>
@@ -23,11 +24,12 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="context">The http context to gather information from.</param>
         /// <param name="config">The config.</param>
-        public static RequestInfo GetRequestInfo(this HttpContextBase context, ExceptionlessConfiguration config) {
+        /// <param name="isUnhandledError">Whether this is an unhandled error. POST data is only collected for unhandled errors to avoid consuming the request stream.</param>
+        public static RequestInfo GetRequestInfo(this HttpContextBase context, ExceptionlessConfiguration config, bool isUnhandledError = false) {
             if (context == null && HttpContext.Current != null)
                 context = HttpContext.Current.ToWrapped();
 
-            return RequestInfoCollector.Collect(context, config);
+            return RequestInfoCollector.Collect(context, config, isUnhandledError);
         }
 
         /// <summary>

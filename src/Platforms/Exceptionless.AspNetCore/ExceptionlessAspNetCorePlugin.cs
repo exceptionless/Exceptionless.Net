@@ -32,7 +32,7 @@ namespace Exceptionless.AspNetCore {
                 return;
 
             try {
-                ri = httpContext.GetRequestInfo(context.Client.Configuration);
+                ri = httpContext.GetRequestInfo(context.Client.Configuration, context.ContextData.IsUnhandledError);
             } catch (Exception ex) {
                 context.Log.Error(typeof(ExceptionlessAspNetCorePlugin), ex, "Error adding request info.");
             }
