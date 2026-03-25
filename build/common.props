@@ -6,6 +6,7 @@
     <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</PackageReleaseNotes>
     <MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <Copyright>Copyright (c) 2025 Exceptionless.  All rights reserved.</Copyright>
     <Authors>Exceptionless</Authors>
