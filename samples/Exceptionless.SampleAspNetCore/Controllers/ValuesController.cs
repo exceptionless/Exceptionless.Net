@@ -26,14 +26,16 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
 
             try {
                 throw new Exception($"Handled Exception: {Guid.NewGuid()}");
-            } catch (Exception handledException) {
+            }
+            catch (Exception handledException) {
                 // Use the ToExceptionless extension method to submit this handled exception to Exceptionless using the client instance from DI.
                 handledException.ToExceptionless(_exceptionlessClient).Submit();
             }
 
             try {
                 throw new Exception($"Handled Exception (Default Client): {Guid.NewGuid()}");
-            } catch (Exception handledException) {
+            }
+            catch (Exception handledException) {
                 // Use the ToExceptionless extension method to submit this handled exception to Exceptionless using the default client instance (ExceptionlessClient.Default).
                 // This works and is convenient, but its generally not recommended to use static singleton instances because it makes testing and
                 // other things harder.

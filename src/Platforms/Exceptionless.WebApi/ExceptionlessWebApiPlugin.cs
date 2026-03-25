@@ -29,7 +29,7 @@ namespace Exceptionless.WebApi {
                 return;
 
             try {
-                ri = actionContext.GetRequestInfo(context.Client.Configuration);
+                ri = actionContext.GetRequestInfo(context.Client.Configuration, context.ContextData.IsUnhandledError);
             } catch (Exception ex) {
                 context.Log.Error(typeof(ExceptionlessWebApiPlugin), ex, "Error adding request info.");
             }

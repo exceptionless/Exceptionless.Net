@@ -15,7 +15,7 @@ namespace Exceptionless.ExtendedData {
         private const int MAX_BODY_SIZE = 50 * 1024;
         private const int MAX_DATA_ITEM_LENGTH = 1000;
 
-        public static RequestInfo Collect(HttpContextBase context, ExceptionlessConfiguration config) {
+        public static RequestInfo Collect(HttpContextBase context, ExceptionlessConfiguration config, bool isUnhandledError = false) {
             if (context == null)
                 return null;
 
@@ -63,7 +63,9 @@ namespace Exceptionless.ExtendedData {
                 }
             }
 
-            if (config.IncludePostData && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+            // Only collect POST data for unhandled errors to avoid consuming the request stream
+            // and breaking model binding for handled errors where the app continues processing.
+            if (config.IncludePostData && isUnhandledError && !String.Equals(context.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
                 info.PostData = GetPostData(context, config, exclusionList);
 
             return info;
@@ -72,13 +74,7 @@ namespace Exceptionless.ExtendedData {
         private static object GetPostData(HttpContextBase context, ExceptionlessConfiguration config, string[] exclusionList) {
             var log = config.Resolver.GetLog();
 
-            if (context.Request.Form.Count > 0) {
-                log.Debug("Reading POST data from Request.Form");
-
-                return context.Request.Form.ToDictionary(exclusionList);
-            }
-
-            var contentLength = context.Request.ContentLength;
+            int contentLength = context.Request.ContentLength;
             if (contentLength == 0) {
                 string message = "Content-length was zero, empty post.";
                 log.Debug(message);
@@ -112,7 +108,15 @@ namespace Exceptionless.ExtendedData {
                     return message;
                 }
 
-                var maxDataToRead = contentLength == 0 ? MAX_BODY_SIZE : contentLength;
+                // Form check must come after seekability and position checks above: accessing
+                // Request.Form triggers reading the request body stream.
+                if (context.Request.Form.Count > 0) {
+                    log.Debug("Reading POST data from Request.Form");
+                    context.Request.InputStream.Position = originalPosition;
+                    return context.Request.Form.ToDictionary(exclusionList);
+                }
+
+                int maxDataToRead = contentLength == 0 ? MAX_BODY_SIZE : contentLength;
 
                 // pass default values, except for leaveOpen: true. This prevents us from disposing the underlying stream
                 using (var inputStream = new StreamReader(context.Request.InputStream, Encoding.UTF8, true, 1024, true)) {

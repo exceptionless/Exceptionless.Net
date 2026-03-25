@@ -6,8 +6,9 @@
     <PackageReleaseNotes>https://github.com/exceptionless/Exceptionless.Net/releases</PackageReleaseNotes>
     <MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
-    <Copyright>Copyright (c) 2025 Exceptionless.  All rights reserved.</Copyright>
+    <Copyright>Copyright © $([System.DateTime]::Now.ToString(yyyy)) Exceptionless.  All rights reserved.</Copyright>
     <Authors>Exceptionless</Authors>
     <NoWarn>$(NoWarn);CS1591;NU1701</NoWarn>
     <WarningsAsErrors>true</WarningsAsErrors>

@@ -14,7 +14,7 @@ namespace Exceptionless.ExtendedData {
     internal static class RequestInfoCollector {
         private const int MAX_DATA_ITEM_LENGTH = 1000;
 
-        public static RequestInfo Collect(HttpActionContext context, ExceptionlessConfiguration config) {
+        public static RequestInfo Collect(HttpActionContext context, ExceptionlessConfiguration config, bool isUnhandledError = false) {
             if (context == null)
                 return null;
 
@@ -48,8 +48,11 @@ namespace Exceptionless.ExtendedData {
             if (config.IncludeQueryString)
                 info.QueryString = context.Request.RequestUri.ParseQueryString().ToDictionary(exclusionList);
 
-            // TODO: support getting post data asyncly.
-            //if (config.IncludePostData && context.Request.Method != HttpMethod.Get)
+            // POST data collection is not implemented for WebApi due to async complexities and
+            // the difficulty of reading the request body without interfering with model binding.
+            // Other platforms (AspNetCore, Web) now only collect POST data for unhandled errors.
+            // TODO: support getting post data asynchronously.
+            //if (config.IncludePostData && isUnhandledError && context.Request.Method != HttpMethod.Get)
             //    info.PostData = GetPostData(context, config, exclusionList);
 
             return info;
