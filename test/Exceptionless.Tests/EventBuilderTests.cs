@@ -2,7 +2,6 @@ using System;
 using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
 using Xunit;
-using Xunit.Abstractions;
 using LogLevel = Exceptionless.Logging.LogLevel;
 
 namespace Exceptionless.Tests {

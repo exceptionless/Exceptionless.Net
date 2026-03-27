@@ -13,7 +13,6 @@ using Exceptionless.Submission;
 using Exceptionless.Tests.Utility;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 [assembly: Exceptionless("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest", ServerUrl = "http://localhost:5200")]
 [assembly: ExceptionlessSetting("testing", "configuration")]

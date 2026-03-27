@@ -10,7 +10,6 @@ using Exceptionless.Models.Data;
 using Exceptionless.Serializer;
 using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
-using Xunit.Abstractions;
 using LogLevel = Exceptionless.Logging.LogLevel;
 using Module = Exceptionless.Models.Data.Module;
 

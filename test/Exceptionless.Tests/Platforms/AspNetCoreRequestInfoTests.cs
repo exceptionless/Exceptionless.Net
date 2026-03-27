@@ -1,3 +1,4 @@
+#if NET10_0_OR_GREATER
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -10,7 +11,7 @@ using Xunit;
 namespace Exceptionless.Tests.Platforms {
     public class AspNetCoreRequestInfoTests {
         [Fact]
-        public void GetRequestInfo_DoesNotReadPostData_ForHandledErrors() {
+        public void GetRequestInfo_WhenErrorIsHandled_DoesNotReadPostData() {
             // Arrange
             var context = CreateHttpContext("hello=world");
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
@@ -25,7 +26,7 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
-        public void GetRequestInfo_ReadsAndRestoresPostData_ForUnhandledErrors() {
+        public void GetRequestInfo_WhenErrorIsUnhandled_ReadsAndRestoresPostData() {
             // Arrange
             const string body = "{\"hello\":\"world\"}";
             var context = CreateHttpContext(body);
@@ -43,7 +44,7 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
-        public void GetRequestInfo_ReadsFormData_ForUnhandledErrors() {
+        public void GetRequestInfo_WhenUnhandledRequestContainsFormData_ReadsFormData() {
             // Arrange
             var context = CreateFormHttpContext();
             var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
@@ -82,3 +83,4 @@ namespace Exceptionless.Tests.Platforms {
         }
     }
 }
+#endif

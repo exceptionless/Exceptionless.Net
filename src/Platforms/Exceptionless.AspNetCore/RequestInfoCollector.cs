@@ -133,8 +133,6 @@ namespace Exceptionless.AspNetCore {
             HeaderNames.Authorization,
             HeaderNames.Cookie,
             HeaderNames.Host,
-            HeaderNames.Method,
-            HeaderNames.Path,
             HeaderNames.ProxyAuthorization,
             HeaderNames.Referer,
             HeaderNames.UserAgent
@@ -176,7 +174,7 @@ namespace Exceptionless.AspNetCore {
 
                 if (kvp.Value == null || kvp.Value.Length >= MAX_DATA_ITEM_LENGTH)
                     continue;
-                
+
                 d[kvp.Key] = kvp.Value;
             }
 
@@ -194,7 +192,7 @@ namespace Exceptionless.AspNetCore {
                     string value = kvp.Value.ToString();
                     if (value.Length >= MAX_DATA_ITEM_LENGTH)
                         continue;
-                    
+
                     d[kvp.Key] = value;
                 } catch (Exception ex) {
                     d[kvp.Key] = $"EXCEPTION: {ex.Message}";

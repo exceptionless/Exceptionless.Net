@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Exceptionless.Tests.Utility {
     public class TestOutputWriter : TextWriter {

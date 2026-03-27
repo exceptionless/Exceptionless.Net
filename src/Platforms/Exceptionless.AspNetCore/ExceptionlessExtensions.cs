@@ -1,25 +1,36 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Exceptionless.AspNetCore;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
         /// <summary>
-        /// Adds the Exceptionless middleware for capturing unhandled exceptions and ensures that the Exceptionless pending queue is processed before the host shuts down.
+        /// Registers the Exceptionless <see cref="IExceptionHandler"/> and required ASP.NET Core services
+        /// for capturing unhandled exceptions. Call this in your service configuration alongside <c>app.UseExceptionHandler()</c>.
         /// </summary>
-        /// <param name="app">The target <see cref="IApplicationBuilder"/> to add Exceptionless to.</param>
-        /// <param name="client">Optional pre-configured <see cref="ExceptionlessClient"/> instance to use. If not specified (recommended), the <see cref="ExceptionlessClient"/>
-        /// instance registered in the services collection will be used.</param>
-        /// <returns></returns>
+        public static IServiceCollection AddExceptionless(this IServiceCollection services) {
+            services.AddHttpContextAccessor();
+            if (!services.Any(descriptor =>
+                    descriptor.ServiceType == typeof(IExceptionHandler) &&
+                    descriptor.ImplementationType == typeof(ExceptionlessExceptionHandler)))
+                services.AddExceptionHandler<ExceptionlessExceptionHandler>();
+            return services;
+        }
+
+        /// <summary>
+        /// Adds the Exceptionless middleware for 404 tracking and queue processing,
+        /// subscribes to diagnostic events, and configures ASP.NET Core plugins.
+        /// </summary>
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, ExceptionlessClient client = null) {
             if (client == null)
                 client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
@@ -34,33 +45,14 @@ namespace Exceptionless {
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
 
             var diagnosticListener = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
-            diagnosticListener?.SubscribeWithAdapter(new ExceptionlessDiagnosticListener(client));
+            diagnosticListener?.Subscribe(
+                new ExceptionlessDiagnosticListener(client),
+                eventName => ExceptionlessDiagnosticListener.IsRelevantEvent(eventName));
 
             var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
-        }
-
-        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, Action<ExceptionlessConfiguration> configure) {
-            var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
-            configure?.Invoke(client.Configuration);
-            return app.UseExceptionless(client);
-        }
-
-        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, IConfiguration configuration) {
-            var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
-            client.Configuration.ReadFromConfiguration(configuration);
-            return app.UseExceptionless(client);
-        }
-
-        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, string apiKey) {
-            var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
-            client.Configuration.ApiKey = apiKey;
-            return app.UseExceptionless(client);
         }
 
         /// <summary>

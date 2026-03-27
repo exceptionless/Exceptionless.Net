@@ -28,6 +28,19 @@ namespace Exceptionless.NLog {
         protected override void InitializeTarget() {
             base.InitializeTarget();
 
+            if (Fields != null) {
+                foreach (var field in Fields) {
+                    if (field == null)
+                        throw new NLogConfigurationException("Exceptionless field configuration cannot be null.");
+
+                    if (String.IsNullOrWhiteSpace(field.Name))
+                        throw new NLogConfigurationException("Exceptionless field name is required.");
+
+                    if (field.Layout == null)
+                        throw new NLogConfigurationException($"Exceptionless field '{field.Name}' must define a layout.");
+                }
+            }
+
             string apiKey = RenderLogEvent(ApiKey, LogEventInfo.CreateNullEvent());
             string serverUrl = RenderLogEvent(ServerUrl, LogEventInfo.CreateNullEvent());
 
@@ -69,10 +82,12 @@ namespace Exceptionless.NLog {
             string userIdentityName = RenderLogEvent(UserIdentityName, logEvent);
             builder.Target.SetUserIdentity(userIdentity, userIdentityName);
 
-            foreach (var field in Fields) {
-                string renderedField = RenderLogEvent(field.Layout, logEvent);
-                if (!String.IsNullOrWhiteSpace(renderedField))
-                    builder.AddObject(renderedField, field.Name);
+            if (Fields != null) {
+                foreach (var field in Fields) {
+                    string renderedField = RenderLogEvent(field.Layout, logEvent);
+                    if (!String.IsNullOrWhiteSpace(renderedField))
+                        builder.AddObject(renderedField, field.Name);
+                }
             }
 
             builder.Submit();
