@@ -17,9 +17,17 @@ namespace Exceptionless.Tests.Platforms {
 
             // Assert
             Assert.Contains(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessClient));
-            Assert.Contains(builder.Services, descriptor =>
-                descriptor.ServiceType == typeof(IHostedService) &&
-                descriptor.ImplementationType == typeof(ExceptionlessLifetimeService));
+            Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessLifetimeService));
+            Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedService));
+            Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedLifecycleService));
+
+            using var serviceProvider = builder.Services.BuildServiceProvider();
+            Assert.Same(
+                serviceProvider.GetRequiredService<IHostedService>(),
+                serviceProvider.GetRequiredService<IHostedLifecycleService>());
+            Assert.Same(
+                serviceProvider.GetRequiredService<ExceptionlessLifetimeService>(),
+                serviceProvider.GetRequiredService<IHostedService>());
         }
 
         [Fact]
@@ -32,9 +40,9 @@ namespace Exceptionless.Tests.Platforms {
             builder.UseExceptionless();
 
             // Assert
-            Assert.Single(builder.Services, descriptor =>
-                descriptor.ServiceType == typeof(IHostedService) &&
-                descriptor.ImplementationType == typeof(ExceptionlessLifetimeService));
+            Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessLifetimeService));
+            Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedService));
+            Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedLifecycleService));
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using System.Linq;
 
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
@@ -116,7 +117,13 @@ namespace Exceptionless {
         }
 
         private static IServiceCollection AddExceptionlessLifetimeService(this IServiceCollection services) {
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, ExceptionlessLifetimeService>());
+            if (services.Any(descriptor => descriptor.ServiceType == typeof(ExceptionlessLifetimeService)))
+                return services;
+
+            services.AddSingleton<ExceptionlessLifetimeService>();
+            services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<ExceptionlessLifetimeService>());
+            services.AddSingleton<IHostedLifecycleService>(sp => sp.GetRequiredService<ExceptionlessLifetimeService>());
+
             return services;
         }
     }
