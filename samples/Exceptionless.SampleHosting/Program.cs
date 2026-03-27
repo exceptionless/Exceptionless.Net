@@ -64,7 +64,9 @@ namespace Exceptionless.SampleHosting {
                                     handledException.ToExceptionless().Submit();
                                 }
 
-                                // Unhandled exceptions will get reported because host-level Exceptionless integration is enabled in Program.cs.
+                                // This simulates an unhandled exception. Host-level Exceptionless integration reports
+                                // host/AppDomain-level unhandled exceptions; ASP.NET Core request-pipeline exceptions
+                                // require the ASP.NET Core integration and UseExceptionHandler.
                                 throw new Exception($"Unhandled Exception: {Guid.NewGuid()}");
                             });
                         });

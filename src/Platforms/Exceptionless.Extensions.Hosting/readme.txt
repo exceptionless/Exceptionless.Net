@@ -24,15 +24,17 @@ Please visit the documentation https://exceptionless.com/docs/clients/dotnet/pri
 for detailed information on how to configure the client to meet your requirements.
 
 -------------------------------------
-Microsoft.Extensions.Logging Integration
+Microsoft.Extensions.Hosting Integration
 -------------------------------------
-You must import the "Exceptionless" namespace and call the following line
-of code to start reporting log messages.
+You must import the "Exceptionless" namespace and register Exceptionless on the
+host builder.
 
-loggerFactory.AddExceptionless("API_KEY_HERE");
+var builder = Host.CreateApplicationBuilder(args);
+builder.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
+builder.UseExceptionless();
 
-Alternatively, you can also use the different overloads of the AddExceptionless method
-for different configuration options.
+`AddExceptionless(...)` configures the client, and `UseExceptionless()` ensures
+the pending queue is flushed during host shutdown.
 
 Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.

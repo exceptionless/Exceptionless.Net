@@ -10,7 +10,7 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
         private readonly ILogger _logger;
 
         public ValuesController(ExceptionlessClient exceptionlessClient, ILogger<ValuesController> logger) {
-            // ExceptionlessClient instance from DI that was registered with the AddExceptionless call in Startup.ConfigureServices
+            // ExceptionlessClient instance from DI that was registered with the builder.AddExceptionless call in Program.cs.
             _exceptionlessClient = exceptionlessClient;
             _logger = logger;
         }
@@ -21,7 +21,7 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
             // Submit a feature usage event directly using the client instance that is injected from the DI container.
             _exceptionlessClient.SubmitFeatureUsage("ValuesController_Get");
 
-            // This log message will get sent to Exceptionless since Exceptionless has be added to the logging system in Program.cs.
+            // This log message will get sent to Exceptionless since Exceptionless has been added to the logging system in Program.cs.
             _logger.LogWarning("Test warning message");
 
             try {
@@ -42,7 +42,8 @@ namespace Exceptionless.SampleAspNetCore.Controllers {
                 handledException.ToExceptionless().Submit();
             }
 
-            // Unhandled exceptions will get reported since called UseExceptionless in the Startup.cs which registers a listener for unhandled exceptions.
+            // Unhandled exceptions will get reported because Program.cs enables the built-in exception handler pipeline
+            // and wires Exceptionless into both ASP.NET Core diagnostics and middleware hooks.
             throw new Exception($"Unhandled Exception: {Guid.NewGuid()}");
         }
     }

@@ -9,18 +9,17 @@ using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
         /// <summary>
-        /// Registers the Exceptionless <see cref="IExceptionHandler"/> for capturing unhandled exceptions.
-        /// Call this in your service configuration alongside <c>app.UseExceptionHandler()</c>.
+        /// Registers the Exceptionless <see cref="IExceptionHandler"/> and required ASP.NET Core services
+        /// for capturing unhandled exceptions. Call this in your service configuration alongside <c>app.UseExceptionHandler()</c>.
         /// </summary>
-        public static IServiceCollection AddExceptionlessAspNetCore(this IServiceCollection services) {
+        public static IServiceCollection AddExceptionless(this IServiceCollection services) {
             services.AddHttpContextAccessor();
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, ExceptionlessExceptionHandler>());
+            services.AddExceptionHandler<ExceptionlessExceptionHandler>();
             return services;
         }
 
@@ -42,7 +41,9 @@ namespace Exceptionless {
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();
 
             var diagnosticListener = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
-            diagnosticListener?.Subscribe(new ExceptionlessDiagnosticListener(client));
+            diagnosticListener?.Subscribe(
+                new ExceptionlessDiagnosticListener(client),
+                eventName => ExceptionlessDiagnosticListener.IsRelevantEvent(eventName));
 
             var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
