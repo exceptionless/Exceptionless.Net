@@ -2,84 +2,105 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.AspNetCore;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Exceptionless.Tests.Platforms {
     public class AspNetCoreExceptionCaptureTests {
         [Fact]
-        public async Task Invoke_CapturesHandledExceptionsFromExceptionHandlerFeature() {
+        public async Task TryHandleAsync_WhenRequestIsActive_ReturnsFalseAndCapturesUnhandledException() {
+            // Arrange
             var submittingEvents = new List<EventSubmittingEventArgs>();
             var client = CreateClient(submittingEvents);
             var context = CreateHttpContext();
-            var exception = new InvalidOperationException("handled");
-            var middleware = new ExceptionlessMiddleware(currentContext => {
-                currentContext.Features.Set<IExceptionHandlerFeature>(new ExceptionHandlerFeature {
-                    Error = exception
-                });
+            var exception = new InvalidOperationException("unhandled");
+            var handler = new ExceptionlessExceptionHandler(client);
 
-                return Task.CompletedTask;
-            }, client);
+            // Act
+            var result = await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-            await middleware.Invoke(context);
-
+            // Assert
+            Assert.False(result);
             var submission = Assert.Single(submittingEvents);
-            Assert.False(submission.IsUnhandledError);
-            Assert.Equal(nameof(IExceptionHandlerFeature), submission.Event.Data[Event.KnownDataKeys.SubmissionMethod]);
-
-            var requestInfo = Assert.IsType<RequestInfo>(submission.Event.Data[Event.KnownDataKeys.RequestInfo]);
-            Assert.Null(requestInfo.PostData);
+            Assert.True(submission.IsUnhandledError);
+            Assert.Equal(nameof(ExceptionlessExceptionHandler), submission.Event.Data[Event.KnownDataKeys.SubmissionMethod]);
         }
 
         [Fact]
-        public async Task Invoke_DoesNotDuplicateHandledExceptionsCapturedByDiagnostics() {
+        public async Task TryHandleAsync_WhenCancellationIsRequested_ReturnsFalseWithoutCapturingException() {
+            // Arrange
             var submittingEvents = new List<EventSubmittingEventArgs>();
             var client = CreateClient(submittingEvents);
+            var cts = new CancellationTokenSource();
             var context = CreateHttpContext();
-            var exception = new InvalidOperationException("handled");
-            var listener = new ExceptionlessDiagnosticListener(client);
-            var middleware = new ExceptionlessMiddleware(currentContext => {
-                currentContext.Features.Set<IExceptionHandlerFeature>(new ExceptionHandlerFeature {
-                    Error = exception
-                });
+            cts.Cancel();
+            var handler = new ExceptionlessExceptionHandler(client);
 
-                return Task.CompletedTask;
-            }, client);
+            // Act
+            var result = await handler.TryHandleAsync(context, new InvalidOperationException(), cts.Token);
 
-            listener.OnNext(new KeyValuePair<string, object>("Microsoft.AspNetCore.Diagnostics.HandledException", new {
-                httpContext = context,
-                exception
-            }));
-
-            await middleware.Invoke(context);
-
-            Assert.Single(submittingEvents);
+            // Assert
+            Assert.False(result);
+            Assert.Empty(submittingEvents);
         }
 
         [Fact]
-        public async Task Invoke_DoesNotDuplicateUnhandledExceptionsCapturedByMiddleware() {
+        public void OnNext_WhenUnhandledExceptionEventIsPublished_CapturesUnhandledException() {
+            // Arrange
             var submittingEvents = new List<EventSubmittingEventArgs>();
             var client = CreateClient(submittingEvents);
             var context = CreateHttpContext();
             var exception = new InvalidOperationException("unhandled");
             var listener = new ExceptionlessDiagnosticListener(client);
-            var middleware = new ExceptionlessMiddleware(_ => throw exception, client);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.Invoke(context));
-
+            // Act
             listener.OnNext(new KeyValuePair<string, object>("Microsoft.AspNetCore.Hosting.UnhandledException", new {
                 httpContext = context,
                 exception
             }));
 
+            // Assert
             var submission = Assert.Single(submittingEvents);
             Assert.True(submission.IsUnhandledError);
-            Assert.Equal(nameof(ExceptionlessMiddleware), submission.Event.Data[Event.KnownDataKeys.SubmissionMethod]);
+        }
+
+        [Fact]
+        public async Task Invoke_WhenResponseStatusIsNotFound_SubmitsNotFoundEvent() {
+            // Arrange
+            var submittingEvents = new List<EventSubmittingEventArgs>();
+            var client = CreateClient(submittingEvents);
+            var context = CreateHttpContext();
+            var middleware = new ExceptionlessMiddleware(currentContext => {
+                currentContext.Response.StatusCode = 404;
+                return Task.CompletedTask;
+            }, client);
+
+            // Act
+            await middleware.Invoke(context);
+
+            // Assert
+            var submission = Assert.Single(submittingEvents);
+            Assert.Equal(Event.KnownTypes.NotFound, submission.Event.Type);
+        }
+
+        [Fact]
+        public async Task Invoke_WhenNextDelegateThrows_RethrowsExceptionWithoutSubmittingEvent() {
+            // Arrange
+            var submittingEvents = new List<EventSubmittingEventArgs>();
+            var client = CreateClient(submittingEvents);
+            var context = CreateHttpContext();
+            var middleware = new ExceptionlessMiddleware(_ => throw new InvalidOperationException("boom"), client);
+
+            // Act
+            await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.Invoke(context));
+
+            // Assert
+            Assert.Empty(submittingEvents);
         }
 
         private static ExceptionlessClient CreateClient(ICollection<EventSubmittingEventArgs> submittingEvents) {

@@ -8,11 +8,14 @@ using Xunit;
 namespace Exceptionless.Tests.Platforms {
     public class HostingExtensionsTests {
         [Fact]
-        public void AddExceptionless_RegistersClientAndLifetimeService_OnHostApplicationBuilder() {
+        public void AddExceptionless_WhenCalled_RegistersClientAndLifetimeService() {
+            // Arrange
             var builder = Host.CreateApplicationBuilder();
 
+            // Act
             builder.AddExceptionless(configuration => configuration.ApiKey = "test-api-key");
 
+            // Assert
             Assert.Contains(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessClient));
             Assert.Contains(builder.Services, descriptor =>
                 descriptor.ServiceType == typeof(IHostedService) &&
@@ -20,12 +23,15 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
-        public void UseExceptionless_DoesNotRegisterDuplicateLifetimeServices_OnHostApplicationBuilder() {
+        public void UseExceptionless_WhenCalledTwice_DoesNotRegisterDuplicateLifetimeServices() {
+            // Arrange
             var builder = Host.CreateApplicationBuilder();
 
+            // Act
             builder.UseExceptionless();
             builder.UseExceptionless();
 
+            // Assert
             Assert.Single(builder.Services, descriptor =>
                 descriptor.ServiceType == typeof(IHostedService) &&
                 descriptor.ImplementationType == typeof(ExceptionlessLifetimeService));

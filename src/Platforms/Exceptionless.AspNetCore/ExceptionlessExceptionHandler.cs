@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 
 namespace Exceptionless.AspNetCore {
-    internal sealed class ExceptionlessExceptionHandler : IExceptionHandler {
+    public sealed class ExceptionlessExceptionHandler : IExceptionHandler {
         private readonly ExceptionlessClient _client;
 
         public ExceptionlessExceptionHandler(ExceptionlessClient client) {
@@ -14,7 +14,7 @@ namespace Exceptionless.AspNetCore {
         }
 
         public ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken) {
-            if (httpContext.RequestAborted.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 return ValueTask.FromResult(false);
 
             var contextData = new ContextData();

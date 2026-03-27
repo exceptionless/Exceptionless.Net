@@ -29,7 +29,7 @@ namespace Exceptionless.Extensions.Hosting {
         }
 
         public Task StoppingAsync(CancellationToken cancellationToken) {
-            if (_started == 0)
+            if (Volatile.Read(ref _started) == 0)
                 return Task.CompletedTask;
 
             return _exceptionlessClient.ProcessQueueAsync();

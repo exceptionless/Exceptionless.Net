@@ -8,7 +8,6 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins.Default;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -16,21 +15,19 @@ using Microsoft.Extensions.Hosting;
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
         /// <summary>
-        /// Registers the Exceptionless <see cref="IExceptionHandler"/> for capturing unhandled exceptions
-        /// in apps that use <c>UseExceptionHandler()</c>.
+        /// Registers the Exceptionless <see cref="IExceptionHandler"/> for capturing unhandled exceptions.
+        /// Call this in your service configuration alongside <c>app.UseExceptionHandler()</c>.
         /// </summary>
-        public static IServiceCollection AddExceptionlessExceptionHandler(this IServiceCollection services) {
+        public static IServiceCollection AddExceptionlessAspNetCore(this IServiceCollection services) {
+            services.AddHttpContextAccessor();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, ExceptionlessExceptionHandler>());
             return services;
         }
 
         /// <summary>
-        /// Adds the Exceptionless middleware for capturing unhandled exceptions and ensures that the Exceptionless pending queue is processed before the host shuts down.
+        /// Adds the Exceptionless middleware for 404 tracking and queue processing,
+        /// subscribes to diagnostic events, and configures ASP.NET Core plugins.
         /// </summary>
-        /// <param name="app">The target <see cref="IApplicationBuilder"/> to add Exceptionless to.</param>
-        /// <param name="client">Optional pre-configured <see cref="ExceptionlessClient"/> instance to use. If not specified (recommended), the <see cref="ExceptionlessClient"/>
-        /// instance registered in the services collection will be used.</param>
-        /// <returns></returns>
         public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, ExceptionlessClient client = null) {
             if (client == null)
                 client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
@@ -51,27 +48,6 @@ namespace Exceptionless {
             lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
-        }
-
-        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, Action<ExceptionlessConfiguration> configure) {
-            var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
-            configure?.Invoke(client.Configuration);
-            return app.UseExceptionless(client);
-        }
-
-        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, IConfiguration configuration) {
-            var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
-            client.Configuration.ReadFromConfiguration(configuration);
-            return app.UseExceptionless(client);
-        }
-
-        [Obsolete("UseExceptionless should be called without an overload, ExceptionlessClient should be configured when adding to services collection using AddExceptionless")]
-        public static IApplicationBuilder UseExceptionless(this IApplicationBuilder app, string apiKey) {
-            var client = app.ApplicationServices.GetService<ExceptionlessClient>() ?? ExceptionlessClient.Default;
-            client.Configuration.ApiKey = apiKey;
-            return app.UseExceptionless(client);
         }
 
         /// <summary>
