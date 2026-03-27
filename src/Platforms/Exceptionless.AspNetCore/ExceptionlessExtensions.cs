@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Exceptionless.AspNetCore;
@@ -19,7 +20,10 @@ namespace Exceptionless {
         /// </summary>
         public static IServiceCollection AddExceptionless(this IServiceCollection services) {
             services.AddHttpContextAccessor();
-            services.AddExceptionHandler<ExceptionlessExceptionHandler>();
+            if (!services.Any(descriptor =>
+                    descriptor.ServiceType == typeof(IExceptionHandler) &&
+                    descriptor.ImplementationType == typeof(ExceptionlessExceptionHandler)))
+                services.AddExceptionHandler<ExceptionlessExceptionHandler>();
             return services;
         }
 

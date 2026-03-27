@@ -70,6 +70,40 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
+        public void OnNext_WhenHostingDiagnosticsUnhandledExceptionEventIsPublished_CapturesUnhandledException() {
+            // Arrange
+            var submittingEvents = new List<EventSubmittingEventArgs>();
+            var client = CreateClient(submittingEvents);
+            var context = CreateHttpContext();
+            var exception = new InvalidOperationException("unhandled");
+            var listener = new ExceptionlessDiagnosticListener(client);
+
+            // Act
+            listener.OnNext(new KeyValuePair<string, object>("Microsoft.AspNetCore.Hosting.Diagnostics.UnhandledException", new {
+                httpContext = context,
+                exception
+            }));
+
+            // Assert
+            var submission = Assert.Single(submittingEvents);
+            Assert.True(submission.IsUnhandledError);
+        }
+
+        [Fact]
+        public void OnNext_WhenMiddlewareExceptionPayloadIsNull_DoesNotThrowOrCaptureException() {
+            // Arrange
+            var submittingEvents = new List<EventSubmittingEventArgs>();
+            var client = CreateClient(submittingEvents);
+            var listener = new ExceptionlessDiagnosticListener(client);
+
+            // Act
+            listener.OnNext(new KeyValuePair<string, object>("Microsoft.AspNetCore.MiddlewareAnalysis.MiddlewareException", null));
+
+            // Assert
+            Assert.Empty(submittingEvents);
+        }
+
+        [Fact]
         public async Task Invoke_WhenResponseStatusIsNotFound_SubmitsNotFoundEvent() {
             // Arrange
             var submittingEvents = new List<EventSubmittingEventArgs>();
