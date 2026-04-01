@@ -49,8 +49,10 @@ namespace Exceptionless {
                 new ExceptionlessDiagnosticListener(client),
                 eventName => ExceptionlessDiagnosticListener.IsRelevantEvent(eventName));
 
-            var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
+            if (app.ApplicationServices.GetService<Exceptionless.Extensions.Hosting.ExceptionlessLifetimeService>() == null) {
+                var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+                lifetime.ApplicationStopping.Register(() => client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult());
+            }
 
             return app.UseMiddleware<ExceptionlessMiddleware>(client);
         }
