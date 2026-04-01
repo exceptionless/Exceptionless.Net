@@ -18,7 +18,7 @@ namespace Exceptionless {
         /// Registers the Exceptionless <see cref="IExceptionHandler"/> and required ASP.NET Core services
         /// for capturing unhandled exceptions. Call this in your service configuration alongside <c>app.UseExceptionHandler()</c>.
         /// </summary>
-        public static IServiceCollection AddExceptionless(this IServiceCollection services) {
+        public static IServiceCollection AddExceptionlessExceptionHandler(this IServiceCollection services) {
             services.AddHttpContextAccessor();
             if (!services.Any(descriptor =>
                     descriptor.ServiceType == typeof(IExceptionHandler) &&

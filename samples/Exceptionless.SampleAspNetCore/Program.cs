@@ -18,7 +18,7 @@ builder.AddExceptionless(c => c.DefaultData["Startup"] = "heyyy");
 // builder.AddExceptionless("API_KEY_HERE");
 
 // Adds ASP.NET Core request/unhandled exception hooks and standard exception handling services.
-builder.Services.AddExceptionless();
+builder.Services.AddExceptionlessExceptionHandler();
 builder.Services.AddProblemDetails();
 
 // This is normal ASP.NET Core code.

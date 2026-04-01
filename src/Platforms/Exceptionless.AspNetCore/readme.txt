@@ -32,7 +32,7 @@ using Exceptionless;
 
 var builder = WebApplication.CreateBuilder(args); 
 builder.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
-builder.Services.AddExceptionless();
+builder.Services.AddExceptionlessExceptionHandler();
 builder.Services.AddProblemDetails();
 
 In order to start gathering unhandled exceptions, you will need to register the Exceptionless middleware in your application 

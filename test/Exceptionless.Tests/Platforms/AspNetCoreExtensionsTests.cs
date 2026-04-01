@@ -10,12 +10,12 @@ using Xunit;
 namespace Exceptionless.Tests.Platforms {
     public class AspNetCoreExtensionsTests {
         [Fact]
-        public void AddExceptionless_WhenCalled_RegistersAspNetCoreServices() {
+        public void AddExceptionlessExceptionHandler_WhenCalled_RegistersAspNetCoreServices() {
             // Arrange
             var builder = WebApplication.CreateBuilder();
 
             // Act
-            builder.Services.AddExceptionless();
+            builder.Services.AddExceptionlessExceptionHandler();
 
             // Assert
             Assert.Contains(builder.Services, descriptor => descriptor.ServiceType == typeof(IHttpContextAccessor));
@@ -25,16 +25,31 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
-        public void AddExceptionless_WhenCalledTwice_DoesNotRegisterDuplicateExceptionHandlers() {
+        public void AddExceptionlessExceptionHandler_WhenCalledTwice_DoesNotRegisterDuplicateExceptionHandlers() {
+            // Arrange
+            var builder = WebApplication.CreateBuilder();
+
+            // Act
+            builder.Services.AddExceptionlessExceptionHandler();
+            builder.Services.AddExceptionlessExceptionHandler();
+
+            // Assert
+            Assert.Single(builder.Services, descriptor =>
+                descriptor.ServiceType == typeof(IExceptionHandler) &&
+                descriptor.ImplementationType == typeof(ExceptionlessExceptionHandler));
+        }
+
+        [Fact]
+        public void AddExceptionless_WhenCalledWithoutArguments_RegistersClientConfigurationServices() {
             // Arrange
             var builder = WebApplication.CreateBuilder();
 
             // Act
             builder.Services.AddExceptionless();
-            builder.Services.AddExceptionless();
 
             // Assert
-            Assert.Single(builder.Services, descriptor =>
+            Assert.Contains(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessClient));
+            Assert.DoesNotContain(builder.Services, descriptor =>
                 descriptor.ServiceType == typeof(IExceptionHandler) &&
                 descriptor.ImplementationType == typeof(ExceptionlessExceptionHandler));
         }
