@@ -58,6 +58,11 @@ namespace Exceptionless.AspNetCore {
             if (httpContext == null || exception == null)
                 return;
 
+            // Skip if this exception was already submitted for this request by ExceptionlessExceptionHandler.
+            if (httpContext.Items.TryGetValue(ExceptionlessExceptionHandler.HttpContextSubmittedKey, out var submitted)
+                && ReferenceEquals(submitted, exception))
+                return;
+
             var contextData = new ContextData();
             if (isUnhandledError)
                 contextData.MarkAsUnhandledError();
@@ -74,7 +79,7 @@ namespace Exceptionless.AspNetCore {
                 return payload.GetType()
                     .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase)?
                     .GetValue(payload);
-            } catch {
+            } catch (Exception ex) when (ex is TargetInvocationException or AmbiguousMatchException or TargetException or MethodAccessException or ArgumentException) {
                 return null;
             }
         }

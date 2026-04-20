@@ -13,6 +13,12 @@ namespace Exceptionless.AspNetCore {
             _client = client ?? ExceptionlessClient.Default;
         }
 
+        /// <summary>
+        /// Key used in <see cref="HttpContext.Items"/> to track the exception already submitted for this request,
+        /// preventing duplicate submissions from the diagnostic listener.
+        /// </summary>
+        public const string HttpContextSubmittedKey = "Exceptionless:ExceptionSubmitted";
+
         public ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken) {
             if (cancellationToken.IsCancellationRequested)
                 return ValueTask.FromResult(false);
@@ -22,6 +28,7 @@ namespace Exceptionless.AspNetCore {
             contextData.SetSubmissionMethod(nameof(ExceptionlessExceptionHandler));
 
             exception.ToExceptionless(contextData, _client).SetHttpContext(httpContext).Submit();
+            httpContext.Items[HttpContextSubmittedKey] = exception;
 
             return ValueTask.FromResult(false);
         }

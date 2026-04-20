@@ -137,6 +137,49 @@ namespace Exceptionless.Tests.Platforms {
             Assert.Empty(submittingEvents);
         }
 
+        [Fact]
+        public async Task DiagnosticListener_WhenExceptionAlreadySubmittedByHandler_SkipsDuplicateSubmission() {
+            // Arrange
+            var submittingEvents = new List<EventSubmittingEventArgs>();
+            var client = CreateClient(submittingEvents);
+            var context = CreateHttpContext();
+            var exception = new InvalidOperationException("unhandled");
+            var handler = new ExceptionlessExceptionHandler(client);
+            var listener = new ExceptionlessDiagnosticListener(client);
+
+            // Act — handler submits first, then diagnostic listener sees the same exception
+            await handler.TryHandleAsync(context, exception, CancellationToken.None);
+            listener.OnNext(new KeyValuePair<string, object>("Microsoft.AspNetCore.Hosting.UnhandledException", new {
+                httpContext = context,
+                exception
+            }));
+
+            // Assert — only one submission
+            Assert.Single(submittingEvents);
+        }
+
+        [Fact]
+        public void DiagnosticListener_WhenExceptionDiffersFromSubmitted_SubmitsNewEvent() {
+            // Arrange
+            var submittingEvents = new List<EventSubmittingEventArgs>();
+            var client = CreateClient(submittingEvents);
+            var context = CreateHttpContext();
+            var listener = new ExceptionlessDiagnosticListener(client);
+
+            // Mark a different exception as already submitted
+            context.Items[ExceptionlessExceptionHandler.HttpContextSubmittedKey] = new InvalidOperationException("other");
+
+            // Act — diagnostic listener sees a different exception instance
+            var newException = new InvalidOperationException("different");
+            listener.OnNext(new KeyValuePair<string, object>("Microsoft.AspNetCore.Hosting.UnhandledException", new {
+                httpContext = context,
+                exception = newException
+            }));
+
+            // Assert — still submits because it's a different exception
+            Assert.Single(submittingEvents);
+        }
+
         private static ExceptionlessClient CreateClient(ICollection<EventSubmittingEventArgs> submittingEvents) {
             var client = new ExceptionlessClient(configuration => {
                 configuration.ApiKey = "test-api-key";
