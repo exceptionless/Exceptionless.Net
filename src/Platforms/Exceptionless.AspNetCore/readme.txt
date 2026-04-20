@@ -32,15 +32,15 @@ using Exceptionless;
 
 var builder = WebApplication.CreateBuilder(args); 
 builder.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
-builder.Services.AddExceptionlessExceptionHandler();
 builder.Services.AddProblemDetails();
-
-In order to start gathering unhandled exceptions, you will need to register the Exceptionless middleware in your application 
-like this after building your application:
 
 var app = builder.Build(); 
 app.UseExceptionHandler();
 app.UseExceptionless();
+
+The `AddExceptionless` call on `WebApplicationBuilder` automatically registers the Exceptionless IExceptionHandler 
+for capturing unhandled exceptions. You still need `AddProblemDetails()` (or your own handler) to produce the HTTP 
+error response, and `UseExceptionHandler()` to enable the exception handling pipeline.
 
 Alternatively, you can use different overloads of the host builder AddExceptionless method for other configuration options.
 Please visit the documentation at https://exceptionless.com/docs/clients/dotnet/sending-events/ for additional examples 

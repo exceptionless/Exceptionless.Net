@@ -15,8 +15,39 @@ using Microsoft.Extensions.Hosting;
 namespace Exceptionless {
     public static class ExceptionlessExtensions {
         /// <summary>
+        /// Adds the given pre-configured <see cref="ExceptionlessClient"/> to the web application builder,
+        /// registers lifecycle hooks, and automatically registers the Exceptionless <see cref="IExceptionHandler"/>.
+        /// </summary>
+        public static WebApplicationBuilder AddExceptionless(this WebApplicationBuilder builder, ExceptionlessClient client) {
+            ((IHostApplicationBuilder)builder).AddExceptionless(client);
+            builder.Services.AddExceptionlessExceptionHandler();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds an <see cref="ExceptionlessClient"/> to the web application builder using the specified API key,
+        /// registers lifecycle hooks, and automatically registers the Exceptionless <see cref="IExceptionHandler"/>.
+        /// </summary>
+        public static WebApplicationBuilder AddExceptionless(this WebApplicationBuilder builder, string apiKey) {
+            ((IHostApplicationBuilder)builder).AddExceptionless(apiKey);
+            builder.Services.AddExceptionlessExceptionHandler();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds an <see cref="ExceptionlessClient"/> to the web application builder using configuration,
+        /// registers lifecycle hooks, and automatically registers the Exceptionless <see cref="IExceptionHandler"/>.
+        /// </summary>
+        public static WebApplicationBuilder AddExceptionless(this WebApplicationBuilder builder, Action<ExceptionlessConfiguration> configure = null) {
+            ((IHostApplicationBuilder)builder).AddExceptionless(configure);
+            builder.Services.AddExceptionlessExceptionHandler();
+            return builder;
+        }
+
+        /// <summary>
         /// Registers the Exceptionless <see cref="IExceptionHandler"/> and required ASP.NET Core services
         /// for capturing unhandled exceptions. Call this in your service configuration alongside <c>app.UseExceptionHandler()</c>.
+        /// This is called automatically when using the <see cref="WebApplicationBuilder"/> overloads of <c>AddExceptionless</c>.
         /// </summary>
         public static IServiceCollection AddExceptionlessExceptionHandler(this IServiceCollection services) {
             services.AddHttpContextAccessor();

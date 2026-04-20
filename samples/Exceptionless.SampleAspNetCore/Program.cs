@@ -10,15 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddExceptionless();
 
 // Reads settings from IConfiguration then adds additional configuration from this lambda.
-// This also configures ExceptionlessClient.Default and host shutdown queue flushing.
+// This also configures ExceptionlessClient.Default, host shutdown queue flushing,
+// and automatically registers the Exceptionless IExceptionHandler.
 builder.AddExceptionless(c => c.DefaultData["Startup"] = "heyyy");
 // OR
 // builder.AddExceptionless();
 // OR
 // builder.AddExceptionless("API_KEY_HERE");
 
-// Adds ASP.NET Core request/unhandled exception hooks and standard exception handling services.
-builder.Services.AddExceptionlessExceptionHandler();
+// Required: configures the response format for unhandled exceptions (e.g., RFC 7807 Problem Details).
 builder.Services.AddProblemDetails();
 
 // This is normal ASP.NET Core code.
