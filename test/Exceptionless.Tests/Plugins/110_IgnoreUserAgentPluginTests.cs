@@ -3,7 +3,6 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class IgnoreUserAgentPluginTests : PluginTestBase {

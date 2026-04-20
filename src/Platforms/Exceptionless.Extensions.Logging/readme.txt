@@ -26,13 +26,16 @@ for detailed information on how to configure the client to meet your requirement
 -------------------------------------
 Microsoft.Extensions.Logging Integration
 -------------------------------------
-You must import the "Exceptionless" namespace and call the following line
-of code to start reporting log messages.
+You must import the "Exceptionless" namespace and add Exceptionless to the
+logging builder.
 
-loggerFactory.AddExceptionless("API_KEY_HERE");
+var builder = Host.CreateApplicationBuilder(args);
+builder.Logging.AddExceptionless();
 
-Alternatively, you can also use the different overloads of the AddExceptionless method
-for different configuration options.
+If you want to configure the client in the same app, pair this with one of the
+Exceptionless hosting registration overloads such as:
+
+builder.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
 
 Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.

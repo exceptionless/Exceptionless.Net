@@ -12,7 +12,6 @@ using Exceptionless.Submission;
 using Exceptionless.Tests.Log;
 using Exceptionless.Tests.Utility;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests {
     public class ExceptionlessClientTests {

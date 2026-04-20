@@ -2,7 +2,6 @@
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class CancelSessionsWithNoUserPluginTests : PluginTestBase {

@@ -1,7 +1,6 @@
 ﻿using Exceptionless.Plugins;
 using Exceptionless.Models;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Plugins {
     public class ReferenceIdPluginTests : PluginTestBase {

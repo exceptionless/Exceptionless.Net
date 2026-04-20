@@ -17,7 +17,7 @@
     <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
     <PackageIcon>exceptionless-icon.png</PackageIcon>
     <PackageTags>Exceptionless;Error;Error-Handling;Error-Handler;Error-Reporting;Error-Management;Error-Monitoring;Handling;Management;Monitoring;Report;Reporting;Crash-Reporting;Exception;Exception-Handling;Exception-Handler;Exception-Reporting;Exceptions;Log;Logs;Logging;Unhandled;Unhandled-Exceptions;Feature;Configuration;Debug;FeatureToggle;Metrics;ELMAH</PackageTags>
-    <PackageLicenseExpression>APACHE-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -41,9 +41,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    <PackageReference Include="AsyncFixer" Version="1.6.0" PrivateAssets="All" />
-    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.201" PrivateAssets="All"/>
+    <PackageReference Include="AsyncFixer" Version="2.1.0" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

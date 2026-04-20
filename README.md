@@ -1,8 +1,8 @@
 # Exceptionless .NET Clients
 
-[![Build Windows](https://github.com/exceptionless/Exceptionless.Net/workflows/Build%20Windows/badge.svg?branch=master)](https://github.com/Exceptionless/Exceptionless.Net/actions)
-[![Build OSX](https://github.com/exceptionless/Exceptionless.Net/workflows/Build%20OSX/badge.svg)](https://github.com/Exceptionless/Exceptionless.Net/actions)
-[![Build Linux](https://github.com/exceptionless/Exceptionless.Net/workflows/Build%20Linux/badge.svg)](https://github.com/Exceptionless/Exceptionless.Net/actions)
+[![Build Windows](https://github.com/Exceptionless/Exceptionless.Net/actions/workflows/build-windows.yml/badge.svg?branch=main)](https://github.com/Exceptionless/Exceptionless.Net/actions/workflows/build-windows.yml)
+[![Build OSX](https://github.com/Exceptionless/Exceptionless.Net/actions/workflows/build-osx.yml/badge.svg?branch=main)](https://github.com/Exceptionless/Exceptionless.Net/actions/workflows/build-osx.yml)
+[![Build Linux](https://github.com/Exceptionless/Exceptionless.Net/actions/workflows/build-linux.yml/badge.svg?branch=main)](https://github.com/Exceptionless/Exceptionless.Net/actions/workflows/build-linux.yml)
 [![NuGet Version](http://img.shields.io/nuget/v/Exceptionless.svg?style=flat)](https://www.nuget.org/packages/Exceptionless/)
 [![Discord](https://img.shields.io/discord/715744504891703319)](https://discord.gg/6HxgFCx)
 
@@ -29,8 +29,8 @@ editor design surfaces are available.
 
 1. You will need to install:
    1. [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/)
-   2. [.NET Core 6.x & 8.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
-   3. [.NET Framework 4.6.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/net462)
+   2. [.NET 10 SDK with Visual Studio tooling](https://dotnet.microsoft.com/download)
+   3. [.NET Framework 4.7.2 Developer Pack](https://dotnet.microsoft.com/download/dotnet-framework/net472)
 2. Open the `Exceptionless.Net.slnx` Visual Studio solution file.
 3. Select `Exceptionless.SampleConsole` as the startup project.
 4. Run the project by pressing `F5` to start the console.
@@ -43,7 +43,7 @@ build windows specific packages.
 
 1. You will need to install:
    1. [Visual Studio Code](https://code.visualstudio.com)
-   2. [.NET Core 6.x & 8.x SDK with VS Tooling](https://dotnet.microsoft.com/download)
+   2. [.NET 10 SDK](https://dotnet.microsoft.com/download)
 2. Open the cloned Exceptionless.Net folder.
 3. Run the `Exceptionless.SampleConsole` project by pressing `F5` to start the console.
 

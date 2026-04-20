@@ -1,4 +1,4 @@
-﻿-------------------------------------
+-------------------------------------
         Exceptionless Readme
 -------------------------------------
 Exceptionless provides real-time error reporting for your apps. It organizes the
@@ -31,15 +31,18 @@ You must import the "Exceptionless" namespace and add the following code to regi
 using Exceptionless;
 
 var builder = WebApplication.CreateBuilder(args); 
-builder.Services.AddExceptionless("API_KEY_HERE");
-
-In order to start gathering unhandled exceptions, you will need to register the Exceptionless middleware in your application 
-like this after building your application:
+builder.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
+builder.Services.AddProblemDetails();
 
 var app = builder.Build(); 
+app.UseExceptionHandler();
 app.UseExceptionless();
 
-Alternatively, you can use different overloads of the AddExceptionless method for other configuration options.
+The `AddExceptionless` call on `WebApplicationBuilder` automatically registers the Exceptionless IExceptionHandler 
+for capturing unhandled exceptions. You still need `AddProblemDetails()` (or your own handler) to produce the HTTP 
+error response, and `UseExceptionHandler()` to enable the exception handling pipeline.
+
+Alternatively, you can use different overloads of the host builder AddExceptionless method for other configuration options.
 Please visit the documentation at https://exceptionless.com/docs/clients/dotnet/sending-events/ for additional examples 
 and guidance on sending events to Exceptionless.
 

@@ -1,6 +1,5 @@
 ﻿using Exceptionless.Storage;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Storage {
     public class InMemoryFileStorageTests : FileStorageTestsBase {

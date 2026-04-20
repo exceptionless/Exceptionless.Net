@@ -3,7 +3,7 @@ using System;
 using Exceptionless.Dependency;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Exceptionless.Tests.Storage {
     public class IsolatedStorageFileStorageTests : FileStorageTestsBase {

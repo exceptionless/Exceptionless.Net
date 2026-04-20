@@ -1,7 +1,5 @@
-﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Exceptionless.Plugins;
 
 namespace Exceptionless.AspNetCore {
     public class ExceptionlessMiddleware {
@@ -20,19 +18,7 @@ namespace Exceptionless.AspNetCore {
                 });
             }
 
-            try {
-                await _next(context);
-            } catch (Exception ex) {
-                if (context.RequestAborted.IsCancellationRequested)
-                    throw;
-
-                var contextData = new ContextData();
-                contextData.MarkAsUnhandledError();
-                contextData.SetSubmissionMethod(nameof(ExceptionlessMiddleware));
-
-                ex.ToExceptionless(contextData, _client).SetHttpContext(context).Submit();
-                throw;
-            }
+            await _next(context);
 
             if (context.Response?.StatusCode == 404) {
                 string path = context.Request.Path.HasValue ? context.Request.Path.Value : "/";

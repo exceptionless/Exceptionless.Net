@@ -5,7 +5,6 @@ using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Serializer;
 using Exceptionless.Storage;
-using Xunit.Abstractions;
 
 namespace Exceptionless.Tests.Storage {
     public class FolderFileStorageTests : FileStorageTestsBase {
