@@ -70,9 +70,13 @@ namespace Exceptionless.AspNetCore {
             if (payload is null)
                 return null;
 
-            return payload.GetType()
-                .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase)?
-                .GetValue(payload);
+            try {
+                return payload.GetType()
+                    .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase)?
+                    .GetValue(payload);
+            } catch {
+                return null;
+            }
         }
     }
 }
