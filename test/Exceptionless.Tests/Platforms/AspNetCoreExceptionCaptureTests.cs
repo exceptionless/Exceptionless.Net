@@ -183,7 +183,7 @@ namespace Exceptionless.Tests.Platforms {
         private static ExceptionlessClient CreateClient(ICollection<EventSubmittingEventArgs> submittingEvents) {
             var client = new ExceptionlessClient(configuration => {
                 configuration.ApiKey = "test-api-key";
-                configuration.ServerUrl = "http://localhost:5200";
+                configuration.ServerUrl = "https://ex.dev.localhost:7111";
                 configuration.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
                 configuration.UseInMemoryStorage();
             });
