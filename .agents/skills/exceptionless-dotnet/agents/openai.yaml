@@ -1,0 +1,4 @@
+interface:
+  display_name: "Exceptionless .NET"
+  short_description: "Exceptionless .NET setup and best practices"
+  default_prompt: "Use $exceptionless-dotnet to configure or review Exceptionless .NET client setup, logging, plugins, runtime settings, privacy, and troubleshooting."
