@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Exceptionless.Serializer;
 
 namespace Exceptionless.Models.Data {
-    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
+
     public class RequestInfo : IData {
         public RequestInfo() {
             Data = new DataDictionary();
@@ -64,6 +66,7 @@ namespace Exceptionless.Models.Data {
         /// <summary>
         /// The data that was POSTed for the request.
         /// </summary>
+        [JsonConverter(typeof(PostDataConverter))]
         public object PostData { get; set; }
 
         /// <summary>
