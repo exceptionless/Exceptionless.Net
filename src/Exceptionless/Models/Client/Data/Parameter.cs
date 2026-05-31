@@ -1,5 +1,5 @@
 ﻿namespace Exceptionless.Models.Data {
-    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
+
     public class Parameter : IData {
         public Parameter() {
             Data = new DataDictionary();

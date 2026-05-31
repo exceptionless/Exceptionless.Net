@@ -8,11 +8,11 @@ using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
-using Exceptionless.Json.Linq;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Submission.Net;
@@ -197,8 +197,10 @@ namespace Exceptionless.Submission {
 
             if (responseText.Trim().StartsWith("{")) {
                 try {
-                    var responseJson = JObject.Parse(responseText);
-                    message = responseJson["message"].Value<string>();
+                    using (var doc = JsonDocument.Parse(responseText)) {
+                        if (doc.RootElement.TryGetProperty("message", out var messageProp))
+                            message = messageProp.GetString();
+                    }
                 } catch { }
             }
 

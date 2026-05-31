@@ -409,7 +409,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
 
             // Assert
-            Assert.Equal("{\"Number\":0,\"Rating\":0.0,\"Bool\":false,\"Direction\":\"North\",\"Message\":null,\"Dictionary\":null,\"Collection\":null,\"Nested\":null}", json);
+            Assert.Equal("{\"Number\":0,\"Rating\":0,\"Bool\":false,\"Direction\":\"North\",\"Message\":null,\"Dictionary\":null,\"Collection\":null,\"Nested\":null}", json);
             
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
