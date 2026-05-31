@@ -10,9 +10,9 @@ namespace Exceptionless.Tests.Serializer.Models {
         /* lang=json */
         private const string MinimalJson = """{"modules":[],"message":null,"type":null,"stack_trace":null,"data":{},"inner":null}""";
         /* lang=json */
-        private const string CompleteJson = """{"modules":[{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b77a5c561934e089"}}],"message":"Test error message","type":"System.Exception","stack_trace":"at TestClass.TestMethod()","data":{"@ext":{"OrderNumber":10}},"inner":{"message":"Inner error message","type":"System.NullReferenceException","stack_trace":"at InnerTestClass.InnerTestMethod()","data":{},"inner":null}}""";
+        private const string CompleteJson = """{"modules":[{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b77a5c561934e089"}}],"message":"Test error message","type":"System.Exception","stack_trace":"at TestClass.TestMethod()","data":{"@ext":{"order_number":10}},"inner":{"message":"Inner error message","type":"System.NullReferenceException","stack_trace":"at InnerTestClass.InnerTestMethod()","data":{},"inner":null}}""";
         /* lang=json */
-        private const string CompactExtraPropertiesJson = """{"OrderNumber":10}""";
+        private const string CompactExtraPropertiesJson = """{"order_number":10}""";
 
         [Fact]
         public void Serialize_MinimalSimpleError_ProducesCorrectJson() {
