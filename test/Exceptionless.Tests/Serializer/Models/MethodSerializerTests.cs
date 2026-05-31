@@ -5,8 +5,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class MethodSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":null,"module_id":0,"data":{},"generic_arguments":[],"parameters":[]}""";
-        private const string CompleteJson = /* lang=json */ """{"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"TestMethod","module_id":1,"data":{"MethodKey":"MethodValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}""";
+        /* lang=json */
+        private const string MinimalJson = """{"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":null,"module_id":0,"data":{},"generic_arguments":[],"parameters":[]}""";
+        /* lang=json */
+        private const string CompleteJson = """{"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"TestMethod","module_id":1,"data":{"MethodKey":"MethodValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}""";
 
         [Fact]
         public void Serialize_MinimalMethod_ProducesCorrectJson() {

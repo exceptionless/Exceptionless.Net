@@ -4,9 +4,12 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class EnvironmentInfoSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"processor_count":0,"total_physical_memory":0,"available_physical_memory":0,"command_line":null,"process_name":null,"process_id":null,"process_memory_size":0,"thread_name":null,"thread_id":null,"architecture":null,"o_s_name":null,"o_s_version":null,"ip_address":null,"machine_name":null,"install_id":null,"runtime_version":null,"data":{}}""";
-        private const string CompleteJson = /* lang=json */ """{"processor_count":4,"total_physical_memory":8192,"available_physical_memory":4096,"command_line":"TestCommandLine","process_name":"TestProcess","process_id":"12345","process_memory_size":2048,"thread_name":"Thread","thread_id":"67890","architecture":"x64","o_s_name":"Windows","o_s_version":"10.0.19042","ip_address":"192.168.1.1","machine_name":"Machine","install_id":"InstallId","runtime_version":"5.0.0","data":{"FrameworkDescription":"Test"}}""";
-        private const string OsOnlyJson = /* lang=json */ """{"processor_count":0,"total_physical_memory":0,"available_physical_memory":0,"command_line":null,"process_name":null,"process_id":null,"process_memory_size":0,"thread_name":null,"thread_id":null,"architecture":null,"o_s_name":"Windows","o_s_version":"11.0","ip_address":null,"machine_name":null,"install_id":null,"runtime_version":null,"data":{}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"processor_count":0,"total_physical_memory":0,"available_physical_memory":0,"command_line":null,"process_name":null,"process_id":null,"process_memory_size":0,"thread_name":null,"thread_id":null,"architecture":null,"o_s_name":null,"o_s_version":null,"ip_address":null,"machine_name":null,"install_id":null,"runtime_version":null,"data":{}}""";
+        /* lang=json */
+        private const string CompleteJson = """{"processor_count":4,"total_physical_memory":8192,"available_physical_memory":4096,"command_line":"TestCommandLine","process_name":"TestProcess","process_id":"12345","process_memory_size":2048,"thread_name":"Thread","thread_id":"67890","architecture":"x64","o_s_name":"Windows","o_s_version":"10.0.19042","ip_address":"192.168.1.1","machine_name":"Machine","install_id":"InstallId","runtime_version":"5.0.0","data":{"FrameworkDescription":"Test"}}""";
+        /* lang=json */
+        private const string OsOnlyJson = """{"processor_count":0,"total_physical_memory":0,"available_physical_memory":0,"command_line":null,"process_name":null,"process_id":null,"process_memory_size":0,"thread_name":null,"thread_id":null,"architecture":null,"o_s_name":"Windows","o_s_version":"11.0","ip_address":null,"machine_name":null,"install_id":null,"runtime_version":null,"data":{}}""";
 
         [Fact]
         public void Serialize_MinimalEnvironmentInfo_ProducesCorrectJson() {

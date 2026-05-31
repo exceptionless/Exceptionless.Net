@@ -5,11 +5,16 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class DataDictionarySerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{}""";
-        private const string CompleteJson = /* lang=json */ """{"string_value":"hello","int_value":42,"bool_value":true,"decimal_value":3.14,"null_value":null}""";
-        private const string KnownJson = /* lang=json */ """{"MyKey":"value","Count":42,"IsActive":true}""";
-        private const string NestedObjectJson = /* lang=json */ """{"nested":{"key":"val"}}""";
-        private const string NestedArrayJson = /* lang=json */ """{"items":["a","b"]}""";
+        /* lang=json */
+        private const string MinimalJson = """{}""";
+        /* lang=json */
+        private const string CompleteJson = """{"string_value":"hello","int_value":42,"bool_value":true,"decimal_value":3.14,"null_value":null}""";
+        /* lang=json */
+        private const string KnownJson = """{"MyKey":"value","Count":42,"IsActive":true}""";
+        /* lang=json */
+        private const string NestedObjectJson = """{"nested":{"key":"val"}}""";
+        /* lang=json */
+        private const string NestedArrayJson = """{"items":["a","b"]}""";
 
         [Fact]
         public void Serialize_MinimalDataDictionary_ProducesCorrectJson() {

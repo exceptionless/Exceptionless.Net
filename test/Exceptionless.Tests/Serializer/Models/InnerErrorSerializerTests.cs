@@ -5,8 +5,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class InnerErrorSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"message":null,"type":null,"code":null,"data":{},"inner":null,"stack_trace":[],"target_method":null}""";
-        private const string CompleteJson = /* lang=json */ """{"message":"Inner error message","type":"System.ArgumentException","code":"2002","data":{"Detail":"Value"},"inner":{"message":"Deep inner error","type":"System.Exception","code":"3003","data":{},"inner":null,"stack_trace":[],"target_method":null},"stack_trace":[{"file_name":null,"line_number":20,"column":0,"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":"InnerMethodName","module_id":0,"data":{},"generic_arguments":[],"parameters":[]}],"target_method":null}""";
+        /* lang=json */
+        private const string MinimalJson = """{"message":null,"type":null,"code":null,"data":{},"inner":null,"stack_trace":[],"target_method":null}""";
+        /* lang=json */
+        private const string CompleteJson = """{"message":"Inner error message","type":"System.ArgumentException","code":"2002","data":{"Detail":"Value"},"inner":{"message":"Deep inner error","type":"System.Exception","code":"3003","data":{},"inner":null,"stack_trace":[],"target_method":null},"stack_trace":[{"file_name":null,"line_number":20,"column":0,"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":"InnerMethodName","module_id":0,"data":{},"generic_arguments":[],"parameters":[]}],"target_method":null}""";
 
         [Fact]
         public void Serialize_MinimalInnerError_ProducesCorrectJson() {

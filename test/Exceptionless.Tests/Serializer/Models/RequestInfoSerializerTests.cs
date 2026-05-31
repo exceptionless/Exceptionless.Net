@@ -5,15 +5,33 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class RequestInfoSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":null,"query_string":{},"data":{}}""";
-        private const string CompleteJson = /* lang=json */ """{"user_agent":"Mozilla/5.0","http_method":"GET","is_secure":true,"host":"www.example.com","port":443,"path":"/test","referrer":"https://www.google.com","client_ip_address":"192.168.1.1","headers":{"Content-Type":["application/json"]},"cookies":{"session":"abc123"},"post_data":null,"query_string":{"q":"test"},"data":{"@browser":"Mozilla Firefox","@browser_version":"97.0","@browser_major_version":"97","@device":"Desktop","@os":"Windows","@os_version":"10.0","@os_major_version":"10","@is_bot":"False"}}""";
-        private const string KnownDataKeysJson = /* lang=json */ """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":null,"query_string":{},"data":{"@browser":"Firefox","@browser_version":"120.0","@browser_major_version":"120","@device":"Desktop","@os":"Windows","@os_version":"11.0","@os_major_version":"11","@is_bot":"False"}}""";
-        private const string PostDataObjectJson = /* lang=json */ """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":{"Name":"Test","Value":42},"query_string":{},"data":{}}""";
-        private const string ExpectedPostData = /* lang=json */ """
+        /* lang=json */
+        private const string MinimalJson = """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":null,"query_string":{},"data":{}}""";
+        /* lang=json */
+        private const string CompleteJson = """{"user_agent":"Mozilla/5.0","http_method":"GET","is_secure":true,"host":"www.example.com","port":443,"path":"/test","referrer":"https://www.google.com","client_ip_address":"192.168.1.1","headers":{"Content-Type":["application/json"]},"cookies":{"session":"abc123"},"post_data":null,"query_string":{"q":"test"},"data":{"@browser":"Mozilla Firefox","@browser_version":"97.0","@browser_major_version":"97","@device":"Desktop","@os":"Windows","@os_version":"10.0","@os_major_version":"10","@is_bot":"False"}}""";
+        /* lang=json */
+        private const string KnownDataKeysJson = """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":null,"query_string":{},"data":{"@browser":"Firefox","@browser_version":"120.0","@browser_major_version":"120","@device":"Desktop","@os":"Windows","@os_version":"11.0","@os_major_version":"11","@is_bot":"False"}}""";
+        /* lang=json */
+        private const string PostDataObjectJson = """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":{"Name":"Test","Value":42},"query_string":{},"data":{}}""";
+        /* lang=json */
+        private const string PostDataArrayJson = """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":[{"id":1},{"id":2}],"query_string":{},"data":{}}""";
+        /* lang=json */
+        private const string ExpectedPostData = """
 {
   "Name": "Test",
   "Value": 42
 }
+""";
+        /* lang=json */
+        private const string ExpectedArrayPostData = """
+[
+  {
+    "id": 1
+  },
+  {
+    "id": 2
+  }
+]
 """;
 
         [Fact]
@@ -100,7 +118,21 @@ namespace Exceptionless.Tests.Serializer.Models {
             RequestInfo requestInfo = Deserialize<RequestInfo>(json);
 
             // Assert
+            Assert.IsType<string>(requestInfo.PostData);
             Assert.Equal(ExpectedPostData, requestInfo.PostData);
+        }
+
+        [Fact]
+        public void Deserialize_RequestInfoArrayPostData_ConvertsToString() {
+            // Arrange
+            const string json = PostDataArrayJson;
+
+            // Act
+            RequestInfo requestInfo = Deserialize<RequestInfo>(json);
+
+            // Assert — RequestInfoConverter must convert JArray, not leave it as JArray
+            Assert.IsType<string>(requestInfo.PostData);
+            Assert.Equal(ExpectedArrayPostData, requestInfo.PostData);
         }
 
         [Fact]

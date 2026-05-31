@@ -5,8 +5,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class StackFrameCollectionSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """[]""";
-        private const string CompleteJson = /* lang=json */ """[{"file_name":"TestFile.cs","line_number":20,"column":5,"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"InnerMethodName","module_id":1,"data":{"StackFrameKey":"StackFrameValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}]""";
+        /* lang=json */
+        private const string MinimalJson = """[]""";
+        /* lang=json */
+        private const string CompleteJson = """[{"file_name":"TestFile.cs","line_number":20,"column":5,"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"InnerMethodName","module_id":1,"data":{"StackFrameKey":"StackFrameValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}]""";
 
         [Fact]
         public void Serialize_MinimalStackFrameCollection_ProducesCorrectJson() {

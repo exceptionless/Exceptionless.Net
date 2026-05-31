@@ -4,8 +4,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class UserDescriptionSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"email_address":null,"description":null,"data":{}}""";
-        private const string CompleteJson = /* lang=json */ """{"email_address":"test@example.com","description":"Test user description","data":{}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"email_address":null,"description":null,"data":{}}""";
+        /* lang=json */
+        private const string CompleteJson = """{"email_address":"test@example.com","description":"Test user description","data":{}}""";
 
         [Fact]
         public void Serialize_MinimalUserDescription_ProducesCorrectJson() {

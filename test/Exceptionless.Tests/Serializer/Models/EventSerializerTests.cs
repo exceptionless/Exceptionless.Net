@@ -6,17 +6,28 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class EventSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string CompleteJson = /* lang=json */ """{"type":"log","source":"SampleApp","date":"2023-05-02T14:30:00+00:00","tags":["Critical","tag2"],"message":"An error occurred","geo":"40.7128,-74.0060","value":42.0,"count":2,"data":{"FirstName":"Blake","@level":"Warn","@trace":["log 1"],"@user_description":{"email_address":"test@example.com","description":"Test user description","data":{}}},"reference_id":"ref123"}""";
-        private const string ErrorTypeJson = /* lang=json */ """{"type":"error","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string UsageTypeJson = /* lang=json */ """{"type":"usage","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string LogTypeJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string NotFoundTypeJson = /* lang=json */ """{"type":"404","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string SessionTypeJson = /* lang=json */ """{"type":"session","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string TaggedJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":["Critical"],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
-        private const string DecimalPrecisionJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":123.456789,"count":null,"data":{},"reference_id":null}""";
-        private const string TraceLogJson = /* lang=json */ """["log 1"]""";
-        private const string UserDescriptionJson = /* lang=json */ """{"email_address":"test@example.com","description":"Test user description","data":{}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string CompleteJson = """{"type":"log","source":"SampleApp","date":"2023-05-02T14:30:00+00:00","tags":["Critical","tag2"],"message":"An error occurred","geo":"40.7128,-74.0060","value":42.0,"count":2,"data":{"FirstName":"Blake","@level":"Warn","@trace":["log 1"],"@user_description":{"email_address":"test@example.com","description":"Test user description","data":{}}},"reference_id":"ref123"}""";
+        /* lang=json */
+        private const string ErrorTypeJson = """{"type":"error","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string UsageTypeJson = """{"type":"usage","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string LogTypeJson = """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string NotFoundTypeJson = """{"type":"404","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string SessionTypeJson = """{"type":"session","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string TaggedJson = """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":["Critical"],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string DecimalPrecisionJson = """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":123.456789,"count":null,"data":{},"reference_id":null}""";
+        /* lang=json */
+        private const string TraceLogJson = """["log 1"]""";
+        /* lang=json */
+        private const string UserDescriptionJson = """{"email_address":"test@example.com","description":"Test user description","data":{}}""";
 
         [Fact]
         public void Serialize_MinimalEvent_ProducesCorrectJson() {

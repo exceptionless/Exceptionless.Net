@@ -4,11 +4,16 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class SettingsDictionarySerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{}""";
-        private const string CompleteJson = /* lang=json */ """{"@@log:*":"Off"}""";
-        private const string KnownJson = /* lang=json */ """{"@@DataExclusions":"password,secret","@@UserAgentBotPatterns":"Googlebot,Bingbot","max_events":"25","is_enabled":"true"}""";
-        private const string BooleanJson = /* lang=json */ """{"enabled":"true","disabled":"false","fallback":"maybe"}""";
-        private const string IntegerJson = /* lang=json */ """{"max_events":"25","invalid":"abc"}""";
+        /* lang=json */
+        private const string MinimalJson = """{}""";
+        /* lang=json */
+        private const string CompleteJson = """{"@@log:*":"Off"}""";
+        /* lang=json */
+        private const string KnownJson = """{"@@DataExclusions":"password,secret","@@UserAgentBotPatterns":"Googlebot,Bingbot","max_events":"25","is_enabled":"true"}""";
+        /* lang=json */
+        private const string BooleanJson = """{"enabled":"true","disabled":"false","fallback":"maybe"}""";
+        /* lang=json */
+        private const string IntegerJson = """{"max_events":"25","invalid":"abc"}""";
 
         [Fact]
         public void Serialize_MinimalSettingsDictionary_ProducesCorrectJson() {

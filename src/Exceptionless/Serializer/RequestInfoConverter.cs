@@ -16,8 +16,8 @@ namespace Exceptionless.Serializer {
             if (result == null)
                 return obj;
 
-            if (result.PostData is JObject)
-                result.PostData = result.PostData.ToString();
+            if (result.PostData is JObject || result.PostData is JArray)
+                result.PostData = ((JToken)result.PostData).ToString();
 
             return result;
         }

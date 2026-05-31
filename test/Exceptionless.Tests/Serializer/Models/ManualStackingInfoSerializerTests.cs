@@ -5,8 +5,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class ManualStackingInfoSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"title":null,"signature_data":{}}""";
-        private const string CompleteJson = /* lang=json */ """{"title":"Test Title","signature_data":{"Key1":"Value1","Key2":"Value2"}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"title":null,"signature_data":{}}""";
+        /* lang=json */
+        private const string CompleteJson = """{"title":"Test Title","signature_data":{"Key1":"Value1","Key2":"Value2"}}""";
 
         [Fact]
         public void Serialize_MinimalManualStackingInfo_ProducesCorrectJson() {

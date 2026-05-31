@@ -4,9 +4,12 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class TagSetSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """[]""";
-        private const string CompleteJson = /* lang=json */ """["Critical"]""";
-        private const string KnownJson = /* lang=json */ """["alpha","beta"]""";
+        /* lang=json */
+        private const string MinimalJson = """[]""";
+        /* lang=json */
+        private const string CompleteJson = """["Critical"]""";
+        /* lang=json */
+        private const string KnownJson = """["alpha","beta"]""";
 
         [Fact]
         public void Serialize_MinimalTagSet_ProducesCorrectJson() {

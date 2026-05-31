@@ -4,8 +4,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class ClientConfigurationSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"version":0,"settings":{}}""";
-        private const string CompleteJson = /* lang=json */ """{"version":1,"settings":{"@@log:*":"Off"}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"version":0,"settings":{}}""";
+        /* lang=json */
+        private const string CompleteJson = """{"version":1,"settings":{"@@log:*":"Off"}}""";
 
         [Fact]
         public void Serialize_MinimalClientConfiguration_ProducesCorrectJson() {

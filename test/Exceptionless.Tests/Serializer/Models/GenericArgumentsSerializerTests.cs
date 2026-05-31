@@ -4,8 +4,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class GenericArgumentsSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """[]""";
-        private const string CompleteJson = /* lang=json */ """["T","U"]""";
+        /* lang=json */
+        private const string MinimalJson = """[]""";
+        /* lang=json */
+        private const string CompleteJson = """["T","U"]""";
 
         [Fact]
         public void Serialize_MinimalGenericArguments_ProducesCorrectJson() {

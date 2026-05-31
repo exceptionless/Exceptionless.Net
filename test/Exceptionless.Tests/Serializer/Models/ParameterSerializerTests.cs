@@ -5,8 +5,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class ParameterSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"name":null,"type":null,"type_namespace":null,"data":{},"generic_arguments":[]}""";
-        private const string CompleteJson = /* lang=json */ """{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}""";
+        /* lang=json */
+        private const string MinimalJson = """{"name":null,"type":null,"type_namespace":null,"data":{},"generic_arguments":[]}""";
+        /* lang=json */
+        private const string CompleteJson = """{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}""";
 
         [Fact]
         public void Serialize_MinimalParameter_ProducesCorrectJson() {

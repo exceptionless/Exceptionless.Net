@@ -6,8 +6,10 @@ using Module = Exceptionless.Models.Data.Module;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class ModuleSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"module_id":0,"name":null,"version":null,"is_entry":false,"created_date":"0001-01-01T00:00:00","modified_date":"0001-01-01T00:00:00","data":{}}""";
-        private const string CompleteJson = /* lang=json */ """{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b03f5f7f11d50a3a"}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"module_id":0,"name":null,"version":null,"is_entry":false,"created_date":"0001-01-01T00:00:00","modified_date":"0001-01-01T00:00:00","data":{}}""";
+        /* lang=json */
+        private const string CompleteJson = """{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b03f5f7f11d50a3a"}}""";
 
         [Fact]
         public void Serialize_MinimalModule_ProducesCorrectJson() {

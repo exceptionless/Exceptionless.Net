@@ -4,8 +4,10 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class SimpleInnerErrorSerializerTests : SerializerTestBase {
-        private const string MinimalJson = /* lang=json */ """{"message":null,"type":null,"stack_trace":null,"data":{},"inner":null}""";
-        private const string CompleteJson = /* lang=json */ """{"message":"Inner error message","type":"System.NullReferenceException","stack_trace":"at InnerTestClass.InnerTestMethod()","data":{"SimpleKey":"SimpleValue"},"inner":{"message":"Deep inner error","type":"System.Exception","stack_trace":"at DeepInner()","data":{},"inner":null}}""";
+        /* lang=json */
+        private const string MinimalJson = """{"message":null,"type":null,"stack_trace":null,"data":{},"inner":null}""";
+        /* lang=json */
+        private const string CompleteJson = """{"message":"Inner error message","type":"System.NullReferenceException","stack_trace":"at InnerTestClass.InnerTestMethod()","data":{"SimpleKey":"SimpleValue"},"inner":{"message":"Deep inner error","type":"System.Exception","stack_trace":"at DeepInner()","data":{},"inner":null}}""";
 
         [Fact]
         public void Serialize_MinimalSimpleInnerError_ProducesCorrectJson() {
