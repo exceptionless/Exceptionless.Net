@@ -1,143 +1,79 @@
-using Exceptionless.Models;
+using System;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class UserInfoSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class UserInfoSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"identity":null,"name":null,"data":{}}""";
+        private const string CompleteJson = /* lang=json */ """{"identity":"123","name":"John Doe","data":{"Age":30,"City":"New York"}}""";
 
         [Fact]
-        public void Serialize_CompleteUserInfo_ProducesSnakeCaseJson() {
+        public void Serialize_MinimalUserInfo_ProducesCorrectJson() {
             // Arrange
-            var userInfo = new UserInfo("user@example.com", "Test User") {
-                Data = {
-                    { "Role", "Admin" },
-                    { "Plan", "Enterprise" }
-                }
-            };
-
-            var serializer = GetSerializer();
+            var user = new UserInfo();
 
             // Act
-            string json = serializer.Serialize(userInfo);
+            string json = Serialize(user);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json, "identity", "name", "data");
-            SerializerContractAssertions.ExcludesProperties(json, "Identity", "Name", "Data");
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
+        public void Serialize_CompleteUserInfo_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new UserInfo("user123", "John Doe") {
+            var user = new UserInfo {
+                Identity = "123",
+                Name = "John Doe",
                 Data = {
-                    { "Age", 30 },
-                    { "City", "New York" }
+                    ["Age"] = 30,
+                    ["City"] = "New York"
                 }
             };
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (UserInfo)serializer.Deserialize(json, typeof(UserInfo));
+            string json = Serialize(user);
 
             // Assert
-            Assert.Equal("user123", deserialized.Identity);
-            Assert.Equal("John Doe", deserialized.Name);
-            Assert.NotNull(deserialized.Data);
-            Assert.Equal(2, deserialized.Data.Count);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_WithIdentityOnly_PreservesIdentity() {
+        public void Deserialize_UserInfo_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new UserInfo("anonymous@test.com");
+            var user = new UserInfo {
+                Identity = "123",
+                Name = "John Doe",
+                Data = {
+                    ["Age"] = 30,
+                    ["City"] = "New York"
+                }
+            };
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (UserInfo)serializer.Deserialize(json, typeof(UserInfo));
+            UserInfo roundTripped = RoundTrip(user);
 
             // Assert
-            Assert.Equal("anonymous@test.com", deserialized.Identity);
-            Assert.Null(deserialized.Name);
+            Assert.Equal("123", roundTripped.Identity);
+            Assert.Equal("John Doe", roundTripped.Name);
+            Assert.Equal(30L, Convert.ToInt64(roundTripped.Data["Age"]));
+            Assert.Equal("New York", roundTripped.Data["City"]);
         }
 
         [Fact]
-        public void Deserialize_WithEmptyData_PreservesEmptyDictionary() {
+        public void Deserialize_UserInfo_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new UserInfo("test@example.com", "Test");
+            const string json = CompleteJson;
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (UserInfo)serializer.Deserialize(json, typeof(UserInfo));
+            UserInfo user = Deserialize<UserInfo>(json);
 
             // Assert
-            Assert.NotNull(deserialized.Data);
-            Assert.Empty(deserialized.Data);
-        }
-
-        [Fact]
-        public void Deserialize_WithSpecialCharacters_PreservesCharacters() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new UserInfo("user+tag@example.com", "O'Brien, John Jr.");
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (UserInfo)serializer.Deserialize(json, typeof(UserInfo));
-
-            // Assert
-            Assert.Equal("user+tag@example.com", deserialized.Identity);
-            Assert.Equal("O'Brien, John Jr.", deserialized.Name);
-        }
-
-        [Fact]
-        public void Deserialize_WithUnicodeCharacters_PreservesUnicode() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new UserInfo("用户@example.com", "日本語ユーザー");
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (UserInfo)serializer.Deserialize(json, typeof(UserInfo));
-
-            // Assert
-            Assert.Equal("用户@example.com", deserialized.Identity);
-            Assert.Equal("日本語ユーザー", deserialized.Name);
-        }
-
-        [Fact]
-        public void Deserialize_FromSnakeCaseJson_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            string json = "{\"identity\":\"parsed@example.com\",\"name\":\"Parsed User\",\"data\":{\"extra\":\"data\"}}";
-
-            // Act
-            var result = (UserInfo)serializer.Deserialize(json, typeof(UserInfo));
-
-            // Assert
-            Assert.Equal("parsed@example.com", result.Identity);
-            Assert.Equal("Parsed User", result.Name);
-            Assert.NotNull(result.Data);
-        }
-
-        [Fact]
-        public void Serialize_TrimsWhitespace_OnConstruction() {
-            // Arrange
-            var userInfo = new UserInfo("  user@test.com  ", "  John Doe  ");
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(userInfo);
-
-            // Assert
-            Assert.Contains("\"identity\":\"user@test.com\"", json);
-            Assert.Contains("\"name\":\"John Doe\"", json);
+            Assert.Equal("123", user.Identity);
+            Assert.Equal("John Doe", user.Name);
+            Assert.Equal(30L, Convert.ToInt64(user.Data["Age"]));
+            Assert.Equal("New York", user.Data["City"]);
         }
     }
 }

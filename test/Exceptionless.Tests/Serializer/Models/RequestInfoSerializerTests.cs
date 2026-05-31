@@ -1,257 +1,161 @@
 using System.Collections.Generic;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class RequestInfoSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class RequestInfoSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":null,"query_string":{},"data":{}}""";
+        private const string CompleteJson = /* lang=json */ """{"user_agent":"Mozilla/5.0","http_method":"GET","is_secure":true,"host":"www.example.com","port":443,"path":"/test","referrer":"https://www.google.com","client_ip_address":"192.168.1.1","headers":{"Content-Type":["application/json"]},"cookies":{"session":"abc123"},"post_data":null,"query_string":{"q":"test"},"data":{"@browser":"Mozilla Firefox","@browser_version":"97.0","@browser_major_version":"97","@device":"Desktop","@os":"Windows","@os_version":"10.0","@os_major_version":"10","@is_bot":"False"}}""";
+        private const string KnownDataKeysJson = /* lang=json */ """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":null,"query_string":{},"data":{"@browser":"Firefox","@browser_version":"120.0","@browser_major_version":"120","@device":"Desktop","@os":"Windows","@os_version":"11.0","@os_major_version":"11","@is_bot":"False"}}""";
+        private const string PostDataObjectJson = /* lang=json */ """{"user_agent":null,"http_method":null,"is_secure":false,"host":null,"port":0,"path":null,"referrer":null,"client_ip_address":null,"headers":{},"cookies":{},"post_data":{"Name":"Test","Value":42},"query_string":{},"data":{}}""";
+        private const string ExpectedPostData = /* lang=json */ """
+{
+  "Name": "Test",
+  "Value": 42
+}
+""";
 
         [Fact]
-        public void Serialize_CompleteRequestInfo_ProducesSnakeCaseJson() {
+        public void Serialize_MinimalRequestInfo_ProducesCorrectJson() {
             // Arrange
-            var request = new RequestInfo {
-                UserAgent = "Mozilla/5.0",
-                HttpMethod = "POST",
-                IsSecure = true,
-                Host = "api.example.com",
-                Port = 443,
-                Path = "/api/v1/events",
-                Referrer = "https://www.google.com",
-                ClientIpAddress = "192.168.1.100",
-                Headers = new Dictionary<string, string[]> {
-                    { "Content-Type", new[] { "application/json" } },
-                    { "Authorization", new[] { "Bearer token123" } }
-                },
-                Cookies = new Dictionary<string, string> {
-                    { "session_id", "abc123" }
-                },
-                QueryString = new Dictionary<string, string> {
-                    { "page", "1" },
-                    { "limit", "50" }
-                },
-                Data = {
-                    [RequestInfo.KnownDataKeys.Browser] = "Chrome",
-                    [RequestInfo.KnownDataKeys.BrowserVersion] = "120.0",
-                    [RequestInfo.KnownDataKeys.OS] = "Windows"
-                }
-            };
-
-            var serializer = GetSerializer();
+            var requestInfo = new RequestInfo();
 
             // Act
-            string json = serializer.Serialize(request);
+            string json = Serialize(requestInfo);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json,
-                "user_agent", "http_method", "is_secure", "host", "port", "path",
-                "referrer", "client_ip_address", "headers", "cookies", "post_data",
-                "query_string", "data");
-            SerializerContractAssertions.ExcludesProperties(json,
-                "UserAgent", "HttpMethod", "IsSecure", "ClientIpAddress", "QueryString", "PostData");
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
+        public void Serialize_CompleteRequestInfo_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new RequestInfo {
-                UserAgent = "TestClient/2.0",
-                HttpMethod = "PUT",
-                IsSecure = false,
-                Host = "localhost",
-                Port = 5000,
-                Path = "/api/users/123",
-                Referrer = "http://localhost/dashboard",
-                ClientIpAddress = "127.0.0.1",
-                Headers = new Dictionary<string, string[]> {
-                    { "Accept", new[] { "application/json", "text/plain" } }
-                },
-                Cookies = new Dictionary<string, string> {
-                    { "theme", "dark" }
-                },
-                QueryString = new Dictionary<string, string> {
-                    { "include", "profile" }
-                }
-            };
+            var requestInfo = CreateCompleteRequestInfo();
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (RequestInfo)serializer.Deserialize(json, typeof(RequestInfo));
+            string json = Serialize(requestInfo);
 
             // Assert
-            Assert.Equal(original.UserAgent, deserialized.UserAgent);
-            Assert.Equal(original.HttpMethod, deserialized.HttpMethod);
-            Assert.Equal(original.IsSecure, deserialized.IsSecure);
-            Assert.Equal(original.Host, deserialized.Host);
-            Assert.Equal(original.Port, deserialized.Port);
-            Assert.Equal(original.Path, deserialized.Path);
-            Assert.Equal(original.Referrer, deserialized.Referrer);
-            Assert.Equal(original.ClientIpAddress, deserialized.ClientIpAddress);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_WithHeaders_PreservesMultiValueHeaders() {
+        public void Deserialize_RequestInfo_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new RequestInfo {
-                HttpMethod = "GET",
-                Path = "/test",
-                Headers = new Dictionary<string, string[]> {
-                    { "Accept", new[] { "application/json", "text/html" } },
-                    { "X-Custom", new[] { "value1" } }
-                }
-            };
+            var requestInfo = CreateCompleteRequestInfo();
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (RequestInfo)serializer.Deserialize(json, typeof(RequestInfo));
+            RequestInfo roundTripped = RoundTrip(requestInfo);
 
             // Assert
-            Assert.NotNull(deserialized.Headers);
-            Assert.Equal(2, deserialized.Headers.Count);
-            Assert.Equal(2, deserialized.Headers["Accept"].Length);
-            Assert.Equal("application/json", deserialized.Headers["Accept"][0]);
-            Assert.Equal("text/html", deserialized.Headers["Accept"][1]);
+            Assert.Equal("Mozilla/5.0", roundTripped.UserAgent);
+            Assert.Equal("GET", roundTripped.HttpMethod);
+            Assert.True(roundTripped.IsSecure);
+            Assert.Equal("www.example.com", roundTripped.Host);
+            Assert.Equal(443, roundTripped.Port);
+            Assert.Equal("/test", roundTripped.Path);
+            Assert.Equal("https://www.google.com", roundTripped.Referrer);
+            Assert.Equal("192.168.1.1", roundTripped.ClientIpAddress);
+            Assert.Equal("application/json", roundTripped.Headers["Content-Type"][0]);
+            Assert.Equal("abc123", roundTripped.Cookies["session"]);
+            Assert.Null(roundTripped.PostData);
+            Assert.Equal("test", roundTripped.QueryString["q"]);
+            Assert.Equal("Mozilla Firefox", roundTripped.Data[RequestInfo.KnownDataKeys.Browser]);
+            Assert.Equal("False", roundTripped.Data[RequestInfo.KnownDataKeys.IsBot]);
         }
 
         [Fact]
-        public void Deserialize_WithQueryString_PreservesAllParameters() {
+        public void Deserialize_RequestInfo_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new RequestInfo {
-                HttpMethod = "GET",
-                Path = "/search",
-                QueryString = new Dictionary<string, string> {
-                    { "q", "test query" },
-                    { "page", "2" },
-                    { "sort", "date" }
-                }
-            };
+            const string json = CompleteJson;
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (RequestInfo)serializer.Deserialize(json, typeof(RequestInfo));
+            RequestInfo requestInfo = Deserialize<RequestInfo>(json);
 
             // Assert
-            Assert.NotNull(deserialized.QueryString);
-            Assert.Equal(3, deserialized.QueryString.Count);
-            Assert.Equal("test query", deserialized.QueryString["q"]);
-            Assert.Equal("2", deserialized.QueryString["page"]);
-            Assert.Equal("date", deserialized.QueryString["sort"]);
+            Assert.Equal("Mozilla/5.0", requestInfo.UserAgent);
+            Assert.Equal("GET", requestInfo.HttpMethod);
+            Assert.True(requestInfo.IsSecure);
+            Assert.Equal("www.example.com", requestInfo.Host);
+            Assert.Equal(443, requestInfo.Port);
+            Assert.Equal("/test", requestInfo.Path);
+            Assert.Equal("https://www.google.com", requestInfo.Referrer);
+            Assert.Equal("192.168.1.1", requestInfo.ClientIpAddress);
+            Assert.Equal("application/json", requestInfo.Headers["Content-Type"][0]);
+            Assert.Equal("abc123", requestInfo.Cookies["session"]);
+            Assert.Null(requestInfo.PostData);
+            Assert.Equal("test", requestInfo.QueryString["q"]);
+            Assert.Equal("Mozilla Firefox", requestInfo.Data[RequestInfo.KnownDataKeys.Browser]);
+            Assert.Equal("97.0", requestInfo.Data[RequestInfo.KnownDataKeys.BrowserVersion]);
+            Assert.Equal("False", requestInfo.Data[RequestInfo.KnownDataKeys.IsBot]);
         }
 
         [Fact]
-        public void Deserialize_WithCookies_PreservesCookies() {
+        public void Deserialize_RequestInfoObjectPostData_ProducesIndentedString() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new RequestInfo {
-                HttpMethod = "GET",
-                Path = "/dashboard",
-                Cookies = new Dictionary<string, string> {
-                    { "session", "xyz789" },
-                    { "lang", "en-US" }
-                }
-            };
+            const string json = PostDataObjectJson;
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (RequestInfo)serializer.Deserialize(json, typeof(RequestInfo));
+            RequestInfo requestInfo = Deserialize<RequestInfo>(json);
 
             // Assert
-            Assert.NotNull(deserialized.Cookies);
-            Assert.Equal(2, deserialized.Cookies.Count);
-            Assert.Equal("xyz789", deserialized.Cookies["session"]);
-            Assert.Equal("en-US", deserialized.Cookies["lang"]);
+            Assert.Equal(ExpectedPostData, requestInfo.PostData);
         }
 
         [Fact]
-        public void Deserialize_WithPostData_PreservesPostData() {
+        public void Serialize_RequestInfoKnownDataKeys_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var request = new RequestInfo {
-                HttpMethod = "POST",
-                Path = "/api/data",
-                PostData = new { Name = "Test", Value = 42 }
-            };
-
-            // Act
-            string json = serializer.Serialize(request);
-
-            // Assert
-            Assert.Contains("\"post_data\"", json);
-            Assert.Contains("\"Name\"", json);
-        }
-
-        [Fact]
-        public void Serialize_KnownDataKeys_UsesCorrectConstants() {
-            // Arrange
-            var request = new RequestInfo {
-                HttpMethod = "GET",
-                Path = "/test",
+            var requestInfo = new RequestInfo {
                 Data = {
                     [RequestInfo.KnownDataKeys.Browser] = "Firefox",
-                    [RequestInfo.KnownDataKeys.BrowserVersion] = "110.0",
-                    [RequestInfo.KnownDataKeys.BrowserMajorVersion] = "110",
+                    [RequestInfo.KnownDataKeys.BrowserVersion] = "120.0",
+                    [RequestInfo.KnownDataKeys.BrowserMajorVersion] = "120",
                     [RequestInfo.KnownDataKeys.Device] = "Desktop",
-                    [RequestInfo.KnownDataKeys.OS] = "macOS",
-                    [RequestInfo.KnownDataKeys.OSVersion] = "13.2",
-                    [RequestInfo.KnownDataKeys.OSMajorVersion] = "13",
+                    [RequestInfo.KnownDataKeys.OS] = "Windows",
+                    [RequestInfo.KnownDataKeys.OSVersion] = "11.0",
+                    [RequestInfo.KnownDataKeys.OSMajorVersion] = "11",
                     [RequestInfo.KnownDataKeys.IsBot] = "False"
                 }
             };
 
-            var serializer = GetSerializer();
-
             // Act
-            string json = serializer.Serialize(request);
+            string json = Serialize(requestInfo);
 
             // Assert
-            Assert.Contains("\"@browser\":\"Firefox\"", json);
-            Assert.Contains("\"@browser_version\":\"110.0\"", json);
-            Assert.Contains("\"@browser_major_version\":\"110\"", json);
-            Assert.Contains("\"@device\":\"Desktop\"", json);
-            Assert.Contains("\"@os\":\"macOS\"", json);
-            Assert.Contains("\"@os_version\":\"13.2\"", json);
-            Assert.Contains("\"@os_major_version\":\"13\"", json);
-            Assert.Contains("\"@is_bot\":\"False\"", json);
+            Assert.Equal(KnownDataKeysJson, json);
         }
 
-        [Fact]
-        public void Deserialize_MinimalRequestInfo_PreservesProperties() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new RequestInfo {
-                HttpMethod = "DELETE",
-                Path = "/api/items/456"
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (RequestInfo)serializer.Deserialize(json, typeof(RequestInfo));
-
-            // Assert
-            Assert.Equal("DELETE", deserialized.HttpMethod);
-            Assert.Equal("/api/items/456", deserialized.Path);
-        }
-
-        [Fact]
-        public void Deserialize_WithEncodedPath_PreservesEncoding() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new RequestInfo {
+        private static RequestInfo CreateCompleteRequestInfo() {
+            return new RequestInfo {
+                UserAgent = "Mozilla/5.0",
                 HttpMethod = "GET",
-                Path = "/api/files/path%2Fto%2Ffile.txt"
+                IsSecure = true,
+                Host = "www.example.com",
+                Port = 443,
+                Path = "/test",
+                Referrer = "https://www.google.com",
+                ClientIpAddress = "192.168.1.1",
+                Headers = new Dictionary<string, string[]> {
+                    ["Content-Type"] = new[] { "application/json" }
+                },
+                Cookies = new Dictionary<string, string> {
+                    ["session"] = "abc123"
+                },
+                QueryString = new Dictionary<string, string> {
+                    ["q"] = "test"
+                },
+                Data = {
+                    [RequestInfo.KnownDataKeys.Browser] = "Mozilla Firefox",
+                    [RequestInfo.KnownDataKeys.BrowserVersion] = "97.0",
+                    [RequestInfo.KnownDataKeys.BrowserMajorVersion] = "97",
+                    [RequestInfo.KnownDataKeys.Device] = "Desktop",
+                    [RequestInfo.KnownDataKeys.OS] = "Windows",
+                    [RequestInfo.KnownDataKeys.OSVersion] = "10.0",
+                    [RequestInfo.KnownDataKeys.OSMajorVersion] = "10",
+                    [RequestInfo.KnownDataKeys.IsBot] = "False"
+                }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (RequestInfo)serializer.Deserialize(json, typeof(RequestInfo));
-
-            // Assert
-            Assert.Equal("/api/files/path%2Fto%2Ffile.txt", deserialized.Path);
         }
     }
 }

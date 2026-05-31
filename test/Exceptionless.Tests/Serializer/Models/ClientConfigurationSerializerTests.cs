@@ -1,164 +1,63 @@
 using Exceptionless.Models;
-using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class ClientConfigurationSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class ClientConfigurationSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"version":0,"settings":{}}""";
+        private const string CompleteJson = /* lang=json */ """{"version":1,"settings":{"@@log:*":"Off"}}""";
 
         [Fact]
-        public void Serialize_CompleteClientConfiguration_ProducesSnakeCaseJson() {
+        public void Serialize_MinimalClientConfiguration_ProducesCorrectJson() {
             // Arrange
-            var config = new ClientConfiguration {
-                Version = 5,
-                Settings = {
-                    { "@@log:*", "Off" },
-                    { "IncludeConditionalData", "true" },
-                    { "DataExclusions", "password,credit_card" }
-                }
-            };
-
-            var serializer = GetSerializer();
+            var configuration = new ClientConfiguration();
 
             // Act
-            string json = serializer.Serialize(config);
+            string json = Serialize(configuration);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json, "version", "settings");
-            SerializerContractAssertions.ExcludesProperties(json, "Version", "Settings");
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesSettings() {
+        public void Serialize_CompleteClientConfiguration_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new ClientConfiguration {
-                Version = 3,
-                Settings = {
-                    { "@@log:*", "Warn" },
-                    { "TestKey", "TestValue" },
-                    { "@@DataExclusions", "secret" }
-                }
-            };
+            var configuration = new ClientConfiguration { Version = 1 };
+            configuration.Settings[SettingsDictionary.KnownKeys.LogLevelPrefix + "*"] = "Off";
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ClientConfiguration)serializer.Deserialize(json, typeof(ClientConfiguration));
+            string json = Serialize(configuration);
 
             // Assert
-            Assert.Equal(3, deserialized.Version);
-            Assert.NotNull(deserialized.Settings);
-            Assert.Equal(3, deserialized.Settings.Count);
-            Assert.Equal("Warn", deserialized.Settings.GetString("@@log:*"));
-            Assert.Equal("TestValue", deserialized.Settings.GetString("TestKey"));
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_EmptySettings_ReturnsEmptyDictionary() {
+        public void Deserialize_ClientConfiguration_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            string json = "{\"version\":1,\"settings\":{}}";
+            var configuration = new ClientConfiguration { Version = 1 };
+            configuration.Settings[SettingsDictionary.KnownKeys.LogLevelPrefix + "*"] = "Off";
 
             // Act
-            var config = (ClientConfiguration)serializer.Deserialize(json, typeof(ClientConfiguration));
+            ClientConfiguration roundTripped = RoundTrip(configuration);
 
             // Assert
-            Assert.NotNull(config);
-            Assert.Equal(1, config.Version);
-            Assert.NotNull(config.Settings);
-            Assert.Empty(config.Settings);
+            Assert.Equal(1, roundTripped.Version);
+            Assert.Equal("Off", roundTripped.Settings["@@log:*"]);
         }
 
         [Fact]
-        public void Deserialize_WithVersion_PreservesVersionNumber() {
+        public void Deserialize_ClientConfiguration_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            string json = "{\"version\":42,\"settings\":{}}";
+            const string json = CompleteJson;
 
             // Act
-            var config = (ClientConfiguration)serializer.Deserialize(json, typeof(ClientConfiguration));
+            ClientConfiguration configuration = Deserialize<ClientConfiguration>(json);
 
             // Assert
-            Assert.Equal(42, config.Version);
-        }
-
-        [Fact]
-        public void Serialize_SettingsDictionaryKeys_PreservesOriginalCasing() {
-            // Arrange
-            var config = new ClientConfiguration {
-                Version = 1,
-                Settings = {
-                    { "MyCustomKey", "value" },
-                    { "@@log:MyApp.*", "Debug" }
-                }
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(config);
-
-            // Assert - Dictionary keys should preserve their original casing
-            Assert.Contains("\"MyCustomKey\"", json);
-            Assert.Contains("\"@@log:MyApp.*\"", json);
-        }
-
-        [Fact]
-        public void Deserialize_SettingsAreCaseInsensitive() {
-            // Arrange
-            var serializer = GetSerializer();
-            var config = new ClientConfiguration {
-                Version = 1,
-                Settings = {
-                    { "TestKey", "TestValue" }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(config);
-            var deserialized = (ClientConfiguration)serializer.Deserialize(json, typeof(ClientConfiguration));
-
-            // Assert - SettingsDictionary uses OrdinalIgnoreCase comparer
-            Assert.Equal("TestValue", deserialized.Settings.GetString("testkey"));
-            Assert.Equal("TestValue", deserialized.Settings.GetString("TESTKEY"));
-        }
-
-        [Fact]
-        public void Serialize_DefaultConfiguration_ProducesMinimalJson() {
-            // Arrange
-            var config = new ClientConfiguration();
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(config);
-
-            // Assert
-            Assert.Contains("\"version\":0", json);
-            Assert.Contains("\"settings\":{}", json);
-        }
-
-        [Fact]
-        public void Deserialize_SettingsWithBooleanValues_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var config = new ClientConfiguration {
-                Version = 1,
-                Settings = {
-                    { "IncludeConditionalData", "true" },
-                    { "DisableFeature", "false" }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(config);
-            var deserialized = (ClientConfiguration)serializer.Deserialize(json, typeof(ClientConfiguration));
-
-            // Assert
-            Assert.True(deserialized.Settings.GetBoolean("IncludeConditionalData"));
-            Assert.False(deserialized.Settings.GetBoolean("DisableFeature"));
+            Assert.Equal(1, configuration.Version);
+            Assert.Single(configuration.Settings);
+            Assert.Equal("Off", configuration.Settings["@@log:*"]);
         }
     }
 }

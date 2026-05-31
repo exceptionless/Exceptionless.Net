@@ -1,107 +1,78 @@
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class ParameterCollectionSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class ParameterCollectionSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """[]""";
+        private const string CompleteJson = /* lang=json */ """[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]""";
 
         [Fact]
-        public void Serialize_EmptyCollection_ProducesEmptyArray() {
+        public void Serialize_MinimalParameterCollection_ProducesCorrectJson() {
             // Arrange
-            var collection = new ParameterCollection();
-            var serializer = GetSerializer();
+            var parameters = new ParameterCollection();
 
             // Act
-            string json = serializer.Serialize(collection);
+            string json = Serialize(parameters);
 
             // Assert
-            Assert.Equal("[]", json);
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_SingleParameter_ProducesArrayWithOneElement() {
+        public void Serialize_CompleteParameterCollection_ProducesCorrectJson() {
             // Arrange
-            var collection = new ParameterCollection {
-                new Parameter { Name = "param1", Type = "String", TypeNamespace = "System" }
-            };
-            var serializer = GetSerializer();
+            var parameters = new ParameterCollection { CreateParameter() };
 
             // Act
-            string json = serializer.Serialize(collection);
+            string json = Serialize(parameters);
 
             // Assert
-            Assert.Contains("\"name\":\"param1\"", json);
-            Assert.Contains("\"type\":\"String\"", json);
-            Assert.Contains("\"type_namespace\":\"System\"", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_MultipleParameters_PreservesAll() {
+        public void Deserialize_ParameterCollection_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new ParameterCollection {
-                new Parameter {
-                    Name = "input",
-                    Type = "String",
-                    TypeNamespace = "System",
-                    GenericArguments = new GenericArguments()
+            var parameters = new ParameterCollection { CreateParameter() };
+
+            // Act
+            ParameterCollection roundTripped = RoundTrip(parameters);
+
+            // Assert
+            Assert.Single(roundTripped);
+            Assert.Equal("param1", roundTripped[0].Name);
+            Assert.Equal("System.String", roundTripped[0].Type);
+            Assert.Equal("U", roundTripped[0].GenericArguments[0]);
+        }
+
+        [Fact]
+        public void Deserialize_ParameterCollection_FromKnownJson_MapsAllProperties() {
+            // Arrange
+            const string json = CompleteJson;
+
+            // Act
+            ParameterCollection parameters = Deserialize<ParameterCollection>(json);
+
+            // Assert
+            Assert.Single(parameters);
+            Assert.Equal("param1", parameters[0].Name);
+            Assert.Equal("System.String", parameters[0].Type);
+            Assert.Equal("ParameterValue", parameters[0].Data["ParameterKey"]);
+            Assert.Equal("U", parameters[0].GenericArguments[0]);
+        }
+
+        private static Parameter CreateParameter() {
+            return new Parameter {
+                Name = "param1",
+                Type = "System.String",
+                TypeNamespace = "System",
+                Data = {
+                    ["ParameterKey"] = "ParameterValue"
                 },
-                new Parameter {
-                    Name = "options",
-                    Type = "Dictionary",
-                    TypeNamespace = "System.Collections.Generic",
-                    GenericArguments = new GenericArguments { "String", "Object" }
-                },
-                new Parameter {
-                    Name = "token",
-                    Type = "CancellationToken",
-                    TypeNamespace = "System.Threading"
-                }
+                GenericArguments = new GenericArguments { "U" }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ParameterCollection)serializer.Deserialize(json, typeof(ParameterCollection));
-
-            // Assert
-            Assert.Equal(3, deserialized.Count);
-            Assert.Equal("input", deserialized[0].Name);
-            Assert.Equal("String", deserialized[0].Type);
-            Assert.Equal("options", deserialized[1].Name);
-            Assert.Equal("Dictionary", deserialized[1].Type);
-            Assert.Equal(2, deserialized[1].GenericArguments.Count);
-            Assert.Equal("token", deserialized[2].Name);
-            Assert.Equal("CancellationToken", deserialized[2].Type);
-        }
-
-        [Fact]
-        public void Deserialize_WithParameterData_PreservesDataDictionary() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new ParameterCollection {
-                new Parameter {
-                    Name = "annotated",
-                    Type = "Int32",
-                    TypeNamespace = "System",
-                    Data = {
-                        ["DefaultValue"] = "0",
-                        ["IsOptional"] = true
-                    }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ParameterCollection)serializer.Deserialize(json, typeof(ParameterCollection));
-
-            // Assert
-            Assert.Single(deserialized);
-            Assert.NotNull(deserialized[0].Data);
-            Assert.Equal(2, deserialized[0].Data.Count);
         }
     }
 }

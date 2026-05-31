@@ -1,318 +1,213 @@
 using System;
-using System.Collections.Generic;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class EventSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
+    public class EventSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string CompleteJson = /* lang=json */ """{"type":"log","source":"SampleApp","date":"2023-05-02T14:30:00+00:00","tags":["Critical","tag2"],"message":"An error occurred","geo":"40.7128,-74.0060","value":42.0,"count":2,"data":{"FirstName":"Blake","@level":"Warn","@trace":["log 1"],"@user_description":{"email_address":"test@example.com","description":"Test user description","data":{}}},"reference_id":"ref123"}""";
+        private const string ErrorTypeJson = /* lang=json */ """{"type":"error","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string UsageTypeJson = /* lang=json */ """{"type":"usage","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string LogTypeJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string NotFoundTypeJson = /* lang=json */ """{"type":"404","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string SessionTypeJson = /* lang=json */ """{"type":"session","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string TaggedJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":["Critical"],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
+        private const string DecimalPrecisionJson = /* lang=json */ """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":123.456789,"count":null,"data":{},"reference_id":null}""";
+        private const string TraceLogJson = /* lang=json */ """["log 1"]""";
+        private const string UserDescriptionJson = /* lang=json */ """{"email_address":"test@example.com","description":"Test user description","data":{}}""";
+
+        [Fact]
+        public void Serialize_MinimalEvent_ProducesCorrectJson() {
+            // Arrange
+            var model = CreateMinimalEvent();
+
+            // Act
+            string json = Serialize(model);
+
+            // Assert
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
         public void Serialize_CompleteEvent_ProducesCorrectJson() {
             // Arrange
-            var ev = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "TestApp",
-                Date = new DateTimeOffset(2023, 6, 15, 10, 30, 0, TimeSpan.Zero),
-                Tags = { "Critical", "Production" },
-                Message = "Application error occurred",
-                Geo = "51.5074,-0.1278",
-                Value = 99.5m,
-                Count = 3,
-                ReferenceId = "ref-abc-123"
-            };
-
-            var serializer = GetSerializer();
+            var model = CreateCompleteEvent();
 
             // Act
-            string json = serializer.Serialize(ev);
+            string json = Serialize(model);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json,
-                "type", "source", "date", "tags", "message", "geo", "value", "count", "reference_id");
-            SerializerContractAssertions.ExcludesProperties(json,
-                "Type", "Source", "Date", "Tags", "Message", "Geo", "Value", "Count", "ReferenceId");
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Serialize_MinimalEvent_ProducesValidJson() {
+        public void Deserialize_Event_RoundTrips() {
             // Arrange
-            var ev = new Event {
+            var model = new Event {
                 Type = Event.KnownTypes.Log,
-                Source = "Minimal"
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-
-            // Assert
-            Assert.Contains("\"type\":\"log\"", json);
-            Assert.Contains("\"source\":\"Minimal\"", json);
-        }
-
-        [Fact]
-        public void Deserialize_CompleteEvent_PreservesAllProperties() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Event {
-                Type = Event.KnownTypes.Error,
-                Source = "TestApp",
-                Date = new DateTimeOffset(2023, 6, 15, 10, 30, 0, TimeSpan.Zero),
-                Tags = { "Critical", "Production" },
-                Message = "Test error",
+                Source = "app",
+                Tags = new TagSet { Event.KnownTags.Critical },
+                Message = "Message",
                 Geo = "40.7128,-74.0060",
-                Value = 42.5m,
-                Count = 5,
-                ReferenceId = "ref-123"
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
-
-            // Assert
-            Assert.Equal(original.Type, deserialized.Type);
-            Assert.Equal(original.Source, deserialized.Source);
-            Assert.Equal(original.Date, deserialized.Date);
-            Assert.Equal(original.Message, deserialized.Message);
-            Assert.Equal(original.Geo, deserialized.Geo);
-            Assert.Equal(original.Value, deserialized.Value);
-            Assert.Equal(original.Count, deserialized.Count);
-            Assert.Equal(original.ReferenceId, deserialized.ReferenceId);
-        }
-
-        [Fact]
-        public void Deserialize_EventWithTags_PreservesTags() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "Tags",
-                Tags = { "tag1", "tag2", "tag3" }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
-
-            // Assert
-            Assert.NotNull(deserialized.Tags);
-            Assert.Equal(3, deserialized.Tags.Count);
-            Assert.Contains("tag1", deserialized.Tags);
-            Assert.Contains("tag2", deserialized.Tags);
-            Assert.Contains("tag3", deserialized.Tags);
-        }
-
-        [Fact]
-        public void Deserialize_EventWithDataDictionary_PreservesSimpleValues() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "Data",
+                Value = 12.5m,
+                Count = 2,
+                ReferenceId = "ref-1",
                 Data = {
-                    ["StringVal"] = "hello",
-                    [Event.KnownDataKeys.Level] = "Error",
-                    [Event.KnownDataKeys.Version] = "1.2.3"
+                    [Event.KnownDataKeys.Level] = "Warn",
+                    [Event.KnownDataKeys.Version] = "1.2.3",
+                    ["FirstName"] = "Blake"
                 }
             };
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
+            Event roundTripped = RoundTrip(model);
 
             // Assert
-            Assert.NotNull(deserialized.Data);
-            Assert.True(deserialized.Data.ContainsKey("StringVal"));
-            Assert.True(deserialized.Data.ContainsKey(Event.KnownDataKeys.Level));
-            Assert.True(deserialized.Data.ContainsKey(Event.KnownDataKeys.Version));
+            Assert.Equal(Event.KnownTypes.Log, roundTripped.Type);
+            Assert.Equal("app", roundTripped.Source);
+            Assert.Contains(Event.KnownTags.Critical, roundTripped.Tags);
+            Assert.Equal("Message", roundTripped.Message);
+            Assert.Equal("40.7128,-74.0060", roundTripped.Geo);
+            Assert.Equal(12.5m, roundTripped.Value);
+            Assert.Equal(2, roundTripped.Count);
+            Assert.Equal("ref-1", roundTripped.ReferenceId);
+            Assert.Equal("Warn", roundTripped.Data[Event.KnownDataKeys.Level]);
+            Assert.Equal("1.2.3", roundTripped.Data[Event.KnownDataKeys.Version]);
+            Assert.Equal("Blake", roundTripped.Data["FirstName"]);
         }
 
         [Fact]
-        public void Deserialize_EventWithNullOptionalFields_HandlesGracefully() {
+        public void Deserialize_Event_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            string json = "{\"type\":\"log\",\"source\":\"test\",\"date\":\"2023-01-01T00:00:00+00:00\",\"tags\":[],\"message\":null,\"geo\":null,\"value\":null,\"count\":null,\"data\":{},\"reference_id\":null}";
+            const string json = CompleteJson;
 
             // Act
-            var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
+            Event model = Deserialize<Event>(json);
 
             // Assert
-            Assert.Equal("log", deserialized.Type);
-            Assert.Equal("test", deserialized.Source);
-            Assert.Null(deserialized.Message);
-            Assert.Null(deserialized.Geo);
-            Assert.Null(deserialized.Value);
-            Assert.Null(deserialized.Count);
-            Assert.Null(deserialized.ReferenceId);
+            Assert.Equal(Event.KnownTypes.Log, model.Type);
+            Assert.Equal("SampleApp", model.Source);
+            Assert.Equal(new DateTimeOffset(2023, 5, 2, 14, 30, 0, TimeSpan.Zero), model.Date);
+            Assert.Contains(Event.KnownTags.Critical, model.Tags);
+            Assert.Contains("tag2", model.Tags);
+            Assert.Equal("An error occurred", model.Message);
+            Assert.Equal("40.7128,-74.0060", model.Geo);
+            Assert.Equal(42.0m, model.Value);
+            Assert.Equal(2, model.Count);
+            Assert.Equal("Blake", model.Data["FirstName"]);
+            Assert.Equal("Warn", model.Data[Event.KnownDataKeys.Level]);
+            Assert.Equal(TraceLogJson, model.Data[Event.KnownDataKeys.TraceLog]);
+            Assert.Equal(UserDescriptionJson, model.Data[Event.KnownDataKeys.UserDescription]);
+            Assert.Equal("ref123", model.ReferenceId);
         }
 
-        [Fact]
-        public void Deserialize_ReferenceId_SnakeCaseProperty() {
+        [Theory]
+        [InlineData(Event.KnownTypes.Error)]
+        [InlineData(Event.KnownTypes.FeatureUsage)]
+        [InlineData(Event.KnownTypes.Log)]
+        [InlineData(Event.KnownTypes.NotFound)]
+        [InlineData(Event.KnownTypes.Session)]
+        public void Serialize_EventKnownType_ProducesCorrectJson(string eventType) {
             // Arrange
-            var serializer = GetSerializer();
+            var model = new Event {
+                Type = eventType,
+                Source = "app"
+            };
 
             // Act
-            var ev = (Event)serializer.Deserialize("{\"reference_id\": \"abc-123\"}", typeof(Event));
+            string json = Serialize(model);
 
             // Assert
-            Assert.Equal("abc-123", ev.ReferenceId);
+            string expected = eventType switch {
+                Event.KnownTypes.Error => ErrorTypeJson,
+                Event.KnownTypes.FeatureUsage => UsageTypeJson,
+                Event.KnownTypes.Log => LogTypeJson,
+                Event.KnownTypes.NotFound => NotFoundTypeJson,
+                Event.KnownTypes.Session => SessionTypeJson,
+                _ => throw new ArgumentOutOfRangeException(nameof(eventType), eventType, null)
+            };
+
+            Assert.Equal(expected, json);
         }
 
         [Fact]
-        public void Serialize_EventWithUserDescription_SerializesNestedModel() {
+        public void Serialize_EventKnownDataKeys_MatchExpectedValues() {
             // Arrange
-            var ev = new Event {
+            var knownDataKeys = new[] {
+                Event.KnownDataKeys.Error,
+                Event.KnownDataKeys.UserInfo,
+                Event.KnownDataKeys.RequestInfo,
+                Event.KnownDataKeys.EnvironmentInfo,
+                Event.KnownDataKeys.UserDescription,
+                Event.KnownDataKeys.ManualStackingInfo,
+                Event.KnownDataKeys.Version,
+                Event.KnownDataKeys.Level,
+                Event.KnownDataKeys.SubmissionMethod
+            };
+
+            // Act
+            string actual = string.Join(",", knownDataKeys);
+
+            // Assert
+            Assert.Equal("@error,@user,@request,@environment,@user_description,@stack,@version,@level,@submission_method", actual);
+        }
+
+        [Fact]
+        public void Serialize_EventWithTags_ProducesCorrectJson() {
+            // Arrange
+            var model = CreateMinimalEvent();
+            model.Tags.Add(Event.KnownTags.Critical);
+
+            // Act
+            string json = Serialize(model);
+
+            // Assert
+            Assert.Equal(TaggedJson, json);
+        }
+
+        [Fact]
+        public void Serialize_EventDecimalValue_ProducesCorrectJson() {
+            // Arrange
+            var model = CreateMinimalEvent();
+            model.Value = 123.456789m;
+
+            // Act
+            string json = Serialize(model);
+
+            // Assert
+            Assert.Equal(DecimalPrecisionJson, json);
+        }
+
+        private static Event CreateMinimalEvent() {
+            return new Event {
                 Type = Event.KnownTypes.Log,
-                Source = "test",
+                Source = "app"
+            };
+        }
+
+        private static Event CreateCompleteEvent() {
+            return new Event {
+                Type = Event.KnownTypes.Log,
+                Source = "SampleApp",
+                Date = new DateTimeOffset(2023, 5, 2, 14, 30, 0, TimeSpan.Zero),
+                Tags = new TagSet { Event.KnownTags.Critical, "tag2" },
+                Message = "An error occurred",
+                Geo = "40.7128,-74.0060",
+                Value = 42.0m,
+                Count = 2,
                 Data = {
+                    ["FirstName"] = "Blake",
+                    [Event.KnownDataKeys.Level] = "Warn",
+                    [Event.KnownDataKeys.TraceLog] = new[] { "log 1" },
                     [Event.KnownDataKeys.UserDescription] = new UserDescription {
                         EmailAddress = "test@example.com",
-                        Description = "Something broke"
+                        Description = "Test user description"
                     }
-                }
+                },
+                ReferenceId = "ref123"
             };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-
-            // Assert
-            Assert.Contains("\"@user_description\"", json);
-            Assert.Contains("\"email_address\":\"test@example.com\"", json);
-            Assert.Contains("\"description\":\"Something broke\"", json);
-        }
-
-        [Fact]
-        public void Serialize_EventWithUserInfo_SerializesNestedModel() {
-            // Arrange
-            var ev = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "test",
-                Data = {
-                    [Event.KnownDataKeys.UserInfo] = new UserInfo("user123", "John Doe")
-                }
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-
-            // Assert
-            Assert.Contains("\"@user\"", json);
-            Assert.Contains("\"identity\":\"user123\"", json);
-            Assert.Contains("\"name\":\"John Doe\"", json);
-        }
-
-        [Fact]
-        public void Serialize_EventWithEnvironmentInfo_SerializesNestedModel() {
-            // Arrange
-            var ev = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "test",
-                Data = {
-                    [Event.KnownDataKeys.EnvironmentInfo] = new EnvironmentInfo {
-                        MachineName = "PROD-01",
-                        ProcessorCount = 8,
-                        OSName = "Windows",
-                        Architecture = "x64"
-                    }
-                }
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-
-            // Assert
-            Assert.Contains("\"@environment\"", json);
-            Assert.Contains("\"machine_name\":\"PROD-01\"", json);
-            Assert.Contains("\"processor_count\":8", json);
-        }
-
-        [Fact]
-        public void Serialize_EventWithTraceLog_SerializesStringList() {
-            // Arrange
-            var ev = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "test",
-                Data = {
-                    [Event.KnownDataKeys.TraceLog] = new List<string> { "trace line 1", "trace line 2" }
-                }
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-
-            // Assert
-            Assert.Contains("\"@trace\":[\"trace line 1\",\"trace line 2\"]", json);
-        }
-
-        [Fact]
-        public void Serialize_EventWithSpecialCharacters_EscapesCorrectly() {
-            // Arrange
-            var ev = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "test",
-                Message = "Error: \"file not found\" at C:\\Users\\test\\file.txt"
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-            var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
-
-            // Assert
-            Assert.Equal("Error: \"file not found\" at C:\\Users\\test\\file.txt", deserialized.Message);
-        }
-
-        [Fact]
-        public void Serialize_EventWithDecimalValue_PreservesPrecision() {
-            // Arrange
-            var ev = new Event {
-                Type = Event.KnownTypes.Log,
-                Source = "test",
-                Value = 123.456m
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(ev);
-            var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
-
-            // Assert
-            Assert.Equal(123.456m, deserialized.Value);
-        }
-
-        [Fact]
-        public void Serialize_EventWithAllKnownTypes_SerializesTypeCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var types = new[] { Event.KnownTypes.Error, Event.KnownTypes.FeatureUsage, Event.KnownTypes.Log, Event.KnownTypes.NotFound, Event.KnownTypes.Session };
-
-            foreach (var type in types) {
-                var ev = new Event { Type = type, Source = "test" };
-
-                // Act
-                string json = serializer.Serialize(ev);
-                var deserialized = (Event)serializer.Deserialize(json, typeof(Event));
-
-                // Assert
-                Assert.Equal(type, deserialized.Type);
-            }
         }
     }
 }

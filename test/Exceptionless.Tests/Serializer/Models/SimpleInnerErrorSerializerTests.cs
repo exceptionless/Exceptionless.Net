@@ -1,116 +1,84 @@
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class SimpleInnerErrorSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class SimpleInnerErrorSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"message":null,"type":null,"stack_trace":null,"data":{},"inner":null}""";
+        private const string CompleteJson = /* lang=json */ """{"message":"Inner error message","type":"System.NullReferenceException","stack_trace":"at InnerTestClass.InnerTestMethod()","data":{"SimpleKey":"SimpleValue"},"inner":{"message":"Deep inner error","type":"System.Exception","stack_trace":"at DeepInner()","data":{},"inner":null}}""";
 
         [Fact]
-        public void Serialize_CompleteSimpleInnerError_ProducesSnakeCaseJson() {
+        public void Serialize_MinimalSimpleInnerError_ProducesCorrectJson() {
             // Arrange
-            var error = new SimpleInnerError {
-                Message = "Parameter cannot be null",
-                Type = "System.ArgumentNullException",
-                StackTrace = "at Namespace.Class.Method(String param)"
-            };
-
-            var serializer = GetSerializer();
+            var error = new SimpleInnerError();
 
             // Act
-            string json = serializer.Serialize(error);
+            string json = Serialize(error);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json, "message", "type", "stack_trace", "data", "inner");
-            SerializerContractAssertions.ExcludesProperties(json, "Message", "Type", "StackTrace");
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
+        public void Serialize_CompleteSimpleInnerError_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new SimpleInnerError {
-                Message = "Connection refused",
-                Type = "System.Net.Sockets.SocketException",
-                StackTrace = "at System.Net.Sockets.Socket.Connect(EndPoint remoteEP)"
-            };
+            var error = CreateCompleteSimpleInnerError();
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SimpleInnerError)serializer.Deserialize(json, typeof(SimpleInnerError));
+            string json = Serialize(error);
 
             // Assert
-            Assert.Equal(original.Message, deserialized.Message);
-            Assert.Equal(original.Type, deserialized.Type);
-            Assert.Equal(original.StackTrace, deserialized.StackTrace);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_WithNestedInner_PreservesChain() {
+        public void Deserialize_SimpleInnerError_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new SimpleInnerError {
-                Message = "Outer error",
-                Type = "System.Exception",
-                StackTrace = "at Outer()",
-                Inner = new SimpleInnerError {
-                    Message = "Inner error",
-                    Type = "System.InvalidOperationException",
-                    StackTrace = "at Inner()"
-                }
-            };
+            var error = CreateCompleteSimpleInnerError();
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SimpleInnerError)serializer.Deserialize(json, typeof(SimpleInnerError));
+            SimpleInnerError roundTripped = RoundTrip(error);
 
             // Assert
-            Assert.Equal("Outer error", deserialized.Message);
-            Assert.NotNull(deserialized.Inner);
-            Assert.Equal("Inner error", deserialized.Inner.Message);
-            Assert.Equal("System.InvalidOperationException", deserialized.Inner.Type);
+            Assert.Equal("Inner error message", roundTripped.Message);
+            Assert.Equal("System.NullReferenceException", roundTripped.Type);
+            Assert.Equal("at InnerTestClass.InnerTestMethod()", roundTripped.StackTrace);
+            Assert.Equal("SimpleValue", roundTripped.Data["SimpleKey"]);
+            Assert.Equal("Deep inner error", roundTripped.Inner.Message);
+            Assert.Equal("at DeepInner()", roundTripped.Inner.StackTrace);
         }
 
         [Fact]
-        public void Deserialize_WithDataDictionary_PreservesData() {
+        public void Deserialize_SimpleInnerError_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new SimpleInnerError {
-                Message = "Error with data",
-                Type = "System.Exception",
+            const string json = CompleteJson;
+
+            // Act
+            SimpleInnerError error = Deserialize<SimpleInnerError>(json);
+
+            // Assert
+            Assert.Equal("Inner error message", error.Message);
+            Assert.Equal("System.NullReferenceException", error.Type);
+            Assert.Equal("at InnerTestClass.InnerTestMethod()", error.StackTrace);
+            Assert.Equal("SimpleValue", error.Data["SimpleKey"]);
+            Assert.Equal("Deep inner error", error.Inner.Message);
+            Assert.Equal("System.Exception", error.Inner.Type);
+        }
+
+        private static SimpleInnerError CreateCompleteSimpleInnerError() {
+            return new SimpleInnerError {
+                Message = "Inner error message",
+                Type = "System.NullReferenceException",
+                StackTrace = "at InnerTestClass.InnerTestMethod()",
                 Data = {
-                    ["key1"] = "value1"
+                    ["SimpleKey"] = "SimpleValue"
+                },
+                Inner = new SimpleInnerError {
+                    Message = "Deep inner error",
+                    Type = "System.Exception",
+                    StackTrace = "at DeepInner()"
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SimpleInnerError)serializer.Deserialize(json, typeof(SimpleInnerError));
-
-            // Assert
-            Assert.NotNull(deserialized.Data);
-            Assert.True(deserialized.Data.Count >= 1);
-        }
-
-        [Fact]
-        public void Deserialize_NullStackTrace_HandlesGracefully() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new SimpleInnerError {
-                Message = "Error without stack",
-                Type = "System.Exception",
-                StackTrace = null
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SimpleInnerError)serializer.Deserialize(json, typeof(SimpleInnerError));
-
-            // Assert
-            Assert.Equal("Error without stack", deserialized.Message);
-            Assert.Null(deserialized.StackTrace);
         }
     }
 }

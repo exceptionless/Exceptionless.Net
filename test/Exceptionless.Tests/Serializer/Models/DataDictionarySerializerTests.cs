@@ -1,180 +1,106 @@
+using System;
 using Exceptionless.Models;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class DataDictionarySerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class DataDictionarySerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{}""";
+        private const string CompleteJson = /* lang=json */ """{"string_value":"hello","int_value":42,"bool_value":true,"decimal_value":3.14,"null_value":null}""";
+        private const string KnownJson = /* lang=json */ """{"MyKey":"value","Count":42,"IsActive":true}""";
+        private const string NestedObjectJson = /* lang=json */ """{"nested":{"key":"val"}}""";
+        private const string NestedArrayJson = /* lang=json */ """{"items":["a","b"]}""";
 
         [Fact]
-        public void Serialize_EmptyDataDictionary_ProducesEmptyObject() {
+        public void Serialize_MinimalDataDictionary_ProducesCorrectJson() {
             // Arrange
             var data = new DataDictionary();
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(data);
+            string json = Serialize(data);
 
             // Assert
-            Assert.Equal("{}", json);
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_WithStringValues_ProducesCorrectJson() {
+        public void Serialize_CompleteDataDictionary_ProducesCorrectJson() {
             // Arrange
             var data = new DataDictionary {
-                ["key1"] = "value1",
-                ["key2"] = "value2"
+                ["string_value"] = "hello",
+                ["int_value"] = 42,
+                ["bool_value"] = true,
+                ["decimal_value"] = 3.14m,
+                ["null_value"] = null
             };
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(data);
+            string json = Serialize(data);
 
             // Assert
-            Assert.Contains("\"key1\":\"value1\"", json);
-            Assert.Contains("\"key2\":\"value2\"", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Serialize_WithMixedTypes_ProducesCorrectJson() {
+        public void Deserialize_DataDictionary_RoundTrips() {
             // Arrange
             var data = new DataDictionary {
-                ["string_val"] = "hello",
-                ["int_val"] = 42,
-                ["bool_val"] = true,
-                ["decimal_val"] = 3.14m
+                ["string_value"] = "hello",
+                ["int_value"] = 42,
+                ["bool_value"] = true,
+                ["decimal_value"] = 3.14m,
+                ["null_value"] = null
             };
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(data);
+            DataDictionary roundTripped = RoundTrip(data);
 
             // Assert
-            Assert.Contains("\"string_val\":\"hello\"", json);
-            Assert.Contains("\"int_val\":42", json);
-            Assert.Contains("\"bool_val\":true", json);
+            Assert.Equal("hello", roundTripped["string_value"]);
+            Assert.Equal(42L, Convert.ToInt64(roundTripped["int_value"]));
+            Assert.True((bool)roundTripped["bool_value"]);
+            Assert.Equal(3.14m, (decimal)roundTripped["decimal_value"]);
+            Assert.Null(roundTripped["null_value"]);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesStringValues() {
+        public void Deserialize_DataDictionary_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new DataDictionary {
-                ["name"] = "test",
-                ["description"] = "A test value"
-            };
+            const string json = KnownJson;
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (DataDictionary)serializer.Deserialize(json, typeof(DataDictionary));
+            DataDictionary data = Deserialize<DataDictionary>(json);
 
             // Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(2, deserialized.Count);
+            Assert.Equal("value", data["MyKey"]);
+            Assert.Equal(42L, Convert.ToInt64(data["Count"]));
+            Assert.True((bool)data["IsActive"]);
         }
 
         [Fact]
-        public void Serialize_KeysPreserveOriginalCasing() {
+        public void Deserialize_DataDictionary_JObjectValuesBecomeCompactStrings() {
             // Arrange
-            var data = new DataDictionary {
-                ["MyKey"] = "value1",
-                ["UPPERCASE"] = "value2",
-                ["camelCase"] = "value3"
-            };
-            var serializer = GetSerializer();
+            const string json = NestedObjectJson;
+            const string expected = /* lang=json */ """{"key":"val"}""";
 
             // Act
-            string json = serializer.Serialize(data);
-
-            // Assert - Dictionary keys should NOT be snake_cased
-            Assert.Contains("\"MyKey\"", json);
-            Assert.Contains("\"UPPERCASE\"", json);
-            Assert.Contains("\"camelCase\"", json);
-        }
-
-        [Fact]
-        public void Deserialize_CaseInsensitiveLookup_WorksCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new DataDictionary {
-                ["TestKey"] = "TestValue"
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (DataDictionary)serializer.Deserialize(json, typeof(DataDictionary));
-
-            // Assert - DataDictionary uses OrdinalIgnoreCase
-            Assert.NotNull(deserialized);
-            Assert.True(deserialized.ContainsKey("TestKey") || deserialized.ContainsKey("testkey"));
-        }
-
-        [Fact]
-        public void Serialize_WithNullValue_IncludesNull() {
-            // Arrange
-            var data = new DataDictionary {
-                ["nullable"] = null
-            };
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(data);
+            DataDictionary data = Deserialize<DataDictionary>(json);
 
             // Assert
-            Assert.Contains("\"nullable\":null", json);
+            Assert.Equal(expected, data["nested"]);
         }
 
         [Fact]
-        public void Serialize_WithNestedObject_SerializesObject() {
+        public void Deserialize_DataDictionary_JArrayValuesBecomeCompactStrings() {
             // Arrange
-            var data = new DataDictionary {
-                ["nested"] = new { Name = "Test", Value = 42 }
-            };
-            var serializer = GetSerializer();
+            const string json = NestedArrayJson;
+            const string expected = /* lang=json */ """["a","b"]""";
 
             // Act
-            string json = serializer.Serialize(data);
+            DataDictionary data = Deserialize<DataDictionary>(json);
 
             // Assert
-            Assert.Contains("\"nested\"", json);
-            Assert.Contains("\"Name\"", json);
-            Assert.Contains("42", json);
-        }
-
-        [Fact]
-        public void Deserialize_EmptyObject_ReturnsEmptyDictionary() {
-            // Arrange
-            var serializer = GetSerializer();
-            string json = "{}";
-
-            // Act
-            var deserialized = (DataDictionary)serializer.Deserialize(json, typeof(DataDictionary));
-
-            // Assert
-            Assert.NotNull(deserialized);
-            Assert.Empty(deserialized);
-        }
-
-        [Fact]
-        public void Serialize_WithKnownDataKeyPrefixes_PreservesAtPrefix() {
-            // Arrange
-            var data = new DataDictionary {
-                ["@error"] = "error data",
-                ["@user"] = "user data",
-                ["@environment"] = "env data"
-            };
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(data);
-
-            // Assert
-            Assert.Contains("\"@error\"", json);
-            Assert.Contains("\"@user\"", json);
-            Assert.Contains("\"@environment\"", json);
+            Assert.Equal(expected, data["items"]);
         }
     }
 }

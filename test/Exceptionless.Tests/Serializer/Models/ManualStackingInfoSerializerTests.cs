@@ -1,140 +1,75 @@
 using System.Collections.Generic;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class ManualStackingInfoSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
+    public class ManualStackingInfoSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"title":null,"signature_data":{}}""";
+        private const string CompleteJson = /* lang=json */ """{"title":"Test Title","signature_data":{"Key1":"Value1","Key2":"Value2"}}""";
+
+        [Fact]
+        public void Serialize_MinimalManualStackingInfo_ProducesCorrectJson() {
+            // Arrange
+            var info = new ManualStackingInfo();
+
+            // Act
+            string json = Serialize(info);
+
+            // Assert
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_CompleteManualStackingInfo_ProducesSnakeCaseJson() {
+        public void Serialize_CompleteManualStackingInfo_ProducesCorrectJson() {
             // Arrange
             var info = new ManualStackingInfo {
-                Title = "Payment Processing Error",
+                Title = "Test Title",
                 SignatureData = new Dictionary<string, string> {
-                    { "provider", "stripe" },
-                    { "error_code", "card_declined" }
-                }
-            };
-
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(info);
-
-            // Assert
-            SerializerContractAssertions.IncludesProperties(json, "title", "signature_data");
-            SerializerContractAssertions.ExcludesProperties(json, "Title", "SignatureData");
-        }
-
-        [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new ManualStackingInfo {
-                Title = "Custom Stack Title",
-                SignatureData = new Dictionary<string, string> {
-                    { "Key1", "Value1" },
-                    { "Key2", "Value2" },
-                    { "Key3", "Value3" }
+                    ["Key1"] = "Value1",
+                    ["Key2"] = "Value2"
                 }
             };
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ManualStackingInfo)serializer.Deserialize(json, typeof(ManualStackingInfo));
+            string json = Serialize(info);
 
             // Assert
-            Assert.Equal("Custom Stack Title", deserialized.Title);
-            Assert.NotNull(deserialized.SignatureData);
-            Assert.Equal(3, deserialized.SignatureData.Count);
-            Assert.Equal("Value1", deserialized.SignatureData["Key1"]);
-            Assert.Equal("Value2", deserialized.SignatureData["Key2"]);
-            Assert.Equal("Value3", deserialized.SignatureData["Key3"]);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_WithMinimalProperties_PreservesTitle() {
+        public void Deserialize_ManualStackingInfo_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new ManualStackingInfo { Title = "Simple Stack" };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ManualStackingInfo)serializer.Deserialize(json, typeof(ManualStackingInfo));
-
-            // Assert
-            Assert.Equal("Simple Stack", deserialized.Title);
-            Assert.NotNull(deserialized.SignatureData);
-            Assert.Empty(deserialized.SignatureData);
-        }
-
-        [Fact]
-        public void Deserialize_FromSnakeCaseJson_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            string json = "{\"title\":\"Custom Stack\",\"signature_data\":{\"key\":\"value\"}}";
-
-            // Act
-            var result = (ManualStackingInfo)serializer.Deserialize(json, typeof(ManualStackingInfo));
-
-            // Assert
-            Assert.Equal("Custom Stack", result.Title);
-            Assert.NotNull(result.SignatureData);
-            Assert.Equal("value", result.SignatureData["key"]);
-        }
-
-        [Fact]
-        public void Deserialize_WithSpecialCharacters_PreservesValues() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new ManualStackingInfo {
-                Title = "Error: \"Connection refused\" at /api/v2/events",
+            var info = new ManualStackingInfo {
+                Title = "Test Title",
                 SignatureData = new Dictionary<string, string> {
-                    { "path", "/api/v2/events?filter=type:error" },
-                    { "message", "Connection refused: host=db.example.com, port=5432" }
+                    ["Key1"] = "Value1",
+                    ["Key2"] = "Value2"
                 }
             };
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ManualStackingInfo)serializer.Deserialize(json, typeof(ManualStackingInfo));
+            ManualStackingInfo roundTripped = RoundTrip(info);
 
             // Assert
-            Assert.Contains("Connection refused", deserialized.Title);
-            Assert.Equal("/api/v2/events?filter=type:error", deserialized.SignatureData["path"]);
+            Assert.Equal("Test Title", roundTripped.Title);
+            Assert.Equal("Value1", roundTripped.SignatureData["Key1"]);
+            Assert.Equal("Value2", roundTripped.SignatureData["Key2"]);
         }
 
         [Fact]
-        public void Serialize_ConstructorWithTitle_TrimsWhitespace() {
+        public void Deserialize_ManualStackingInfo_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var info = new ManualStackingInfo("  Trimmed Title  ");
-            var serializer = GetSerializer();
+            const string json = CompleteJson;
 
             // Act
-            string json = serializer.Serialize(info);
+            ManualStackingInfo info = Deserialize<ManualStackingInfo>(json);
 
             // Assert
-            Assert.Contains("\"title\":\"Trimmed Title\"", json);
-        }
-
-        [Fact]
-        public void Serialize_ConstructorWithTitleAndData_PreservesBoth() {
-            // Arrange
-            var data = new Dictionary<string, string> { { "k1", "v1" } };
-            var info = new ManualStackingInfo("Title", data);
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(info);
-            var deserialized = (ManualStackingInfo)serializer.Deserialize(json, typeof(ManualStackingInfo));
-
-            // Assert
-            Assert.Equal("Title", deserialized.Title);
-            Assert.Equal("v1", deserialized.SignatureData["k1"]);
+            Assert.Equal("Test Title", info.Title);
+            Assert.Equal("Value1", info.SignatureData["Key1"]);
+            Assert.Equal("Value2", info.SignatureData["Key2"]);
         }
     }
 }

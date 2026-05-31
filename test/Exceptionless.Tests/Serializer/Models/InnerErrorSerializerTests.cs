@@ -1,164 +1,97 @@
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class InnerErrorSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class InnerErrorSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"message":null,"type":null,"code":null,"data":{},"inner":null,"stack_trace":[],"target_method":null}""";
+        private const string CompleteJson = /* lang=json */ """{"message":"Inner error message","type":"System.ArgumentException","code":"2002","data":{"Detail":"Value"},"inner":{"message":"Deep inner error","type":"System.Exception","code":"3003","data":{},"inner":null,"stack_trace":[],"target_method":null},"stack_trace":[{"file_name":null,"line_number":20,"column":0,"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":"InnerMethodName","module_id":0,"data":{},"generic_arguments":[],"parameters":[]}],"target_method":null}""";
 
         [Fact]
-        public void Serialize_CompleteInnerError_ProducesSnakeCaseJson() {
+        public void Serialize_MinimalInnerError_ProducesCorrectJson() {
             // Arrange
-            var innerError = new InnerError {
-                Message = "Argument is null",
-                Type = "System.ArgumentNullException",
-                Code = "ARG_NULL",
-                StackTrace = new StackFrameCollection {
-                    new StackFrame { Name = "Validate", LineNumber = 15 }
-                }
-            };
-
-            var serializer = GetSerializer();
+            var error = new InnerError();
 
             // Act
-            string json = serializer.Serialize(innerError);
+            string json = Serialize(error);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json,
-                "message", "type", "code", "data", "inner", "stack_trace", "target_method");
-            SerializerContractAssertions.ExcludesProperties(json,
-                "Message", "Type", "Code", "Inner", "StackTrace", "TargetMethod");
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
+        public void Serialize_CompleteInnerError_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new InnerError {
-                Message = "Connection timeout",
-                Type = "System.TimeoutException",
-                Code = "TIMEOUT",
+            var error = CreateCompleteInnerError();
+
+            // Act
+            string json = Serialize(error);
+
+            // Assert
+            Assert.Equal(CompleteJson, json);
+        }
+
+        [Fact]
+        public void Deserialize_InnerError_RoundTrips() {
+            // Arrange
+            var error = CreateCompleteInnerError();
+
+            // Act
+            InnerError roundTripped = RoundTrip(error);
+
+            // Assert
+            Assert.Equal("Inner error message", roundTripped.Message);
+            Assert.Equal("System.ArgumentException", roundTripped.Type);
+            Assert.Equal("2002", roundTripped.Code);
+            Assert.Equal("Value", roundTripped.Data["Detail"]);
+            Assert.Equal("Deep inner error", roundTripped.Inner.Message);
+            Assert.Equal("3003", roundTripped.Inner.Code);
+            Assert.Equal(20, roundTripped.StackTrace[0].LineNumber);
+            Assert.Equal("InnerMethodName", roundTripped.StackTrace[0].Name);
+            Assert.Null(roundTripped.TargetMethod);
+        }
+
+        [Fact]
+        public void Deserialize_InnerError_FromKnownJson_MapsAllProperties() {
+            // Arrange
+            const string json = CompleteJson;
+
+            // Act
+            InnerError error = Deserialize<InnerError>(json);
+
+            // Assert
+            Assert.Equal("Inner error message", error.Message);
+            Assert.Equal("System.ArgumentException", error.Type);
+            Assert.Equal("2002", error.Code);
+            Assert.Equal("Value", error.Data["Detail"]);
+            Assert.Equal("Deep inner error", error.Inner.Message);
+            Assert.Equal("System.Exception", error.Inner.Type);
+            Assert.Equal(20, error.StackTrace[0].LineNumber);
+            Assert.Equal("InnerMethodName", error.StackTrace[0].Name);
+            Assert.Null(error.TargetMethod);
+        }
+
+        private static InnerError CreateCompleteInnerError() {
+            return new InnerError {
+                Message = "Inner error message",
+                Type = "System.ArgumentException",
+                Code = "2002",
+                Data = {
+                    ["Detail"] = "Value"
+                },
+                Inner = new InnerError {
+                    Message = "Deep inner error",
+                    Type = "System.Exception",
+                    Code = "3003"
+                },
                 StackTrace = new StackFrameCollection {
                     new StackFrame {
-                        Name = "Connect",
-                        DeclaringNamespace = "App.Data",
-                        DeclaringType = "DbClient",
-                        LineNumber = 55
+                        LineNumber = 20,
+                        Name = "InnerMethodName"
                     }
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (InnerError)serializer.Deserialize(json, typeof(InnerError));
-
-            // Assert
-            Assert.Equal(original.Message, deserialized.Message);
-            Assert.Equal(original.Type, deserialized.Type);
-            Assert.Equal(original.Code, deserialized.Code);
-            Assert.NotNull(deserialized.StackTrace);
-            Assert.Single(deserialized.StackTrace);
-            Assert.Equal("Connect", deserialized.StackTrace[0].Name);
-        }
-
-        [Fact]
-        public void Deserialize_WithNestedInner_PreservesChain() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new InnerError {
-                Message = "Outer",
-                Type = "System.Exception",
-                Inner = new InnerError {
-                    Message = "Middle",
-                    Type = "System.InvalidOperationException",
-                    Inner = new InnerError {
-                        Message = "Root",
-                        Type = "System.NullReferenceException"
-                    }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (InnerError)serializer.Deserialize(json, typeof(InnerError));
-
-            // Assert
-            Assert.Equal("Outer", deserialized.Message);
-            Assert.NotNull(deserialized.Inner);
-            Assert.Equal("Middle", deserialized.Inner.Message);
-            Assert.NotNull(deserialized.Inner.Inner);
-            Assert.Equal("Root", deserialized.Inner.Inner.Message);
-        }
-
-        [Fact]
-        public void Deserialize_WithDataDictionary_PreservesData() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new InnerError {
-                Message = "Error with context",
-                Type = "System.Exception",
-                Data = {
-                    ["context_key"] = "context_value"
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (InnerError)serializer.Deserialize(json, typeof(InnerError));
-
-            // Assert
-            Assert.NotNull(deserialized.Data);
-            Assert.True(deserialized.Data.Count >= 1);
-        }
-
-        [Fact]
-        public void Deserialize_WithTargetMethod_PreservesMethod() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new InnerError {
-                Message = "Test",
-                Type = "System.Exception",
-                TargetMethod = new Method {
-                    Name = "Execute",
-                    DeclaringNamespace = "App.Core",
-                    DeclaringType = "Executor",
-                    IsSignatureTarget = true
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (InnerError)serializer.Deserialize(json, typeof(InnerError));
-
-            // Assert
-            Assert.NotNull(deserialized.TargetMethod);
-            Assert.Equal("Execute", deserialized.TargetMethod.Name);
-            Assert.Equal("App.Core", deserialized.TargetMethod.DeclaringNamespace);
-            Assert.Equal("Executor", deserialized.TargetMethod.DeclaringType);
-            Assert.True(deserialized.TargetMethod.IsSignatureTarget);
-        }
-
-        [Fact]
-        public void Deserialize_MinimalInnerError_PreservesBasicProperties() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new InnerError {
-                Message = "Simple error",
-                Type = "System.Exception"
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (InnerError)serializer.Deserialize(json, typeof(InnerError));
-
-            // Assert
-            Assert.Equal("Simple error", deserialized.Message);
-            Assert.Equal("System.Exception", deserialized.Type);
-            Assert.Null(deserialized.Inner);
-            Assert.Null(deserialized.TargetMethod);
         }
     }
 }

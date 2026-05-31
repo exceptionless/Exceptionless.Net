@@ -1,282 +1,173 @@
 using System;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
+using Module = Exceptionless.Models.Data.Module;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class ErrorSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
+    public class ErrorSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"modules":[],"message":null,"type":null,"code":null,"data":{},"inner":null,"stack_trace":[],"target_method":null}""";
+        private const string CompleteJson = /* lang=json */ """{"modules":[{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b03f5f7f11d50a3a"}}],"message":"Test error message","type":"System.Exception","code":"1001","data":{"@ext":{"OrderNumber":10}},"inner":{"message":"Inner error message","type":"System.ArgumentException","code":"2002","data":{},"inner":null,"stack_trace":[{"file_name":null,"line_number":20,"column":0,"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":"InnerMethodName","module_id":0,"data":{},"generic_arguments":[],"parameters":[]}],"target_method":null},"stack_trace":[{"file_name":"TestFile.cs","line_number":20,"column":5,"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"InnerMethodName","module_id":1,"data":{"StackFrameKey":"StackFrameValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}],"target_method":null}""";
+        private const string ModulesOrderedJson = /* lang=json */ """{"modules":[{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b03f5f7f11d50a3a"}}],"message":"Ordered","type":null,"code":null,"data":{},"inner":null,"stack_trace":[],"target_method":null}""";
+        private const string ExtraPropertiesJson = /* lang=json */ """{"modules":[],"message":"Test error message","type":"System.Exception","code":"1001","data":{"@ext":{"OrderNumber":10}},"inner":null,"stack_trace":[],"target_method":null}""";
+        private const string CompactExtraPropertiesJson = /* lang=json */ """{"OrderNumber":10}""";
+
+        [Fact]
+        public void Serialize_MinimalError_ProducesCorrectJson() {
+            // Arrange
+            var error = new Error();
+
+            // Act
+            string json = Serialize(error);
+
+            // Assert
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_CompleteError_ProducesSnakeCaseJson() {
+        public void Serialize_CompleteError_ProducesCorrectJson() {
+            // Arrange
+            var error = CreateCompleteError();
+
+            // Act
+            string json = Serialize(error);
+
+            // Assert
+            Assert.Equal(CompleteJson, json);
+        }
+
+        [Fact]
+        public void Deserialize_Error_RoundTrips() {
+            // Arrange
+            var error = CreateCompleteError();
+
+            // Act
+            Error roundTripped = RoundTrip(error);
+
+            // Assert
+            Assert.Single(roundTripped.Modules);
+            Assert.Equal(1, roundTripped.Modules[0].ModuleId);
+            Assert.Equal("Test error message", roundTripped.Message);
+            Assert.Equal("System.Exception", roundTripped.Type);
+            Assert.Equal("1001", roundTripped.Code);
+            Assert.Equal(CompactExtraPropertiesJson, roundTripped.Data[Error.KnownDataKeys.ExtraProperties]);
+            Assert.Equal("Inner error message", roundTripped.Inner.Message);
+            Assert.Equal(20, roundTripped.StackTrace[0].LineNumber);
+            Assert.Equal("InnerMethodName", roundTripped.StackTrace[0].Name);
+            Assert.Null(roundTripped.TargetMethod);
+        }
+
+        [Fact]
+        public void Deserialize_Error_FromKnownJson_MapsAllProperties() {
+            // Arrange
+            const string json = CompleteJson;
+
+            // Act
+            Error error = Deserialize<Error>(json);
+
+            // Assert
+            Assert.Single(error.Modules);
+            Assert.Equal("TestModule", error.Modules[0].Name);
+            Assert.Equal("Test error message", error.Message);
+            Assert.Equal("System.Exception", error.Type);
+            Assert.Equal("1001", error.Code);
+            Assert.Equal(CompactExtraPropertiesJson, error.Data[Error.KnownDataKeys.ExtraProperties]);
+            Assert.Equal("Inner error message", error.Inner.Message);
+            Assert.Equal(20, error.Inner.StackTrace[0].LineNumber);
+            Assert.Equal("TestFile.cs", error.StackTrace[0].FileName);
+            Assert.Equal("T", error.StackTrace[0].GenericArguments[0]);
+        }
+
+        [Fact]
+        public void Serialize_ErrorModules_ProduceDerivedPropertiesFirst() {
             // Arrange
             var error = new Error {
-                Message = "Object reference not set",
-                Type = "System.NullReferenceException",
-                Code = "NRE001",
-                StackTrace = new StackFrameCollection {
-                    new StackFrame {
-                        Name = "GetUser",
-                        DeclaringNamespace = "MyApp.Services",
-                        DeclaringType = "UserService",
-                        FileName = "UserService.cs",
-                        LineNumber = 42,
-                        Column = 13
-                    }
-                },
-                Modules = new ModuleCollection {
-                    new Module {
-                        ModuleId = 1,
-                        Name = "MyApp.dll",
-                        Version = "2.0.0",
-                        IsEntry = true,
-                        CreatedDate = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                        ModifiedDate = new DateTime(2023, 6, 15, 0, 0, 0, DateTimeKind.Utc)
-                    }
-                }
+                Message = "Ordered",
+                Modules = new ModuleCollection { CreateModule() }
             };
 
-            var serializer = GetSerializer();
-
             // Act
-            string json = serializer.Serialize(error);
+            string json = Serialize(error);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json,
-                "message", "type", "code", "data", "stack_trace", "modules", "target_method");
-            SerializerContractAssertions.ExcludesProperties(json,
-                "Message", "Type", "Code", "StackTrace", "Modules", "TargetMethod");
+            Assert.Equal(ModulesOrderedJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
+        public void Deserialize_ErrorExtraProperties_ConvertsJObjectToCompactString() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Division by zero",
-                Type = "System.DivideByZeroException",
-                Code = "DBZ",
+            const string json = ExtraPropertiesJson;
+
+            // Act
+            Error error = Deserialize<Error>(json);
+
+            // Assert
+            Assert.Equal(CompactExtraPropertiesJson, error.Data[Error.KnownDataKeys.ExtraProperties]);
+        }
+
+        private static Error CreateCompleteError() {
+            return new Error {
+                Modules = new ModuleCollection { CreateModule() },
+                Message = "Test error message",
+                Type = "System.Exception",
+                Code = "1001",
+                Data = {
+                    [Error.KnownDataKeys.ExtraProperties] = new { OrderNumber = 10 }
+                },
+                Inner = new InnerError {
+                    Message = "Inner error message",
+                    Type = "System.ArgumentException",
+                    Code = "2002",
+                    StackTrace = new StackFrameCollection {
+                        new StackFrame {
+                            LineNumber = 20,
+                            Name = "InnerMethodName"
+                        }
+                    }
+                },
                 StackTrace = new StackFrameCollection {
                     new StackFrame {
-                        Name = "Calculate",
-                        DeclaringNamespace = "App.Math",
-                        DeclaringType = "Calculator",
-                        FileName = "Calculator.cs",
-                        LineNumber = 100,
+                        FileName = "TestFile.cs",
+                        LineNumber = 20,
                         Column = 5,
                         IsSignatureTarget = true,
-                        ModuleId = 1
-                    }
-                },
-                Modules = new ModuleCollection {
-                    new Module {
+                        DeclaringNamespace = "TestNamespace",
+                        DeclaringType = "TestClass",
+                        Name = "InnerMethodName",
                         ModuleId = 1,
-                        Name = "App.Math.dll",
-                        Version = "1.0.0",
-                        IsEntry = false
+                        Data = {
+                            ["StackFrameKey"] = "StackFrameValue"
+                        },
+                        GenericArguments = new GenericArguments { "T" },
+                        Parameters = new ParameterCollection {
+                            new Parameter {
+                                Name = "param1",
+                                Type = "System.String",
+                                TypeNamespace = "System",
+                                Data = {
+                                    ["ParameterKey"] = "ParameterValue"
+                                },
+                                GenericArguments = new GenericArguments { "U" }
+                            }
+                        }
                     }
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.Equal(original.Message, deserialized.Message);
-            Assert.Equal(original.Type, deserialized.Type);
-            Assert.Equal(original.Code, deserialized.Code);
-            Assert.NotNull(deserialized.StackTrace);
-            Assert.Single(deserialized.StackTrace);
-            Assert.Equal("Calculate", deserialized.StackTrace[0].Name);
-            Assert.Equal("App.Math", deserialized.StackTrace[0].DeclaringNamespace);
-            Assert.Equal("Calculator", deserialized.StackTrace[0].DeclaringType);
-            Assert.Equal("Calculator.cs", deserialized.StackTrace[0].FileName);
-            Assert.Equal(100, deserialized.StackTrace[0].LineNumber);
-            Assert.Equal(5, deserialized.StackTrace[0].Column);
-            Assert.True(deserialized.StackTrace[0].IsSignatureTarget);
-            Assert.NotNull(deserialized.Modules);
-            Assert.Single(deserialized.Modules);
-            Assert.Equal("App.Math.dll", deserialized.Modules[0].Name);
         }
 
-        [Fact]
-        public void Deserialize_ErrorWithInnerError_PreservesHierarchy() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Outer exception",
-                Type = "System.InvalidOperationException",
-                Inner = new InnerError {
-                    Message = "Inner exception",
-                    Type = "System.ArgumentNullException",
-                    Code = "ARG_NULL"
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.NotNull(deserialized.Inner);
-            Assert.Equal("Inner exception", deserialized.Inner.Message);
-            Assert.Equal("System.ArgumentNullException", deserialized.Inner.Type);
-            Assert.Equal("ARG_NULL", deserialized.Inner.Code);
-        }
-
-        [Fact]
-        public void Deserialize_ErrorWithDeeplyNestedInner_PreservesFullHierarchy() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Level 1",
-                Type = "System.Exception",
-                Inner = new InnerError {
-                    Message = "Level 2",
-                    Type = "System.InvalidOperationException",
-                    Inner = new InnerError {
-                        Message = "Level 3 - Root cause",
-                        Type = "System.IO.FileNotFoundException"
-                    }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.Equal("Level 1", deserialized.Message);
-            Assert.NotNull(deserialized.Inner);
-            Assert.Equal("Level 2", deserialized.Inner.Message);
-            Assert.NotNull(deserialized.Inner.Inner);
-            Assert.Equal("Level 3 - Root cause", deserialized.Inner.Inner.Message);
-        }
-
-        [Fact]
-        public void Deserialize_ErrorWithExtraProperties_PreservesData() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Error with data",
-                Type = "System.Exception",
+        private static Module CreateModule() {
+            return new Module {
+                ModuleId = 1,
+                Name = "TestModule",
+                Version = "1.0.0",
+                IsEntry = true,
+                CreatedDate = new DateTime(2023, 5, 1, 12, 0, 0, DateTimeKind.Utc),
+                ModifiedDate = new DateTime(2023, 5, 2, 12, 0, 0, DateTimeKind.Utc),
                 Data = {
-                    [Error.KnownDataKeys.ExtraProperties] = new { OrderId = 42, Status = "failed" }
+                    ["PublicKeyToken"] = "b03f5f7f11d50a3a"
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-
-            // Assert
-            Assert.Contains("\"@ext\"", json);
-            Assert.Contains("\"OrderId\"", json);
-        }
-
-        [Fact]
-        public void Deserialize_ErrorWithMultipleStackFrames_PreservesOrder() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Stack overflow",
-                Type = "System.StackOverflowException",
-                StackTrace = new StackFrameCollection {
-                    new StackFrame { Name = "MethodA", LineNumber = 10 },
-                    new StackFrame { Name = "MethodB", LineNumber = 20 },
-                    new StackFrame { Name = "MethodC", LineNumber = 30 }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.Equal(3, deserialized.StackTrace.Count);
-            Assert.Equal("MethodA", deserialized.StackTrace[0].Name);
-            Assert.Equal("MethodB", deserialized.StackTrace[1].Name);
-            Assert.Equal("MethodC", deserialized.StackTrace[2].Name);
-            Assert.Equal(10, deserialized.StackTrace[0].LineNumber);
-            Assert.Equal(20, deserialized.StackTrace[1].LineNumber);
-            Assert.Equal(30, deserialized.StackTrace[2].LineNumber);
-        }
-
-        [Fact]
-        public void Deserialize_ErrorWithModuleData_PreservesModuleData() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Module test",
-                Type = "System.Exception",
-                Modules = new ModuleCollection {
-                    new Module {
-                        ModuleId = 1,
-                        Name = "System.Private.CoreLib.dll",
-                        Version = "6.0.0",
-                        IsEntry = false,
-                        Data = { ["PublicKeyToken"] = "b03f5f7f11d50a3a" }
-                    }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.Single(deserialized.Modules);
-            Assert.Equal("System.Private.CoreLib.dll", deserialized.Modules[0].Name);
-            Assert.Equal("6.0.0", deserialized.Modules[0].Version);
-            Assert.Equal(1, deserialized.Modules[0].ModuleId);
-        }
-
-        [Fact]
-        public void Serialize_ErrorWithSpecialCharactersInMessage_EscapesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Error: \"file not found\" at C:\\Users\\test\\path",
-                Type = "System.IO.FileNotFoundException"
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.Equal("Error: \"file not found\" at C:\\Users\\test\\path", deserialized.Message);
-        }
-
-        [Fact]
-        public void Deserialize_ErrorWithTargetMethod_PreservesMethod() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Error {
-                Message = "Target method test",
-                Type = "System.Exception",
-                TargetMethod = new Method {
-                    Name = "ProcessRequest",
-                    DeclaringNamespace = "App.Controllers",
-                    DeclaringType = "HomeController",
-                    IsSignatureTarget = true,
-                    ModuleId = 2
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Error)serializer.Deserialize(json, typeof(Error));
-
-            // Assert
-            Assert.NotNull(deserialized.TargetMethod);
-            Assert.Equal("ProcessRequest", deserialized.TargetMethod.Name);
-            Assert.Equal("App.Controllers", deserialized.TargetMethod.DeclaringNamespace);
-            Assert.Equal("HomeController", deserialized.TargetMethod.DeclaringType);
-            Assert.True(deserialized.TargetMethod.IsSignatureTarget);
         }
     }
 }

@@ -1,160 +1,106 @@
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class MethodSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class MethodSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{"is_signature_target":false,"declaring_namespace":null,"declaring_type":null,"name":null,"module_id":0,"data":{},"generic_arguments":[],"parameters":[]}""";
+        private const string CompleteJson = /* lang=json */ """{"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"TestMethod","module_id":1,"data":{"MethodKey":"MethodValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}""";
 
         [Fact]
-        public void Serialize_CompleteMethod_ProducesSnakeCaseJson() {
+        public void Serialize_MinimalMethod_ProducesCorrectJson() {
             // Arrange
-            var method = new Method {
-                IsSignatureTarget = true,
-                DeclaringNamespace = "MyApp.Services",
-                DeclaringType = "UserService",
-                Name = "GetUserAsync",
-                ModuleId = 3,
-                Data = { ["ILOffset"] = 42 },
-                GenericArguments = new GenericArguments { "TUser", "TResult" },
-                Parameters = new ParameterCollection {
-                    new Parameter { Name = "userId", Type = "System.Int32", TypeNamespace = "System" }
-                }
-            };
-
-            var serializer = GetSerializer();
+            var method = new Method();
 
             // Act
-            string json = serializer.Serialize(method);
+            string json = Serialize(method);
 
             // Assert
-            SerializerContractAssertions.IncludesProperties(json,
-                "is_signature_target", "declaring_namespace", "declaring_type",
-                "name", "module_id", "data", "generic_arguments", "parameters");
-            SerializerContractAssertions.ExcludesProperties(json,
-                "IsSignatureTarget", "DeclaringNamespace", "DeclaringType", "ModuleId",
-                "GenericArguments", "Parameters");
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllProperties() {
+        public void Serialize_CompleteMethod_ProducesCorrectJson() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new Method {
+            var method = CreateCompleteMethod();
+
+            // Act
+            string json = Serialize(method);
+
+            // Assert
+            Assert.Equal(CompleteJson, json);
+        }
+
+        [Fact]
+        public void Deserialize_Method_RoundTrips() {
+            // Arrange
+            var method = CreateCompleteMethod();
+
+            // Act
+            Method roundTripped = RoundTrip(method);
+
+            // Assert
+            Assert.True(roundTripped.IsSignatureTarget);
+            Assert.Equal("TestNamespace", roundTripped.DeclaringNamespace);
+            Assert.Equal("TestClass", roundTripped.DeclaringType);
+            Assert.Equal("TestMethod", roundTripped.Name);
+            Assert.Equal(1, roundTripped.ModuleId);
+            Assert.Equal("MethodValue", roundTripped.Data["MethodKey"]);
+            Assert.Equal("T", roundTripped.GenericArguments[0]);
+            Assert.Equal("param1", roundTripped.Parameters[0].Name);
+            Assert.Equal("System.String", roundTripped.Parameters[0].Type);
+            Assert.Equal("System", roundTripped.Parameters[0].TypeNamespace);
+            Assert.Equal("ParameterValue", roundTripped.Parameters[0].Data["ParameterKey"]);
+            Assert.Equal("U", roundTripped.Parameters[0].GenericArguments[0]);
+        }
+
+        [Fact]
+        public void Deserialize_Method_FromKnownJson_MapsAllProperties() {
+            // Arrange
+            const string json = CompleteJson;
+
+            // Act
+            Method method = Deserialize<Method>(json);
+
+            // Assert
+            Assert.True(method.IsSignatureTarget);
+            Assert.Equal("TestNamespace", method.DeclaringNamespace);
+            Assert.Equal("TestClass", method.DeclaringType);
+            Assert.Equal("TestMethod", method.Name);
+            Assert.Equal(1, method.ModuleId);
+            Assert.Equal("MethodValue", method.Data["MethodKey"]);
+            Assert.Equal("T", method.GenericArguments[0]);
+            Assert.Equal("param1", method.Parameters[0].Name);
+            Assert.Equal("System.String", method.Parameters[0].Type);
+            Assert.Equal("System", method.Parameters[0].TypeNamespace);
+            Assert.Equal("ParameterValue", method.Parameters[0].Data["ParameterKey"]);
+            Assert.Equal("U", method.Parameters[0].GenericArguments[0]);
+        }
+
+        private static Method CreateCompleteMethod() {
+            return new Method {
                 IsSignatureTarget = true,
-                DeclaringNamespace = "App.Controllers",
-                DeclaringType = "ApiController",
-                Name = "ProcessRequest",
+                DeclaringNamespace = "TestNamespace",
+                DeclaringType = "TestClass",
+                Name = "TestMethod",
                 ModuleId = 1,
+                Data = {
+                    ["MethodKey"] = "MethodValue"
+                },
                 GenericArguments = new GenericArguments { "T" },
                 Parameters = new ParameterCollection {
                     new Parameter {
-                        Name = "request",
-                        Type = "HttpRequest",
-                        TypeNamespace = "Microsoft.AspNetCore.Http"
+                        Name = "param1",
+                        Type = "System.String",
+                        TypeNamespace = "System",
+                        Data = {
+                            ["ParameterKey"] = "ParameterValue"
+                        },
+                        GenericArguments = new GenericArguments { "U" }
                     }
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Method)serializer.Deserialize(json, typeof(Method));
-
-            // Assert
-            Assert.True(deserialized.IsSignatureTarget);
-            Assert.Equal("App.Controllers", deserialized.DeclaringNamespace);
-            Assert.Equal("ApiController", deserialized.DeclaringType);
-            Assert.Equal("ProcessRequest", deserialized.Name);
-            Assert.Equal(1, deserialized.ModuleId);
-            Assert.Single(deserialized.GenericArguments);
-            Assert.Equal("T", deserialized.GenericArguments[0]);
-            Assert.Single(deserialized.Parameters);
-            Assert.Equal("request", deserialized.Parameters[0].Name);
-        }
-
-        [Fact]
-        public void Deserialize_WithMultipleGenericArguments_PreservesAll() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Method {
-                Name = "ConvertAll",
-                GenericArguments = new GenericArguments { "TInput", "TOutput", "TContext" }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Method)serializer.Deserialize(json, typeof(Method));
-
-            // Assert
-            Assert.Equal(3, deserialized.GenericArguments.Count);
-            Assert.Equal("TInput", deserialized.GenericArguments[0]);
-            Assert.Equal("TOutput", deserialized.GenericArguments[1]);
-            Assert.Equal("TContext", deserialized.GenericArguments[2]);
-        }
-
-        [Fact]
-        public void Deserialize_WithMultipleParameters_PreservesAll() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Method {
-                Name = "Execute",
-                Parameters = new ParameterCollection {
-                    new Parameter { Name = "input", Type = "String", TypeNamespace = "System" },
-                    new Parameter { Name = "options", Type = "Options", TypeNamespace = "App" },
-                    new Parameter { Name = "cancellationToken", Type = "CancellationToken", TypeNamespace = "System.Threading" }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Method)serializer.Deserialize(json, typeof(Method));
-
-            // Assert
-            Assert.Equal(3, deserialized.Parameters.Count);
-            Assert.Equal("input", deserialized.Parameters[0].Name);
-            Assert.Equal("options", deserialized.Parameters[1].Name);
-            Assert.Equal("cancellationToken", deserialized.Parameters[2].Name);
-        }
-
-        [Fact]
-        public void Deserialize_MinimalMethod_PreservesBasicProperties() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Method { Name = "SimpleMethod" };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Method)serializer.Deserialize(json, typeof(Method));
-
-            // Assert
-            Assert.Equal("SimpleMethod", deserialized.Name);
-            Assert.False(deserialized.IsSignatureTarget);
-            Assert.Null(deserialized.DeclaringNamespace);
-            Assert.Null(deserialized.DeclaringType);
-        }
-
-        [Fact]
-        public void Deserialize_WithData_PreservesDataDictionary() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new Method {
-                Name = "Test",
-                Data = {
-                    ["ILOffset"] = 128,
-                    ["NativeOffset"] = 256
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (Method)serializer.Deserialize(json, typeof(Method));
-
-            // Assert
-            Assert.NotNull(deserialized.Data);
-            Assert.Equal(2, deserialized.Data.Count);
         }
     }
 }

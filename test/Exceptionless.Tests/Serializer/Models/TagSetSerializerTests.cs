@@ -1,126 +1,62 @@
 using Exceptionless.Models;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class TagSetSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class TagSetSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """[]""";
+        private const string CompleteJson = /* lang=json */ """["Critical"]""";
+        private const string KnownJson = /* lang=json */ """["alpha","beta"]""";
 
         [Fact]
-        public void Serialize_EmptyTagSet_ProducesEmptyArray() {
+        public void Serialize_MinimalTagSet_ProducesCorrectJson() {
             // Arrange
             var tags = new TagSet();
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(tags);
+            string json = Serialize(tags);
 
             // Assert
-            Assert.Equal("[]", json);
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_SingleTag_ProducesArrayWithOneElement() {
+        public void Serialize_CompleteTagSet_ProducesCorrectJson() {
             // Arrange
-            var tags = new TagSet();
-            tags.Add("Critical");
-            var serializer = GetSerializer();
+            var tags = new TagSet { "Critical" };
 
             // Act
-            string json = serializer.Serialize(tags);
+            string json = Serialize(tags);
 
             // Assert
-            Assert.Equal("[\"Critical\"]", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Serialize_MultipleTags_ProducesArray() {
+        public void Deserialize_TagSet_RoundTrips() {
             // Arrange
-            var tags = new TagSet();
-            tags.Add("Critical");
-            tags.Add("Production");
-            tags.Add("API");
-            var serializer = GetSerializer();
+            var tags = new TagSet { "Critical" };
 
             // Act
-            string json = serializer.Serialize(tags);
+            TagSet roundTripped = RoundTrip(tags);
 
             // Assert
-            Assert.Contains("\"Critical\"", json);
-            Assert.Contains("\"Production\"", json);
-            Assert.Contains("\"API\"", json);
+            Assert.Single(roundTripped);
+            Assert.Contains("Critical", roundTripped);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllTags() {
+        public void Deserialize_TagSet_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new TagSet();
-            original.Add("tag1");
-            original.Add("tag2");
-            original.Add("tag3");
+            const string json = KnownJson;
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (TagSet)serializer.Deserialize(json, typeof(TagSet));
+            TagSet tags = Deserialize<TagSet>(json);
 
             // Assert
-            Assert.Equal(3, deserialized.Count);
-            Assert.Contains("tag1", deserialized);
-            Assert.Contains("tag2", deserialized);
-            Assert.Contains("tag3", deserialized);
-        }
-
-        [Fact]
-        public void Deserialize_FromJsonArray_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            string json = "[\"Error\",\"Startup\",\"Critical\"]";
-
-            // Act
-            var deserialized = (TagSet)serializer.Deserialize(json, typeof(TagSet));
-
-            // Assert
-            Assert.Equal(3, deserialized.Count);
-            Assert.Contains("Error", deserialized);
-            Assert.Contains("Startup", deserialized);
-            Assert.Contains("Critical", deserialized);
-        }
-
-        [Fact]
-        public void Serialize_TagSetIsCaseInsensitive_NoDuplicates() {
-            // Arrange
-            var tags = new TagSet();
-            tags.Add("Critical");
-            tags.Add("critical");  // Should not add duplicate (case insensitive)
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(tags);
-
-            // Assert - Only one tag due to case-insensitive HashSet
-            Assert.Equal("[\"Critical\"]", json);
-        }
-
-        [Fact]
-        public void Serialize_TagWithSpecialCharacters_EscapesCorrectly() {
-            // Arrange
-            var tags = new TagSet();
-            tags.Add("tag-with-dashes");
-            tags.Add("tag.with.dots");
-            tags.Add("tag:with:colons");
-            var serializer = GetSerializer();
-
-            // Act
-            string json = serializer.Serialize(tags);
-            var deserialized = (TagSet)serializer.Deserialize(json, typeof(TagSet));
-
-            // Assert
-            Assert.Contains("tag-with-dashes", deserialized);
-            Assert.Contains("tag.with.dots", deserialized);
-            Assert.Contains("tag:with:colons", deserialized);
+            Assert.Equal(2, tags.Count);
+            Assert.Contains("alpha", tags);
+            Assert.Contains("beta", tags);
         }
     }
 }

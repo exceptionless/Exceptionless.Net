@@ -1,99 +1,62 @@
 using Exceptionless.Models;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class GenericArgumentsSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
+    public class GenericArgumentsSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """[]""";
+        private const string CompleteJson = /* lang=json */ """["T","U"]""";
+
+        [Fact]
+        public void Serialize_MinimalGenericArguments_ProducesCorrectJson() {
+            // Arrange
+            var arguments = new GenericArguments();
+
+            // Act
+            string json = Serialize(arguments);
+
+            // Assert
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_EmptyGenericArguments_ProducesEmptyArray() {
+        public void Serialize_CompleteGenericArguments_ProducesCorrectJson() {
             // Arrange
-            var args = new GenericArguments();
-            var serializer = GetSerializer();
+            var arguments = new GenericArguments { "T", "U" };
 
             // Act
-            string json = serializer.Serialize(args);
+            string json = Serialize(arguments);
 
             // Assert
-            Assert.Equal("[]", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Serialize_SingleGenericArgument_ProducesArrayWithOneElement() {
+        public void Deserialize_GenericArguments_RoundTrips() {
             // Arrange
-            var args = new GenericArguments { "T" };
-            var serializer = GetSerializer();
+            var arguments = new GenericArguments { "T", "U" };
 
             // Act
-            string json = serializer.Serialize(args);
+            GenericArguments roundTripped = RoundTrip(arguments);
 
             // Assert
-            Assert.Equal("[\"T\"]", json);
+            Assert.Equal(2, roundTripped.Count);
+            Assert.Equal("T", roundTripped[0]);
+            Assert.Equal("U", roundTripped[1]);
         }
 
         [Fact]
-        public void Serialize_MultipleGenericArguments_ProducesArray() {
+        public void Deserialize_GenericArguments_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var args = new GenericArguments { "TKey", "TValue", "TResult" };
-            var serializer = GetSerializer();
+            const string json = CompleteJson;
 
             // Act
-            string json = serializer.Serialize(args);
+            GenericArguments arguments = Deserialize<GenericArguments>(json);
 
             // Assert
-            Assert.Equal("[\"TKey\",\"TValue\",\"TResult\"]", json);
-        }
-
-        [Fact]
-        public void Deserialize_RoundTrip_PreservesAllArguments() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new GenericArguments { "TInput", "TOutput" };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (GenericArguments)serializer.Deserialize(json, typeof(GenericArguments));
-
-            // Assert
-            Assert.Equal(2, deserialized.Count);
-            Assert.Equal("TInput", deserialized[0]);
-            Assert.Equal("TOutput", deserialized[1]);
-        }
-
-        [Fact]
-        public void Deserialize_RoundTrip_PreservesOrder() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new GenericArguments { "A", "B", "C", "D" };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (GenericArguments)serializer.Deserialize(json, typeof(GenericArguments));
-
-            // Assert
-            Assert.Equal(4, deserialized.Count);
-            Assert.Equal("A", deserialized[0]);
-            Assert.Equal("B", deserialized[1]);
-            Assert.Equal("C", deserialized[2]);
-            Assert.Equal("D", deserialized[3]);
-        }
-
-        [Fact]
-        public void Deserialize_FromJsonArray_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            string json = "[\"System.String\",\"System.Int32\"]";
-
-            // Act
-            var deserialized = (GenericArguments)serializer.Deserialize(json, typeof(GenericArguments));
-
-            // Assert
-            Assert.Equal(2, deserialized.Count);
-            Assert.Equal("System.String", deserialized[0]);
-            Assert.Equal("System.Int32", deserialized[1]);
+            Assert.Equal(2, arguments.Count);
+            Assert.Equal("T", arguments[0]);
+            Assert.Equal("U", arguments[1]);
         }
     }
 }

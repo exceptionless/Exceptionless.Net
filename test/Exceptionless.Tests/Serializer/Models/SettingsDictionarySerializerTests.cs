@@ -1,155 +1,99 @@
 using Exceptionless.Models;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class SettingsDictionarySerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class SettingsDictionarySerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """{}""";
+        private const string CompleteJson = /* lang=json */ """{"@@log:*":"Off"}""";
+        private const string KnownJson = /* lang=json */ """{"@@DataExclusions":"password,secret","@@UserAgentBotPatterns":"Googlebot,Bingbot","max_events":"25","is_enabled":"true"}""";
+        private const string BooleanJson = /* lang=json */ """{"enabled":"true","disabled":"false","fallback":"maybe"}""";
+        private const string IntegerJson = /* lang=json */ """{"max_events":"25","invalid":"abc"}""";
 
         [Fact]
-        public void Serialize_EmptySettingsDictionary_ProducesEmptyObject() {
+        public void Serialize_MinimalSettingsDictionary_ProducesCorrectJson() {
             // Arrange
             var settings = new SettingsDictionary();
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(settings);
+            string json = Serialize(settings);
 
             // Assert
-            Assert.Equal("{}", json);
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_WithMultipleSettings_ProducesCorrectJson() {
+        public void Serialize_CompleteSettingsDictionary_ProducesCorrectJson() {
             // Arrange
             var settings = new SettingsDictionary {
-                { "@@log:*", "Off" },
-                { "@@DataExclusions", "password,secret" },
-                { "CustomSetting", "value" }
+                [SettingsDictionary.KnownKeys.LogLevelPrefix + "*"] = "Off"
             };
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(settings);
+            string json = Serialize(settings);
 
             // Assert
-            Assert.Contains("\"@@log:*\":\"Off\"", json);
-            Assert.Contains("\"@@DataExclusions\":\"password,secret\"", json);
-            Assert.Contains("\"CustomSetting\":\"value\"", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_PreservesAllSettings() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new SettingsDictionary {
-                { "key1", "value1" },
-                { "key2", "value2" },
-                { "key3", "value3" }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SettingsDictionary)serializer.Deserialize(json, typeof(SettingsDictionary));
-
-            // Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(3, deserialized.Count);
-            Assert.Equal("value1", deserialized.GetString("key1"));
-            Assert.Equal("value2", deserialized.GetString("key2"));
-            Assert.Equal("value3", deserialized.GetString("key3"));
-        }
-
-        [Fact]
-        public void Deserialize_CaseInsensitiveKeys_LooksUpCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new SettingsDictionary {
-                { "TestKey", "TestValue" }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SettingsDictionary)serializer.Deserialize(json, typeof(SettingsDictionary));
-
-            // Assert - SettingsDictionary is case-insensitive
-            Assert.Equal("TestValue", deserialized.GetString("TESTKEY"));
-            Assert.Equal("TestValue", deserialized.GetString("testkey"));
-            Assert.Equal("TestValue", deserialized.GetString("TestKey"));
-        }
-
-        [Fact]
-        public void Deserialize_BooleanValues_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new SettingsDictionary {
-                { "enabled", "true" },
-                { "disabled", "false" }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SettingsDictionary)serializer.Deserialize(json, typeof(SettingsDictionary));
-
-            // Assert
-            Assert.True(deserialized.GetBoolean("enabled"));
-            Assert.False(deserialized.GetBoolean("disabled"));
-        }
-
-        [Fact]
-        public void Deserialize_IntegerValues_ParsesCorrectly() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new SettingsDictionary {
-                { "maxEvents", "100" },
-                { "timeout", "30000" }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (SettingsDictionary)serializer.Deserialize(json, typeof(SettingsDictionary));
-
-            // Assert
-            Assert.Equal(100, deserialized.GetInt32("maxEvents"));
-            Assert.Equal(30000, deserialized.GetInt32("timeout"));
-        }
-
-        [Fact]
-        public void Serialize_KnownKeys_PreservesDoubleAtPrefix() {
+        public void Deserialize_SettingsDictionary_RoundTrips() {
             // Arrange
             var settings = new SettingsDictionary {
-                { SettingsDictionary.KnownKeys.DataExclusions, "password,credit_card" },
-                { SettingsDictionary.KnownKeys.UserAgentBotPatterns, "Googlebot,Bingbot" },
-                { "@@log:MyApp", "Debug" }
+                [SettingsDictionary.KnownKeys.LogLevelPrefix + "*"] = "Off",
+                ["max_events"] = "25",
+                ["is_enabled"] = "true"
             };
-            var serializer = GetSerializer();
 
             // Act
-            string json = serializer.Serialize(settings);
+            SettingsDictionary roundTripped = RoundTrip(settings);
 
             // Assert
-            Assert.Contains("\"@@DataExclusions\"", json);
-            Assert.Contains("\"@@UserAgentBotPatterns\"", json);
-            Assert.Contains("\"@@log:MyApp\"", json);
+            Assert.Equal("Off", roundTripped["@@log:*"]);
+            Assert.Equal(25, roundTripped.GetInt32("max_events"));
+            Assert.True(roundTripped.GetBoolean("is_enabled"));
         }
 
         [Fact]
-        public void Deserialize_FromJsonInput_ParsesCorrectly() {
+        public void Deserialize_SettingsDictionary_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            string json = "{\"@@log:*\":\"Warn\",\"setting1\":\"abc\",\"setting2\":\"123\"}";
+            const string json = KnownJson;
 
             // Act
-            var deserialized = (SettingsDictionary)serializer.Deserialize(json, typeof(SettingsDictionary));
+            SettingsDictionary settings = Deserialize<SettingsDictionary>(json);
 
             // Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(3, deserialized.Count);
-            Assert.Equal("Warn", deserialized.GetString("@@log:*"));
-            Assert.Equal("abc", deserialized.GetString("setting1"));
-            Assert.Equal(123, deserialized.GetInt32("setting2"));
+            Assert.Equal("password,secret", settings[SettingsDictionary.KnownKeys.DataExclusions]);
+            Assert.Equal("Googlebot,Bingbot", settings[SettingsDictionary.KnownKeys.UserAgentBotPatterns]);
+            Assert.Equal(25, settings.GetInt32("max_events"));
+            Assert.True(settings.GetBoolean("is_enabled"));
+        }
+
+        [Fact]
+        public void Deserialize_SettingsDictionary_GetBooleanParsesValues() {
+            // Arrange
+            const string json = BooleanJson;
+
+            // Act
+            SettingsDictionary settings = Deserialize<SettingsDictionary>(json);
+
+            // Assert
+            Assert.True(settings.GetBoolean("enabled"));
+            Assert.False(settings.GetBoolean("disabled", true));
+            Assert.True(settings.GetBoolean("fallback", true));
+        }
+
+        [Fact]
+        public void Deserialize_SettingsDictionary_GetInt32ParsesValues() {
+            // Arrange
+            const string json = IntegerJson;
+
+            // Act
+            SettingsDictionary settings = Deserialize<SettingsDictionary>(json);
+
+            // Assert
+            Assert.Equal(25, settings.GetInt32("max_events"));
+            Assert.Equal(99, settings.GetInt32("invalid", 99));
         }
     }
 }

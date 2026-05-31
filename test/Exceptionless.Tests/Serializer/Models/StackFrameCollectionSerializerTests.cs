@@ -1,99 +1,94 @@
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class StackFrameCollectionSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class StackFrameCollectionSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """[]""";
+        private const string CompleteJson = /* lang=json */ """[{"file_name":"TestFile.cs","line_number":20,"column":5,"is_signature_target":true,"declaring_namespace":"TestNamespace","declaring_type":"TestClass","name":"InnerMethodName","module_id":1,"data":{"StackFrameKey":"StackFrameValue"},"generic_arguments":["T"],"parameters":[{"name":"param1","type":"System.String","type_namespace":"System","data":{"ParameterKey":"ParameterValue"},"generic_arguments":["U"]}]}]""";
 
         [Fact]
-        public void Serialize_EmptyCollection_ProducesEmptyArray() {
+        public void Serialize_MinimalStackFrameCollection_ProducesCorrectJson() {
             // Arrange
-            var collection = new StackFrameCollection();
-            var serializer = GetSerializer();
+            var stackFrames = new StackFrameCollection();
 
             // Act
-            string json = serializer.Serialize(collection);
+            string json = Serialize(stackFrames);
 
             // Assert
-            Assert.Equal("[]", json);
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_SingleFrame_ProducesArrayWithOneElement() {
+        public void Serialize_CompleteStackFrameCollection_ProducesCorrectJson() {
             // Arrange
-            var collection = new StackFrameCollection {
-                new StackFrame { Name = "Method1", LineNumber = 10 }
-            };
-            var serializer = GetSerializer();
+            var stackFrames = new StackFrameCollection { CreateStackFrame() };
 
             // Act
-            string json = serializer.Serialize(collection);
+            string json = Serialize(stackFrames);
 
             // Assert
-            Assert.Contains("\"name\":\"Method1\"", json);
-            Assert.Contains("\"line_number\":10", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_MultipleFrames_PreservesOrder() {
+        public void Deserialize_StackFrameCollection_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new StackFrameCollection {
-                new StackFrame { Name = "Frame1", LineNumber = 10 },
-                new StackFrame { Name = "Frame2", LineNumber = 20 },
-                new StackFrame { Name = "Frame3", LineNumber = 30 }
-            };
+            var stackFrames = new StackFrameCollection { CreateStackFrame() };
 
             // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (StackFrameCollection)serializer.Deserialize(json, typeof(StackFrameCollection));
+            StackFrameCollection roundTripped = RoundTrip(stackFrames);
 
             // Assert
-            Assert.Equal(3, deserialized.Count);
-            Assert.Equal("Frame1", deserialized[0].Name);
-            Assert.Equal("Frame2", deserialized[1].Name);
-            Assert.Equal("Frame3", deserialized[2].Name);
+            Assert.Single(roundTripped);
+            Assert.Equal("TestFile.cs", roundTripped[0].FileName);
+            Assert.Equal(20, roundTripped[0].LineNumber);
+            Assert.Equal("T", roundTripped[0].GenericArguments[0]);
         }
 
         [Fact]
-        public void Deserialize_WithCompleteFrames_PreservesAllFrameProperties() {
+        public void Deserialize_StackFrameCollection_FromKnownJson_MapsAllProperties() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new StackFrameCollection {
-                new StackFrame {
-                    FileName = "Service.cs",
-                    LineNumber = 42,
-                    Column = 13,
-                    IsSignatureTarget = true,
-                    DeclaringNamespace = "App.Services",
-                    DeclaringType = "UserService",
-                    Name = "GetUser",
-                    ModuleId = 1,
-                    GenericArguments = new GenericArguments { "T" },
-                    Parameters = new ParameterCollection {
-                        new Parameter { Name = "id", Type = "Int32", TypeNamespace = "System" }
+            const string json = CompleteJson;
+
+            // Act
+            StackFrameCollection stackFrames = Deserialize<StackFrameCollection>(json);
+
+            // Assert
+            Assert.Single(stackFrames);
+            Assert.Equal("TestFile.cs", stackFrames[0].FileName);
+            Assert.Equal(20, stackFrames[0].LineNumber);
+            Assert.Equal("StackFrameValue", stackFrames[0].Data["StackFrameKey"]);
+            Assert.Equal("U", stackFrames[0].Parameters[0].GenericArguments[0]);
+        }
+
+        private static StackFrame CreateStackFrame() {
+            return new StackFrame {
+                FileName = "TestFile.cs",
+                LineNumber = 20,
+                Column = 5,
+                IsSignatureTarget = true,
+                DeclaringNamespace = "TestNamespace",
+                DeclaringType = "TestClass",
+                Name = "InnerMethodName",
+                ModuleId = 1,
+                Data = {
+                    ["StackFrameKey"] = "StackFrameValue"
+                },
+                GenericArguments = new GenericArguments { "T" },
+                Parameters = new ParameterCollection {
+                    new Parameter {
+                        Name = "param1",
+                        Type = "System.String",
+                        TypeNamespace = "System",
+                        Data = {
+                            ["ParameterKey"] = "ParameterValue"
+                        },
+                        GenericArguments = new GenericArguments { "U" }
                     }
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (StackFrameCollection)serializer.Deserialize(json, typeof(StackFrameCollection));
-
-            // Assert
-            Assert.Single(deserialized);
-            var frame = deserialized[0];
-            Assert.Equal("Service.cs", frame.FileName);
-            Assert.Equal(42, frame.LineNumber);
-            Assert.Equal(13, frame.Column);
-            Assert.True(frame.IsSignatureTarget);
-            Assert.Equal("App.Services", frame.DeclaringNamespace);
-            Assert.Equal("UserService", frame.DeclaringType);
-            Assert.Equal("GetUser", frame.Name);
         }
     }
 }

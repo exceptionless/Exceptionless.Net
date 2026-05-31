@@ -1,111 +1,80 @@
 using System;
 using Exceptionless.Models;
-using Exceptionless.Models.Data;
-using Exceptionless.Serializer;
+using Exceptionless.Tests.Serializer;
 using Xunit;
+using Module = Exceptionless.Models.Data.Module;
 
 namespace Exceptionless.Tests.Serializer.Models {
-    public class ModuleCollectionSerializerTests {
-        protected virtual IJsonSerializer GetSerializer() {
-            return new DefaultJsonSerializer();
-        }
+    public class ModuleCollectionSerializerTests : SerializerTestBase {
+        private const string MinimalJson = /* lang=json */ """[]""";
+        private const string CompleteJson = /* lang=json */ """[{"module_id":1,"name":"TestModule","version":"1.0.0","is_entry":true,"created_date":"2023-05-01T12:00:00Z","modified_date":"2023-05-02T12:00:00Z","data":{"PublicKeyToken":"b03f5f7f11d50a3a"}}]""";
 
         [Fact]
-        public void Serialize_EmptyCollection_ProducesEmptyArray() {
+        public void Serialize_MinimalModuleCollection_ProducesCorrectJson() {
             // Arrange
-            var collection = new ModuleCollection();
-            var serializer = GetSerializer();
+            var modules = new ModuleCollection();
 
             // Act
-            string json = serializer.Serialize(collection);
+            string json = Serialize(modules);
 
             // Assert
-            Assert.Equal("[]", json);
+            Assert.Equal(MinimalJson, json);
         }
 
         [Fact]
-        public void Serialize_SingleModule_ProducesArrayWithOneElement() {
+        public void Serialize_CompleteModuleCollection_ProducesCorrectJson() {
             // Arrange
-            var collection = new ModuleCollection {
-                new Module { ModuleId = 1, Name = "App.dll", Version = "1.0.0" }
-            };
-            var serializer = GetSerializer();
+            var modules = new ModuleCollection { CreateModule() };
 
             // Act
-            string json = serializer.Serialize(collection);
+            string json = Serialize(modules);
 
             // Assert
-            Assert.Contains("\"module_id\":1", json);
-            Assert.Contains("\"name\":\"App.dll\"", json);
-            Assert.Contains("\"version\":\"1.0.0\"", json);
+            Assert.Equal(CompleteJson, json);
         }
 
         [Fact]
-        public void Deserialize_RoundTrip_MultipleModules_PreservesAll() {
+        public void Deserialize_ModuleCollection_RoundTrips() {
             // Arrange
-            var serializer = GetSerializer();
-            var original = new ModuleCollection {
-                new Module {
-                    ModuleId = 1,
-                    Name = "MyApp.dll",
-                    Version = "2.0.0",
-                    IsEntry = true,
-                    CreatedDate = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    ModifiedDate = new DateTime(2023, 6, 1, 0, 0, 0, DateTimeKind.Utc)
-                },
-                new Module {
-                    ModuleId = 2,
-                    Name = "System.Runtime.dll",
-                    Version = "6.0.0",
-                    IsEntry = false
-                },
-                new Module {
-                    ModuleId = 3,
-                    Name = "Newtonsoft.Json.dll",
-                    Version = "13.0.3",
-                    IsEntry = false,
-                    Data = { ["PublicKeyToken"] = "30ad4fe6b2a6aeed" }
+            var modules = new ModuleCollection { CreateModule() };
+
+            // Act
+            ModuleCollection roundTripped = RoundTrip(modules);
+
+            // Assert
+            Assert.Single(roundTripped);
+            Assert.Equal(1, roundTripped[0].ModuleId);
+            Assert.Equal("TestModule", roundTripped[0].Name);
+            Assert.Equal(new DateTime(2023, 5, 1, 12, 0, 0, DateTimeKind.Utc), roundTripped[0].CreatedDate);
+        }
+
+        [Fact]
+        public void Deserialize_ModuleCollection_FromKnownJson_MapsAllProperties() {
+            // Arrange
+            const string json = CompleteJson;
+
+            // Act
+            ModuleCollection modules = Deserialize<ModuleCollection>(json);
+
+            // Assert
+            Assert.Single(modules);
+            Assert.Equal(1, modules[0].ModuleId);
+            Assert.Equal("TestModule", modules[0].Name);
+            Assert.Equal("b03f5f7f11d50a3a", modules[0].Data["PublicKeyToken"]);
+        }
+
+        private static Module CreateModule() {
+            return new Module {
+                ModuleId = 1,
+                Name = "TestModule",
+                Version = "1.0.0",
+                IsEntry = true,
+                CreatedDate = new DateTime(2023, 5, 1, 12, 0, 0, DateTimeKind.Utc),
+                ModifiedDate = new DateTime(2023, 5, 2, 12, 0, 0, DateTimeKind.Utc),
+                Data = {
+                    ["PublicKeyToken"] = "b03f5f7f11d50a3a"
                 }
             };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ModuleCollection)serializer.Deserialize(json, typeof(ModuleCollection));
-
-            // Assert
-            Assert.Equal(3, deserialized.Count);
-            Assert.Equal("MyApp.dll", deserialized[0].Name);
-            Assert.True(deserialized[0].IsEntry);
-            Assert.Equal("System.Runtime.dll", deserialized[1].Name);
-            Assert.False(deserialized[1].IsEntry);
-            Assert.Equal("Newtonsoft.Json.dll", deserialized[2].Name);
-            Assert.Equal("13.0.3", deserialized[2].Version);
-        }
-
-        [Fact]
-        public void Deserialize_WithModuleData_PreservesDataDictionary() {
-            // Arrange
-            var serializer = GetSerializer();
-            var original = new ModuleCollection {
-                new Module {
-                    ModuleId = 1,
-                    Name = "Test.dll",
-                    Version = "1.0.0",
-                    Data = {
-                        ["PublicKeyToken"] = "b77a5c561934e089",
-                        ["Culture"] = "neutral"
-                    }
-                }
-            };
-
-            // Act
-            string json = serializer.Serialize(original);
-            var deserialized = (ModuleCollection)serializer.Deserialize(json, typeof(ModuleCollection));
-
-            // Assert
-            Assert.Single(deserialized);
-            Assert.NotNull(deserialized[0].Data);
-            Assert.Equal(2, deserialized[0].Data.Count);
         }
     }
 }
