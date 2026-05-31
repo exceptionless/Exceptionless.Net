@@ -625,6 +625,29 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
+        public void Serialize_DictionaryWithNestedObjectAtDepthLimit_ProducesValidJson() {
+            // Regression test: When a dictionary contains a nested complex object and
+            // the depth limit is reached, WriteValue returned without writing a value
+            // after the property name was already written. The error was silently swallowed
+            // by continueOnSerializationError, falling back to full serialization (violating
+            // the depth limit). This means depth limits don't work for dictionaries.
+            var serializer = GetSerializer();
+            var dict = new Dictionary<string, object> {
+                { "simple", "hello" },
+                { "nested", new Dictionary<string, object> { { "deep", "value" } } }
+            };
+
+            // maxDepth=1: top-level dict is written, nested complex values should be truncated
+            string json = serializer.Serialize(dict, null, maxDepth: 1);
+
+            // Must produce valid JSON
+            Assert.NotNull(json);
+            Assert.Contains("\"simple\":\"hello\"", json);
+            // The nested dictionary should NOT appear at depth (depth limit should be respected)
+            Assert.DoesNotContain("\"deep\"", json);
+        }
+
+        [Fact]
         public void Deserialize_Event_ShouldDeserializeReferenceIds() {
             // Arrange
             var serializer = GetSerializer();

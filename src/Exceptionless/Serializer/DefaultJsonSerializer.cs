@@ -95,11 +95,17 @@ namespace Exceptionless.Serializer {
                     string key = entry.Key?.ToString() ?? "";
                     if (hasExclusions && key.AnyWildcardMatches(exclusions, ignoreCase: true))
                         continue;
-                    writer.WritePropertyName(key);
-                    if (entry.Value == null)
+                    if (entry.Value == null) {
+                        writer.WritePropertyName(key);
                         writer.WriteNullValue();
-                    else
-                        WriteValue(writer, entry.Value, entry.Value.GetType(), exclusions, hasExclusions, maxDepth, currentDepth + 1);
+                    } else {
+                        Type entryType = entry.Value.GetType();
+                        // Skip complex values that would exceed max depth
+                        if (!IsPrimitiveType(entryType) && currentDepth + 1 >= maxDepth)
+                            continue;
+                        writer.WritePropertyName(key);
+                        WriteValue(writer, entry.Value, entryType, exclusions, hasExclusions, maxDepth, currentDepth + 1);
+                    }
                 }
                 writer.WriteEndObject();
                 return;
