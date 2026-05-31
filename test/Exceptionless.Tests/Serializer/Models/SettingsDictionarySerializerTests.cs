@@ -100,5 +100,18 @@ namespace Exceptionless.Tests.Serializer.Models {
             Assert.Equal(25, settings.GetInt32("max_events"));
             Assert.Equal(99, settings.GetInt32("invalid", 99));
         }
+
+        [Fact]
+        public void Deserialize_SettingsDictionary_PrimitiveJsonValuesBecomeStrings() {
+            // Regression test: main coerces primitive JSON values into strings when
+            // deserializing SettingsDictionary. The STJ converter must preserve that behavior.
+            const string json = """{"max_events":25,"is_enabled":true,"threshold":3.14}""";
+
+            SettingsDictionary settings = Deserialize<SettingsDictionary>(json);
+
+            Assert.Equal("25", settings["max_events"]);
+            Assert.Equal("true", settings["is_enabled"]);
+            Assert.Equal("3.14", settings["threshold"]);
+        }
     }
 }

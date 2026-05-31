@@ -26,7 +26,16 @@ namespace Exceptionless.Serializer {
                 if (!reader.Read())
                     throw new JsonException("Unexpected end of JSON");
 
-                string value = reader.TokenType == JsonTokenType.Null ? null : reader.GetString();
+                string value;
+                if (reader.TokenType == JsonTokenType.Null) {
+                    value = null;
+                } else if (reader.TokenType == JsonTokenType.String) {
+                    value = reader.GetString();
+                } else {
+                    using (var doc = JsonDocument.ParseValue(ref reader))
+                        value = doc.RootElement.GetRawText();
+                }
+
                 dictionary[key] = value;
             }
 

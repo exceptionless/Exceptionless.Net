@@ -135,7 +135,10 @@ namespace Exceptionless {
             if (String.IsNullOrEmpty(json))
                 return;
 
-            data.Data[name] = json;
+            if (dataType.IsPrimitiveType())
+                data.Data[name] = json;
+            else
+                data.Data.SetRawJson(name, json);
         }
     }
 }
