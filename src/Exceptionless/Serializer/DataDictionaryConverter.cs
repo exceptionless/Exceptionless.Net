@@ -33,7 +33,7 @@ namespace Exceptionless.Serializer {
                     case JsonTokenType.StartArray:
                         // Store complex values as JSON strings (legacy behavior)
                         using (var doc = JsonDocument.ParseValue(ref reader))
-                            dictionary[key] = doc.RootElement.GetRawText();
+                            dictionary.SetRawJson(key, doc.RootElement.GetRawText());
                         break;
                     case JsonTokenType.String:
                         dictionary[key] = reader.GetString();
@@ -72,7 +72,7 @@ namespace Exceptionless.Serializer {
                 writer.WritePropertyName(kvp.Key);
                 if (kvp.Value == null) {
                     writer.WriteNullValue();
-                } else if (kvp.Value is string str && str.Length > 0 && (str[0] == '{' || str[0] == '[')) {
+                } else if (value.IsRawJson(kvp.Key) && kvp.Value is string str && str.Length > 0 && (str[0] == '{' || str[0] == '[')) {
                     // String values that contain JSON (from roundtripping through storage)
                     // must be emitted as raw JSON objects, not escaped strings.
                     try {

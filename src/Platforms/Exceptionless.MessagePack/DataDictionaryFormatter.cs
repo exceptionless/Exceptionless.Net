@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using MessagePack;
@@ -6,6 +7,8 @@ using MessagePack.Formatters;
 
 namespace Exceptionless.MessagePack {
     internal class DataDictionaryFormatter : IMessagePackFormatter<DataDictionary?> {
+        private const string RawJsonPrefix = "\u001Eexceptionless:raw-json:";
+
         public void Serialize(ref MessagePackWriter writer, DataDictionary? value, MessagePackSerializerOptions options) {
             if (value == null) {
                 writer.WriteNil();
@@ -58,8 +61,13 @@ namespace Exceptionless.MessagePack {
                         writer.Write((string)item.Value);
                         break;
                     default:
-                        options.Resolver.GetFormatter<object>()
-                            .Serialize(ref writer, item.Value, options);
+                        if (value.IsRawJson(item.Key) && item.Value is string rawJson) {
+                            writer.Write(RawJsonPrefix + rawJson);
+                        } else {
+                            options.Resolver.GetFormatter<object>()
+                                .Serialize(ref writer, item.Value, options);
+                        }
+
                         break;
                 }
             }
@@ -138,7 +146,10 @@ namespace Exceptionless.MessagePack {
 #endif
                     default: {
                             var value = options.Resolver.GetFormatter<object>().Deserialize(ref reader, options);
-                            dic.Add(key, value);
+                            if (value is string rawJson && rawJson.StartsWith(RawJsonPrefix, StringComparison.Ordinal))
+                                dic.SetRawJson(key, rawJson.Substring(RawJsonPrefix.Length));
+                            else
+                                dic.Add(key, value);
                             break;
                         }
                 }

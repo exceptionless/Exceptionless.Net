@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Exceptionless.Models;
 using Exceptionless.Tests.Serializer;
 using Xunit;
@@ -106,6 +107,23 @@ namespace Exceptionless.Tests.Serializer.Models {
 
             // Assert
             Assert.Equal(expected, data["items"]);
+        }
+
+        [Fact]
+        public void Serialize_DataDictionary_LiteralJsonString_RemainsString() {
+            // Regression test: literal string values that happen to look like JSON
+            // must stay strings on the wire. Only values produced from complex objects
+            // should be emitted as raw JSON.
+            var data = new DataDictionary {
+                ["payload"] = """{"a":1}""",
+                ["items"] = """[1,2]"""
+            };
+
+            string json = Serialize(data);
+
+            using var doc = JsonDocument.Parse(json);
+            Assert.Equal("""{"a":1}""", doc.RootElement.GetProperty("payload").GetString());
+            Assert.Equal("[1,2]", doc.RootElement.GetProperty("items").GetString());
         }
     }
 }
