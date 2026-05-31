@@ -72,6 +72,15 @@ namespace Exceptionless.Serializer {
                 writer.WritePropertyName(kvp.Key);
                 if (kvp.Value == null) {
                     writer.WriteNullValue();
+                } else if (kvp.Value is string str && str.Length > 0 && (str[0] == '{' || str[0] == '[')) {
+                    // String values that contain JSON (from roundtripping through storage)
+                    // must be emitted as raw JSON objects, not escaped strings.
+                    try {
+                        writer.WriteRawValue(str);
+                    } catch (JsonException) {
+                        // Not valid JSON - write as a normal string
+                        writer.WriteStringValue(str);
+                    }
                 } else {
                     JsonSerializer.Serialize(writer, kvp.Value, kvp.Value.GetType(), options);
                 }

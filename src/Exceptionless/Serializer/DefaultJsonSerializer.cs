@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -17,11 +16,10 @@ namespace Exceptionless.Serializer {
         public DefaultJsonSerializer() {
             _serializerOptions = new JsonSerializerOptions {
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                 PropertyNameCaseInsensitive = true,
                 NumberHandling = JsonNumberHandling.AllowReadingFromString,
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver {
-                    Modifiers = { ApplySnakeCaseToExceptionlessModels }
-                }
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
             };
 
             _serializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -182,23 +180,5 @@ namespace Exceptionless.Serializer {
             return JsonSerializer.Deserialize(json, type, _serializerOptions);
         }
 
-        private static void ApplySnakeCaseToExceptionlessModels(JsonTypeInfo typeInfo) {
-            if (typeInfo.Kind != JsonTypeInfoKind.Object)
-                return;
-
-            // Apply snake_case naming to types in Exceptionless.Models namespace
-            string ns = typeInfo.Type.Namespace;
-            if (ns == null || !ns.StartsWith("Exceptionless.Models"))
-                return;
-
-            foreach (var property in typeInfo.Properties) {
-                // Don't override explicit [JsonPropertyName] attributes
-                var jsonPropAttr = property.AttributeProvider?.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false);
-                if (jsonPropAttr != null && jsonPropAttr.Length > 0)
-                    continue;
-
-                property.Name = SnakeCaseNamingPolicy.Instance.ConvertName(property.Name);
-            }
-        }
     }
 }
