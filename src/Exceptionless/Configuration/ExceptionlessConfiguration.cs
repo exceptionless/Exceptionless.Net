@@ -34,7 +34,12 @@ namespace Exceptionless {
         private int _submissionBatchSize;
         private ValidationResult _validationResult;
         private TimeSpan? _updateSettingsWhenIdleInterval;
-        private readonly List<string> _exclusions = new List<string>();
+
+        // Default Exclusions for WinRT
+        private readonly List<string> _exclusions = new List<string>() {
+            "__Restricted*",
+            "Restricted*"
+        };
         private readonly List<string> _userAgentBotPatterns = new List<string>();
         private readonly List<Func<Event, bool>> _eventExclusions = new List<Func<Event, bool>>();
 
