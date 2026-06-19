@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup Label="Package References" Condition=" '$(TargetFramework)' == 'net8.0' ">
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
   </ItemGroup>
 
   <ItemGroup Label="Package References" Condition=" '$(TargetFramework)' == 'net9.0' ">
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
   </ItemGroup>
 
   <ItemGroup Label="Package References" Condition=" '$(TargetFramework)' == 'net10.0' ">
