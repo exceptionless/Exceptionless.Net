@@ -19,6 +19,7 @@
     <Project Path="samples/Exceptionless.SampleHosting/Exceptionless.SampleHosting.csproj" />
     <Project Path="samples/Exceptionless.SampleLambda/Exceptionless.SampleLambda.csproj" />
     <Project Path="samples/Exceptionless.SampleLambdaAspNetCore/Exceptionless.SampleLambdaAspNetCore.csproj" />
+    <Project Path="samples/Exceptionless.SampleMaui/Exceptionless.SampleMaui.csproj" />
     <Project Path="samples/Exceptionless.SampleMvc/Exceptionless.SampleMvc.csproj">
       <BuildDependency Project="src/Exceptionless/Exceptionless.csproj" />
       <BuildDependency Project="src/Platforms/Exceptionless.Mvc/Exceptionless.Mvc.csproj" />
