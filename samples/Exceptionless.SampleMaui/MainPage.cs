@@ -1,16 +1,18 @@
-using Exceptionless.Logging;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace Exceptionless.SampleMaui;
 
 public sealed class MainPage : ContentPage {
     private readonly ExceptionlessClient _exceptionlessClient;
+    private readonly SampleEventService _sampleEvents;
     private readonly Label _statusLabel;
     private readonly Label _lastReferenceIdLabel;
+    private readonly Label _configLabel;
     private readonly ActivityIndicator _activityIndicator;
 
-    public MainPage(ExceptionlessClient exceptionlessClient) {
+    public MainPage(ExceptionlessClient exceptionlessClient, SampleEventService sampleEvents) {
         _exceptionlessClient = exceptionlessClient;
+        _sampleEvents = sampleEvents;
 
         Title = "Exceptionless";
         BackgroundColor = Color.FromArgb("#F6F8FA");
@@ -29,6 +31,13 @@ public sealed class MainPage : ContentPage {
             LineBreakMode = LineBreakMode.TailTruncation
         };
 
+        _configLabel = new Label {
+            Text = $"Config {SampleEventService.SampleConfigSettingKey}: not loaded",
+            FontSize = 13,
+            TextColor = Color.FromArgb("#576575"),
+            LineBreakMode = LineBreakMode.TailTruncation
+        };
+
         _activityIndicator = new ActivityIndicator {
             IsVisible = false,
             Color = Color.FromArgb("#276749")
@@ -38,6 +47,7 @@ public sealed class MainPage : ContentPage {
     }
 
     private View BuildContent() {
+        var refreshConfigButton = CreateActionButton("Refresh Config", OnRefreshConfigClicked);
         var sendExceptionButton = CreateActionButton("Send Handled Exception", OnSendExceptionClicked);
         var sendLogButton = CreateActionButton("Send Warning Log", OnSendLogClicked);
         var trackFeatureButton = CreateActionButton("Track Feature", OnTrackFeatureClicked);
@@ -88,22 +98,15 @@ public sealed class MainPage : ContentPage {
                                 },
                                 _statusLabel,
                                 _lastReferenceIdLabel,
+                                _configLabel,
                                 _activityIndicator
                             }
                         }
                     },
-                    new Grid {
-                        ColumnDefinitions = {
-                            new ColumnDefinition { Width = GridLength.Star },
-                            new ColumnDefinition { Width = GridLength.Star }
-                        },
-                        RowDefinitions = {
-                            new RowDefinition { Height = GridLength.Auto },
-                            new RowDefinition { Height = GridLength.Auto }
-                        },
-                        ColumnSpacing = 12,
-                        RowSpacing = 12,
+                    new VerticalStackLayout {
+                        Spacing = 12,
                         Children = {
+                            refreshConfigButton,
                             sendExceptionButton,
                             sendLogButton,
                             trackFeatureButton,
@@ -129,20 +132,16 @@ public sealed class MainPage : ContentPage {
         return button;
     }
 
+    private async void OnRefreshConfigClicked(object? sender, EventArgs e) {
+        await RunClientActionAsync("Configuration refreshed.", async () => {
+            await _sampleEvents.RefreshProjectConfigurationAsync();
+            SetConfigValue(_sampleEvents.GetSampleConfigValue());
+        });
+    }
+
     private async void OnSendExceptionClicked(object? sender, EventArgs e) {
         await RunClientActionAsync("Handled exception queued.", () => {
-            string referenceId = Guid.NewGuid().ToString("N");
-
-            try {
-                throw new InvalidOperationException("Exceptionless MAUI sample handled exception.");
-            } catch (Exception ex) {
-                ex.ToExceptionless(_exceptionlessClient)
-                    .SetReferenceId(referenceId)
-                    .AddTags("handled")
-                    .SetProperty("Screen", nameof(MainPage))
-                    .Submit();
-            }
-
+            string referenceId = _sampleEvents.SubmitHandledException();
             SetLastReferenceId(referenceId);
             return Task.CompletedTask;
         });
@@ -150,22 +149,20 @@ public sealed class MainPage : ContentPage {
 
     private async void OnSendLogClicked(object? sender, EventArgs e) {
         await RunClientActionAsync("Warning log queued.", () => {
-            _exceptionlessClient.SubmitLog("Exceptionless.SampleMaui.MainPage", "MAUI sample warning log.", LogLevel.Warn);
-            SetLastReferenceId(_exceptionlessClient.GetLastReferenceId());
+            SetLastReferenceId(_sampleEvents.SubmitWarningLog());
             return Task.CompletedTask;
         });
     }
 
     private async void OnTrackFeatureClicked(object? sender, EventArgs e) {
         await RunClientActionAsync("Feature usage queued.", () => {
-            _exceptionlessClient.SubmitFeatureUsage("MauiSample.TrackFeature");
-            SetLastReferenceId(_exceptionlessClient.GetLastReferenceId());
+            SetLastReferenceId(_sampleEvents.TrackFeatureUsage());
             return Task.CompletedTask;
         });
     }
 
     private async void OnFlushClicked(object? sender, EventArgs e) {
-        await RunClientActionAsync("Queue processed.", () => _exceptionlessClient.ProcessQueueAsync());
+        await RunClientActionAsync("Queue processed.", () => _sampleEvents.FlushQueueAsync());
     }
 
     private async Task RunClientActionAsync(string successMessage, Func<Task> action) {
@@ -177,7 +174,9 @@ public sealed class MainPage : ContentPage {
             await action();
 
             _statusLabel.Text = successMessage;
-        } catch (Exception ex) {
+        } catch (InvalidOperationException ex) {
+            _statusLabel.Text = $"Error: {ex.Message}";
+        } catch (TaskCanceledException ex) {
             _statusLabel.Text = $"Error: {ex.Message}";
         } finally {
             _activityIndicator.IsRunning = false;
@@ -189,5 +188,9 @@ public sealed class MainPage : ContentPage {
         _lastReferenceIdLabel.Text = String.IsNullOrEmpty(referenceId)
             ? "Last reference id: none"
             : $"Last reference id: {referenceId}";
+    }
+
+    private void SetConfigValue(string value) {
+        _configLabel.Text = $"Config {SampleEventService.SampleConfigSettingKey}: {value}";
     }
 }
