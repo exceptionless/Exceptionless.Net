@@ -16,6 +16,8 @@ public static class MauiProgram {
             .UseMauiApp<App>();
 
         builder.Services.AddSingleton(exceptionlessClient);
+        builder.Services.AddSingleton<SampleEventService>();
+        builder.Services.AddSingleton<SampleDogfoodRunner>();
         builder.Services.AddSingleton<MainPage>();
 
         return builder.Build();

@@ -18,6 +18,10 @@ export EXCEPTIONLESS_SERVER_URL="https://collector.exceptionless.io"
 
 Events are queued under `FileSystem.Current.AppDataDirectory`, `IncludePrivateInformation` is disabled, and the sample has an explicit **Flush Queue** action. The app also asks the client to process the queue when the MAUI application goes to sleep.
 
+Use **Refresh Config** to force a project configuration fetch. The page shows the `SampleMaui.ConfigValue` server setting after it is loaded.
+
+For command-line dogfooding, set `EXCEPTIONLESS_SAMPLE_AUTORUN=true` and optionally `EXCEPTIONLESS_SAMPLE_AUTORUN_RESULT_PATH` before launching the app. Autorun refreshes project configuration, submits a handled exception, submits a warning log, tracks feature usage, flushes the queue, and writes a small result file when a result path is supplied.
+
 ## Run
 
 Install the MAUI workload for the .NET SDK used by this repository, then run a target supported by your machine:
