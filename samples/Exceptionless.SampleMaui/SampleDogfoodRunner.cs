@@ -17,8 +17,8 @@ public sealed class SampleDogfoodRunner {
             await _sampleEvents.RefreshProjectConfigurationAsync();
             string configValue = _sampleEvents.GetSampleConfigValue();
             string exceptionReferenceId = _sampleEvents.SubmitHandledException();
-            string? logReferenceId = _sampleEvents.SubmitWarningLog();
-            string? featureReferenceId = _sampleEvents.TrackFeatureUsage();
+            string logReferenceId = _sampleEvents.SubmitWarningLog();
+            string featureReferenceId = _sampleEvents.TrackFeatureUsage();
             await _sampleEvents.FlushQueueAsync();
 
             WriteResult(resultPath,
@@ -41,8 +41,10 @@ public sealed class SampleDogfoodRunner {
         // Autorun should still exercise the client if a platform sandbox rejects the result path.
         try {
             File.WriteAllLines(path, lines);
-        } catch (IOException) {
-        } catch (UnauthorizedAccessException) {
+        } catch (IOException ex) {
+            System.Diagnostics.Debug.WriteLine($"Unable to write Exceptionless MAUI sample dogfood result: {ex}");
+        } catch (UnauthorizedAccessException ex) {
+            System.Diagnostics.Debug.WriteLine($"Unable to write Exceptionless MAUI sample dogfood result: {ex}");
         }
     }
 }
