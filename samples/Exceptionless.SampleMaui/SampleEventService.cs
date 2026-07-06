@@ -28,14 +28,24 @@ public sealed class SampleEventService {
         return referenceId;
     }
 
-    public string? SubmitWarningLog() {
-        _exceptionlessClient.SubmitLog("Exceptionless.SampleMaui.MainPage", "MAUI sample warning log.", LogLevel.Warn);
-        return _exceptionlessClient.GetLastReferenceId();
+    public string SubmitWarningLog() {
+        string referenceId = Guid.NewGuid().ToString("N");
+
+        _exceptionlessClient.CreateLog("Exceptionless.SampleMaui.MainPage", "MAUI sample warning log.", LogLevel.Warn)
+            .SetReferenceId(referenceId)
+            .Submit();
+
+        return referenceId;
     }
 
-    public string? TrackFeatureUsage() {
-        _exceptionlessClient.SubmitFeatureUsage("MauiSample.TrackFeature");
-        return _exceptionlessClient.GetLastReferenceId();
+    public string TrackFeatureUsage() {
+        string referenceId = Guid.NewGuid().ToString("N");
+
+        _exceptionlessClient.CreateFeatureUsage("MauiSample.TrackFeature")
+            .SetReferenceId(referenceId)
+            .Submit();
+
+        return referenceId;
     }
 
     public async Task RefreshProjectConfigurationAsync() {

@@ -35,8 +35,8 @@ public static class MauiProgram {
             config.DefaultData["Platform"] = DeviceInfo.Current.Platform.ToString();
             config.DefaultData["DeviceIdiom"] = DeviceInfo.Current.Idiom.ToString();
             config.SetVersion(AppInfo.Current.VersionString);
-            config.UseFolderStorage(Path.Combine(appDataDirectory, "exceptionless-queue"));
-            config.UseFileLogger(Path.Combine(appDataDirectory, "exceptionless-client.log"), LogLevel.Info);
+            config.UseFolderStorage(Path.Join(appDataDirectory, "exceptionless-queue"));
+            config.UseFileLogger(Path.Join(appDataDirectory, "exceptionless-client.log"), LogLevel.Info);
         });
 
         client.Startup();
