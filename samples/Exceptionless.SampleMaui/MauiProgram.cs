@@ -6,7 +6,8 @@ namespace Exceptionless.SampleMaui;
 
 public static class MauiProgram {
     private const string DefaultApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
-    private const string DefaultServerUrl = "https://ex.dev.localhost:7111";
+    private const string DefaultServerUrl = "http://localhost:7110";
+    private const string AndroidEmulatorServerUrl = "http://10.0.2.2:7110";
 
     public static MauiApp CreateMauiApp() {
         var builder = MauiApp.CreateBuilder();
@@ -28,7 +29,7 @@ public static class MauiProgram {
 
         var client = new ExceptionlessClient(config => {
             config.ApiKey = Environment.GetEnvironmentVariable("EXCEPTIONLESS_API_KEY") ?? DefaultApiKey;
-            config.ServerUrl = Environment.GetEnvironmentVariable("EXCEPTIONLESS_SERVER_URL") ?? DefaultServerUrl;
+            config.ServerUrl = GetServerUrl();
             config.IncludePrivateInformation = false;
             config.DefaultTags.Add("maui");
             config.DefaultTags.Add("sample");
@@ -41,5 +42,15 @@ public static class MauiProgram {
 
         client.Startup();
         return client;
+    }
+
+    private static string GetServerUrl() {
+        string? configuredServerUrl = Environment.GetEnvironmentVariable("EXCEPTIONLESS_SERVER_URL");
+        if (!String.IsNullOrWhiteSpace(configuredServerUrl))
+            return configuredServerUrl;
+
+        return DeviceInfo.Current.Platform == DevicePlatform.Android && DeviceInfo.Current.DeviceType == DeviceType.Virtual
+            ? AndroidEmulatorServerUrl
+            : DefaultServerUrl;
     }
 }
