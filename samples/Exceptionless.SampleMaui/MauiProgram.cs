@@ -1,0 +1,56 @@
+using Exceptionless.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui.Storage;
+
+namespace Exceptionless.SampleMaui;
+
+public static class MauiProgram {
+    private const string DefaultApiKey = "LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest";
+    private const string DefaultServerUrl = "http://localhost:7110";
+    private const string AndroidEmulatorServerUrl = "http://10.0.2.2:7110";
+
+    public static MauiApp CreateMauiApp() {
+        var builder = MauiApp.CreateBuilder();
+        var exceptionlessClient = CreateExceptionlessClient();
+
+        builder
+            .UseMauiApp<App>();
+
+        builder.Services.AddSingleton(exceptionlessClient);
+        builder.Services.AddSingleton<SampleEventService>();
+        builder.Services.AddSingleton<SampleDogfoodRunner>();
+        builder.Services.AddSingleton<MainPage>();
+
+        return builder.Build();
+    }
+
+    private static ExceptionlessClient CreateExceptionlessClient() {
+        string appDataDirectory = FileSystem.Current.AppDataDirectory;
+
+        var client = new ExceptionlessClient(config => {
+            config.ApiKey = Environment.GetEnvironmentVariable("EXCEPTIONLESS_API_KEY") ?? DefaultApiKey;
+            config.ServerUrl = GetServerUrl();
+            config.IncludePrivateInformation = false;
+            config.DefaultTags.Add("maui");
+            config.DefaultTags.Add("sample");
+            config.DefaultData["Platform"] = DeviceInfo.Current.Platform.ToString();
+            config.DefaultData["DeviceIdiom"] = DeviceInfo.Current.Idiom.ToString();
+            config.SetVersion(AppInfo.Current.VersionString);
+            config.UseFolderStorage(Path.Join(appDataDirectory, "exceptionless-queue"));
+            config.UseFileLogger(Path.Join(appDataDirectory, "exceptionless-client.log"), LogLevel.Info);
+        });
+
+        client.Startup();
+        return client;
+    }
+
+    private static string GetServerUrl() {
+        string? configuredServerUrl = Environment.GetEnvironmentVariable("EXCEPTIONLESS_SERVER_URL");
+        if (!String.IsNullOrWhiteSpace(configuredServerUrl))
+            return configuredServerUrl;
+
+        return DeviceInfo.Current.Platform == DevicePlatform.Android && DeviceInfo.Current.DeviceType == DeviceType.Virtual
+            ? AndroidEmulatorServerUrl
+            : DefaultServerUrl;
+    }
+}
