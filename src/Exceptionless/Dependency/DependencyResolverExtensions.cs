@@ -45,6 +45,11 @@ namespace Exceptionless.Dependency {
             if (resolver == null)
                 throw new ArgumentNullException(nameof(resolver));
 
+            if (resolver is DefaultDependencyResolver defaultResolver) {
+                defaultResolver.RegisterInstance(typeof(TService), implementation);
+                return;
+            }
+
             resolver.Register(typeof(TService), () => implementation);
         }
 

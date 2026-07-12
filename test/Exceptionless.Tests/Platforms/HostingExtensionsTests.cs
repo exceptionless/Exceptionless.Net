@@ -1,5 +1,6 @@
 #if NET10_0_OR_GREATER
 using System.Linq;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,6 +44,21 @@ namespace Exceptionless.Tests.Platforms {
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessLifetimeService));
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedService));
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedLifecycleService));
+        }
+
+        [Fact]
+        public void DisposingHostProvider_DoesNotDisposeDefaultClient() {
+            // Arrange
+            var builder = Host.CreateApplicationBuilder();
+            builder.AddExceptionless();
+
+            // Act
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            serviceProvider.GetRequiredService<ExceptionlessClient>();
+            serviceProvider.Dispose();
+
+            // Assert
+            Assert.NotNull(ExceptionlessClient.Default.Configuration.Resolver.GetJsonSerializer());
         }
     }
 }
