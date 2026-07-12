@@ -9,6 +9,7 @@ using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Queue;
 using Exceptionless.Submission;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Exceptionless {
     public class ExceptionlessClient : IDisposable {
@@ -29,13 +30,22 @@ namespace Exceptionless {
                 configure(Configuration);
         }
 
+        /// <summary>
+        /// Creates an isolated client whose internal services can be customized with Microsoft.Extensions.DependencyInjection.
+        /// </summary>
+        /// <param name="services">Services that should be added to or override the client defaults.</param>
+        /// <param name="configure">An optional callback used to configure the client before it starts submitting events.</param>
+        public ExceptionlessClient(IServiceCollection services, Action<ExceptionlessConfiguration> configure = null) : this(new ExceptionlessConfiguration(DependencyResolver.CreateDefault(services))) {
+            configure?.Invoke(Configuration);
+        }
+
         public ExceptionlessClient(ExceptionlessConfiguration configuration) {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
 
             Configuration = configuration;
             Configuration.Changed += OnConfigurationChanged;
-            Configuration.Resolver.Register(typeof(ExceptionlessConfiguration), () => Configuration);
+            Configuration.Resolver.Register(Configuration);
 
             _log = new Lazy<IExceptionlessLog>(() => Configuration.Resolver.GetLog());
             _queue = new Lazy<IEventQueue>(() => {
@@ -284,6 +294,11 @@ namespace Exceptionless {
         }
 
         void IDisposable.Dispose() {
+            // The process-wide client can be registered as an externally owned singleton in a host.
+            // A host service provider must not make ExceptionlessClient.Default unusable for the rest of the process.
+            if (_defaultClient.IsValueCreated && ReferenceEquals(_defaultClient.Value, this))
+                return;
+
             Configuration.Changed -= OnConfigurationChanged;
             if (_queue.IsValueCreated)
                 _queue.Value.EventsPosted -= OnQueueEventsPosted;
