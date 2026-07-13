@@ -40,7 +40,11 @@ namespace Exceptionless.Extensions {
             var error = new SimpleError {
                 Message = exception.GetMessage(typeName),
                 Type = typeName,
+#if NET8_0_OR_GREATER
+                StackTrace = exception.StackTrace
+#else
                 StackTrace = exception.Demystify().StackTrace
+#endif
             };
 
             if (!isInner && client.Configuration.IncludeModules)

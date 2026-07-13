@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Exceptionless.Dependency {
@@ -28,7 +30,7 @@ namespace Exceptionless.Dependency {
             AddServices(services);
         }
 
-        public object Resolve(Type serviceType) {
+        public object Resolve([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType) {
             if (serviceType == null)
                 throw new ArgumentNullException(nameof(serviceType));
 
@@ -44,7 +46,7 @@ namespace Exceptionless.Dependency {
             }
         }
 
-        public void Register(Type serviceType, Type concreteType) {
+        public void Register(Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type concreteType) {
             if (serviceType == null)
                 throw new ArgumentNullException(nameof(serviceType));
             if (concreteType == null)
@@ -151,7 +153,7 @@ namespace Exceptionless.Dependency {
             return _provider;
         }
 
-        private object CreateInstance(IServiceProvider provider, Type concreteType) {
+        private object CreateInstance(IServiceProvider provider, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType) {
             return ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType);
         }
 
@@ -175,7 +177,7 @@ namespace Exceptionless.Dependency {
             return !type.IsAbstract && !type.IsInterface && !type.ContainsGenericParameters;
         }
 
-        private static bool CanAssign(Type serviceType, Type concreteType) {
+        private static bool CanAssign(Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type concreteType) {
             if (!serviceType.IsGenericTypeDefinition)
                 return serviceType.IsAssignableFrom(concreteType);
 
@@ -202,6 +204,7 @@ namespace Exceptionless.Dependency {
                 _provider = provider;
             }
 
+            [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "The unannotated IServiceProvider contract cannot express constructor requirements. NativeAOT rejects this dynamic fallback before activation; AOT callers must register the service.")]
             public object GetService(Type serviceType) {
                 if (serviceType == typeof(IServiceProvider))
                     return this;
@@ -210,7 +213,15 @@ namespace Exceptionless.Dependency {
                 if (service != null)
                     return service;
 
-                return CanActivate(serviceType) ? _resolver.CreateInstance(_provider, serviceType) : null;
+                if (!CanActivate(serviceType))
+                    return null;
+
+#if NET8_0_OR_GREATER
+                if (!RuntimeFeature.IsDynamicCodeSupported)
+                    throw new NotSupportedException($"Type '{serviceType.FullName}' must be registered before it can be resolved in a NativeAOT application.");
+#endif
+
+                return _resolver.CreateInstance(_provider, serviceType);
             }
         }
     }

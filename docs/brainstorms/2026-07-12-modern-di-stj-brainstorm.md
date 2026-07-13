@@ -23,12 +23,12 @@ The STJ migration already exists as four focused commits on `niemyjski/drop-json
 - Allow explicit `IServiceCollection` customization before the resolver is used.
 - Keep Exceptionless' internally owned provider isolated from an application's root provider; hosted apps continue resolving `ExceptionlessClient` from application DI.
 - Treat serialized JSON as a compatibility contract, not merely valid JSON.
-- Keep STJ converters reflection-based for `netstandard2.0` and `net462` compatibility; source generation can be a later optimization.
+- Keep reflection fallback for `netstandard2.0` and `net462`, but use built-in source-generated metadata for the modern `net8.0` and `net10.0` assets. NativeAOT consumers register an additional `JsonSerializerContext` for their own payload types.
 
 ## Open Questions
 
 - Removing `IDependencyResolver` and making every internal service directly application-DI-owned is deferred to a future major version.
-- A separate performance benchmark can decide whether STJ source generation is worth the additional model metadata surface.
+- NativeAOT deliberately uses ordinary runtime stack traces instead of the bundled IL/PDB demystifier because the latter depends on metadata that trimming removes.
 
 ## Next Steps
 

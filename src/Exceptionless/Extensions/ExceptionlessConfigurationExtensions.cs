@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Security;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Plugins.Default;
@@ -436,12 +438,21 @@ namespace Exceptionless {
             string storageSerializer = section["StorageSerializer"];
             if (!String.IsNullOrEmpty(storageSerializer)) {
                 try {
-                    var serializerType = Type.GetType(storageSerializer);
-                    if (!typeof(IStorageSerializer).GetTypeInfo().IsAssignableFrom(serializerType)) {
-                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"The storage serializer {storageSerializer} does not implemented interface {typeof(IStorageSerializer)}.");
+                    Type serializerType = null;
+#if NET8_0_OR_GREATER
+                    if (!RuntimeFeature.IsDynamicCodeSupported) {
+                        config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), "StorageSerializer cannot be activated from a type name in NativeAOT. Register IStorageSerializer with IServiceCollection instead.");
                     }
-                    else {
-                        config.Resolver.Register(typeof(IStorageSerializer), serializerType);
+                    else
+                        serializerType = ResolveConfiguredType(storageSerializer);
+#else
+                    serializerType = ResolveConfiguredType(storageSerializer);
+#endif
+                    if (serializerType != null) {
+                        if (!typeof(IStorageSerializer).GetTypeInfo().IsAssignableFrom(serializerType))
+                            config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"The storage serializer {storageSerializer} does not implement interface {typeof(IStorageSerializer)}.");
+                        else
+                            config.Resolver.Register(typeof(IStorageSerializer), serializerType);
                     }
                 }
                 catch (Exception ex) {
@@ -476,6 +487,10 @@ namespace Exceptionless {
 
             // TODO: Support Registrations
         }
+
+        [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "This configuration-only dynamic type path is rejected in NativeAOT. Trimmed JIT applications must preserve types named in configuration.")]
+        [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)]
+        private static Type ResolveConfiguredType(string typeName) => Type.GetType(typeName);
 #endif
 
         /// <summary>

@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -54,9 +56,13 @@ namespace Exceptionless {
             error.PopulateStackTrace(error, exception, log);
 
             try {
+#if NET8_0_OR_GREATER
+                error.Code = exception.HResult.ToString();
+#else
                 PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
                 if (info != null)
                     error.Code = info.GetValue(exception, null).ToString();
+#endif
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating HResult Code: " + ex.Message);
             }
@@ -154,8 +160,10 @@ namespace Exceptionless {
                         continue;
 
                     try {
+#if !NET8_0_OR_GREATER
                         if (!includeDynamic && String.IsNullOrEmpty(assembly.Location))
                             continue;
+#endif
                     } catch (SecurityException ex) {
                         const string message = "An error occurred while getting the Assembly.Location value. This error will occur when when you are not running under full trust.";
                         log.Error(typeof(ExceptionlessClient), ex, message);
@@ -188,10 +196,15 @@ namespace Exceptionless {
             return modules;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Method metadata enrichment is best-effort and skipped when dynamic code is unavailable; file and line stack data remains available.")]
         private static void PopulateStackTrace(this Error error, Error root, Exception exception, IExceptionlessLog log) {
             StackFrame[] frames = null;
             try {
+#if NET8_0_OR_GREATER
+                var st = new StackTrace(exception, true);
+#else
                 var st = new EnhancedStackTrace(exception);
+#endif
                 frames = st.GetFrames();
             }
             catch (Exception ex) {
@@ -220,6 +233,9 @@ namespace Exceptionless {
                 }
 
                 try {
+#if NET8_0_OR_GREATER
+                    if (RuntimeFeature.IsDynamicCodeSupported)
+#endif
                     stackFrame.PopulateMethod(root, frame.GetMethod());
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame method info: " + ex.Message);

@@ -82,6 +82,7 @@ namespace Exceptionless.Utility {
             return ((AssemblyTitleAttribute)attributes[0]).Title;
         }
 
+#if NET45
         public static List<Type> GetTypes(IExceptionlessLog log) {
             var types = new List<Type>();
 
@@ -99,5 +100,6 @@ namespace Exceptionless.Utility {
 
             return types;
         }
+#endif
     }
 }

@@ -287,7 +287,10 @@ namespace Exceptionless.Logging {
 
                 for (long position = 1; position < endPosition; position++) {
                     fs.Value.Seek(-position, SeekOrigin.End);
-                    fs.Value.Read(buffer, 0, 1);
+                    int value = fs.Value.ReadByte();
+                    if (value < 0)
+                        break;
+                    buffer[0] = (byte)value;
 
                     if (buffer[0] != '\n')
                         continue;
@@ -297,7 +300,7 @@ namespace Exceptionless.Logging {
                         continue;
 
                     byte[] returnBuffer = new byte[fs.Value.Length - fs.Value.Position];
-                    fs.Value.Read(returnBuffer, 0, returnBuffer.Length);
+                    ReadExactly(fs.Value, returnBuffer);
 
                     return Encoding.ASCII.GetString(returnBuffer);
                 }
@@ -305,9 +308,19 @@ namespace Exceptionless.Logging {
                 // handle case where number of lines in file is less than desired line count
                 fs.Value.Seek(0, SeekOrigin.Begin);
                 buffer = new byte[fs.Value.Length];
-                fs.Value.Read(buffer, 0, buffer.Length);
+                ReadExactly(fs.Value, buffer);
 
                 return Encoding.ASCII.GetString(buffer);
+            }
+        }
+
+        private static void ReadExactly(Stream stream, byte[] buffer) {
+            int offset = 0;
+            while (offset < buffer.Length) {
+                int read = stream.Read(buffer, offset, buffer.Length - offset);
+                if (read == 0)
+                    throw new EndOfStreamException();
+                offset += read;
             }
         }
 

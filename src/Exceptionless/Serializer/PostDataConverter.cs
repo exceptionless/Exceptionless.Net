@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Exceptionless.Serializer {
 
@@ -14,7 +15,8 @@ namespace Exceptionless.Serializer {
                 case JsonTokenType.StartObject:
                 case JsonTokenType.StartArray:
                     using (var doc = JsonDocument.ParseValue(ref reader)) {
-                        return JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
+                        var indentedOptions = new JsonSerializerOptions(options) { WriteIndented = true };
+                        return JsonSerializer.Serialize(doc.RootElement, (JsonTypeInfo<JsonElement>)indentedOptions.GetTypeInfo(typeof(JsonElement)));
                     }
                 case JsonTokenType.String:
                     return reader.GetString();
@@ -36,7 +38,8 @@ namespace Exceptionless.Serializer {
         }
 
         public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options) {
-            JsonSerializer.Serialize(writer, value, value?.GetType() ?? typeof(object), options);
+            Type type = value?.GetType() ?? typeof(object);
+            JsonSerializer.Serialize(writer, value, options.GetTypeInfo(type));
         }
     }
 }
