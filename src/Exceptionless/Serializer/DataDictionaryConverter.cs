@@ -11,6 +11,9 @@ namespace Exceptionless.Serializer {
     /// are stored as their JSON string representation.
     /// </summary>
     internal sealed class DataDictionaryConverter : JsonConverter<DataDictionary> {
+        [ThreadStatic]
+        private static HashSet<DataDictionary> _activeWrites;
+
         public override DataDictionary Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Expected StartObject token");
@@ -66,27 +69,39 @@ namespace Exceptionless.Serializer {
         }
 
         public override void Write(Utf8JsonWriter writer, DataDictionary value, JsonSerializerOptions options) {
-            writer.WriteStartObject();
-
-            foreach (var kvp in value) {
-                writer.WritePropertyName(kvp.Key);
-                if (kvp.Value == null) {
-                    writer.WriteNullValue();
-                } else if (value.IsRawJson(kvp.Key) && kvp.Value is string str && str.Length > 0 && (str[0] == '{' || str[0] == '[')) {
-                    // String values that contain JSON (from roundtripping through storage)
-                    // must be emitted as raw JSON objects, not escaped strings.
-                    try {
-                        writer.WriteRawValue(str);
-                    } catch (JsonException) {
-                        // Not valid JSON - write as a normal string
-                        writer.WriteStringValue(str);
-                    }
-                } else {
-                    JsonSerializer.Serialize(writer, kvp.Value, options.GetTypeInfo(kvp.Value.GetType()));
-                }
+            _activeWrites ??= new HashSet<DataDictionary>();
+            if (!_activeWrites.Add(value)) {
+                writer.WriteNullValue();
+                return;
             }
 
-            writer.WriteEndObject();
+            try {
+                writer.WriteStartObject();
+
+                foreach (var kvp in value) {
+                    writer.WritePropertyName(kvp.Key);
+                    if (kvp.Value == null) {
+                        writer.WriteNullValue();
+                    } else if (value.IsRawJson(kvp.Key, kvp.Value) && kvp.Value is string str && str.Length > 0 && (str[0] == '{' || str[0] == '[')) {
+                        // String values that contain JSON (from roundtripping through storage)
+                        // must be emitted as raw JSON objects, not escaped strings.
+                        try {
+                            writer.WriteRawValue(str);
+                        } catch (JsonException) {
+                            // Not valid JSON - write as a normal string
+                            writer.WriteStringValue(str);
+                        }
+                    } else {
+                        JsonSerializer.Serialize(writer, kvp.Value, options.GetTypeInfo(kvp.Value.GetType()));
+                    }
+                }
+
+                writer.WriteEndObject();
+            } finally {
+                _activeWrites.Remove(value);
+                if (_activeWrites.Count == 0)
+                    _activeWrites = null;
+            }
         }
     }
 }

@@ -64,13 +64,14 @@ var original = new Event {
     Message = "NativeAOT serialization",
     Date = new System.DateTimeOffset(2026, 7, 12, 18, 0, 0, System.TimeSpan.Zero),
     Data = {
-        ["payload"] = new SmokePayload { Id = 42, Name = "trim-safe" }
+        ["payload"] = new SmokePayload { Id = 42, Name = "trim-safe", PublicField = "field-safe" }
     }
 };
 
 string json = serializer.Serialize(original);
 Assert(json.Contains("\"source\":\"aot-smoke\""), "Event serialization lost source.");
 Assert(json.Contains("\"id\":42"), "Arbitrary payload serialization lost data.");
+Assert(json.Contains("\"public_field\":\"field-safe\""), "Arbitrary payload serialization lost a public field.");
 
 using var stream = new MemoryStream();
 storageSerializer.Serialize(original, stream);
@@ -81,6 +82,8 @@ Assert(roundTripped.Source == original.Source, "Storage round-trip lost source."
 client.SubmitEvent(original);
 await client.ProcessQueueAsync();
 Assert(submissionClient.Events.Count == 1, "Queue did not submit exactly one event.");
+string submittedJson = serializer.Serialize(submissionClient.Events[0]);
+Assert(submittedJson.Contains("\"id\":42"), "Queue round-trip lost custom payload metadata.");
 
 try {
     ThrowNestedException();
@@ -93,6 +96,10 @@ await client.ProcessQueueAsync();
 Assert(submissionClient.Events.Count == 2, "Exception event was not submitted.");
 Assert(submissionClient.Events[1].Type == Event.KnownTypes.Error, "Exception event lost its type.");
 Assert(submissionClient.Events[1].Data.ContainsKey(Event.KnownDataKeys.Error), "Exception event lost its error model.");
+object submittedErrorData = submissionClient.Events[1].Data[Event.KnownDataKeys.Error];
+var submittedError = submittedErrorData as Exceptionless.Models.Data.Error
+    ?? (Exceptionless.Models.Data.Error)serializer.Deserialize((string)submittedErrorData, typeof(Exceptionless.Models.Data.Error));
+Assert(submittedError.StackTrace.Any(frame => !System.String.IsNullOrEmpty(frame.Name)), "NativeAOT exception frames lost method identity.");
 
 var customDataException = new SmokeException();
 client.SubmitException(customDataException);
@@ -107,6 +114,7 @@ static void Assert(bool condition, string message) {
         throw new System.InvalidOperationException(message);
 }
 
+[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
 static void ThrowNestedException() {
     throw new System.InvalidOperationException("NativeAOT exception capture", new System.ArgumentException("inner"));
 }
@@ -114,6 +122,7 @@ static void ThrowNestedException() {
 internal sealed class SmokePayload {
     public int Id { get; set; }
     public string Name { get; set; }
+    public string PublicField;
 }
 
 internal readonly struct SmokeValue { }
@@ -129,6 +138,7 @@ internal sealed class SmokeException : System.Exception {
 [JsonSourceGenerationOptions(
     GenerationMode = JsonSourceGenerationMode.Metadata,
     PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
+    IncludeFields = true,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(SmokePayload))]
 internal partial class AotSmokeJsonSerializerContext : JsonSerializerContext { }

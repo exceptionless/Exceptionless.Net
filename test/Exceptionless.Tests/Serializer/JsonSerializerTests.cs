@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 using Exceptionless.Extensions;
+using Exceptionless.Json;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Serializer;
@@ -359,6 +360,81 @@ namespace Exceptionless.Tests.Serializer {
 
             // Assert
             Assert.Equal("{\"message\":\"Testing\",\"nested\":{\"message\":\"Nested\",\"nested\":null}}", json);
+        }
+
+        [Fact]
+        public void Serialize_Exclusions_AreAppliedInsideCollectionsAndDataDictionary() {
+            var data = new DataDictionary {
+                ["users"] = new List<SensitiveModel> {
+                    new SensitiveModel { Name = "Ada", Secret = "do-not-send" }
+                },
+                ["secret"] = "also-do-not-send"
+            };
+
+            string json = GetSerializer().Serialize(data, new[] { "secret" });
+
+            Assert.Contains("\"name\":\"Ada\"", json);
+            Assert.DoesNotContain("secret", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("do-not-send", json);
+        }
+
+        [Fact]
+        public void Serialize_ReferenceLoops_AreIgnoredWithoutDiscardingTheEvent() {
+            var ev = new Event { Type = Event.KnownTypes.Log, Source = "cycle-test" };
+            ev.Data["cycle"] = ev;
+            ev.Data["items"] = new List<object> { "kept", ev };
+
+            string json = GetSerializer().Serialize(ev);
+
+            Assert.NotNull(json);
+            Assert.Contains("\"source\":\"cycle-test\"", json);
+            Assert.Contains("\"kept\"", json);
+            Assert.DoesNotContain("\"cycle\"", json);
+        }
+
+        [Fact]
+        public void Serialize_StreamReferenceLoops_DoNotRecurseIndefinitely() {
+            var ev = new Event { Type = Event.KnownTypes.Log, Source = "stream-cycle-test" };
+            ev.Data["cycle"] = ev;
+
+            using var stream = new System.IO.MemoryStream();
+            new DefaultJsonSerializer().Serialize(ev, stream);
+            stream.Position = 0;
+
+            using var document = System.Text.Json.JsonDocument.Parse(stream);
+            Assert.Equal("stream-cycle-test", document.RootElement.GetProperty("source").GetString());
+        }
+
+        [Fact]
+        public void Serialize_SettingsDictionary_AppliesKeyExclusions() {
+            var settings = new SettingsDictionary {
+                ["visible"] = "kept",
+                ["secret"] = "do-not-send"
+            };
+
+            string json = GetSerializer().Serialize(settings, new[] { "secret" });
+
+            Assert.Equal("{\"visible\":\"kept\"}", json);
+        }
+
+        [Fact]
+        public void Serialize_ExceptionlessIgnoreAttribute_RemainsSupported() {
+            var model = new CompatibilityIgnoreModel { Name = "Ada", Secret = "do-not-send" };
+
+            string json = GetSerializer().Serialize(model);
+
+            Assert.Contains("\"name\":\"Ada\"", json);
+            Assert.DoesNotContain("secret", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("do-not-send", json);
+        }
+
+        [Fact]
+        public void Serialize_PublicFields_RemainSupported() {
+            var model = new PublicFieldModel { Name = "Ada" };
+
+            string json = GetSerializer().Serialize(model);
+
+            Assert.Equal("{\"name\":\"Ada\"}", json);
         }
 
         [Fact]
@@ -718,5 +794,21 @@ namespace Exceptionless.Tests.Serializer {
         public string EncryptedCardNumber { get; set; }
         public int ExpirationMonth { get; set; }
         public int ExpirationYear { get; set; }
+    }
+
+    public class SensitiveModel {
+        public string Name { get; set; }
+        public string Secret { get; set; }
+    }
+
+    public class CompatibilityIgnoreModel {
+        public string Name { get; set; }
+
+        [ExceptionlessIgnore]
+        public string Secret { get; set; }
+    }
+
+    public class PublicFieldModel {
+        public string Name;
     }
 }

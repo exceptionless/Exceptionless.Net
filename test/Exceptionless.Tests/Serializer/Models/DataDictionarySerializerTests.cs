@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using Exceptionless.Models;
 using Exceptionless.Tests.Serializer;
@@ -124,6 +125,50 @@ namespace Exceptionless.Tests.Serializer.Models {
             using var doc = JsonDocument.Parse(json);
             Assert.Equal("""{"a":1}""", doc.RootElement.GetProperty("payload").GetString());
             Assert.Equal("[1,2]", doc.RootElement.GetProperty("items").GetString());
+        }
+
+        [Fact]
+        public void Serialize_DataDictionary_MutatedThroughDictionaryInterface_DoesNotReuseRawJsonMarker() {
+            DataDictionary data = Deserialize<DataDictionary>(NestedObjectJson);
+            IDictionary<string, object> dictionary = data;
+            dictionary["nested"] = /* lang=json */ "{\"literal\":true}";
+
+            string json = Serialize(data);
+
+            using var doc = JsonDocument.Parse(json);
+            Assert.Equal("{\"literal\":true}", doc.RootElement.GetProperty("nested").GetString());
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void Serialize_DataDictionary_InterfaceRemovalClearsRawJsonMarker(bool clear, bool nonGeneric) {
+            DataDictionary data = Deserialize<DataDictionary>(NestedObjectJson);
+            object originalValue = data["nested"];
+
+            if (nonGeneric) {
+                System.Collections.IDictionary dictionary = data;
+                if (clear)
+                    dictionary.Clear();
+                else
+                    dictionary.Remove("nested");
+
+                dictionary["nested"] = originalValue;
+            } else {
+                IDictionary<string, object> dictionary = data;
+                if (clear)
+                    dictionary.Clear();
+                else
+                    dictionary.Remove("nested");
+
+                dictionary["nested"] = originalValue;
+            }
+            string json = Serialize(data);
+
+            using var doc = JsonDocument.Parse(json);
+            Assert.Equal("{\"key\":\"val\"}", doc.RootElement.GetProperty("nested").GetString());
         }
     }
 }

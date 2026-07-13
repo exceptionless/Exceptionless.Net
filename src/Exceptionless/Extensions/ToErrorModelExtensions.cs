@@ -216,7 +216,11 @@ namespace Exceptionless {
                 return;
             }
 
-            foreach (StackFrame frame in frames) {
+            string[] rawStackFrames = (exception.StackTrace ?? String.Empty)
+                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int frameIndex = 0; frameIndex < frames.Length; frameIndex++) {
+                StackFrame frame = frames[frameIndex];
                 var stackFrame = new Models.Data.StackFrame {
                     LineNumber = frame.GetFileLineNumber(),
                     Column = frame.GetFileColumnNumber(),
@@ -234,15 +238,69 @@ namespace Exceptionless {
 
                 try {
 #if NET8_0_OR_GREATER
+                    MethodBase method = frame.GetMethod();
                     if (RuntimeFeature.IsDynamicCodeSupported)
-#endif
+                        stackFrame.PopulateMethod(root, method);
+                    else
+                        stackFrame.PopulateMethodIdentity(method);
+#else
                     stackFrame.PopulateMethod(root, frame.GetMethod());
+#endif
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame method info: " + ex.Message);
                 }
 
+                if (String.IsNullOrEmpty(stackFrame.Name) && frameIndex < rawStackFrames.Length)
+                    stackFrame.PopulateMethodIdentity(rawStackFrames[frameIndex]);
+
                 error.StackTrace.Add(stackFrame);
             }
+        }
+
+        private static void PopulateMethodIdentity(this Method method, string stackTraceLine) {
+            string identity = stackTraceLine?.Trim();
+            if (String.IsNullOrEmpty(identity))
+                return;
+
+            if (identity.StartsWith("at ", StringComparison.Ordinal))
+                identity = identity.Substring(3);
+
+            int argumentsStart = identity.IndexOf('(');
+            if (argumentsStart >= 0)
+                identity = identity.Substring(0, argumentsStart);
+
+            int locationStart = identity.IndexOf(" in ", StringComparison.Ordinal);
+            if (locationStart >= 0)
+                identity = identity.Substring(0, locationStart);
+
+            int methodSeparator = identity.LastIndexOf('.');
+            if (methodSeparator < 0) {
+                method.Name = identity;
+                return;
+            }
+
+            method.Name = identity.Substring(methodSeparator + 1);
+            string declaringType = identity.Substring(0, methodSeparator);
+            int namespaceSeparator = declaringType.LastIndexOf('.');
+            if (namespaceSeparator < 0) {
+                method.DeclaringType = declaringType;
+                return;
+            }
+
+            method.DeclaringNamespace = declaringType.Substring(0, namespaceSeparator);
+            method.DeclaringType = declaringType.Substring(namespaceSeparator + 1);
+        }
+
+        private static void PopulateMethodIdentity(this Method method, MethodBase methodBase) {
+            if (methodBase == null)
+                return;
+
+            method.Name = methodBase.Name;
+            if (methodBase.DeclaringType == null)
+                return;
+
+            method.DeclaringNamespace = methodBase.DeclaringType.Namespace;
+            method.DeclaringType = methodBase.DeclaringType.Name;
         }
 
         private static void PopulateMethod(this Method method, Error root, MethodBase methodBase) {

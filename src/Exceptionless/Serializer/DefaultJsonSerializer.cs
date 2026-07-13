@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Exceptionless.Extensions;
+using Exceptionless.Json;
 
 namespace Exceptionless.Serializer {
     public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
@@ -21,15 +22,17 @@ namespace Exceptionless.Serializer {
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never,
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                 PropertyNameCaseInsensitive = true,
-                NumberHandling = JsonNumberHandling.AllowReadingFromString
+                IncludeFields = true,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString,
+                ReferenceHandler = ReferenceHandler.IgnoreCycles
             };
 
             _serializerOptions.Converters.Add(new DataDictionaryConverter());
             _serializerOptions.Converters.Add(new SettingsDictionaryConverter());
 
-            _serializerOptions.TypeInfoResolverChain.Add(ExceptionlessJsonSerializerContext.Default);
+            _serializerOptions.TypeInfoResolverChain.Add(new CompatibilityResolver(ExceptionlessJsonSerializerContext.Default));
             if (typeInfoResolver != null)
-                _serializerOptions.TypeInfoResolverChain.Add(typeInfoResolver);
+                _serializerOptions.TypeInfoResolverChain.Add(new CompatibilityResolver(typeInfoResolver));
 
 #if NET8_0_OR_GREATER
             if (RuntimeFeature.IsDynamicCodeSupported && JsonSerializer.IsReflectionEnabledByDefault)
@@ -64,7 +67,7 @@ namespace Exceptionless.Serializer {
             try {
                 using (var stream = new System.IO.MemoryStream()) {
                     using (var writer = new Utf8JsonWriter(stream)) {
-                        WriteValue(writer, model, model.GetType(), exclusions, hasExclusions, maxDepth, 0);
+                        TryWriteValue(writer, model, model.GetType(), exclusions, hasExclusions, maxDepth, 0, new HashSet<object>(ReferenceComparer.Instance));
                     }
                     return Encoding.UTF8.GetString(stream.ToArray());
                 }
@@ -77,106 +80,141 @@ namespace Exceptionless.Serializer {
             }
         }
 
-        private void WriteValue(Utf8JsonWriter writer, object value, Type type, string[] exclusions, bool hasExclusions, int maxDepth, int currentDepth) {
+        private bool TryWriteValue(Utf8JsonWriter writer, object value, Type type, string[] exclusions, bool hasExclusions, int maxDepth, int currentDepth, HashSet<object> path) {
             if (value == null) {
                 writer.WriteNullValue();
-                return;
+                return true;
             }
 
-            // For primitive-like types, serialize directly
             if (IsPrimitiveType(type)) {
+                if (currentDepth > maxDepth)
+                    return false;
+
                 JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
-                return;
+                return true;
             }
 
-            // Check if we're past max depth for complex types
-            if (currentDepth >= maxDepth) {
-                return;
-            }
+            if (currentDepth >= maxDepth || !path.Add(value))
+                return false;
 
-            // Handle DataDictionary with its converter (preserves JSON string behavior for complex values)
-            if (value is Models.DataDictionary dataDictionary) {
-                JsonSerializer.Serialize(writer, dataDictionary, GetTypeInfo<Models.DataDictionary>());
-                return;
-            }
-
-            // Handle dictionaries (non-generic IDictionary)
-            if (value is IDictionary dict) {
-                writer.WriteStartObject();
-                foreach (DictionaryEntry entry in dict) {
-                    string key = entry.Key?.ToString() ?? "";
-                    if (hasExclusions && key.AnyWildcardMatches(exclusions, ignoreCase: true))
-                        continue;
-                    if (entry.Value == null) {
-                        writer.WritePropertyName(key);
-                        writer.WriteNullValue();
-                    } else {
-                        Type entryType = entry.Value.GetType();
-                        // Skip complex values that would exceed max depth
-                        if (!IsPrimitiveType(entryType) && currentDepth + 1 >= maxDepth)
+            try {
+                if (value is Models.DataDictionary dataDictionary) {
+                    writer.WriteStartObject();
+                    foreach (var entry in dataDictionary) {
+                        if (hasExclusions && entry.Key.AnyWildcardMatches(exclusions, ignoreCase: true))
                             continue;
-                        writer.WritePropertyName(key);
-                        WriteValue(writer, entry.Value, entryType, exclusions, hasExclusions, maxDepth, currentDepth + 1);
+
+                        Type entryType = entry.Value?.GetType() ?? typeof(object);
+                        if (!CanWriteValue(entry.Value, entryType, maxDepth, currentDepth + 1, path))
+                            continue;
+
+                        writer.WritePropertyName(entry.Key);
+                        if (dataDictionary.IsRawJson(entry.Key, entry.Value))
+                            WriteRawJsonValue(writer, (string)entry.Value);
+                        else
+                            TryWriteValue(writer, entry.Value, entryType, exclusions, hasExclusions, maxDepth, currentDepth + 1, path);
                     }
+                    writer.WriteEndObject();
+                    return true;
+                }
+
+                if (value is Models.SettingsDictionary settingsDictionary) {
+                    writer.WriteStartObject();
+                    foreach (var entry in settingsDictionary) {
+                        if (hasExclusions && entry.Key.AnyWildcardMatches(exclusions, ignoreCase: true))
+                            continue;
+
+                        writer.WritePropertyName(entry.Key);
+                        if (entry.Value == null)
+                            writer.WriteNullValue();
+                        else
+                            writer.WriteStringValue(entry.Value);
+                    }
+                    writer.WriteEndObject();
+                    return true;
+                }
+
+                if (value is IDictionary dict) {
+                    writer.WriteStartObject();
+                    foreach (DictionaryEntry entry in dict) {
+                        string key = entry.Key?.ToString() ?? "";
+                        if (hasExclusions && key.AnyWildcardMatches(exclusions, ignoreCase: true))
+                            continue;
+
+                        Type entryType = entry.Value?.GetType() ?? typeof(object);
+                        if (!CanWriteValue(entry.Value, entryType, maxDepth, currentDepth + 1, path))
+                            continue;
+
+                        writer.WritePropertyName(key);
+                        TryWriteValue(writer, entry.Value, entryType, exclusions, hasExclusions, maxDepth, currentDepth + 1, path);
+                    }
+                    writer.WriteEndObject();
+                    return true;
+                }
+
+                if (value is IEnumerable enumerable && !(value is string)) {
+                    writer.WriteStartArray();
+                    foreach (object item in enumerable) {
+                        Type itemType = item?.GetType() ?? typeof(object);
+                        if (CanWriteValue(item, itemType, maxDepth, currentDepth + 1, path))
+                            TryWriteValue(writer, item, itemType, exclusions, hasExclusions, maxDepth, currentDepth + 1, path);
+                    }
+                    writer.WriteEndArray();
+                    return true;
+                }
+
+                JsonTypeInfo typeInfo = null;
+                try {
+                    typeInfo = _serializerOptions.GetTypeInfo(type);
+                } catch { }
+
+                if (typeInfo == null || typeInfo.Kind != JsonTypeInfoKind.Object) {
+                    JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
+                    return true;
+                }
+
+                writer.WriteStartObject();
+                foreach (var prop in typeInfo.Properties) {
+                    if (prop.Get == null)
+                        continue;
+
+                    string memberName = prop.AttributeProvider is MemberInfo mi ? mi.Name : prop.Name;
+                    if (prop.AttributeProvider?.IsDefined(typeof(ExceptionlessIgnoreAttribute), true) == true)
+                        continue;
+
+                    if (hasExclusions && (memberName.AnyWildcardMatches(exclusions, ignoreCase: true) || prop.Name.AnyWildcardMatches(exclusions, ignoreCase: true)))
+                        continue;
+
+                    object propValue = null;
+                    try { propValue = prop.Get(value); } catch { continue; }
+
+                    Type propType = propValue?.GetType() ?? prop.PropertyType;
+                    if (!CanWriteValue(propValue, propType, maxDepth, currentDepth + 1, path))
+                        continue;
+
+                    writer.WritePropertyName(prop.Name);
+                    TryWriteValue(writer, propValue, propType, exclusions, hasExclusions, maxDepth, currentDepth + 1, path);
                 }
                 writer.WriteEndObject();
-                return;
+                return true;
+            } finally {
+                path.Remove(value);
             }
+        }
 
-            // Handle enumerables (arrays, lists, etc.) - serialize directly
-            if (value is IEnumerable && !(value is string)) {
-                JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
-                return;
-            }
+        private static bool CanWriteValue(object value, Type type, int maxDepth, int currentDepth, HashSet<object> path) {
+            if (value == null || IsPrimitiveType(type))
+                return currentDepth <= maxDepth;
 
-            // For complex objects, get type info first to decide path
-            JsonTypeInfo typeInfo = null;
+            return currentDepth < maxDepth && !path.Contains(value);
+        }
+
+        private static void WriteRawJsonValue(Utf8JsonWriter writer, string json) {
             try {
-                typeInfo = _serializerOptions.GetTypeInfo(type);
-            } catch { }
-
-            if (typeInfo == null || typeInfo.Kind != JsonTypeInfoKind.Object) {
-                // Fallback: direct serialization
-                JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
-                return;
+                writer.WriteRawValue(json);
+            } catch (JsonException) {
+                writer.WriteStringValue(json);
             }
-
-            // Write object with property filtering
-            writer.WriteStartObject();
-            foreach (var prop in typeInfo.Properties) {
-                if (prop.Get == null)
-                    continue;
-
-                string memberName = prop.AttributeProvider is MemberInfo mi ? mi.Name : prop.Name;
-
-                if (hasExclusions && (memberName.AnyWildcardMatches(exclusions, ignoreCase: true) || prop.Name.AnyWildcardMatches(exclusions, ignoreCase: true)))
-                    continue;
-
-                object propValue = null;
-                try { propValue = prop.Get(value); } catch { continue; }
-
-                Type propType = prop.PropertyType;
-                bool isPrimitive = IsPrimitiveType(propType);
-
-                // Depth check: primitives at <= maxDepth, complex at < maxDepth
-                if (isPrimitive) {
-                    if (currentDepth + 1 > maxDepth)
-                        continue;
-                } else {
-                    if (currentDepth + 1 >= maxDepth)
-                        continue;
-                }
-
-                writer.WritePropertyName(prop.Name);
-                if (propValue == null) {
-                    writer.WriteNullValue();
-                } else if (isPrimitive) {
-                    JsonSerializer.Serialize(writer, propValue, GetTypeInfo(propType));
-                } else {
-                    WriteValue(writer, propValue, propType, exclusions, hasExclusions, maxDepth, currentDepth + 1);
-                }
-            }
-            writer.WriteEndObject();
         }
 
         private static bool IsPrimitiveType(Type type) {
@@ -210,7 +248,35 @@ namespace Exceptionless.Serializer {
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Reflection is disabled by default in trimmed applications; applications that opt back in must preserve their reflected payload types.")]
         private void AddReflectionFallback() {
             _serializerOptions.Converters.Add(new JsonStringEnumConverter());
-            _serializerOptions.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
+            _serializerOptions.TypeInfoResolverChain.Add(new CompatibilityResolver(new DefaultJsonTypeInfoResolver()));
+        }
+
+        private sealed class CompatibilityResolver : IJsonTypeInfoResolver {
+            private readonly IJsonTypeInfoResolver _inner;
+
+            public CompatibilityResolver(IJsonTypeInfoResolver inner) {
+                _inner = inner;
+            }
+
+            public JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options) {
+                JsonTypeInfo typeInfo = _inner.GetTypeInfo(type, options);
+                if (typeInfo?.Kind != JsonTypeInfoKind.Object)
+                    return typeInfo;
+
+                for (int index = typeInfo.Properties.Count - 1; index >= 0; index--) {
+                    if (typeInfo.Properties[index].AttributeProvider?.IsDefined(typeof(ExceptionlessIgnoreAttribute), true) == true)
+                        typeInfo.Properties.RemoveAt(index);
+                }
+
+                return typeInfo;
+            }
+        }
+
+        private sealed class ReferenceComparer : IEqualityComparer<object> {
+            public static readonly ReferenceComparer Instance = new ReferenceComparer();
+
+            public new bool Equals(object x, object y) => ReferenceEquals(x, y);
+            public int GetHashCode(object obj) => RuntimeHelpers.GetHashCode(obj);
         }
 
     }

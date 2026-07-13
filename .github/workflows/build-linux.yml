@@ -27,9 +27,13 @@ jobs:
       run: dotnet build --configuration Release Exceptionless.Net.NonWindows.slnx
     - name: Run Tests
       run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.slnx
+    - name: Pack Core for NativeAOT Test
+      run: dotnet pack --configuration Release --no-build --output artifacts/aot-package -p:SolutionDir="$GITHUB_WORKSPACE/" src/Exceptionless/Exceptionless.csproj
     - name: NativeAOT Smoke Test
       run: |
         for framework in net8.0 net10.0; do
-          dotnet publish --configuration Release --framework "$framework" --output "artifacts/aot-smoke/$framework" test/Exceptionless.AotSmoke/Exceptionless.AotSmoke.csproj
-          "./artifacts/aot-smoke/$framework/Exceptionless.AotSmoke"
+          dotnet publish --configuration Release --framework "$framework" --output "artifacts/aot-smoke/$framework" -p:ExceptionlessPackageVersion="$MINVERVERSIONOVERRIDE" -p:ExceptionlessPackageSource="$GITHUB_WORKSPACE/artifacts/aot-package" test/Exceptionless.PackageAotSmoke/Exceptionless.PackageAotSmoke.csproj
+          "./artifacts/aot-smoke/$framework/Exceptionless.PackageAotSmoke"
+          dotnet publish --configuration Release --framework "$framework" --output "artifacts/hosting-aot-smoke/$framework" test/Exceptionless.HostingAotSmoke/Exceptionless.HostingAotSmoke.csproj
+          "./artifacts/hosting-aot-smoke/$framework/Exceptionless.HostingAotSmoke"
         done

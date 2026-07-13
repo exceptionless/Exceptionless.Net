@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+#if NET8_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using Exceptionless.Logging;
 
 namespace Exceptionless.Utility {
@@ -82,7 +85,9 @@ namespace Exceptionless.Utility {
             return ((AssemblyTitleAttribute)attributes[0]).Title;
         }
 
-#if NET45
+#if NET8_0_OR_GREATER
+        [RequiresUnreferencedCode("Enumerating every exported runtime type is not compatible with trimming. Register required services explicitly in trimmed applications.")]
+#endif
         public static List<Type> GetTypes(IExceptionlessLog log) {
             var types = new List<Type>();
 
@@ -100,6 +105,5 @@ namespace Exceptionless.Utility {
 
             return types;
         }
-#endif
     }
 }
