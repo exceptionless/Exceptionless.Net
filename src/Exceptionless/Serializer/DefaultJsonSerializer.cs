@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,26 +14,37 @@ namespace Exceptionless.Serializer {
     public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
         private readonly JsonSerializerOptions _serializerOptions;
 
-        public DefaultJsonSerializer() {
+        public DefaultJsonSerializer() : this(null) { }
+
+        public DefaultJsonSerializer(IJsonTypeInfoResolver typeInfoResolver) {
             _serializerOptions = new JsonSerializerOptions {
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never,
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                 PropertyNameCaseInsensitive = true,
-                NumberHandling = JsonNumberHandling.AllowReadingFromString,
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+                NumberHandling = JsonNumberHandling.AllowReadingFromString
             };
 
-            _serializerOptions.Converters.Add(new JsonStringEnumConverter());
             _serializerOptions.Converters.Add(new DataDictionaryConverter());
             _serializerOptions.Converters.Add(new SettingsDictionaryConverter());
+
+            _serializerOptions.TypeInfoResolverChain.Add(ExceptionlessJsonSerializerContext.Default);
+            if (typeInfoResolver != null)
+                _serializerOptions.TypeInfoResolverChain.Add(typeInfoResolver);
+
+#if NET8_0_OR_GREATER
+            if (RuntimeFeature.IsDynamicCodeSupported && JsonSerializer.IsReflectionEnabledByDefault)
+#else
+            if (JsonSerializer.IsReflectionEnabledByDefault)
+#endif
+                AddReflectionFallback();
         }
 
         public virtual void Serialize<T>(T data, Stream outputStream) {
-            JsonSerializer.Serialize(outputStream, data, _serializerOptions);
+            JsonSerializer.Serialize(outputStream, data, GetTypeInfo<T>());
         }
 
         public virtual T Deserialize<T>(Stream inputStream) {
-            return JsonSerializer.Deserialize<T>(inputStream, _serializerOptions);
+            return JsonSerializer.Deserialize(inputStream, GetTypeInfo<T>());
         }
 
         public virtual string Serialize(object model, string[] exclusions = null, int maxDepth = 10, bool continueOnSerializationError = true) {
@@ -46,7 +58,7 @@ namespace Exceptionless.Serializer {
             bool hasDepthLimit = maxDepth != Int32.MaxValue;
 
             if (!hasExclusions && !hasDepthLimit) {
-                return JsonSerializer.Serialize(model, model.GetType(), _serializerOptions);
+                return JsonSerializer.Serialize(model, GetTypeInfo(model.GetType()));
             }
 
             try {
@@ -58,7 +70,7 @@ namespace Exceptionless.Serializer {
                 }
             } catch (Exception) when (continueOnSerializationError) {
                 try {
-                    return JsonSerializer.Serialize(model, model.GetType(), _serializerOptions);
+                    return JsonSerializer.Serialize(model, GetTypeInfo(model.GetType()));
                 } catch (Exception) {
                     return null;
                 }
@@ -73,7 +85,7 @@ namespace Exceptionless.Serializer {
 
             // For primitive-like types, serialize directly
             if (IsPrimitiveType(type)) {
-                JsonSerializer.Serialize(writer, value, type, _serializerOptions);
+                JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
                 return;
             }
 
@@ -84,7 +96,7 @@ namespace Exceptionless.Serializer {
 
             // Handle DataDictionary with its converter (preserves JSON string behavior for complex values)
             if (value is Models.DataDictionary dataDictionary) {
-                JsonSerializer.Serialize(writer, dataDictionary, _serializerOptions);
+                JsonSerializer.Serialize(writer, dataDictionary, GetTypeInfo<Models.DataDictionary>());
                 return;
             }
 
@@ -113,7 +125,7 @@ namespace Exceptionless.Serializer {
 
             // Handle enumerables (arrays, lists, etc.) - serialize directly
             if (value is IEnumerable && !(value is string)) {
-                JsonSerializer.Serialize(writer, value, type, _serializerOptions);
+                JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
                 return;
             }
 
@@ -125,7 +137,7 @@ namespace Exceptionless.Serializer {
 
             if (typeInfo == null || typeInfo.Kind != JsonTypeInfoKind.Object) {
                 // Fallback: direct serialization
-                JsonSerializer.Serialize(writer, value, type, _serializerOptions);
+                JsonSerializer.Serialize(writer, value, GetTypeInfo(type));
                 return;
             }
 
@@ -159,7 +171,7 @@ namespace Exceptionless.Serializer {
                 if (propValue == null) {
                     writer.WriteNullValue();
                 } else if (isPrimitive) {
-                    JsonSerializer.Serialize(writer, propValue, propType, _serializerOptions);
+                    JsonSerializer.Serialize(writer, propValue, GetTypeInfo(propType));
                 } else {
                     WriteValue(writer, propValue, propType, exclusions, hasExclusions, maxDepth, currentDepth + 1);
                 }
@@ -183,7 +195,22 @@ namespace Exceptionless.Serializer {
             if (String.IsNullOrWhiteSpace(json))
                 return null;
 
-            return JsonSerializer.Deserialize(json, type, _serializerOptions);
+            return JsonSerializer.Deserialize(json, GetTypeInfo(type));
+        }
+
+        private JsonTypeInfo GetTypeInfo(Type type) {
+            return _serializerOptions.GetTypeInfo(type);
+        }
+
+        private JsonTypeInfo<T> GetTypeInfo<T>() {
+            return (JsonTypeInfo<T>)GetTypeInfo(typeof(T));
+        }
+
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050", Justification = "This reflection fallback is guarded by RuntimeFeature.IsDynamicCodeSupported and cannot run in NativeAOT applications.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Reflection is disabled by default in trimmed applications; applications that opt back in must preserve their reflected payload types.")]
+        private void AddReflectionFallback() {
+            _serializerOptions.Converters.Add(new JsonStringEnumConverter());
+            _serializerOptions.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
         }
 
     }

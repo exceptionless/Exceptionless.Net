@@ -42,7 +42,7 @@ namespace Exceptionless.Serializer {
                 return;
             }
 
-            JsonSerializer.Serialize(writer, value, value.GetType(), options);
+            JsonSerializer.Serialize(writer, value, options.GetTypeInfo(value.GetType()));
         }
 
         private static object ReadNumber(ref Utf8JsonReader reader) {

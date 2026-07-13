@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Exceptionless.Logging;
 using Exceptionless.Queue;
 using Exceptionless.Serializer;
@@ -8,14 +9,14 @@ using Exceptionless.Submission;
 
 namespace Exceptionless.Dependency {
     public static class DependencyResolverExtensions {
-        public static bool HasRegistration<TService>(this IDependencyResolver resolver) where TService : class {
+        public static bool HasRegistration<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IDependencyResolver resolver) where TService : class {
             if (resolver == null)
                 return false;
             
             return resolver.Resolve(typeof(TService)) != null;
         }
 
-        public static bool HasDefaultRegistration<TService, TDefaultImplementation>(this IDependencyResolver resolver) where TService : class where TDefaultImplementation : TService {
+        public static bool HasDefaultRegistration<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService, TDefaultImplementation>(this IDependencyResolver resolver) where TService : class where TDefaultImplementation : TService {
             if (resolver == null)
                 return false;
 
@@ -23,7 +24,7 @@ namespace Exceptionless.Dependency {
             return instance is TDefaultImplementation;
         }
 
-        public static object Resolve(this IDependencyResolver resolver, Type type) {
+        public static object Resolve(this IDependencyResolver resolver, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type) {
             if (resolver == null)
                 throw new ArgumentNullException(nameof(resolver));
 
@@ -33,7 +34,7 @@ namespace Exceptionless.Dependency {
             return resolver.Resolve(type);
         }
 
-        public static TService Resolve<TService>(this IDependencyResolver resolver, TService defaultImplementation = null) where TService : class {
+        public static TService Resolve<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IDependencyResolver resolver, TService defaultImplementation = null) where TService : class {
             if (resolver == null)
                 throw new ArgumentNullException(nameof(resolver));
             
@@ -53,14 +54,14 @@ namespace Exceptionless.Dependency {
             resolver.Register(typeof(TService), () => implementation);
         }
 
-        public static void Register<TService>(this IDependencyResolver resolver) {
+        public static void Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] TService>(this IDependencyResolver resolver) {
             if (resolver == null)
                 throw new ArgumentNullException(nameof(resolver));
 
             resolver.Register(typeof(TService), typeof(TService));
         }
 
-        public static void Register<TService, TImplementation>(this IDependencyResolver resolver) where TImplementation : TService {
+        public static void Register<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] TImplementation>(this IDependencyResolver resolver) where TImplementation : TService {
             if (resolver == null)
                 throw new ArgumentNullException(nameof(resolver));
 

@@ -82,7 +82,7 @@ namespace Exceptionless.Serializer {
                         writer.WriteStringValue(str);
                     }
                 } else {
-                    JsonSerializer.Serialize(writer, kvp.Value, kvp.Value.GetType(), options);
+                    JsonSerializer.Serialize(writer, kvp.Value, options.GetTypeInfo(kvp.Value.GetType()));
                 }
             }
 

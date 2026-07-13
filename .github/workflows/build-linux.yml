@@ -27,3 +27,7 @@ jobs:
       run: dotnet build --configuration Release Exceptionless.Net.NonWindows.slnx
     - name: Run Tests
       run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.slnx
+    - name: NativeAOT Smoke Test
+      run: |
+        dotnet publish --configuration Release --output artifacts/aot-smoke test/Exceptionless.AotSmoke/Exceptionless.AotSmoke.csproj
+        ./artifacts/aot-smoke/Exceptionless.AotSmoke
