@@ -29,5 +29,7 @@ jobs:
       run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.slnx
     - name: NativeAOT Smoke Test
       run: |
-        dotnet publish --configuration Release --output artifacts/aot-smoke test/Exceptionless.AotSmoke/Exceptionless.AotSmoke.csproj
-        ./artifacts/aot-smoke/Exceptionless.AotSmoke
+        for framework in net8.0 net10.0; do
+          dotnet publish --configuration Release --framework "$framework" --output "artifacts/aot-smoke/$framework" test/Exceptionless.AotSmoke/Exceptionless.AotSmoke.csproj
+          "./artifacts/aot-smoke/$framework/Exceptionless.AotSmoke"
+        done
