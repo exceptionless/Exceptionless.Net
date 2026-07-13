@@ -9,6 +9,7 @@ namespace Exceptionless.Serializer {
         GenerationMode = JsonSourceGenerationMode.Metadata,
         PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        IncludeFields = true,
         UseStringEnumConverter = true)]
     [JsonSerializable(typeof(ClientConfiguration))]
     [JsonSerializable(typeof(EnvironmentInfo))]

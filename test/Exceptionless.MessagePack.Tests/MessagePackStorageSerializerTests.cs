@@ -1,4 +1,7 @@
-﻿using Exceptionless.Dependency;
+﻿using System.IO;
+using System.Text.Json;
+using Exceptionless.Dependency;
+using Exceptionless.Models;
 using Exceptionless.Serializer;
 using Exceptionless.Tests.Serializer;
 using Xunit;
@@ -62,6 +65,25 @@ namespace Exceptionless.MessagePack.Tests {
         [Fact]
         public override void CanSerializeUserInfo() {
             base.CanSerializeUserInfo();
+        }
+
+        [Fact]
+        public void LiteralJsonStringsRemainStringsAcrossStorageRoundTrip() {
+            var original = new Event {
+                Type = Event.KnownTypes.Log,
+                Data = { ["literal"] = /* lang=json */ "{\"value\":true}" }
+            };
+
+            Event roundTripped;
+            using (var stream = new MemoryStream()) {
+                Resolver.GetStorageSerializer().Serialize(original, stream);
+                stream.Position = 0;
+                roundTripped = Resolver.GetStorageSerializer().Deserialize<Event>(stream);
+            }
+
+            Assert.Equal("{\"value\":true}", roundTripped.Data["literal"]);
+            using var document = JsonDocument.Parse(Resolver.GetJsonSerializer().Serialize(roundTripped));
+            Assert.Equal(JsonValueKind.String, document.RootElement.GetProperty("data").GetProperty("literal").ValueKind);
         }
     }
 }

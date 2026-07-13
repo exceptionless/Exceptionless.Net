@@ -40,12 +40,29 @@
 ## Execution results
 
 - Baseline: 300 core tests and 10 MessagePack tests passed; 18 existing tests were skipped.
-- Final non-Windows suite: 313 core tests and 10 MessagePack tests passed; 0 failed; the same 18 tests were skipped.
+- Final non-Windows suite: 324 core tests and 11 MessagePack tests passed; 0 failed; 18 tests were skipped.
 - Focused DI coverage now includes singleton and transient compatibility, constructor injection, isolated containers, late replacement, `IServiceCollection` overrides, open generics, container disposal, external instance ownership, and host-provider disposal of the default client.
-- Serializer coverage retains exact wire-format assertions and adds regressions for exclusions, depth limits, `DataDictionary` structured/raw values, settings coercion, and MessagePack marker round-trips.
+- Serializer coverage retains exact wire-format assertions and adds regressions for exclusions inside collections and settings, depth limits, reference loops in string and stream paths, public fields, the legacy ignore attribute, `DataDictionary` interface mutation, structured/raw values, settings coercion, and MessagePack round-trips.
 - `net462` core and `net472` test assemblies build with 0 warnings and 0 errors when Windows targeting is forced on macOS. Runtime execution of the .NET Framework tests still belongs in Windows CI.
 - The non-Windows solution packs successfully. A Windows-shaped core package containing both `net462` and `netstandard2.0` assets also packs successfully with explicit `SolutionDir`.
-- `net8.0` and `net10.0` core builds pass with 0 AOT/trim/single-file warnings. Real NativeAOT executables now cover default Microsoft DI/default serialization, source-generated custom payloads, storage round-trips, queued submission, and nested exception capture on both target frameworks; Linux CI publishes and runs them with linker warnings treated as errors.
+- `net8.0` and `net10.0` core builds pass with 0 AOT/trim/single-file warnings. Real NativeAOT executables now cover the packed NuGet assets, default Microsoft DI/default serialization, source-generated custom properties and fields, storage round-trips, queued submission, identifiable exception frames, and Generic Host startup/shutdown on both target frameworks. Linux CI publishes and executes the package and hosting smoke applications with linker warnings treated as errors.
+- SDK ApiCompat is clean from the previous `netstandard2.0` asset to both the new `netstandard2.0` and `net8.0` assets. Compatibility shims retain the legacy ignore attribute, serializer delegates, and `AssemblyHelper.GetTypes` API.
+- Release builds now actually treat warnings as errors; the previous `WarningsAsErrors=true` property was a warning-code list rather than the boolean build gate.
+
+## Release impact
+
+- The non-Windows core package grows from 596,508 bytes to 686,321 bytes (about 15%) because it contains `netstandard2.0`, `net8.0`, and `net10.0` assets instead of one asset. Its uncompressed contents shrink from 2,261,763 bytes to 1,792,690 bytes (about 21%), and the `netstandard2.0` assembly shrinks from 998,912 bytes to 348,160 bytes (about 65%).
+- Every package inherits `Microsoft.Extensions.DependencyInjection` 8 through the core package. The `netstandard2.0`, `net462`, and `net8.0` dependency groups also carry System.Text.Json 10, which is the largest deployment and binding-risk change for .NET Framework applications.
+- The existing `IDependencyResolver` and public setup APIs remain compatible. Microsoft DI backs the client-owned resolver and exposes an `IServiceCollection` customization seam; registrations from an application's root Generic Host provider are not automatically imported into the client's isolated provider.
+- Custom payloads now follow System.Text.Json contracts. Public fields and `ExceptionlessIgnoreAttribute` remain supported, but consumers relying on Newtonsoft-specific contracts such as `DataContract`/`DataMember` behavior should migrate to STJ attributes and source-generated metadata.
+- The `net8.0` and later core assets use normal runtime stack traces instead of the legacy IL/PDB demystifier. NativeAOT frames retain parsed method identity, but modern JIT consumers also lose enhanced demystification.
+- Although ApiCompat is clean, the serializer behavior, transitive dependency graph, target assets, and modern-stack-trace change are substantial enough to recommend a 7.0 release rather than shipping the work as 6.2.1.
+
+## Remaining release gates
+
+- Run the net462/net472 tests and package-load checks on a real Windows runner; macOS cross-compilation passes but cannot prove .NET Framework runtime binding behavior.
+- Require the Linux, macOS, and Windows build jobs in branch protection. The repository currently requires only `license/cla`, so the new regression gates are not merge-enforced yet.
+- Push/open the branch only with awareness that non-PR Windows pushes publish prerelease packages to GitHub Packages and Feedz.
 
 ## Historical NativeAOT comparison
 

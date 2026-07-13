@@ -22,13 +22,6 @@ using Exceptionless;
 using Exceptionless.Serializer;
 using Microsoft.Extensions.DependencyInjection;
 
-[JsonSourceGenerationOptions(
-    GenerationMode = JsonSourceGenerationMode.Metadata,
-    PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
-    UseStringEnumConverter = true)]
-[JsonSerializable(typeof(MyPayload))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext { }
-
 var serializer = new DefaultJsonSerializer(AppJsonSerializerContext.Default);
 var services = new ServiceCollection();
 services.AddSingleton<IJsonSerializer>(serializer);
@@ -36,10 +29,23 @@ services.AddSingleton<IStorageSerializer>(serializer);
 
 using var client = new ExceptionlessClient(services, configuration => {
     configuration.ApiKey = "YOUR_API_KEY";
+    configuration.IncludePrivateInformation = false;
 });
+
+[JsonSourceGenerationOptions(
+    GenerationMode = JsonSourceGenerationMode.Metadata,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
+    IncludeFields = true,
+    UseStringEnumConverter = true)]
+[JsonSerializable(typeof(MyPayload))]
+internal partial class AppJsonSerializerContext : JsonSerializerContext { }
+
+internal sealed class MyPayload {
+    public int Id { get; set; }
+}
 ```
 
-NativeAOT applications must also register custom services and plugins explicitly. Runtime type names from configuration and unregistered concrete-type activation are intentionally unsupported because trimming cannot preserve those types reliably. Error events still contain normal runtime stack traces, but the optional IL/PDB demystification used by legacy targets is disabled.
+NativeAOT applications must also register custom services and plugins explicitly. Runtime type names from configuration and unregistered concrete-type activation are intentionally unsupported because trimming cannot preserve those types reliably. Error events still contain normal runtime stack traces. The `net8.0` and later assets do not include the optional IL/PDB demystification used by the legacy target. CI publishes and executes NativeAOT smoke applications on `net8.0` and `net10.0`.
 
 ## Getting Started (Development)
 
