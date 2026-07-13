@@ -12,6 +12,36 @@ using Exceptionless.Serializer;
 using Exceptionless.Submission;
 using Microsoft.Extensions.DependencyInjection;
 
+using (var defaultClient = new ExceptionlessClient(configuration => {
+    configuration.ApiKey = "00000000000000000000000000000000";
+    configuration.IncludeModules = false;
+    configuration.IncludePrivateInformation = false;
+    configuration.UpdateSettingsWhenIdleInterval = System.TimeSpan.Zero;
+    configuration.UseInMemoryStorage();
+})) {
+    var defaultJsonSerializer = defaultClient.Configuration.Resolver.GetJsonSerializer();
+    var defaultStorageSerializer = defaultClient.Configuration.Resolver.GetStorageSerializer();
+    var builtInEvent = new Event {
+        Type = Event.KnownTypes.Log,
+        Source = "aot-default-services",
+        Message = "NativeAOT default DI and serializer",
+        Data = {
+            ["answer"] = 42,
+            ["enabled"] = true
+        }
+    };
+
+    string builtInJson = defaultJsonSerializer.Serialize(builtInEvent);
+    Assert(builtInJson.Contains("\"source\":\"aot-default-services\""), "Default serializer lost a built-in event.");
+
+    using var defaultStream = new MemoryStream();
+    defaultStorageSerializer.Serialize(builtInEvent, defaultStream);
+    defaultStream.Position = 0;
+    var defaultRoundTrip = defaultStorageSerializer.Deserialize<Event>(defaultStream);
+    Assert(defaultRoundTrip.Source == builtInEvent.Source, "Default storage serializer lost a built-in event.");
+    Assert(System.Convert.ToInt32(defaultRoundTrip.Data["answer"]) == 42, "Default storage serializer lost primitive event data.");
+}
+
 var submissionClient = new CapturingSubmissionClient();
 var jsonSerializer = new DefaultJsonSerializer(AotSmokeJsonSerializerContext.Default);
 var services = new ServiceCollection();

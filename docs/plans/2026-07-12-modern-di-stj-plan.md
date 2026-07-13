@@ -35,7 +35,7 @@
 2. Use an Exceptionless-owned `JsonSerializerContext` for the wire model and accept a consumer resolver/context for arbitrary event data.
 3. Require NativeAOT consumers to register services and custom payload metadata explicitly; retain reflection and unregistered concrete activation only for dynamic-code runtimes.
 4. Use regular runtime stack traces on modern targets instead of the IL/PDB demystifier, while keeping exception capture and serialization functional with reduced metadata.
-5. Publish and execute a warning-as-error NativeAOT smoke application covering Microsoft DI, custom STJ metadata, storage, queues, submission, and nested exception capture in Linux CI.
+5. Publish and execute a warning-as-error NativeAOT smoke application for both `net8.0` and `net10.0`, covering default Microsoft DI/default serialization, custom STJ metadata, storage, queues, submission, and nested exception capture in Linux CI.
 
 ## Execution results
 
@@ -45,4 +45,17 @@
 - Serializer coverage retains exact wire-format assertions and adds regressions for exclusions, depth limits, `DataDictionary` structured/raw values, settings coercion, and MessagePack marker round-trips.
 - `net462` core and `net472` test assemblies build with 0 warnings and 0 errors when Windows targeting is forced on macOS. Runtime execution of the .NET Framework tests still belongs in Windows CI.
 - The non-Windows solution packs successfully. A Windows-shaped core package containing both `net462` and `netstandard2.0` assets also packs successfully with explicit `SolutionDir`.
-- `net8.0` and `net10.0` core builds pass with 0 AOT/trim/single-file warnings. A real NativeAOT executable now covers Microsoft DI, source-generated custom payloads, storage round-trips, queued submission, and nested exception capture; Linux CI publishes and runs that executable with linker warnings treated as errors.
+- `net8.0` and `net10.0` core builds pass with 0 AOT/trim/single-file warnings. Real NativeAOT executables now cover default Microsoft DI/default serialization, source-generated custom payloads, storage round-trips, queued submission, and nested exception capture on both target frameworks; Linux CI publishes and runs them with linker warnings treated as errors.
+
+## Historical NativeAOT comparison
+
+The same strict NativeAOT client/serialization/storage probe was published and executed against four repository states:
+
+| Commit | State | NativeAOT result |
+| --- | --- | --- |
+| `5eb567a` | Vendored Newtonsoft + TinyIoC | Published with 10 TinyIoC AOT/trim warnings, then exited 134 because TinyIoC could not construct `DefaultJsonSerializer`. |
+| `2dd1d8e` | System.Text.Json + TinyIoC | Same TinyIoC warnings and runtime construction failure. |
+| `118123b` | System.Text.Json + Microsoft DI before AOT hardening | Published with 4 DI trim warnings, then exited 134 because the serializer constructor was trimmed. |
+| `ef0088b` | Hardened System.Text.Json + Microsoft DI | Published with no product AOT/trim warnings and exited 0 with `AOT_HISTORY_PROBE_OK`. |
+
+The legacy Newtonsoft serializer was also instantiated directly to remove TinyIoC as a confound. Under NativeAOT it serialized a normal POCO as `{}` and then failed built-in `Event` storage serialization because `SnakeCaseNamingStrategy` construction metadata had been trimmed. The pre-modernization client therefore had two independent NativeAOT blockers: TinyIoC and reflection-driven Newtonsoft serialization.
