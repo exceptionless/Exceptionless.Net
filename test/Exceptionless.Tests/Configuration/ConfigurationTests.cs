@@ -101,25 +101,11 @@ namespace Exceptionless.Tests.Configuration {
         }
 
 #if NETSTANDARD
-        [Fact]
-        public void CanRegisterStorageSerializerFromConfigurationTypeName() {
-            using var resolver = DependencyResolver.CreateDefault();
-            var config = new ExceptionlessConfiguration(resolver);
-            IConfiguration settings = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string> {
-                    ["Exceptionless:StorageSerializer"] = typeof(ConfigurationStorageSerializer).AssemblyQualifiedName
-                })
-                .Build();
-
-            config.ReadFromConfiguration(settings);
-
-            Assert.IsType<ConfigurationStorageSerializer>(resolver.GetStorageSerializer());
-        }
-
         [Theory]
         [InlineData("System.String, System.Private.CoreLib")]
         [InlineData("Missing.StorageSerializer, Missing.Assembly")]
-        public void InvalidConfiguredStorageSerializerLeavesDefaultRegistration(string typeName) {
+        public void ReadFromConfiguration_WithInvalidStorageSerializerType_PreservesDefaultSerializer(string typeName) {
+            // Arrange
             using var resolver = DependencyResolver.CreateDefault();
             var config = new ExceptionlessConfiguration(resolver);
             IConfiguration settings = new ConfigurationBuilder()
@@ -128,9 +114,29 @@ namespace Exceptionless.Tests.Configuration {
                 })
                 .Build();
 
+            // Act
             config.ReadFromConfiguration(settings);
 
+            // Assert
             Assert.IsType<DefaultJsonSerializer>(resolver.GetStorageSerializer());
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_WithValidStorageSerializerType_RegistersStorageSerializer() {
+            // Arrange
+            using var resolver = DependencyResolver.CreateDefault();
+            var config = new ExceptionlessConfiguration(resolver);
+            IConfiguration settings = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string> {
+                    ["Exceptionless:StorageSerializer"] = typeof(ConfigurationStorageSerializer).AssemblyQualifiedName
+                })
+                .Build();
+
+            // Act
+            config.ReadFromConfiguration(settings);
+
+            // Assert
+            Assert.IsType<ConfigurationStorageSerializer>(resolver.GetStorageSerializer());
         }
 #endif
 

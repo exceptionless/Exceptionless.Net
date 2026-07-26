@@ -49,17 +49,20 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
-        public void AddExceptionless_CreatesIsolatedClientForEachHost() {
+        public void AddExceptionless_WithMultipleHosts_CreatesIsolatedClients() {
+            // Arrange
             var firstBuilder = Host.CreateApplicationBuilder();
             firstBuilder.AddExceptionless("first-api-key");
             var secondBuilder = Host.CreateApplicationBuilder();
             secondBuilder.AddExceptionless("second-api-key");
 
+            // Act
             using var firstProvider = firstBuilder.Services.BuildServiceProvider();
             using var secondProvider = secondBuilder.Services.BuildServiceProvider();
             var firstClient = firstProvider.GetRequiredService<ExceptionlessClient>();
             var secondClient = secondProvider.GetRequiredService<ExceptionlessClient>();
 
+            // Assert
             Assert.NotSame(ExceptionlessClient.Default, firstClient);
             Assert.NotSame(firstClient, secondClient);
             Assert.Equal("first-api-key", firstClient.Configuration.ApiKey);
@@ -67,70 +70,107 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
-        public void DisposingHostProvider_DisposesHostOwnedClientButNotDefaultClient() {
-            var builder = Host.CreateApplicationBuilder();
-            builder.AddExceptionless();
-            var serviceProvider = builder.Services.BuildServiceProvider();
-            var client = serviceProvider.GetRequiredService<ExceptionlessClient>();
+        public void ConfiguredLoggingProvider_WhenDisposed_PreservesDefaultClient() {
+            // Arrange
+            string dataKey = Guid.NewGuid().ToString("N");
+            bool containedBefore = ExceptionlessClient.Default.Configuration.DefaultData.ContainsKey(dataKey);
 
-            serviceProvider.Dispose();
+            // Act
+            using (var provider = new ExceptionlessLoggerProvider(configuration => configuration.DefaultData[dataKey] = true))
+                provider.CreateLogger("test-category");
 
-            Assert.Throws<ObjectDisposedException>(() => client.Configuration.Resolver.GetJsonSerializer());
+            // Assert
+            Assert.False(containedBefore);
+            Assert.False(ExceptionlessClient.Default.Configuration.DefaultData.ContainsKey(dataKey));
             Assert.NotNull(ExceptionlessClient.Default.Configuration.Resolver.GetJsonSerializer());
         }
 
         [Fact]
-        public void DisposingHostProvider_DoesNotDisposeCallerOwnedClient() {
+        public void ConfiguredLoggingProvider_WhenDisposedRepeatedly_RemainsSafe() {
+            // Arrange
+            var provider = new ExceptionlessLoggerProvider(configuration => configuration.Enabled = false);
+
+            // Act
+            Exception exception = Record.Exception(() => {
+                provider.Dispose();
+                provider.Dispose();
+            });
+
+            // Assert
+            Assert.Null(exception);
+        }
+
+        [Fact]
+        public void ConfiguredLoggingProvider_WithNullCallback_CreatesProvider() {
+            // Arrange
+            Action<ExceptionlessConfiguration> callback = null;
+
+            // Act
+            using var provider = new ExceptionlessLoggerProvider(callback);
+
+            // Assert
+            Assert.NotNull(provider);
+        }
+
+        [Fact]
+        public void Dispose_WithCallerOwnedClient_PreservesClient() {
+            // Arrange
             using var client = new ExceptionlessClient();
             var builder = Host.CreateApplicationBuilder();
             builder.AddExceptionless(client);
             var serviceProvider = builder.Services.BuildServiceProvider();
             serviceProvider.GetRequiredService<ExceptionlessClient>();
 
+            // Act
             serviceProvider.Dispose();
 
+            // Assert
             Assert.NotNull(client.Configuration.Resolver.GetJsonSerializer());
         }
 
         [Fact]
-        public void ConfiguredLoggingProvider_DoesNotMutateOrDisposeDefaultClient() {
-            string dataKey = Guid.NewGuid().ToString("N");
-            Assert.False(ExceptionlessClient.Default.Configuration.DefaultData.ContainsKey(dataKey));
+        public void Dispose_WithHostOwnedClient_DisposesOnlyHostClient() {
+            // Arrange
+            var builder = Host.CreateApplicationBuilder();
+            builder.AddExceptionless();
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            var client = serviceProvider.GetRequiredService<ExceptionlessClient>();
 
-            using (var provider = new ExceptionlessLoggerProvider(configuration => configuration.DefaultData[dataKey] = true))
-                Assert.False(ExceptionlessClient.Default.Configuration.DefaultData.ContainsKey(dataKey));
+            // Act
+            serviceProvider.Dispose();
+            Exception exception = Record.Exception(() => client.Configuration.Resolver.GetJsonSerializer());
 
+            // Assert
+            Assert.IsType<ObjectDisposedException>(exception);
             Assert.NotNull(ExceptionlessClient.Default.Configuration.Resolver.GetJsonSerializer());
         }
 
         [Fact]
-        public void ConfiguredLoggingProvider_CanBeDisposedMoreThanOnce() {
-            var provider = new ExceptionlessLoggerProvider(configuration => configuration.Enabled = false);
-
-            provider.Dispose();
-            provider.Dispose();
-        }
-
-        [Fact]
-        public void LoggingProvider_RejectsNullClient() {
-            Assert.Throws<ArgumentNullException>(() => new ExceptionlessLoggerProvider((ExceptionlessClient)null));
-        }
-
-        [Fact]
-        public void LoggingProvider_CreatesLoggerWithoutOwningExplicitClient() {
+        public void LoggingProvider_WithExplicitClient_CreatesLoggerWithoutOwningClient() {
+            // Arrange
             using var client = new ExceptionlessClient(configuration => configuration.Enabled = false);
             var provider = new ExceptionlessLoggerProvider(client);
 
-            Assert.NotNull(provider.CreateLogger("test-category"));
+            // Act
+            var logger = provider.CreateLogger("test-category");
             provider.Dispose();
             provider.Dispose();
 
+            // Assert
+            Assert.NotNull(logger);
             Assert.NotNull(client.Configuration.Resolver.GetJsonSerializer());
         }
 
         [Fact]
-        public void ConfiguredLoggingProvider_AllowsNullConfigurationCallback() {
-            using var provider = new ExceptionlessLoggerProvider((Action<ExceptionlessConfiguration>)null);
+        public void LoggingProvider_WithNullClient_ThrowsArgumentNullException() {
+            // Arrange
+            ExceptionlessClient client = null;
+
+            // Act
+            Exception exception = Record.Exception(() => new ExceptionlessLoggerProvider(client));
+
+            // Assert
+            Assert.IsType<ArgumentNullException>(exception);
         }
     }
 }

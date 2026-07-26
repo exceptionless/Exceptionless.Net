@@ -7,7 +7,23 @@ using Xunit;
 namespace Exceptionless.Tests.Serializer {
     public class JsonElementValueConverterTests {
         [Fact]
-        public void Convert_MapsEverySupportedJsonValueKind() {
+        public void Convert_WithDateParsingOption_ControlsDateConversion() {
+            // Arrange
+            const string timestamp = "2026-07-25T12:34:56.0000000+00:00";
+            using var document = JsonDocument.Parse($"\"{timestamp}\"");
+
+            // Act
+            object unparsed = JsonElementValueConverter.Convert(document.RootElement, parseDates: false);
+            object parsed = JsonElementValueConverter.Convert(document.RootElement, parseDates: true);
+
+            // Assert
+            Assert.Equal(timestamp, unparsed);
+            Assert.Equal(DateTimeOffset.Parse(timestamp), Assert.IsType<DateTimeOffset>(parsed));
+        }
+
+        [Fact]
+        public void Convert_WithSupportedJsonValueKinds_MapsExpectedValues() {
+            // Arrange
             const string json = """
                 {
                   "Int": 42,
@@ -23,9 +39,12 @@ namespace Exceptionless.Tests.Serializer {
                 """;
 
             using var document = JsonDocument.Parse(json);
-            var result = Assert.IsType<Dictionary<string, object>>(
-                JsonElementValueConverter.Convert(document.RootElement, parseDates: false));
 
+            // Act
+            object converted = JsonElementValueConverter.Convert(document.RootElement, parseDates: false);
+
+            // Assert
+            var result = Assert.IsType<Dictionary<string, object>>(converted);
             Assert.Equal(42, Assert.IsType<int>(result["int"]));
             Assert.Equal(2147483648L, Assert.IsType<long>(result["long"]));
             Assert.Equal(3.14m, Assert.IsType<decimal>(result["decimal"]));
@@ -43,19 +62,15 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
-        public void Convert_DateParsingIsExplicit() {
-            const string timestamp = "2026-07-25T12:34:56.0000000+00:00";
-            using var document = JsonDocument.Parse($"\"{timestamp}\"");
+        public void Convert_WithUndefinedElement_ReturnsNull() {
+            // Arrange
+            JsonElement element = default;
 
-            Assert.Equal(timestamp, JsonElementValueConverter.Convert(document.RootElement, parseDates: false));
-            Assert.Equal(
-                DateTimeOffset.Parse(timestamp),
-                Assert.IsType<DateTimeOffset>(JsonElementValueConverter.Convert(document.RootElement, parseDates: true)));
-        }
+            // Act
+            object result = JsonElementValueConverter.Convert(element, parseDates: false);
 
-        [Fact]
-        public void Convert_UndefinedElementBecomesNull() {
-            Assert.Null(JsonElementValueConverter.Convert(default, parseDates: false));
+            // Assert
+            Assert.Null(result);
         }
     }
 }

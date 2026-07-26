@@ -68,12 +68,14 @@ namespace Exceptionless.MessagePack.Tests {
         }
 
         [Fact]
-        public void LiteralJsonStringsRemainStringsAcrossStorageRoundTrip() {
+        public void Serialize_WithLiteralJsonString_PreservesStringAcrossStorageRoundTrip() {
+            // Arrange
             var original = new Event {
                 Type = Event.KnownTypes.Log,
                 Data = { ["literal"] = /* lang=json */ "{\"value\":true}" }
             };
 
+            // Act
             Event roundTripped;
             using (var stream = new MemoryStream()) {
                 Resolver.GetStorageSerializer().Serialize(original, stream);
@@ -81,20 +83,24 @@ namespace Exceptionless.MessagePack.Tests {
                 roundTripped = Resolver.GetStorageSerializer().Deserialize<Event>(stream);
             }
 
-            Assert.Equal("{\"value\":true}", roundTripped.Data["literal"]);
             using var document = JsonDocument.Parse(Resolver.GetJsonSerializer().Serialize(roundTripped));
+
+            // Assert
+            Assert.Equal("{\"value\":true}", roundTripped.Data["literal"]);
             Assert.Equal(JsonValueKind.String, document.RootElement.GetProperty("data").GetProperty("literal").ValueKind);
         }
 
         [Fact]
-        public void RawJsonValuesRemainStructuredAcrossStorageRoundTrip() {
+        public void Serialize_WithRawJsonValue_PreservesStructureAcrossStorageRoundTrip() {
+            // Arrange
             const string json = "{\"type\":\"log\",\"data\":{\"payload\":{"
                 + "\"timestamp\":\"2026-07-25T12:34:56.0000000+00:00\","
                 + "\"count\":42,\"enabled\":true,\"items\":[1,null,\"value\"]}}}";
             var jsonSerializer = Resolver.GetJsonSerializer();
             var original = (Event)jsonSerializer.Deserialize(json, typeof(Event));
-            Assert.IsType<string>(original.Data["payload"]);
+            object originalPayload = original.Data["payload"];
 
+            // Act
             Event roundTripped;
             using (var stream = new MemoryStream()) {
                 Resolver.GetStorageSerializer().Serialize(original, stream);
@@ -104,6 +110,9 @@ namespace Exceptionless.MessagePack.Tests {
 
             using var document = JsonDocument.Parse(jsonSerializer.Serialize(roundTripped));
             JsonElement payload = document.RootElement.GetProperty("data").GetProperty("payload");
+
+            // Assert
+            Assert.IsType<string>(originalPayload);
             Assert.Equal(JsonValueKind.Object, payload.ValueKind);
             Assert.Equal("2026-07-25T12:34:56.0000000+00:00", payload.GetProperty("timestamp").GetString());
             Assert.Equal(42, payload.GetProperty("count").GetInt32());

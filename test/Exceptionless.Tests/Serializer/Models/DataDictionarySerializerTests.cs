@@ -111,70 +111,30 @@ namespace Exceptionless.Tests.Serializer.Models {
         }
 
         [Fact]
-        public void Serialize_DataDictionary_LiteralJsonString_RemainsString() {
-            // Regression test: literal string values that happen to look like JSON
-            // must stay strings on the wire. Only values produced from complex objects
-            // should be emitted as raw JSON.
-            var data = new DataDictionary {
-                ["payload"] = """{"a":1}""",
-                ["items"] = """[1,2]"""
-            };
+        public void Deserialize_WithNonObjectJson_ThrowsJsonException() {
+            // Arrange
+            const string json = "[]";
 
-            string json = Serialize(data);
+            // Act
+            Exception exception = Record.Exception(() => Deserialize<DataDictionary>(json));
 
-            using var doc = JsonDocument.Parse(json);
-            Assert.Equal("""{"a":1}""", doc.RootElement.GetProperty("payload").GetString());
-            Assert.Equal("[1,2]", doc.RootElement.GetProperty("items").GetString());
+            // Assert
+            Assert.IsType<JsonException>(exception);
         }
 
         [Fact]
-        public void Serialize_DataDictionary_MutatedThroughDictionaryInterface_DoesNotReuseRawJsonMarker() {
+        public void Serialize_AfterDictionaryInterfaceMutation_ClearsRawJsonMarker() {
+            // Arrange
             DataDictionary data = Deserialize<DataDictionary>(NestedObjectJson);
             IDictionary<string, object> dictionary = data;
+
+            // Act
             dictionary["nested"] = /* lang=json */ "{\"literal\":true}";
-
             string json = Serialize(data);
-
-            using var doc = JsonDocument.Parse(json);
-            Assert.Equal("{\"literal\":true}", doc.RootElement.GetProperty("nested").GetString());
-        }
-
-        [Fact]
-        public void Serialize_DataDictionary_CopyPreservesRawJsonValues() {
-            DataDictionary original = Deserialize<DataDictionary>(NestedObjectJson);
-            var copy = new DataDictionary(original);
-
-            string json = Serialize(copy);
-
             using var document = JsonDocument.Parse(json);
-            Assert.Equal(JsonValueKind.Object, document.RootElement.GetProperty("nested").ValueKind);
-            Assert.Equal("val", document.RootElement.GetProperty("nested").GetProperty("key").GetString());
-        }
 
-        [Fact]
-        public void Serialize_DataDictionary_PreservesRawJsonForEmptyKey() {
-            DataDictionary data = Deserialize<DataDictionary>("""{"":{"nested":true}}""");
-
-            string json = Serialize(data);
-
-            using var document = JsonDocument.Parse(json);
-            Assert.True(document.RootElement.GetProperty("").GetProperty("nested").GetBoolean());
-        }
-
-        [Fact]
-        public void Serialize_DataDictionary_InvalidRawJsonFallsBackToString() {
-            var data = new DataDictionary();
-            data.SetRawJson("payload", /* lang=json */ "{invalid");
-
-            string json = Serialize(data);
-
-            using var document = JsonDocument.Parse(json);
-            Assert.Equal("{invalid", document.RootElement.GetProperty("payload").GetString());
-        }
-
-        [Fact]
-        public void Deserialize_DataDictionary_RejectsNonObjectJson() {
-            Assert.Throws<JsonException>(() => Deserialize<DataDictionary>("[]"));
+            // Assert
+            Assert.Equal("{\"literal\":true}", document.RootElement.GetProperty("nested").GetString());
         }
 
         [Theory]
@@ -182,10 +142,12 @@ namespace Exceptionless.Tests.Serializer.Models {
         [InlineData(false, true)]
         [InlineData(true, false)]
         [InlineData(true, true)]
-        public void Serialize_DataDictionary_InterfaceRemovalClearsRawJsonMarker(bool clear, bool nonGeneric) {
+        public void Serialize_AfterInterfaceRemoval_ClearsRawJsonMarker(bool clear, bool nonGeneric) {
+            // Arrange
             DataDictionary data = Deserialize<DataDictionary>(NestedObjectJson);
             object originalValue = data["nested"];
 
+            // Act
             if (nonGeneric) {
                 System.Collections.IDictionary dictionary = data;
                 if (clear)
@@ -204,9 +166,72 @@ namespace Exceptionless.Tests.Serializer.Models {
                 dictionary["nested"] = originalValue;
             }
             string json = Serialize(data);
+            using var document = JsonDocument.Parse(json);
 
-            using var doc = JsonDocument.Parse(json);
-            Assert.Equal("{\"key\":\"val\"}", doc.RootElement.GetProperty("nested").GetString());
+            // Assert
+            Assert.Equal("{\"key\":\"val\"}", document.RootElement.GetProperty("nested").GetString());
+        }
+
+        [Fact]
+        public void Serialize_WithCopiedDataDictionary_PreservesRawJsonValues() {
+            // Arrange
+            DataDictionary original = Deserialize<DataDictionary>(NestedObjectJson);
+            var copy = new DataDictionary(original);
+
+            // Act
+            string json = Serialize(copy);
+            using var document = JsonDocument.Parse(json);
+
+            // Assert
+            Assert.Equal(JsonValueKind.Object, document.RootElement.GetProperty("nested").ValueKind);
+            Assert.Equal("val", document.RootElement.GetProperty("nested").GetProperty("key").GetString());
+        }
+
+        [Fact]
+        public void Serialize_WithEmptyKey_PreservesRawJson() {
+            // Arrange
+            DataDictionary data = Deserialize<DataDictionary>("""{"":{"nested":true}}""");
+
+            // Act
+            string json = Serialize(data);
+            using var document = JsonDocument.Parse(json);
+
+            // Assert
+            Assert.True(document.RootElement.GetProperty("").GetProperty("nested").GetBoolean());
+        }
+
+        [Fact]
+        public void Serialize_WithInvalidRawJson_WritesStringValue() {
+            // Arrange
+            var data = new DataDictionary();
+            data.SetRawJson("payload", /* lang=json */ "{invalid");
+
+            // Act
+            string json = Serialize(data);
+            using var document = JsonDocument.Parse(json);
+
+            // Assert
+            Assert.Equal("{invalid", document.RootElement.GetProperty("payload").GetString());
+        }
+
+        [Fact]
+        public void Serialize_WithLiteralJsonString_PreservesString() {
+            // Arrange
+            // Regression test: literal string values that happen to look like JSON
+            // must stay strings on the wire. Only values produced from complex objects
+            // should be emitted as raw JSON.
+            var data = new DataDictionary {
+                ["payload"] = """{"a":1}""",
+                ["items"] = """[1,2]"""
+            };
+
+            // Act
+            string json = Serialize(data);
+            using var document = JsonDocument.Parse(json);
+
+            // Assert
+            Assert.Equal("""{"a":1}""", document.RootElement.GetProperty("payload").GetString());
+            Assert.Equal("[1,2]", document.RootElement.GetProperty("items").GetString());
         }
     }
 }
