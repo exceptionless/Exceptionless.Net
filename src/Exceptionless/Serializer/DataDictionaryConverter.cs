@@ -65,7 +65,7 @@ namespace Exceptionless.Serializer {
                 }
             }
 
-            return dictionary;
+            throw new JsonException("Unexpected end of JSON while reading a data dictionary.");
         }
 
         public override void Write(Utf8JsonWriter writer, DataDictionary value, JsonSerializerOptions options) {

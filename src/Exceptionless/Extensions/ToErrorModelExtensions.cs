@@ -218,6 +218,10 @@ namespace Exceptionless {
 
             string[] rawStackFrames = (exception.StackTrace ?? String.Empty)
                 .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            rawStackFrames = rawStackFrames
+                .Select(line => line.Trim())
+                .Where(line => line.StartsWith("at ", StringComparison.Ordinal))
+                .ToArray();
 
             for (int frameIndex = 0; frameIndex < frames.Length; frameIndex++) {
                 StackFrame frame = frames[frameIndex];
@@ -253,6 +257,16 @@ namespace Exceptionless {
                 if (String.IsNullOrEmpty(stackFrame.Name) && frameIndex < rawStackFrames.Length)
                     stackFrame.PopulateMethodIdentity(rawStackFrames[frameIndex]);
 
+                // NativeAOT can expose runtime frames that have no method, source, or line
+                // metadata and do not appear in Exception.StackTrace. An offset-only frame
+                // cannot be displayed or grouped meaningfully, so omit it instead of
+                // emitting an empty stack frame.
+                if (String.IsNullOrEmpty(stackFrame.Name)
+                    && String.IsNullOrEmpty(stackFrame.DeclaringType)
+                    && String.IsNullOrEmpty(stackFrame.FileName)
+                    && stackFrame.LineNumber == 0)
+                    continue;
+
                 error.StackTrace.Add(stackFrame);
             }
         }
@@ -265,13 +279,13 @@ namespace Exceptionless {
             if (identity.StartsWith("at ", StringComparison.Ordinal))
                 identity = identity.Substring(3);
 
-            int argumentsStart = identity.IndexOf('(');
-            if (argumentsStart >= 0)
-                identity = identity.Substring(0, argumentsStart);
-
             int locationStart = identity.IndexOf(" in ", StringComparison.Ordinal);
             if (locationStart >= 0)
                 identity = identity.Substring(0, locationStart);
+
+            int argumentsStart = identity.IndexOf('(');
+            if (argumentsStart >= 0)
+                identity = identity.Substring(0, argumentsStart);
 
             int methodSeparator = identity.LastIndexOf('.');
             if (methodSeparator < 0) {

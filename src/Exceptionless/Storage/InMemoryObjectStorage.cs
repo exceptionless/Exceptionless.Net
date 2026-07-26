@@ -18,7 +18,10 @@ namespace Exceptionless.Storage {
         public long MaxObjects { get; set; }
 
         public int Count {
-            get { return _storage.Count; }
+            get {
+                lock (_lock)
+                    return _storage.Count;
+            }
         }
 
         public T GetObject<T>(string path) where T : class {
@@ -34,11 +37,13 @@ namespace Exceptionless.Storage {
         }
 
         public ObjectInfo GetObjectInfo(string path) {
-            return _storage.TryGetValue(path, out var value) ? value.Item1 : null;
+            lock (_lock)
+                return _storage.TryGetValue(path, out var value) ? value.Item1 : null;
         }
 
         public bool Exists(string path) {
-            return _storage.ContainsKey(path);
+            lock (_lock)
+                return _storage.ContainsKey(path);
         }
 
         public bool SaveObject<T>(string path, T value) where T : class {
@@ -104,7 +109,7 @@ namespace Exceptionless.Storage {
         }
 
         public void Dispose() {
-            if (_storage != null)
+            lock (_lock)
                 _storage.Clear();
         }
     }

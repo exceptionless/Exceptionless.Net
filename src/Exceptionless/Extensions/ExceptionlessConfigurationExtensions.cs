@@ -439,24 +439,25 @@ namespace Exceptionless {
             if (!String.IsNullOrEmpty(storageSerializer)) {
                 try {
                     Type serializerType = null;
+                    bool canResolveSerializerType = true;
 #if NET8_0_OR_GREATER
                     if (!RuntimeFeature.IsDynamicCodeSupported) {
                         config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), "StorageSerializer cannot be activated from a type name in NativeAOT. Register IStorageSerializer with IServiceCollection instead.");
+                        canResolveSerializerType = false;
                     }
-                    else
-                        serializerType = ResolveConfiguredType(storageSerializer);
-#else
-                    serializerType = ResolveConfiguredType(storageSerializer);
 #endif
-                    if (serializerType != null) {
-                        if (!typeof(IStorageSerializer).GetTypeInfo().IsAssignableFrom(serializerType))
+                    if (canResolveSerializerType) {
+                        serializerType = ResolveConfiguredType(storageSerializer);
+                        if (serializerType == null)
+                            config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"The storage serializer {storageSerializer} type could not be resolved.");
+                        else if (!typeof(IStorageSerializer).GetTypeInfo().IsAssignableFrom(serializerType))
                             config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), $"The storage serializer {storageSerializer} does not implement interface {typeof(IStorageSerializer)}.");
                         else
                             config.Resolver.Register(typeof(IStorageSerializer), serializerType);
                     }
                 }
                 catch (Exception ex) {
-                    config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, $"The storage serializer {storageSerializer} type could not be resolved: ${ex.Message}");
+                    config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, $"The storage serializer {storageSerializer} type could not be resolved: {ex.Message}");
                 }
             }
 

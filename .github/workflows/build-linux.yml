@@ -25,8 +25,15 @@ jobs:
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
       run: dotnet build --configuration Release Exceptionless.Net.NonWindows.slnx
-    - name: Run Tests
-      run: dotnet test --configuration Release --no-build Exceptionless.Net.NonWindows.slnx
+    - name: Run Tests with Coverage
+      run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/test-results Exceptionless.Net.NonWindows.slnx
+    - name: Upload Coverage
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-linux
+        path: artifacts/test-results/**/coverage.cobertura.xml
+        if-no-files-found: error
     - name: Pack Core for NativeAOT Test
       run: dotnet pack --configuration Release --no-build --output artifacts/aot-package -p:SolutionDir="$GITHUB_WORKSPACE/" src/Exceptionless/Exceptionless.csproj
     - name: NativeAOT Smoke Test
