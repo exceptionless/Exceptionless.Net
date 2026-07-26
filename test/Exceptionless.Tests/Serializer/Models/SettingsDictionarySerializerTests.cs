@@ -1,3 +1,4 @@
+using System;
 using Exceptionless.Models;
 using Exceptionless.Tests.Serializer;
 using Xunit;
@@ -102,21 +103,32 @@ namespace Exceptionless.Tests.Serializer.Models {
         }
 
         [Fact]
-        public void Deserialize_SettingsDictionary_PrimitiveJsonValuesBecomeStrings() {
+        public void Deserialize_WithNonObjectJson_ThrowsJsonException() {
+            // Arrange
+            const string json = "[]";
+
+            // Act
+            Exception exception = Record.Exception(() => Deserialize<SettingsDictionary>(json));
+
+            // Assert
+            Assert.IsType<System.Text.Json.JsonException>(exception);
+        }
+
+        [Fact]
+        public void Deserialize_WithPrimitiveJsonValues_ConvertsValuesToStrings() {
+            // Arrange
             // Regression test: main coerces primitive JSON values into strings when
             // deserializing SettingsDictionary. The STJ converter must preserve that behavior.
             const string json = """{"max_events":25,"is_enabled":true,"threshold":3.14}""";
 
+            // Act
             SettingsDictionary settings = Deserialize<SettingsDictionary>(json);
 
+            // Assert
             Assert.Equal("25", settings["max_events"]);
             Assert.Equal("true", settings["is_enabled"]);
             Assert.Equal("3.14", settings["threshold"]);
         }
 
-        [Fact]
-        public void Deserialize_SettingsDictionary_RejectsNonObjectJson() {
-            Assert.Throws<System.Text.Json.JsonException>(() => Deserialize<SettingsDictionary>("[]"));
-        }
     }
 }

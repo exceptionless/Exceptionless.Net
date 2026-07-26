@@ -47,66 +47,140 @@ namespace Exceptionless.Tests.Dependency {
         }
 
         [Fact]
-        public void ConcreteRegistrationsAreTransient() {
-            var resolver = new DefaultDependencyResolver();
-            resolver.Register<ServiceA>();
+        public void CreateDefault_WithCustomService_OverridesClientDefault() {
+            // Arrange
+            var serializer = new DefaultJsonSerializer();
+            var services = new ServiceCollection();
+            services.AddSingleton<IJsonSerializer>(serializer);
 
-            Assert.NotSame(resolver.Resolve<ServiceA>(), resolver.Resolve<ServiceA>());
+            // Act
+            using var client = new ExceptionlessClient(services);
+
+            // Assert
+            Assert.Same(serializer, client.Configuration.Resolver.GetJsonSerializer());
         }
 
         [Fact]
-        public void FactoryRegistrationsAreTransient() {
+        public void Dispose_WithContainerOwnedSingleton_DisposesInstance() {
+            // Arrange
             var resolver = new DefaultDependencyResolver();
-            resolver.Register(typeof(IServiceA), () => new ServiceA());
+            resolver.Register<IDisposableService, DisposableService>();
+            var service = resolver.Resolve<IDisposableService>();
 
-            Assert.NotSame(resolver.Resolve<IServiceA>(), resolver.Resolve<IServiceA>());
+            // Act
+            resolver.Dispose();
+
+            // Assert
+            Assert.True(service.IsDisposed);
         }
 
         [Fact]
-        public void CanReplaceRegistrationAfterResolution() {
+        public void Dispose_WithExplicitInstance_PreservesInstance() {
+            // Arrange
+            var resolver = new DefaultDependencyResolver();
+            var service = new DisposableService();
+            resolver.Register<IDisposableService>(service);
+            resolver.Resolve<IDisposableService>();
+
+            // Act
+            resolver.Dispose();
+
+            // Assert
+            Assert.False(service.IsDisposed);
+        }
+
+        [Fact]
+        public void Dispose_WithProviderSnapshots_DisposesEachSnapshotOnce() {
+            // Arrange
+            var resolver = new DefaultDependencyResolver();
+            resolver.Register<ICountingDisposable, CountingDisposable>();
+            var original = resolver.Resolve<ICountingDisposable>();
+            resolver.Register<IServiceA, ServiceA>();
+            var replacement = resolver.Resolve<ICountingDisposable>();
+
+            // Act
+            resolver.Dispose();
+
+            // Assert
+            Assert.NotSame(original, replacement);
+            Assert.Equal(1, original.DisposeCount);
+            Assert.Equal(1, replacement.DisposeCount);
+        }
+
+        [Fact]
+        public void Register_AfterInitialResolution_ReplacesRegistration() {
+            // Arrange
             var resolver = new DefaultDependencyResolver();
             resolver.Register<IServiceA, ServiceA>();
             var original = resolver.Resolve<IServiceA>();
 
+            // Act
             resolver.Register<IServiceA, AlternateServiceA>();
+            var replacement = resolver.Resolve<IServiceA>();
 
-            Assert.IsType<AlternateServiceA>(resolver.Resolve<IServiceA>());
-            Assert.NotSame(original, resolver.Resolve<IServiceA>());
+            // Assert
+            Assert.IsType<AlternateServiceA>(replacement);
+            Assert.NotSame(original, replacement);
         }
 
         [Fact]
-        public void LateReplacementCreatesConsistentServiceGraphSnapshot() {
+        public void Resolve_AfterLateReplacement_CreatesConsistentServiceGraph() {
+            // Arrange
             using var resolver = new DefaultDependencyResolver();
             resolver.Register<IServiceA, ServiceA>();
             resolver.Register<IServiceB, ServiceB>();
             var original = resolver.Resolve<IServiceB>();
 
+            // Act
             resolver.Register<IServiceA, AlternateServiceA>();
             var replacement = resolver.Resolve<IServiceB>();
 
+            // Assert
             Assert.IsType<ServiceA>(original.ServiceA);
             Assert.IsType<AlternateServiceA>(replacement.ServiceA);
             Assert.NotSame(original, replacement);
         }
 
         [Fact]
-        public void CanUseServiceCollectionRegistrations() {
-            var services = new ServiceCollection();
-            services.AddSingleton<IServiceA, AlternateServiceA>();
-            var resolver = new DefaultDependencyResolver(services);
+        public void Resolve_WithConcreteRegistration_ReturnsTransientInstances() {
+            // Arrange
+            var resolver = new DefaultDependencyResolver();
+            resolver.Register<ServiceA>();
 
-            Assert.IsType<AlternateServiceA>(resolver.Resolve<IServiceA>());
+            // Act
+            var first = resolver.Resolve<ServiceA>();
+            var second = resolver.Resolve<ServiceA>();
+
+            // Assert
+            Assert.NotSame(first, second);
         }
 
         [Fact]
-        public void CanResolveAllServiceCollectionRegistrations() {
+        public void Resolve_WithFactoryRegistration_ReturnsTransientInstances() {
+            // Arrange
+            var resolver = new DefaultDependencyResolver();
+            resolver.Register(typeof(IServiceA), () => new ServiceA());
+
+            // Act
+            var first = resolver.Resolve<IServiceA>();
+            var second = resolver.Resolve<IServiceA>();
+
+            // Assert
+            Assert.NotSame(first, second);
+        }
+
+        [Fact]
+        public void Resolve_WithMultipleServiceCollectionRegistrations_ReturnsAllServices() {
+            // Arrange
             var services = new ServiceCollection();
             services.AddSingleton<IServiceA, ServiceA>();
             services.AddSingleton<IServiceA, AlternateServiceA>();
             using var resolver = new DefaultDependencyResolver(services);
 
+            // Act
             var registrations = resolver.Resolve<IEnumerable<IServiceA>>().ToArray();
 
+            // Assert
             Assert.Collection(
                 registrations,
                 service => Assert.IsType<ServiceA>(service),
@@ -114,63 +188,32 @@ namespace Exceptionless.Tests.Dependency {
         }
 
         [Fact]
-        public void CanResolveOpenGenericRegistrations() {
+        public void Resolve_WithOpenGenericRegistration_ReturnsClosedService() {
+            // Arrange
             var resolver = new DefaultDependencyResolver();
             resolver.Register(typeof(IGenericService<>), typeof(GenericService<>));
 
+            // Act
             var service = resolver.Resolve(typeof(IGenericService<string>));
+            var repeated = resolver.Resolve(typeof(IGenericService<string>));
 
+            // Assert
             Assert.IsType<GenericService<string>>(service);
-            Assert.Same(service, resolver.Resolve(typeof(IGenericService<string>)));
+            Assert.Same(service, repeated);
         }
 
         [Fact]
-        public void CustomServicesOverrideClientDefaults() {
-            var serializer = new DefaultJsonSerializer();
+        public void Resolve_WithServiceCollectionRegistration_ReturnsRegisteredService() {
+            // Arrange
             var services = new ServiceCollection();
-            services.AddSingleton<IJsonSerializer>(serializer);
+            services.AddSingleton<IServiceA, AlternateServiceA>();
+            var resolver = new DefaultDependencyResolver(services);
 
-            using var client = new ExceptionlessClient(services);
+            // Act
+            var service = resolver.Resolve<IServiceA>();
 
-            Assert.Same(serializer, client.Configuration.Resolver.GetJsonSerializer());
-        }
-
-        [Fact]
-        public void DisposesContainerOwnedSingletons() {
-            var resolver = new DefaultDependencyResolver();
-            resolver.Register<IDisposableService, DisposableService>();
-            var service = resolver.Resolve<IDisposableService>();
-
-            resolver.Dispose();
-
-            Assert.True(service.IsDisposed);
-        }
-
-        [Fact]
-        public void DoesNotDisposeExplicitInstances() {
-            var resolver = new DefaultDependencyResolver();
-            var service = new DisposableService();
-            resolver.Register<IDisposableService>(service);
-            resolver.Resolve<IDisposableService>();
-
-            resolver.Dispose();
-
-            Assert.False(service.IsDisposed);
-        }
-
-        [Fact]
-        public void DisposesEveryProviderSnapshotExactlyOnce() {
-            var resolver = new DefaultDependencyResolver();
-            resolver.Register<ICountingDisposable, CountingDisposable>();
-            var original = resolver.Resolve<ICountingDisposable>();
-            resolver.Register<IServiceA, ServiceA>();
-            var replacement = resolver.Resolve<ICountingDisposable>();
-
-            resolver.Dispose();
-
-            Assert.NotSame(original, replacement);
-            Assert.Equal(1, original.DisposeCount);
-            Assert.Equal(1, replacement.DisposeCount);
+            // Assert
+            Assert.IsType<AlternateServiceA>(service);
         }
     }
 

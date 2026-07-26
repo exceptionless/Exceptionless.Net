@@ -12,7 +12,8 @@ using Xunit;
 namespace Exceptionless.Tests.Submission {
     public class DefaultSubmissionClientTests {
         [Fact]
-        public async Task PostEvents_ReadsStructuredErrorMessageWithSystemTextJson() {
+        public async Task PostEvents_WithStructuredErrorResponse_ReadsSystemTextJsonMessage() {
+            // Arrange
             using var resolver = DependencyResolver.CreateDefault();
             var configuration = new ExceptionlessConfiguration(resolver) {
                 ApiKey = "00000000000000000000000000000000",
@@ -23,11 +24,13 @@ namespace Exceptionless.Tests.Submission {
             };
             using var client = new StubSubmissionClient(configuration, httpResponse);
 
+            // Act
             SubmissionResponse response = await client.PostEventsAsync(
                 new List<Event> { new Event { Type = Event.KnownTypes.Log } },
                 configuration,
                 new DefaultJsonSerializer());
 
+            // Assert
             Assert.Equal(400, response.StatusCode);
             Assert.Equal("Invalid ☺ payload", response.Message);
         }
