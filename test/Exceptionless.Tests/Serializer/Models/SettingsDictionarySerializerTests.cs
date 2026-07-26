@@ -113,5 +113,10 @@ namespace Exceptionless.Tests.Serializer.Models {
             Assert.Equal("true", settings["is_enabled"]);
             Assert.Equal("3.14", settings["threshold"]);
         }
+
+        [Fact]
+        public void Deserialize_SettingsDictionary_RejectsNonObjectJson() {
+            Assert.Throws<System.Text.Json.JsonException>(() => Deserialize<SettingsDictionary>("[]"));
+        }
     }
 }

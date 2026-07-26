@@ -294,11 +294,6 @@ namespace Exceptionless {
         }
 
         void IDisposable.Dispose() {
-            // The process-wide client can be registered as an externally owned singleton in a host.
-            // A host service provider must not make ExceptionlessClient.Default unusable for the rest of the process.
-            if (_defaultClient.IsValueCreated && ReferenceEquals(_defaultClient.Value, this))
-                return;
-
             Configuration.Changed -= OnConfigurationChanged;
             if (_queue.IsValueCreated)
                 _queue.Value.EventsPosted -= OnQueueEventsPosted;

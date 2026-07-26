@@ -9,7 +9,10 @@ namespace Exceptionless.Dependency {
     public sealed class DefaultDependencyResolver : IDependencyResolver {
         private readonly object _lock = new object();
         private readonly IServiceCollection _services;
-        private readonly List<ServiceProvider> _providers = new List<ServiceProvider>();
+        // Microsoft DI providers are immutable. Registrations made after resolution create a
+        // new coherent provider snapshot; older snapshots stay alive so services already
+        // returned to callers are not disposed underneath them.
+        private readonly List<ServiceProvider> _providerSnapshots = new List<ServiceProvider>();
         private ServiceProvider _provider;
         private bool _disposed;
 
@@ -136,10 +139,10 @@ namespace Exceptionless.Dependency {
                     return;
 
                 _disposed = true;
-                foreach (var provider in _providers)
+                foreach (var provider in _providerSnapshots)
                     provider.Dispose();
 
-                _providers.Clear();
+                _providerSnapshots.Clear();
                 _provider = null;
             }
         }
@@ -149,7 +152,7 @@ namespace Exceptionless.Dependency {
                 return _provider;
 
             _provider = _services.BuildServiceProvider();
-            _providers.Add(_provider);
+            _providerSnapshots.Add(_provider);
             return _provider;
         }
 

@@ -39,7 +39,7 @@ namespace Exceptionless.Serializer {
                 dictionary[key] = value;
             }
 
-            return dictionary;
+            throw new JsonException("Unexpected end of JSON while reading a settings dictionary.");
         }
 
         public override void Write(Utf8JsonWriter writer, SettingsDictionary value, JsonSerializerOptions options) {

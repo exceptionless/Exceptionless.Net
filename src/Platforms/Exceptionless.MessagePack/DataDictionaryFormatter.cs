@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.Json;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Serializer;
 using MessagePack;
 using MessagePack.Formatters;
 
@@ -154,41 +154,7 @@ namespace Exceptionless.MessagePack {
 
         private static object ParseRawJson(string rawJson) {
             using var document = JsonDocument.Parse(rawJson);
-            return ConvertJsonElement(document.RootElement);
-        }
-
-        private static object ConvertJsonElement(JsonElement element) {
-            switch (element.ValueKind) {
-                case JsonValueKind.Object:
-                    var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-                    foreach (JsonProperty property in element.EnumerateObject())
-                        dictionary[property.Name] = ConvertJsonElement(property.Value);
-                    return dictionary;
-                case JsonValueKind.Array:
-                    var list = new List<object>();
-                    foreach (JsonElement item in element.EnumerateArray())
-                        list.Add(ConvertJsonElement(item));
-                    return list;
-                case JsonValueKind.String:
-                    return element.GetString();
-                case JsonValueKind.Number:
-                    if (element.TryGetInt32(out int intValue))
-                        return intValue;
-                    if (element.TryGetInt64(out long longValue))
-                        return longValue;
-                    if (element.TryGetDecimal(out decimal decimalValue))
-                        return decimalValue;
-                    return element.GetDouble();
-                case JsonValueKind.True:
-                    return true;
-                case JsonValueKind.False:
-                    return false;
-                case JsonValueKind.Null:
-                case JsonValueKind.Undefined:
-                    return null;
-                default:
-                    throw new InvalidOperationException($"Unsupported JSON token {element.ValueKind}.");
-            }
+            return JsonElementValueConverter.Convert(document.RootElement, parseDates: false);
         }
     }
 }

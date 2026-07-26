@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Xunit;
 using Exceptionless.Extensions;
 using Exceptionless.Json;
@@ -438,6 +441,199 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
+        public void Serialize_NamedFloatingPointValues_RemainSupported() {
+            var model = new FloatingPointModel {
+                NotANumber = Double.NaN,
+                PositiveInfinity = Double.PositiveInfinity,
+                NegativeInfinity = Double.NegativeInfinity
+            };
+
+            string json = GetSerializer().Serialize(model);
+
+            using var document = System.Text.Json.JsonDocument.Parse(json);
+            Assert.Equal("NaN", document.RootElement.GetProperty("not_a_number").GetString());
+            Assert.Equal("Infinity", document.RootElement.GetProperty("positive_infinity").GetString());
+            Assert.Equal("-Infinity", document.RootElement.GetProperty("negative_infinity").GetString());
+        }
+
+        [Fact]
+        public void Serialize_ContinueOnError_SkipsUnsupportedMembersWithoutLeakingExclusions() {
+            var model = new PartiallyUnsupportedModel {
+                Name = "Ada",
+                Secret = "do-not-send",
+                UnsupportedType = typeof(PartiallyUnsupportedModel)
+            };
+
+            string json = GetSerializer().Serialize(model, new[] { nameof(PartiallyUnsupportedModel.Secret) });
+
+            Assert.Equal("{\"name\":\"Ada\"}", json);
+        }
+
+        [Fact]
+        public void Serialize_StopOnError_PropagatesUnsupportedMemberErrors() {
+            var model = new PartiallyUnsupportedModel {
+                Name = "Ada",
+                UnsupportedType = typeof(PartiallyUnsupportedModel)
+            };
+
+            Assert.ThrowsAny<Exception>(() => GetSerializer().Serialize(model, continueOnSerializationError: false));
+        }
+
+        [Fact]
+        public void Serialize_ContinueOnError_ClosesCollectionsWhoseEnumeratorFails() {
+            var model = new PartiallyEnumerableModel {
+                Name = "kept",
+                Values = new ThrowingEnumerable()
+            };
+
+            string json = GetSerializer().Serialize(model);
+
+            using var document = System.Text.Json.JsonDocument.Parse(json);
+            Assert.Equal("kept", document.RootElement.GetProperty("name").GetString());
+            Assert.Equal(1, document.RootElement.GetProperty("values").GetArrayLength());
+            Assert.Equal(1, document.RootElement.GetProperty("values")[0].GetInt32());
+        }
+
+        [Fact]
+        public void Serialize_PrimitiveLikeValuesRemainVisibleAtDepthLimit() {
+            var model = new UriModel { Address = new Uri("https://exceptionless.com") };
+
+            string json = GetSerializer().Serialize(model, maxDepth: 1);
+
+            Assert.Equal("{\"address\":\"https://exceptionless.com\"}", json);
+        }
+
+        [Fact]
+        public void Serialize_NullValuesRespectDeclaredTypeAtDepthLimit() {
+            var model = new NullableDepthModel();
+
+            string json = GetSerializer().Serialize(model, maxDepth: 1);
+
+            Assert.Equal("{\"message\":null}", json);
+        }
+
+        [Fact]
+        public void Serialize_NonNullValuesRespectDeclaredTypeAtDepthLimit() {
+            var model = new DeclaredDepthModel {
+                Message = "kept",
+                BoxedMessage = "omitted"
+            };
+
+            string json = GetSerializer().Serialize(model, maxDepth: 1);
+
+            Assert.Equal("{\"message\":\"kept\"}", json);
+        }
+
+        [Fact]
+        public void Serialize_RespectsSystemTextJsonPropertyContracts() {
+            var model = new SystemTextJsonContractModel {
+                Name = "Ada",
+                Converted = "value",
+                Number = 42,
+                ExtensionData = new Dictionary<string, object> {
+                    ["extension-key"] = true
+                }
+            };
+
+            string json = GetSerializer().Serialize(model);
+
+            Assert.Equal("{\"renamed\":\"Ada\",\"converted\":\"prefix:value\",\"number\":\"42\",\"extension-key\":true}", json);
+        }
+
+        [Fact]
+        public void Serialize_ContinueOnError_OmitsThrowingPropertyConverter() {
+            var model = new ThrowingConverterModel {
+                Name = "kept",
+                Converted = "throws"
+            };
+
+            string json = GetSerializer().Serialize(model);
+
+            Assert.Equal("{\"name\":\"kept\"}", json);
+            Assert.ThrowsAny<Exception>(() => GetSerializer().Serialize(model, continueOnSerializationError: false));
+        }
+
+        [Fact]
+        public void Serialize_ContinueOnError_OmitsThrowingGetterAndShouldSerializePredicate() {
+            var resolver = new DefaultJsonTypeInfoResolver();
+            resolver.Modifiers.Add(typeInfo => {
+                if (typeInfo.Type != typeof(ThrowingContractModel))
+                    return;
+
+                typeInfo.Properties.Single(property => property.Name == "conditional").ShouldSerialize =
+                    (_, _) => throw new InvalidOperationException("Predicate failed.");
+            });
+            var serializer = new DefaultJsonSerializer(resolver);
+
+            string json = serializer.Serialize(new ThrowingContractModel());
+
+            Assert.Equal("{\"name\":\"kept\"}", json);
+            Assert.ThrowsAny<Exception>(() => serializer.Serialize(new ThrowingContractModel(), continueOnSerializationError: false));
+        }
+
+        [Fact]
+        public void Serialize_HandlesConverterBackedLeafAndJsonObjectExtensionData() {
+            var model = new ExtensionDataModel {
+                Version = new Version(1, 2, 3),
+                ExtensionData = new System.Text.Json.Nodes.JsonObject {
+                    ["node-key"] = 5
+                }
+            };
+
+            string json = GetSerializer().Serialize(model);
+
+            Assert.Equal("{\"version\":\"1.2.3\",\"node-key\":5}", json);
+        }
+
+        [Fact]
+        public void Serialize_NullExtensionDataAndSettingsValuesRemainValid() {
+            var extensionDataJson = GetSerializer().Serialize(new ExtensionDataModel {
+                Version = new Version(1, 2, 3)
+            });
+            var settingsJson = GetSerializer().Serialize(new SettingsDictionary {
+                ["null-value"] = null,
+                ["value"] = "kept"
+            });
+
+            Assert.Equal("{\"version\":\"1.2.3\"}", extensionDataJson);
+            Assert.Equal("{\"value\":\"kept\",\"null-value\":null}", settingsJson);
+        }
+
+        [Fact]
+        public void Serialize_PropertyConverterRespectsDepthAndCyclesBeforeInvocation() {
+            var depthModel = new GuardedConverterModel { Value = new object() };
+            var cycleModel = new GuardedConverterModel();
+            cycleModel.Value = cycleModel;
+
+            Assert.Equal("{}", GetSerializer().Serialize(depthModel, maxDepth: 1, continueOnSerializationError: false));
+            Assert.Equal("{}", GetSerializer().Serialize(cycleModel, continueOnSerializationError: false));
+        }
+
+        [Fact]
+        public void Serialize_StreamPath_AppliesDefaultDepthLimit() {
+            var root = new NestedModel { Message = "Level 1" };
+            var current = root;
+            for (int level = 2; level <= 12; level++) {
+                current.Nested = new NestedModel { Message = $"Level {level}" };
+                current = current.Nested;
+            }
+
+            using var stream = new System.IO.MemoryStream();
+            ((IStorageSerializer)GetSerializer()).Serialize(root, stream);
+            stream.Position = 0;
+            using var document = System.Text.Json.JsonDocument.Parse(stream);
+
+            int serializedLevels = 1;
+            var serializedLevel = document.RootElement;
+            while (serializedLevel.TryGetProperty("nested", out var nested)) {
+                serializedLevels++;
+                serializedLevel = nested;
+            }
+
+            Assert.Equal(10, serializedLevels);
+        }
+
+        [Fact]
         public void Serialize_ModelWithNullValues_ShouldIncludeNullObjects() {
             // Arrange
             var data = new DefaultsModel();
@@ -810,5 +1006,105 @@ namespace Exceptionless.Tests.Serializer {
 
     public class PublicFieldModel {
         public string Name;
+    }
+
+    public class FloatingPointModel {
+        public double NotANumber { get; set; }
+        public double PositiveInfinity { get; set; }
+        public double NegativeInfinity { get; set; }
+    }
+
+    public class PartiallyUnsupportedModel {
+        public string Name { get; set; }
+        public string Secret { get; set; }
+        public Type UnsupportedType { get; set; }
+    }
+
+    public class UriModel {
+        public Uri Address { get; set; }
+    }
+
+    public class NullableDepthModel {
+        public string Message { get; set; }
+        public NestedModel Nested { get; set; }
+    }
+
+    public class DeclaredDepthModel {
+        public string Message { get; set; }
+        public object BoxedMessage { get; set; }
+    }
+
+    public class SystemTextJsonContractModel {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string IgnoredNull { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public int IgnoredDefault { get; set; }
+
+        [JsonPropertyName("renamed")]
+        public string Name { get; set; }
+
+        [JsonConverter(typeof(PrefixStringConverter))]
+        public string Converted { get; set; }
+
+        [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
+        public int Number { get; set; }
+
+        [JsonExtensionData]
+        public Dictionary<string, object> ExtensionData { get; set; }
+    }
+
+    public class ThrowingConverterModel {
+        public string Name { get; set; }
+
+        [JsonConverter(typeof(ThrowingStringConverter))]
+        public string Converted { get; set; }
+    }
+
+    public class ThrowingContractModel {
+        public string Name { get; set; } = "kept";
+        public string ThrowingGetter => throw new InvalidOperationException("Getter failed.");
+        public string Conditional { get; set; } = "omitted";
+    }
+
+    public class ExtensionDataModel {
+        public Version Version { get; set; }
+
+        [JsonExtensionData]
+        public System.Text.Json.Nodes.JsonObject ExtensionData { get; set; }
+    }
+
+    public class GuardedConverterModel {
+        [JsonConverter(typeof(ThrowingObjectConverter))]
+        public object Value { get; set; }
+    }
+
+    public sealed class PrefixStringConverter : JsonConverter<string> {
+        public override string Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetString();
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) => writer.WriteStringValue($"prefix:{value}");
+    }
+
+    public sealed class ThrowingStringConverter : JsonConverter<string> {
+        public override string Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetString();
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) => throw new InvalidOperationException("Converter failed.");
+    }
+
+    public sealed class ThrowingObjectConverter : JsonConverter<object> {
+        public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => throw new NotSupportedException();
+        public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options) => throw new InvalidOperationException("Converter should not run.");
+    }
+
+    public class PartiallyEnumerableModel {
+        public string Name { get; set; }
+        public IEnumerable<int> Values { get; set; }
+    }
+
+    public class ThrowingEnumerable : IEnumerable<int> {
+        public IEnumerator<int> GetEnumerator() {
+            yield return 1;
+            throw new InvalidOperationException("Enumeration failed.");
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

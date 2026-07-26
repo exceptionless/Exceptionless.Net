@@ -85,5 +85,30 @@ namespace Exceptionless.MessagePack.Tests {
             using var document = JsonDocument.Parse(Resolver.GetJsonSerializer().Serialize(roundTripped));
             Assert.Equal(JsonValueKind.String, document.RootElement.GetProperty("data").GetProperty("literal").ValueKind);
         }
+
+        [Fact]
+        public void RawJsonValuesRemainStructuredAcrossStorageRoundTrip() {
+            const string json = "{\"type\":\"log\",\"data\":{\"payload\":{"
+                + "\"timestamp\":\"2026-07-25T12:34:56.0000000+00:00\","
+                + "\"count\":42,\"enabled\":true,\"items\":[1,null,\"value\"]}}}";
+            var jsonSerializer = Resolver.GetJsonSerializer();
+            var original = (Event)jsonSerializer.Deserialize(json, typeof(Event));
+            Assert.IsType<string>(original.Data["payload"]);
+
+            Event roundTripped;
+            using (var stream = new MemoryStream()) {
+                Resolver.GetStorageSerializer().Serialize(original, stream);
+                stream.Position = 0;
+                roundTripped = Resolver.GetStorageSerializer().Deserialize<Event>(stream);
+            }
+
+            using var document = JsonDocument.Parse(jsonSerializer.Serialize(roundTripped));
+            JsonElement payload = document.RootElement.GetProperty("data").GetProperty("payload");
+            Assert.Equal(JsonValueKind.Object, payload.ValueKind);
+            Assert.Equal("2026-07-25T12:34:56.0000000+00:00", payload.GetProperty("timestamp").GetString());
+            Assert.Equal(42, payload.GetProperty("count").GetInt32());
+            Assert.True(payload.GetProperty("enabled").GetBoolean());
+            Assert.Equal(JsonValueKind.Null, payload.GetProperty("items")[1].ValueKind);
+        }
     }
 }

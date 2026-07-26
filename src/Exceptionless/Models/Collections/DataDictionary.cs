@@ -9,8 +9,20 @@ namespace Exceptionless.Models {
         public DataDictionary() : base(StringComparer.OrdinalIgnoreCase) {}
 
         public DataDictionary(IEnumerable<KeyValuePair<string, object>> values) : base(StringComparer.OrdinalIgnoreCase) {
-            foreach (var kvp in values)
-                Add(kvp.Key, kvp.Value);
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            if (values is DataDictionary dataDictionary) {
+                foreach (var entry in dataDictionary) {
+                    if (dataDictionary.IsRawJson(entry.Key, entry.Value))
+                        SetRawJson(entry.Key, (string)entry.Value);
+                    else
+                        Add(entry.Key, entry.Value);
+                }
+            } else {
+                foreach (var entry in values)
+                    Add(entry.Key, entry.Value);
+            }
         }
 
         public new object this[string key] {
@@ -63,7 +75,7 @@ namespace Exceptionless.Models {
         }
 
         internal bool IsRawJson(string key, object value) {
-            return !String.IsNullOrEmpty(key)
+            return key != null
                 && value is string stringValue
                 && _rawJsonValues.TryGetValue(key, out string rawJson)
                 && ReferenceEquals(stringValue, rawJson);
@@ -72,12 +84,12 @@ namespace Exceptionless.Models {
         internal void SetRawJson(string key, string value) {
             base[key] = value;
 
-            if (!String.IsNullOrEmpty(key))
+            if (key != null)
                 _rawJsonValues[key] = value;
         }
 
         private void ClearRawJson(string key) {
-            if (!String.IsNullOrEmpty(key))
+            if (key != null)
                 _rawJsonValues.Remove(key);
         }
 

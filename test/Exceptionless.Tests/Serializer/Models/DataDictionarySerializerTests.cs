@@ -139,6 +139,44 @@ namespace Exceptionless.Tests.Serializer.Models {
             Assert.Equal("{\"literal\":true}", doc.RootElement.GetProperty("nested").GetString());
         }
 
+        [Fact]
+        public void Serialize_DataDictionary_CopyPreservesRawJsonValues() {
+            DataDictionary original = Deserialize<DataDictionary>(NestedObjectJson);
+            var copy = new DataDictionary(original);
+
+            string json = Serialize(copy);
+
+            using var document = JsonDocument.Parse(json);
+            Assert.Equal(JsonValueKind.Object, document.RootElement.GetProperty("nested").ValueKind);
+            Assert.Equal("val", document.RootElement.GetProperty("nested").GetProperty("key").GetString());
+        }
+
+        [Fact]
+        public void Serialize_DataDictionary_PreservesRawJsonForEmptyKey() {
+            DataDictionary data = Deserialize<DataDictionary>("""{"":{"nested":true}}""");
+
+            string json = Serialize(data);
+
+            using var document = JsonDocument.Parse(json);
+            Assert.True(document.RootElement.GetProperty("").GetProperty("nested").GetBoolean());
+        }
+
+        [Fact]
+        public void Serialize_DataDictionary_InvalidRawJsonFallsBackToString() {
+            var data = new DataDictionary();
+            data.SetRawJson("payload", /* lang=json */ "{invalid");
+
+            string json = Serialize(data);
+
+            using var document = JsonDocument.Parse(json);
+            Assert.Equal("{invalid", document.RootElement.GetProperty("payload").GetString());
+        }
+
+        [Fact]
+        public void Deserialize_DataDictionary_RejectsNonObjectJson() {
+            Assert.Throws<JsonException>(() => Deserialize<DataDictionary>("[]"));
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(false, true)]

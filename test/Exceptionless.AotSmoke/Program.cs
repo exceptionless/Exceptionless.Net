@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Exceptionless;
@@ -72,6 +73,9 @@ string json = serializer.Serialize(original);
 Assert(json.Contains("\"source\":\"aot-smoke\""), "Event serialization lost source.");
 Assert(json.Contains("\"id\":42"), "Arbitrary payload serialization lost data.");
 Assert(json.Contains("\"public_field\":\"field-safe\""), "Arbitrary payload serialization lost a public field.");
+Assert(json.Contains("\"converted\":\"aot:contract-safe\""), "Arbitrary payload serialization ignored a source-generated property converter.");
+string batchJson = serializer.Serialize(new List<Event> { original });
+Assert(batchJson.Contains("\"source\":\"aot-smoke\""), "Submission batch serialization lost the event.");
 
 using var stream = new MemoryStream();
 storageSerializer.Serialize(original, stream);
@@ -85,10 +89,12 @@ Assert(submissionClient.Events.Count == 1, "Queue did not submit exactly one eve
 string submittedJson = serializer.Serialize(submissionClient.Events[0]);
 Assert(submittedJson.Contains("\"id\":42"), "Queue round-trip lost custom payload metadata.");
 
+string rawExceptionStack = null;
 try {
     ThrowNestedException();
 }
 catch (System.Exception ex) {
+    rawExceptionStack = ex.ToString();
     client.SubmitException(ex);
 }
 
@@ -99,7 +105,14 @@ Assert(submissionClient.Events[1].Data.ContainsKey(Event.KnownDataKeys.Error), "
 object submittedErrorData = submissionClient.Events[1].Data[Event.KnownDataKeys.Error];
 var submittedError = submittedErrorData as Exceptionless.Models.Data.Error
     ?? (Exceptionless.Models.Data.Error)serializer.Deserialize((string)submittedErrorData, typeof(Exceptionless.Models.Data.Error));
-Assert(submittedError.StackTrace.Any(frame => !System.String.IsNullOrEmpty(frame.Name)), "NativeAOT exception frames lost method identity.");
+Assert(submittedError.StackTrace.Count > 0, "NativeAOT exception capture produced no stack frames.");
+Assert(
+    submittedError.StackTrace.All(frame => !System.String.IsNullOrEmpty(frame.Name)),
+    "NativeAOT exception frames lost method identity."
+        + System.Environment.NewLine + rawExceptionStack
+        + System.Environment.NewLine + System.String.Join(
+            System.Environment.NewLine,
+            submittedError.StackTrace.Select(frame => $"{frame.DeclaringNamespace}.{frame.DeclaringType}.{frame.Name}")));
 
 var customDataException = new SmokeException();
 client.SubmitException(customDataException);
@@ -116,13 +129,33 @@ static void Assert(bool condition, string message) {
 
 [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
 static void ThrowNestedException() {
+    try {
+        ThrowOriginalException();
+    }
+    catch (System.Exception exception) {
+        ExceptionDispatchInfo.Capture(exception).Throw();
+        throw;
+    }
+}
+
+[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+static void ThrowOriginalException() {
     throw new System.InvalidOperationException("NativeAOT exception capture", new System.ArgumentException("inner"));
 }
 
 internal sealed class SmokePayload {
     public int Id { get; set; }
     public string Name { get; set; }
+
+    [JsonConverter(typeof(SmokePrefixConverter))]
+    public string Converted { get; set; } = "contract-safe";
+
     public string PublicField;
+}
+
+internal sealed class SmokePrefixConverter : JsonConverter<string> {
+    public override string Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options) => reader.GetString();
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, string value, System.Text.Json.JsonSerializerOptions options) => writer.WriteStringValue($"aot:{value}");
 }
 
 internal readonly struct SmokeValue { }

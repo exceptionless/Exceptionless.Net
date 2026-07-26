@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Exceptionless.Dependency;
 using Exceptionless.Serializer;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,12 +75,42 @@ namespace Exceptionless.Tests.Dependency {
         }
 
         [Fact]
+        public void LateReplacementCreatesConsistentServiceGraphSnapshot() {
+            using var resolver = new DefaultDependencyResolver();
+            resolver.Register<IServiceA, ServiceA>();
+            resolver.Register<IServiceB, ServiceB>();
+            var original = resolver.Resolve<IServiceB>();
+
+            resolver.Register<IServiceA, AlternateServiceA>();
+            var replacement = resolver.Resolve<IServiceB>();
+
+            Assert.IsType<ServiceA>(original.ServiceA);
+            Assert.IsType<AlternateServiceA>(replacement.ServiceA);
+            Assert.NotSame(original, replacement);
+        }
+
+        [Fact]
         public void CanUseServiceCollectionRegistrations() {
             var services = new ServiceCollection();
             services.AddSingleton<IServiceA, AlternateServiceA>();
             var resolver = new DefaultDependencyResolver(services);
 
             Assert.IsType<AlternateServiceA>(resolver.Resolve<IServiceA>());
+        }
+
+        [Fact]
+        public void CanResolveAllServiceCollectionRegistrations() {
+            var services = new ServiceCollection();
+            services.AddSingleton<IServiceA, ServiceA>();
+            services.AddSingleton<IServiceA, AlternateServiceA>();
+            using var resolver = new DefaultDependencyResolver(services);
+
+            var registrations = resolver.Resolve<IEnumerable<IServiceA>>().ToArray();
+
+            Assert.Collection(
+                registrations,
+                service => Assert.IsType<ServiceA>(service),
+                service => Assert.IsType<AlternateServiceA>(service));
         }
 
         [Fact]
@@ -124,6 +156,21 @@ namespace Exceptionless.Tests.Dependency {
             resolver.Dispose();
 
             Assert.False(service.IsDisposed);
+        }
+
+        [Fact]
+        public void DisposesEveryProviderSnapshotExactlyOnce() {
+            var resolver = new DefaultDependencyResolver();
+            resolver.Register<ICountingDisposable, CountingDisposable>();
+            var original = resolver.Resolve<ICountingDisposable>();
+            resolver.Register<IServiceA, ServiceA>();
+            var replacement = resolver.Resolve<ICountingDisposable>();
+
+            resolver.Dispose();
+
+            Assert.NotSame(original, replacement);
+            Assert.Equal(1, original.DisposeCount);
+            Assert.Equal(1, replacement.DisposeCount);
         }
     }
 
@@ -172,6 +219,18 @@ namespace Exceptionless.Tests.Dependency {
 
         public void Dispose() {
             IsDisposed = true;
+        }
+    }
+
+    public interface ICountingDisposable {
+        int DisposeCount { get; }
+    }
+
+    public class CountingDisposable : ICountingDisposable, IDisposable {
+        public int DisposeCount { get; private set; }
+
+        public void Dispose() {
+            DisposeCount++;
         }
     }
 }
