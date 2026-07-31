@@ -1,7 +1,7 @@
 {
 
   "name": "Exceptionless.Net",
-  "image": "mcr.microsoft.com/vscode/devcontainers/dotnetcore:latest",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:2.1.4-10.0-noble",
   "extensions": [
     "ms-dotnettools.csharp",
     "streetsidesoftware.code-spell-checker",
