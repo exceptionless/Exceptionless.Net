@@ -4,7 +4,7 @@
   "image": "mcr.microsoft.com/devcontainers/dotnet:2.1.4-10.0-noble",
   "features": {
     "ghcr.io/devcontainers/features/dotnet:2.5.0": {
-      "version": "10.0.400"
+      "version": "10.0"
     }
   },
   "extensions": [
