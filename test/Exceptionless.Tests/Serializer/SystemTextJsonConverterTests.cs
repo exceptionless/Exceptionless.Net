@@ -79,6 +79,18 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
+        public void PostDataConverter_WithNull_WritesNull() {
+            // Arrange
+            JsonSerializerOptions options = CreatePostDataOptions();
+
+            // Act
+            string json = JsonSerializer.Serialize<object>(null, options);
+
+            // Assert
+            Assert.Equal("null", json);
+        }
+
+        [Fact]
         public void PostDataConverter_WithRuntimeValue_WritesRuntimeType() {
             // Arrange
             JsonSerializerOptions options = CreatePostDataOptions();
@@ -123,6 +135,18 @@ namespace Exceptionless.Tests.Serializer {
             Assert.Contains(Environment.NewLine, objectJson);
             Assert.Contains(Environment.NewLine, arrayJson);
             Assert.True(JsonDocument.Parse(objectJson).RootElement.GetProperty("value").GetBoolean());
+        }
+
+        [Fact]
+        public void PostDataConverter_WithUnstructuredObject_WritesEmptyObject() {
+            // Arrange
+            JsonSerializerOptions options = CreatePostDataOptions();
+
+            // Act
+            string json = JsonSerializer.Serialize<object>(new object(), options);
+
+            // Assert
+            Assert.Equal("{}", json);
         }
 
         [Fact]

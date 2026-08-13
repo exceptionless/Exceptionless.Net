@@ -16,6 +16,7 @@
     <PackageId>Exceptionless</PackageId>
     <AssemblyName>Exceptionless</AssemblyName>
     <AssemblyTitle>Exceptionless client for non visual (ie. Console and Services) applications.</AssemblyTitle>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>$(PackageTags);Console;Services;</PackageTags>
   </PropertyGroup>
 
@@ -24,6 +25,7 @@
       <PackagePath>tools</PackagePath>
       <Pack>true</Pack>
     </None>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="readme.txt" pack="true" PackagePath="." />
   </ItemGroup>
 

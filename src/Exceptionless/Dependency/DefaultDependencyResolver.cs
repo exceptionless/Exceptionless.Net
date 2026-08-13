@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Exceptionless.Dependency {
     public sealed class DefaultDependencyResolver : IDependencyResolver {
         private readonly object _lock = new object();
         private readonly IServiceCollection _services;
+        private readonly AsyncLocal<ActivationFrame> _activeActivation = new AsyncLocal<ActivationFrame>();
         // Microsoft DI providers are immutable. Registrations made after resolution create a
         // new coherent provider snapshot; older snapshots stay alive so services already
         // returned to callers are not disposed underneath them.
@@ -45,7 +47,7 @@ namespace Exceptionless.Dependency {
                 if (service != null)
                     return service;
 
-                return CanActivate(serviceType) ? CreateInstance(provider, serviceType) : null;
+                return CanActivate(serviceType) ? CreateInstance(provider, serviceType, serviceType) : null;
             }
         }
 
@@ -67,7 +69,7 @@ namespace Exceptionless.Dependency {
                         ? ServiceDescriptor.Singleton(serviceType, concreteType)
                         : ServiceDescriptor.Transient(serviceType, concreteType));
                 } else {
-                    Func<IServiceProvider, object> factory = provider => CreateInstance(provider, concreteType);
+                    Func<IServiceProvider, object> factory = provider => CreateInstance(provider, serviceType, concreteType);
                     _services.Add(singleton
                         ? ServiceDescriptor.Singleton(serviceType, factory)
                         : ServiceDescriptor.Transient(serviceType, factory));
@@ -86,7 +88,7 @@ namespace Exceptionless.Dependency {
             lock (_lock) {
                 ThrowIfDisposed();
                 Remove(serviceType);
-                _services.Add(ServiceDescriptor.Transient(serviceType, _ => activator()));
+                _services.Add(ServiceDescriptor.Transient(serviceType, _ => Activate(serviceType, activator)));
                 InvalidateProvider();
             }
         }
@@ -116,7 +118,7 @@ namespace Exceptionless.Dependency {
             lock (_lock) {
                 ThrowIfDisposed();
                 Remove(serviceType);
-                _services.Add(ServiceDescriptor.Singleton(serviceType, _ => activator()));
+                _services.Add(ServiceDescriptor.Singleton(serviceType, _ => Activate(serviceType, activator)));
                 InvalidateProvider();
             }
         }
@@ -156,8 +158,30 @@ namespace Exceptionless.Dependency {
             return _provider;
         }
 
-        private object CreateInstance(IServiceProvider provider, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType) {
-            return ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType);
+        private object CreateInstance(IServiceProvider provider, Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType) {
+            return Activate(serviceType, () => ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType));
+        }
+
+        private object Activate(Type serviceType, Func<object> activator) {
+            if (IsActive(serviceType))
+                throw CreateCircularDependencyException(serviceType);
+
+            ActivationFrame previous = _activeActivation.Value;
+            _activeActivation.Value = new ActivationFrame(serviceType, previous);
+            try {
+                return activator();
+            } finally {
+                _activeActivation.Value = previous;
+            }
+        }
+
+        private bool IsActive(Type serviceType) {
+            for (ActivationFrame current = _activeActivation.Value; current != null; current = current.Parent) {
+                if (current.ServiceType == serviceType)
+                    return true;
+            }
+
+            return false;
         }
 
         private void Remove(Type serviceType) {
@@ -178,6 +202,10 @@ namespace Exceptionless.Dependency {
 
         private static bool CanActivate(Type type) {
             return !type.IsAbstract && !type.IsInterface && !type.ContainsGenericParameters;
+        }
+
+        private static InvalidOperationException CreateCircularDependencyException(Type serviceType) {
+            return new InvalidOperationException($"A circular dependency was detected for service of type '{serviceType.FullName}'.");
         }
 
         private static bool CanAssign(Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type concreteType) {
@@ -209,23 +237,40 @@ namespace Exceptionless.Dependency {
 
             [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "The unannotated IServiceProvider contract cannot express constructor requirements. NativeAOT rejects this dynamic fallback before activation; AOT callers must register the service.")]
             public object GetService(Type serviceType) {
-                if (serviceType == typeof(IServiceProvider))
-                    return this;
+                lock (_resolver._lock) {
+                    _resolver.ThrowIfDisposed();
 
-                var service = _provider.GetService(serviceType);
-                if (service != null)
-                    return service;
+                    if (serviceType == typeof(IServiceProvider))
+                        return this;
 
-                if (!CanActivate(serviceType))
-                    return null;
+                    if (_resolver.IsActive(serviceType))
+                        throw CreateCircularDependencyException(serviceType);
+
+                    var service = _provider.GetService(serviceType);
+                    if (service != null)
+                        return service;
+
+                    if (!CanActivate(serviceType))
+                        return null;
 
 #if NET8_0_OR_GREATER
-                if (!RuntimeFeature.IsDynamicCodeSupported)
-                    throw new NotSupportedException($"Type '{serviceType.FullName}' must be registered before it can be resolved in a NativeAOT application.");
+                    if (!RuntimeFeature.IsDynamicCodeSupported)
+                        throw new NotSupportedException($"Type '{serviceType.FullName}' must be registered before it can be resolved in a NativeAOT application.");
 #endif
 
-                return _resolver.CreateInstance(_provider, serviceType);
+                    return _resolver.CreateInstance(_provider, serviceType, serviceType);
+                }
             }
+        }
+
+        private sealed class ActivationFrame {
+            public ActivationFrame(Type serviceType, ActivationFrame parent) {
+                ServiceType = serviceType;
+                Parent = parent;
+            }
+
+            public Type ServiceType { get; }
+            public ActivationFrame Parent { get; }
         }
     }
 }

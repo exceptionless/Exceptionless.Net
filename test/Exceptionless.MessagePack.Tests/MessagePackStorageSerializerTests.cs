@@ -68,6 +68,29 @@ namespace Exceptionless.MessagePack.Tests {
         }
 
         [Fact]
+        public void Serialize_WithFailedObjectSerialization_PreservesErrorStringAcrossStorageRoundTrip() {
+            // Arrange
+            using var client = new ExceptionlessClient(new ExceptionlessConfiguration(Resolver));
+            var original = new Event { Type = Event.KnownTypes.Log };
+            original.AddObject(typeof(Event), "failed", client: client);
+            string expected = Assert.IsType<string>(original.Data["failed"]);
+
+            // Act
+            Event roundTripped;
+            using (var stream = new MemoryStream()) {
+                Resolver.GetStorageSerializer().Serialize(original, stream);
+                stream.Position = 0;
+                roundTripped = Resolver.GetStorageSerializer().Deserialize<Event>(stream);
+            }
+
+            using var document = JsonDocument.Parse(Resolver.GetJsonSerializer().Serialize(roundTripped));
+
+            // Assert
+            Assert.Equal(expected, roundTripped.Data["failed"]);
+            Assert.Equal(JsonValueKind.String, document.RootElement.GetProperty("data").GetProperty("failed").ValueKind);
+        }
+
+        [Fact]
         public void Serialize_WithLiteralJsonString_PreservesStringAcrossStorageRoundTrip() {
             // Arrange
             var original = new Event {
