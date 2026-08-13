@@ -24,3 +24,10 @@ updates:
     interval: weekly
   cooldown:
     default-days: 7
+
+- package-ecosystem: dotnet-sdk
+  directory: "/"
+  schedule:
+    interval: daily
+  cooldown:
+    default-days: 1
