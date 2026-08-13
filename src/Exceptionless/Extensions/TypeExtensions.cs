@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Exceptionless.Extensions {
     internal static class TypeExtensions {
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Exception property capture is best-effort; trimmed properties are safely omitted and failures are caught by the caller.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Exception property capture is best-effort; trimmed interface properties are safely omitted and failures are caught by the caller.")]
         public static PropertyInfo[] GetPublicProperties(this Type type) {
             if (type.GetTypeInfo().IsInterface) {
                 var propertyInfos = new List<PropertyInfo>();
@@ -36,6 +40,7 @@ namespace Exceptionless.Extensions {
             return type.GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).ToArray();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "The type is a value type from an already-instantiated generic IDictionary. Its layout is present, and GetUninitializedObject does not invoke a constructor.")]
         public static object GetDefaultValue(this Type type) {
             if (type == null || type.IsNullable())
                 return null;
@@ -71,7 +76,11 @@ namespace Exceptionless.Extensions {
             if (ti.IsClass || ti.IsInterface)
                 return null;
 
+#if NET8_0_OR_GREATER
+            return RuntimeHelpers.GetUninitializedObject(type);
+#else
             return Activator.CreateInstance(type);
+#endif
         }
 
         public static bool IsNullable(this Type type) {

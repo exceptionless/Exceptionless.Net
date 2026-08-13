@@ -8,9 +8,13 @@ using Exceptionless.Configuration;
 using Exceptionless.Dependency;
 using Exceptionless.Logging;
 using Exceptionless.Models;
+using Exceptionless.Serializer;
 using Exceptionless.Storage;
 using Exceptionless.Submission;
 using Exceptionless.Tests.Utility;
+#if NETSTANDARD
+using Microsoft.Extensions.Configuration;
+#endif
 using Moq;
 using Xunit;
 
@@ -95,6 +99,46 @@ namespace Exceptionless.Tests.Configuration {
             Assert.Single(config.Settings);
             Assert.Equal("configuration", config.Settings["testing"]);
         }
+
+#if NETSTANDARD
+        [Theory]
+        [InlineData("System.String, System.Private.CoreLib")]
+        [InlineData("Missing.StorageSerializer, Missing.Assembly")]
+        public void ReadFromConfiguration_WithInvalidStorageSerializerType_PreservesDefaultSerializer(string typeName) {
+            // Arrange
+            using var resolver = DependencyResolver.CreateDefault();
+            var config = new ExceptionlessConfiguration(resolver);
+            IConfiguration settings = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string> {
+                    ["Exceptionless:StorageSerializer"] = typeName
+                })
+                .Build();
+
+            // Act
+            config.ReadFromConfiguration(settings);
+
+            // Assert
+            Assert.IsType<DefaultJsonSerializer>(resolver.GetStorageSerializer());
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_WithValidStorageSerializerType_RegistersStorageSerializer() {
+            // Arrange
+            using var resolver = DependencyResolver.CreateDefault();
+            var config = new ExceptionlessConfiguration(resolver);
+            IConfiguration settings = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string> {
+                    ["Exceptionless:StorageSerializer"] = typeof(ConfigurationStorageSerializer).AssemblyQualifiedName
+                })
+                .Build();
+
+            // Act
+            config.ReadFromConfiguration(settings);
+
+            // Assert
+            Assert.IsType<ConfigurationStorageSerializer>(resolver.GetStorageSerializer());
+        }
+#endif
 
         [Fact]
         public void WillLockConfig() {
@@ -219,6 +263,11 @@ namespace Exceptionless.Tests.Configuration {
             Assert.Equal(LogLevel.Off, settings.GetMinLogLevel("abc"));
             Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));
             Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("abc.def.ghi"));
+        }
+
+        public class ConfigurationStorageSerializer : IStorageSerializer {
+            public void Serialize<T>(T data, Stream output) { }
+            public T Deserialize<T>(Stream input) => default;
         }
     }
 }

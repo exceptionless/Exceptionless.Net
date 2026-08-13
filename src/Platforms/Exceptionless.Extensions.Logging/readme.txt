@@ -37,6 +37,10 @@ Exceptionless hosting registration overloads such as:
 
 builder.AddExceptionless(c => c.ApiKey = "API_KEY_HERE");
 
+Configuration and api-key logging overloads create an isolated provider-owned
+client. Overloads that resolve or accept an existing ExceptionlessClient flush
+that client on shutdown but leave its disposal to the client owner.
+
 Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.
 

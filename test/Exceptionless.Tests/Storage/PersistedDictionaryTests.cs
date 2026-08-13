@@ -42,22 +42,26 @@ namespace Exceptionless.Tests.Storage {
         
         [Fact]
         public void WillOverwriteSetting() {
-            var latch = new CountDownLatch(2);
+            using var saved = new AutoResetEvent(false);
             var storage = new InMemoryObjectStorage();
             var dict = new PersistedDictionary("test.json", storage, new DefaultJsonSerializer(), 50);
-            dict.Saved += (sender, args) => latch.Signal();
+            int saveCount = 0;
+            dict.Saved += (sender, args) => {
+                Interlocked.Increment(ref saveCount);
+                saved.Set();
+            };
 
             dict["MySetting"] = "ABCDE";
             Assert.Single(dict);
-            bool success = latch.Wait(500);
-            Assert.False(success, "Dictionary was saved multiple times.");
-            Assert.Equal(1, latch.Remaining);
+            Assert.True(saved.WaitOne(5000), "Failed to save the initial setting.");
+            Assert.False(saved.WaitOne(250), "Dictionary was saved multiple times.");
+            Assert.Equal(1, saveCount);
             Assert.True(storage.Exists("test.json"));
 
             dict["MySetting"] = "AB";
             Assert.Single(dict);
-            success = latch.Wait(500);
-            Assert.True(success, "Failed to save dictionary.");
+            Assert.True(saved.WaitOne(5000), "Failed to save the overwritten setting.");
+            Assert.Equal(2, saveCount);
             Assert.True(storage.Exists("test.json"));
         }
     }

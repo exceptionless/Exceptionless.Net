@@ -42,6 +42,25 @@ Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sen
 for examples on sending events to Exceptionless.
 
 -------------------------------------
+		Dependency Injection Customization
+-------------------------------------
+The client uses Microsoft.Extensions.DependencyInjection internally. Existing Resolver registrations
+remain supported, while new isolated clients can override internal services with IServiceCollection:
+
+using Microsoft.Extensions.DependencyInjection;
+
+var clientServices = new ServiceCollection();
+clientServices.AddSingleton<Exceptionless.IJsonSerializer, CustomJsonSerializer>();
+
+var client = new Exceptionless.ExceptionlessClient(clientServices, config => {
+    config.ApiKey = "API_KEY_HERE";
+    config.IncludePrivateInformation = false;
+});
+
+Configure services, storage, privacy, server URLs, and the API key before the first event is submitted.
+Short-lived processes should call await client.ProcessQueueAsync() before exiting.
+
+-------------------------------------
 		.NET Framework (Legacy) Integration
 -------------------------------------
 If your project has an app.config file, the Exceptionless NuGet package
