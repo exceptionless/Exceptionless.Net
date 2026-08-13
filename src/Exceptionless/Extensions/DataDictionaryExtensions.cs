@@ -129,7 +129,10 @@ namespace Exceptionless {
                     json = serializer.Serialize(info.Data, exclusions, info.MaxDepthToSerialize.GetValueOrDefault(5), info.IgnoreSerializationErrors);
                 }
             } catch (Exception ex) {
-                json = ex.ToString();
+                // The error text is diagnostic data, not serialized JSON. Keep it as a
+                // normal string so every storage serializer preserves the same value.
+                data.Data[name] = ex.ToString();
+                return;
             }
 
             if (String.IsNullOrEmpty(json))

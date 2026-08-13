@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Exceptionless.Extensions;
+using Exceptionless.Json;
 
 namespace Exceptionless.Serializer {
     /// <summary>
@@ -176,7 +177,8 @@ namespace Exceptionless.Serializer {
         private void WriteObject(Utf8JsonWriter writer, object value, JsonTypeInfo typeInfo, int currentDepth) {
             writer.WriteStartObject();
             foreach (var property in typeInfo.Properties) {
-                if (property.Get == null)
+                if (property.Get == null
+                    || property.AttributeProvider?.IsDefined(typeof(ExceptionlessIgnoreAttribute), true) == true)
                     continue;
 
                 string memberName = property.AttributeProvider is MemberInfo member ? member.Name : property.Name;

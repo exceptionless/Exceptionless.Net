@@ -1,4 +1,6 @@
-﻿namespace Exceptionless.Models {
+﻿using System.Text.Json.Serialization;
+
+namespace Exceptionless.Models {
 
     public class ClientConfiguration {
         public ClientConfiguration() {
@@ -6,7 +8,9 @@
         }
 
         public int Version { get; set; }
-        public SettingsDictionary Settings { get; set; }
+
+        [JsonInclude]
+        public SettingsDictionary Settings { get; internal set; }
 
         public void IncrementVersion() {
             Version++;

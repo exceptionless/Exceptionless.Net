@@ -6,7 +6,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using Exceptionless.Json;
 
 namespace Exceptionless.Serializer {
     public class DefaultJsonSerializer : IJsonSerializer, IStorageSerializer {
@@ -28,9 +27,9 @@ namespace Exceptionless.Serializer {
             _serializerOptions.Converters.Add(new DataDictionaryConverter());
             _serializerOptions.Converters.Add(new SettingsDictionaryConverter());
 
-            _serializerOptions.TypeInfoResolverChain.Add(new CompatibilityResolver(ExceptionlessJsonSerializerContext.Default));
+            _serializerOptions.TypeInfoResolverChain.Add(ExceptionlessJsonSerializerContext.Default);
             if (typeInfoResolver != null)
-                _serializerOptions.TypeInfoResolverChain.Add(new CompatibilityResolver(typeInfoResolver));
+                _serializerOptions.TypeInfoResolverChain.Add(typeInfoResolver);
 
 #if NET8_0_OR_GREATER
             if (RuntimeFeature.IsDynamicCodeSupported && JsonSerializer.IsReflectionEnabledByDefault)
@@ -92,28 +91,7 @@ namespace Exceptionless.Serializer {
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Reflection is disabled by default in trimmed applications; applications that opt back in must preserve their reflected payload types.")]
         private void AddReflectionFallback() {
             _serializerOptions.Converters.Add(new JsonStringEnumConverter());
-            _serializerOptions.TypeInfoResolverChain.Add(new CompatibilityResolver(new DefaultJsonTypeInfoResolver()));
-        }
-
-        private sealed class CompatibilityResolver : IJsonTypeInfoResolver {
-            private readonly IJsonTypeInfoResolver _inner;
-
-            public CompatibilityResolver(IJsonTypeInfoResolver inner) {
-                _inner = inner;
-            }
-
-            public JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options) {
-                JsonTypeInfo typeInfo = _inner.GetTypeInfo(type, options);
-                if (typeInfo?.Kind != JsonTypeInfoKind.Object)
-                    return typeInfo;
-
-                for (int index = typeInfo.Properties.Count - 1; index >= 0; index--) {
-                    if (typeInfo.Properties[index].AttributeProvider?.IsDefined(typeof(ExceptionlessIgnoreAttribute), true) == true)
-                        typeInfo.Properties.RemoveAt(index);
-                }
-
-                return typeInfo;
-            }
+            _serializerOptions.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
         }
 
     }

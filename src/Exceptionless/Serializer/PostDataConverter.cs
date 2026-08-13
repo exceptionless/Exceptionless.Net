@@ -10,6 +10,8 @@ namespace Exceptionless.Serializer {
     /// Primitive values (strings, numbers, booleans) pass through as-is.
     /// </summary>
     internal sealed class PostDataConverter : JsonConverter<object> {
+        public override bool HandleNull => true;
+
         public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
             switch (reader.TokenType) {
                 case JsonTokenType.StartObject:
@@ -31,14 +33,23 @@ namespace Exceptionless.Serializer {
                 case JsonTokenType.Null:
                     return null;
                 default:
-                    using (var doc2 = JsonDocument.ParseValue(ref reader)) {
-                        return doc2.RootElement.Clone();
-                    }
+                    throw new JsonException($"Unexpected token type: {reader.TokenType}");
             }
         }
 
         public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options) {
-            Type type = value?.GetType() ?? typeof(object);
+            if (value == null) {
+                writer.WriteNullValue();
+                return;
+            }
+
+            Type type = value.GetType();
+            if (type == typeof(object)) {
+                writer.WriteStartObject();
+                writer.WriteEndObject();
+                return;
+            }
+
             JsonSerializer.Serialize(writer, value, options.GetTypeInfo(type));
         }
     }

@@ -41,6 +41,12 @@ using (var defaultClient = new ExceptionlessClient(configuration => {
     var defaultRoundTrip = defaultStorageSerializer.Deserialize<Event>(defaultStream);
     Assert(defaultRoundTrip.Source == builtInEvent.Source, "Default storage serializer lost a built-in event.");
     Assert(System.Convert.ToInt32(defaultRoundTrip.Data["answer"]) == 42, "Default storage serializer lost primitive event data.");
+
+    var clientConfiguration = (ClientConfiguration)defaultJsonSerializer.Deserialize(
+        "{\"version\":1,\"settings\":{\"@@log:*\":\"Off\"}}",
+        typeof(ClientConfiguration));
+    Assert(clientConfiguration.Version == 1, "Default serializer lost the client configuration version.");
+    Assert(clientConfiguration.Settings["@@log:*"] == "Off", "Default serializer did not populate client configuration settings.");
 }
 
 var submissionClient = new CapturingSubmissionClient();
@@ -74,6 +80,7 @@ Assert(json.Contains("\"source\":\"aot-smoke\""), "Event serialization lost sour
 Assert(json.Contains("\"id\":42"), "Arbitrary payload serialization lost data.");
 Assert(json.Contains("\"public_field\":\"field-safe\""), "Arbitrary payload serialization lost a public field.");
 Assert(json.Contains("\"converted\":\"aot:contract-safe\""), "Arbitrary payload serialization ignored a source-generated property converter.");
+Assert(!json.Contains("ignored", System.StringComparison.OrdinalIgnoreCase), "Arbitrary payload serialization included compatibility-ignored data.");
 string batchJson = serializer.Serialize(new List<Event> { original });
 Assert(batchJson.Contains("\"source\":\"aot-smoke\""), "Submission batch serialization lost the event.");
 
@@ -150,7 +157,13 @@ internal sealed class SmokePayload {
     [JsonConverter(typeof(SmokePrefixConverter))]
     public string Converted { get; set; } = "contract-safe";
 
+    [Exceptionless.Json.ExceptionlessIgnore]
+    public string Ignored { get; set; } = "ignored-property";
+
     public string PublicField;
+
+    [Exceptionless.Json.ExceptionlessIgnore]
+    public string IgnoredField = "ignored-field";
 }
 
 internal sealed class SmokePrefixConverter : JsonConverter<string> {
