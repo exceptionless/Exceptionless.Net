@@ -13,7 +13,9 @@ namespace Exceptionless.Serializer {
 
         public DefaultJsonSerializer() : this(null) { }
 
-        public DefaultJsonSerializer(IJsonTypeInfoResolver typeInfoResolver) {
+        public DefaultJsonSerializer(IJsonTypeInfoResolver typeInfoResolver) : this(typeInfoResolver, null) { }
+
+        internal DefaultJsonSerializer(IJsonTypeInfoResolver typeInfoResolver, Action<JsonSerializerOptions> configureOptions) {
             _serializerOptions = new JsonSerializerOptions {
                 DefaultIgnoreCondition = JsonIgnoreCondition.Never,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -23,6 +25,7 @@ namespace Exceptionless.Serializer {
                 NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles
             };
+            configureOptions?.Invoke(_serializerOptions);
 
             _serializerOptions.Converters.Add(new DataDictionaryConverter());
             _serializerOptions.Converters.Add(new SettingsDictionaryConverter());

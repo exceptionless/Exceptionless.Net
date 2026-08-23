@@ -6,7 +6,8 @@ env:
 permissions:
   contents: read
 jobs:
-  build:
+  linux:
+    name: Linux
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -26,6 +27,7 @@ jobs:
         dotnet tool install --global minver-cli --version 8.0.0
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
+        echo "PACKAGE_SMOKE_VERSION=0.0.0-ci.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}" >> $GITHUB_ENV
     - name: Build
       run: dotnet build --configuration Release Exceptionless.Net.NonWindows.slnx
     - name: Run Tests with Coverage
@@ -37,12 +39,14 @@ jobs:
         name: coverage-linux
         path: artifacts/test-results/**/coverage.cobertura.xml
         if-no-files-found: error
-    - name: Pack Core for NativeAOT Test
-      run: dotnet pack --configuration Release --no-build --output artifacts/aot-package -p:SolutionDir="$GITHUB_WORKSPACE/" src/Exceptionless/Exceptionless.csproj
+    - name: Pack Core for Package Tests
+      run: dotnet pack --configuration Release --no-build --output "$RUNNER_TEMP/exceptionless-package-smoke" -p:SolutionDir="$GITHUB_WORKSPACE/" -p:MinVerVersionOverride="$PACKAGE_SMOKE_VERSION" src/Exceptionless/Exceptionless.csproj
+    - name: .NET Standard Package Consumer Smoke Test
+      run: dotnet run --configuration Release --framework net7.0 -p:ExceptionlessPackageVersion="$PACKAGE_SMOKE_VERSION" -p:ExceptionlessPackageSource="$RUNNER_TEMP/exceptionless-package-smoke" --project test/Exceptionless.PackageConsumerSmoke/Exceptionless.PackageConsumerSmoke.csproj
     - name: NativeAOT Smoke Test
       run: |
         for framework in net8.0 net10.0; do
-          dotnet publish --configuration Release --framework "$framework" --output "artifacts/aot-smoke/$framework" -p:ExceptionlessPackageVersion="$MINVERVERSIONOVERRIDE" -p:ExceptionlessPackageSource="$GITHUB_WORKSPACE/artifacts/aot-package" test/Exceptionless.PackageAotSmoke/Exceptionless.PackageAotSmoke.csproj
+          dotnet publish --configuration Release --framework "$framework" --output "artifacts/aot-smoke/$framework" -p:ExceptionlessPackageVersion="$PACKAGE_SMOKE_VERSION" -p:ExceptionlessPackageSource="$RUNNER_TEMP/exceptionless-package-smoke" test/Exceptionless.PackageAotSmoke/Exceptionless.PackageAotSmoke.csproj
           "./artifacts/aot-smoke/$framework/Exceptionless.PackageAotSmoke"
           dotnet publish --configuration Release --framework "$framework" --output "artifacts/hosting-aot-smoke/$framework" test/Exceptionless.HostingAotSmoke/Exceptionless.HostingAotSmoke.csproj
           "./artifacts/hosting-aot-smoke/$framework/Exceptionless.HostingAotSmoke"

@@ -45,20 +45,20 @@ namespace Exceptionless.Tests.Serializer {
 
             // Assert
             var result = Assert.IsType<Dictionary<string, object>>(converted);
-            Assert.Equal(42, Assert.IsType<int>(result["int"]));
-            Assert.Equal(2147483648L, Assert.IsType<long>(result["long"]));
-            Assert.Equal(3.14m, Assert.IsType<decimal>(result["decimal"]));
-            Assert.Equal(Double.MaxValue, Assert.IsType<double>(result["double"]));
-            Assert.True(Assert.IsType<bool>(result["true"]));
-            Assert.False(Assert.IsType<bool>(result["false"]));
-            Assert.Null(result["null"]);
+            Assert.Equal(42, Assert.IsType<int>(result["Int"]));
+            Assert.Equal(2147483648L, Assert.IsType<long>(result["Long"]));
+            Assert.Equal(3.14m, Assert.IsType<decimal>(result["Decimal"]));
+            Assert.Equal(Double.MaxValue, Assert.IsType<double>(result["Double"]));
+            Assert.True(Assert.IsType<bool>(result["True"]));
+            Assert.False(Assert.IsType<bool>(result["False"]));
+            Assert.Null(result["Null"]);
 
-            var array = Assert.IsType<List<object>>(result["array"]);
+            var array = Assert.IsType<List<object>>(result["Array"]);
             Assert.Equal("value", array[0]);
             Assert.Equal(7, array[1]);
 
-            var nested = Assert.IsType<Dictionary<string, object>>(result["object"]);
-            Assert.Equal("yes", nested["nested"]);
+            var nested = Assert.IsType<Dictionary<string, object>>(result["Object"]);
+            Assert.Equal("yes", nested["Nested"]);
         }
 
         [Fact]
@@ -71,6 +71,21 @@ namespace Exceptionless.Tests.Serializer {
 
             // Assert
             Assert.Null(result);
+        }
+
+        [Fact]
+        public void Convert_WithCaseDistinctObjectKeys_PreservesBothKeys() {
+            // Arrange
+            using var document = JsonDocument.Parse(/* lang=json */ """{"A":1,"a":2}""");
+
+            // Act
+            object converted = JsonElementValueConverter.Convert(document.RootElement, parseDates: false);
+
+            // Assert
+            var result = Assert.IsType<Dictionary<string, object>>(converted);
+            Assert.Equal(2, result.Count);
+            Assert.Equal(1, result["A"]);
+            Assert.Equal(2, result["a"]);
         }
     }
 }

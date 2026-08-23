@@ -102,6 +102,125 @@ namespace Exceptionless.Tests.Serializer {
         }
 
         [Fact]
+        public void Serialize_WithSourceGeneratedCallbacks_InvokesCallbacksAtContractBoundaries() {
+            // Arrange
+            var model = new SerializationCallbackModel();
+            var serializer = new DefaultJsonSerializer(CompatibilityJsonSerializerContext.Default);
+
+            // Act
+            string json = serializer.Serialize(model);
+
+            // Assert
+            Assert.Equal("{\"state\":\"serializing\"}", json);
+            Assert.Equal("serialized", model.State);
+        }
+
+        [Fact]
+        public void Serialize_WithSourceGeneratedPolymorphicProperty_WritesDeclaredContractDiscriminator() {
+            // Arrange
+            var model = new PolymorphicContainer {
+                Payload = new PolymorphicDerivedModel {
+                    BaseValue = "base",
+                    DerivedValue = "derived"
+                }
+            };
+            var serializer = new DefaultJsonSerializer(CompatibilityJsonSerializerContext.Default);
+
+            // Act
+            string json = serializer.Serialize(model);
+            using var document = JsonDocument.Parse(json);
+            JsonElement payload = document.RootElement.GetProperty("payload");
+
+            // Assert
+            Assert.Equal("derived", payload.GetProperty("$kind").GetString());
+            Assert.Equal("base", payload.GetProperty("base_value").GetString());
+            Assert.Equal("derived", payload.GetProperty("derived_value").GetString());
+        }
+
+        [Fact]
+        public void Serialize_WithSourceGeneratedPolymorphicProperty_PreservesFilteringControls() {
+            // Arrange
+            var model = new PolymorphicContainer {
+                Payload = new PolymorphicDerivedModel {
+                    BaseValue = "base",
+                    DerivedValue = "secret",
+                    Nested = new NestedModel { Message = "too-deep" }
+                }
+            };
+            var serializer = new DefaultJsonSerializer(CompatibilityJsonSerializerContext.Default);
+
+            // Act
+            string json = serializer.Serialize(model, new[] { nameof(PolymorphicDerivedModel.DerivedValue) }, maxDepth: 2);
+            using var document = JsonDocument.Parse(json);
+            JsonElement payload = document.RootElement.GetProperty("payload");
+
+            // Assert
+            Assert.Equal("derived", payload.GetProperty("$kind").GetString());
+            Assert.Equal("base", payload.GetProperty("base_value").GetString());
+            Assert.False(payload.TryGetProperty("derived_value", out _));
+            Assert.False(payload.TryGetProperty("nested", out _));
+        }
+
+        [Fact]
+        public void Serialize_WithSourceGeneratedPolymorphicCollections_WritesDeclaredContractDiscriminators() {
+            // Arrange
+            var model = new PolymorphicCollectionContainer {
+                Items = new List<PolymorphicBaseModel> {
+                    new PolymorphicDerivedModel { BaseValue = "list-base", DerivedValue = "list-derived" }
+                },
+                Values = new Dictionary<string, PolymorphicBaseModel> {
+                    ["item"] = new PolymorphicDerivedModel { BaseValue = "dictionary-base", DerivedValue = "dictionary-derived" }
+                }
+            };
+            var serializer = new DefaultJsonSerializer(CompatibilityJsonSerializerContext.Default);
+
+            // Act
+            string json = serializer.Serialize(model);
+            using var document = JsonDocument.Parse(json);
+            JsonElement listPayload = document.RootElement.GetProperty("items")[0];
+            JsonElement dictionaryPayload = document.RootElement.GetProperty("values").GetProperty("item");
+
+            // Assert
+            Assert.Equal("derived", listPayload.GetProperty("$kind").GetString());
+            Assert.Equal("list-derived", listPayload.GetProperty("derived_value").GetString());
+            Assert.Equal("derived", dictionaryPayload.GetProperty("$kind").GetString());
+            Assert.Equal("dictionary-derived", dictionaryPayload.GetProperty("derived_value").GetString());
+        }
+
+        [Fact]
+        public void Serialize_WithCollidingPolymorphicDiscriminator_DoesNotWriteDuplicateJsonProperties() {
+            // Arrange
+            var model = new CollidingPolymorphicContainer {
+                Payload = new CollidingPolymorphicDerivedModel { Discriminator = "property" }
+            };
+            var serializer = new DefaultJsonSerializer(CompatibilityJsonSerializerContext.Default);
+
+            // Act
+            string json = serializer.Serialize(model);
+            Exception exception = Record.Exception(() => serializer.Serialize(model, continueOnSerializationError: false));
+
+            // Assert
+            Assert.Equal("{}", json);
+            Assert.NotNull(exception);
+        }
+
+        [Fact]
+        public void Serialize_WithSourceGeneratedCallbackIntroducingCycle_PreservesValidJson() {
+            // Arrange
+            var model = new CallbackCycleModel();
+            var serializer = new DefaultJsonSerializer(CompatibilityJsonSerializerContext.Default);
+
+            // Act
+            string json = serializer.Serialize(model);
+            using var document = JsonDocument.Parse(json);
+
+            // Assert
+            Assert.Equal("kept", document.RootElement.GetProperty("name").GetString());
+            Assert.False(document.RootElement.TryGetProperty("self", out _));
+            Assert.True(model.Serialized);
+        }
+
+        [Fact]
         public void Serialize_WithNamedFloatingPointValues_PreservesValues() {
             // Arrange
             var model = new FloatingPointModel {
@@ -458,6 +577,56 @@ namespace Exceptionless.Tests.Serializer {
         public string SecretField;
     }
 
+    public sealed class SerializationCallbackModel : IJsonOnSerializing, IJsonOnSerialized {
+        public string State { get; set; } = "before";
+
+        public void OnSerializing() => State = "serializing";
+        public void OnSerialized() => State = "serialized";
+    }
+
+    public sealed class CallbackCycleModel : IJsonOnSerializing, IJsonOnSerialized {
+        public string Name { get; set; } = "kept";
+        public CallbackCycleModel Self { get; set; }
+        [JsonIgnore]
+        public bool Serialized { get; private set; }
+
+        public void OnSerializing() => Self = this;
+        public void OnSerialized() => Serialized = true;
+    }
+
+    public sealed class PolymorphicContainer {
+        public PolymorphicBaseModel Payload { get; set; }
+    }
+
+    public sealed class PolymorphicCollectionContainer {
+        public List<PolymorphicBaseModel> Items { get; set; }
+        public Dictionary<string, PolymorphicBaseModel> Values { get; set; }
+    }
+
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "$kind")]
+    [JsonDerivedType(typeof(PolymorphicDerivedModel), "derived")]
+    public abstract class PolymorphicBaseModel {
+        public string BaseValue { get; set; }
+    }
+
+    public sealed class PolymorphicDerivedModel : PolymorphicBaseModel {
+        public string DerivedValue { get; set; }
+        public NestedModel Nested { get; set; }
+    }
+
+    public sealed class CollidingPolymorphicContainer {
+        public CollidingPolymorphicBaseModel Payload { get; set; }
+    }
+
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "$kind")]
+    [JsonDerivedType(typeof(CollidingPolymorphicDerivedModel), "derived")]
+    public abstract class CollidingPolymorphicBaseModel { }
+
+    public sealed class CollidingPolymorphicDerivedModel : CollidingPolymorphicBaseModel {
+        [JsonPropertyName("$kind")]
+        public string Discriminator { get; set; }
+    }
+
     public class PublicFieldModel {
         public string Name;
     }
@@ -569,5 +738,14 @@ namespace Exceptionless.Tests.Serializer {
         IncludeFields = true,
         UseStringEnumConverter = true)]
     [JsonSerializable(typeof(CompatibilityIgnoreModel))]
+    [JsonSerializable(typeof(SerializationCallbackModel))]
+    [JsonSerializable(typeof(CallbackCycleModel))]
+    [JsonSerializable(typeof(PolymorphicContainer))]
+    [JsonSerializable(typeof(PolymorphicCollectionContainer))]
+    [JsonSerializable(typeof(PolymorphicBaseModel))]
+    [JsonSerializable(typeof(PolymorphicDerivedModel))]
+    [JsonSerializable(typeof(CollidingPolymorphicContainer))]
+    [JsonSerializable(typeof(CollidingPolymorphicBaseModel))]
+    [JsonSerializable(typeof(CollidingPolymorphicDerivedModel))]
     internal partial class CompatibilityJsonSerializerContext : JsonSerializerContext { }
 }

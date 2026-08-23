@@ -11,7 +11,7 @@ namespace Exceptionless.Serializer {
         internal static object Convert(JsonElement element, bool parseDates) {
             switch (element.ValueKind) {
                 case JsonValueKind.Object:
-                    var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    var dictionary = new Dictionary<string, object>(StringComparer.Ordinal);
                     foreach (JsonProperty property in element.EnumerateObject())
                         dictionary[property.Name] = Convert(property.Value, parseDates);
                     return dictionary;

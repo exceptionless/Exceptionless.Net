@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Exceptionless.Dependency;
 using Exceptionless.Models;
@@ -141,6 +142,54 @@ namespace Exceptionless.MessagePack.Tests {
             Assert.Equal(42, payload.GetProperty("count").GetInt32());
             Assert.True(payload.GetProperty("enabled").GetBoolean());
             Assert.Equal(JsonValueKind.Null, payload.GetProperty("items")[1].ValueKind);
+        }
+
+        [Fact]
+        public void Serialize_WithCaseDistinctNestedRawJsonKeys_PreservesBothKeys() {
+            // Arrange
+            const string json = /* lang=json */ "{\"type\":\"log\",\"data\":{\"payload\":{\"A\":1,\"a\":2}}}";
+            var jsonSerializer = Resolver.GetJsonSerializer();
+            var original = (Event)jsonSerializer.Deserialize(json, typeof(Event));
+
+            // Act
+            Event roundTripped;
+            using (var stream = new MemoryStream()) {
+                Resolver.GetStorageSerializer().Serialize(original, stream);
+                stream.Position = 0;
+                roundTripped = Resolver.GetStorageSerializer().Deserialize<Event>(stream);
+            }
+
+            using var document = JsonDocument.Parse(jsonSerializer.Serialize(roundTripped));
+            JsonElement payload = document.RootElement.GetProperty("data").GetProperty("payload");
+
+            // Assert
+            Assert.Equal(2, payload.EnumerateObject().Count());
+            Assert.Equal(1, payload.GetProperty("A").GetInt32());
+            Assert.Equal(2, payload.GetProperty("a").GetInt32());
+        }
+
+        [Fact]
+        public void Serialize_WithRoundTrippedStructuredData_AppliesNestedExclusionsAndDepth() {
+            // Arrange
+            const string json = /* lang=json */ "{\"type\":\"log\",\"data\":{\"payload\":{\"visible\":\"kept\",\"secret\":\"hidden\",\"nested\":{\"too_deep\":true}}}}";
+            var jsonSerializer = Resolver.GetJsonSerializer();
+            var original = (Event)jsonSerializer.Deserialize(json, typeof(Event));
+
+            // Act
+            Event roundTripped;
+            using (var stream = new MemoryStream()) {
+                Resolver.GetStorageSerializer().Serialize(original, stream);
+                stream.Position = 0;
+                roundTripped = Resolver.GetStorageSerializer().Deserialize<Event>(stream);
+            }
+
+            using var document = JsonDocument.Parse(jsonSerializer.Serialize(roundTripped, new[] { "secret" }, maxDepth: 3));
+            JsonElement payload = document.RootElement.GetProperty("data").GetProperty("payload");
+
+            // Assert
+            Assert.Equal("kept", payload.GetProperty("visible").GetString());
+            Assert.False(payload.TryGetProperty("secret", out _));
+            Assert.False(payload.TryGetProperty("nested", out _));
         }
     }
 }

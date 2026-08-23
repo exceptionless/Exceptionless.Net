@@ -31,9 +31,46 @@ using (var defaultClient = new ExceptionlessClient(configuration => {
             ["enabled"] = true
         }
     };
+    builtInEvent.SetProperty("byte", (byte)1, client: defaultClient);
+    builtInEvent.SetProperty("sbyte", (sbyte)-2, client: defaultClient);
+    builtInEvent.SetProperty("short", (short)-3, client: defaultClient);
+    builtInEvent.SetProperty("ushort", (ushort)4, client: defaultClient);
+    builtInEvent.SetProperty("uint", System.UInt32.MaxValue, client: defaultClient);
+    builtInEvent.SetProperty("long", System.Int64.MinValue, client: defaultClient);
+    builtInEvent.SetProperty("ulong", System.UInt64.MaxValue, client: defaultClient);
+    builtInEvent.SetProperty("float", 1.25f, client: defaultClient);
+    builtInEvent.SetProperty("double", 2.5d, client: defaultClient);
+    builtInEvent.SetProperty("decimal", 3.75m, client: defaultClient);
+    builtInEvent.Data["char"] = 'x';
+    builtInEvent.Data["date_time"] = new System.DateTime(2026, 8, 12, 21, 0, 0, System.DateTimeKind.Utc);
+    builtInEvent.Data["date_time_offset"] = new System.DateTimeOffset(2026, 8, 12, 21, 0, 0, System.TimeSpan.Zero);
+    builtInEvent.Data["guid"] = System.Guid.Parse("fb10e03c-51bf-49b9-be3d-1b537e64f00a");
+    builtInEvent.Data["time_span"] = System.TimeSpan.FromSeconds(2);
+    builtInEvent.Data["uri"] = new System.Uri("https://exceptionless.com/aot");
+    builtInEvent.Data["bytes"] = new byte[] { 1, 2, 3 };
 
     string builtInJson = defaultJsonSerializer.Serialize(builtInEvent);
     Assert(builtInJson.Contains("\"source\":\"aot-default-services\""), "Default serializer lost a built-in event.");
+    using (var builtInDocument = System.Text.Json.JsonDocument.Parse(builtInJson)) {
+        var data = builtInDocument.RootElement.GetProperty("data");
+        Assert(data.GetProperty("byte").GetByte() == 1, "Default serializer lost byte event data.");
+        Assert(data.GetProperty("sbyte").GetSByte() == -2, "Default serializer lost sbyte event data.");
+        Assert(data.GetProperty("short").GetInt16() == -3, "Default serializer lost short event data.");
+        Assert(data.GetProperty("ushort").GetUInt16() == 4, "Default serializer lost ushort event data.");
+        Assert(data.GetProperty("uint").GetUInt32() == System.UInt32.MaxValue, "Default serializer lost uint event data.");
+        Assert(data.GetProperty("long").GetInt64() == System.Int64.MinValue, "Default serializer lost long event data.");
+        Assert(data.GetProperty("ulong").GetUInt64() == System.UInt64.MaxValue, "Default serializer lost ulong event data.");
+        Assert(data.GetProperty("float").GetSingle() == 1.25f, "Default serializer lost float event data.");
+        Assert(data.GetProperty("double").GetDouble() == 2.5d, "Default serializer lost double event data.");
+        Assert(data.GetProperty("decimal").GetDecimal() == 3.75m, "Default serializer lost decimal event data.");
+        Assert(data.GetProperty("char").GetString() == "x", "Default serializer lost char event data.");
+        Assert(data.GetProperty("date_time").GetDateTime() == new System.DateTime(2026, 8, 12, 21, 0, 0, System.DateTimeKind.Utc), "Default serializer lost DateTime event data.");
+        Assert(data.GetProperty("date_time_offset").GetDateTimeOffset() == new System.DateTimeOffset(2026, 8, 12, 21, 0, 0, System.TimeSpan.Zero), "Default serializer lost DateTimeOffset event data.");
+        Assert(data.GetProperty("guid").GetGuid() == System.Guid.Parse("fb10e03c-51bf-49b9-be3d-1b537e64f00a"), "Default serializer lost Guid event data.");
+        Assert(System.TimeSpan.Parse(data.GetProperty("time_span").GetString(), System.Globalization.CultureInfo.InvariantCulture) == System.TimeSpan.FromSeconds(2), "Default serializer lost TimeSpan event data.");
+        Assert(data.GetProperty("uri").GetString() == "https://exceptionless.com/aot", "Default serializer lost Uri event data.");
+        Assert(data.GetProperty("bytes").GetBytesFromBase64().SequenceEqual(new byte[] { 1, 2, 3 }), "Default serializer lost byte-array event data.");
+    }
 
     using var defaultStream = new MemoryStream();
     defaultStorageSerializer.Serialize(builtInEvent, defaultStream);
@@ -51,6 +88,15 @@ using (var defaultClient = new ExceptionlessClient(configuration => {
 
 var submissionClient = new CapturingSubmissionClient();
 var jsonSerializer = new DefaultJsonSerializer(AotSmokeJsonSerializerContext.Default);
+string declaredContractJson = jsonSerializer.Serialize(new AotDeclaredContractContainer {
+    Payload = new AotUnregisteredDerivedPayload {
+        BaseValue = "base-contract",
+        DerivedValue = "must-not-require-runtime-metadata"
+    }
+});
+Assert(declaredContractJson.Contains("\"base_value\":\"base-contract\""), "Declared source-generated contract lost its base member.");
+Assert(!declaredContractJson.Contains("derived_value", System.StringComparison.Ordinal), "Declared source-generated contract leaked unregistered runtime members.");
+
 var services = new ServiceCollection();
 services.AddSingleton<ISubmissionClient>(submissionClient);
 services.AddSingleton<IJsonSerializer>(jsonSerializer);
@@ -166,6 +212,18 @@ internal sealed class SmokePayload {
     public string IgnoredField = "ignored-field";
 }
 
+internal sealed class AotDeclaredContractContainer {
+    public AotDeclaredContractPayload Payload { get; set; }
+}
+
+internal class AotDeclaredContractPayload {
+    public string BaseValue { get; set; }
+}
+
+internal sealed class AotUnregisteredDerivedPayload : AotDeclaredContractPayload {
+    public string DerivedValue { get; set; }
+}
+
 internal sealed class SmokePrefixConverter : JsonConverter<string> {
     public override string Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options) => reader.GetString();
     public override void Write(System.Text.Json.Utf8JsonWriter writer, string value, System.Text.Json.JsonSerializerOptions options) => writer.WriteStringValue($"aot:{value}");
@@ -187,6 +245,8 @@ internal sealed class SmokeException : System.Exception {
     IncludeFields = true,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(SmokePayload))]
+[JsonSerializable(typeof(AotDeclaredContractContainer))]
+[JsonSerializable(typeof(AotDeclaredContractPayload))]
 internal partial class AotSmokeJsonSerializerContext : JsonSerializerContext { }
 
 internal sealed class CapturingSubmissionClient : ISubmissionClient {

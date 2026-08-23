@@ -116,6 +116,7 @@ namespace Exceptionless.Tests.Serializer {
             // Act
             object stringValue = JsonSerializer.Deserialize<object>("\"value\"", options);
             object integerValue = JsonSerializer.Deserialize<object>("42", options);
+            object decimalValue = JsonSerializer.Deserialize<object>("3.14", options);
             object doubleValue = JsonSerializer.Deserialize<object>("1.7976931348623157E+308", options);
             object trueValue = JsonSerializer.Deserialize<object>("true", options);
             object falseValue = JsonSerializer.Deserialize<object>("false", options);
@@ -126,6 +127,7 @@ namespace Exceptionless.Tests.Serializer {
             // Assert
             Assert.Equal("value", stringValue);
             Assert.Equal(42L, Assert.IsType<long>(integerValue));
+            Assert.Equal(3.14m, Assert.IsType<decimal>(decimalValue));
             Assert.Equal(Double.MaxValue, Assert.IsType<double>(doubleValue));
             Assert.True(Assert.IsType<bool>(trueValue));
             Assert.False(Assert.IsType<bool>(falseValue));

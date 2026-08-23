@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <RollForward>Major</RollForward>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestoreAdditionalProjectSources>$(ExceptionlessPackageSource)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Exceptionless" Version="[$(ExceptionlessPackageVersion)]" />
+  </ItemGroup>
+</Project>
