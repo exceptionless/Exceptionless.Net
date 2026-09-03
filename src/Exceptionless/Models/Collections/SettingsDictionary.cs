@@ -158,25 +158,6 @@ namespace Exceptionless.Models {
                     LogLevel value;
                     _minLogLevels.TryRemove(logger, out value);
                 }
-}
-
-            foreach (var eventType in _eventTypes) {
-                if (eventType.Key == null || !_typeSourceEnabled.TryGetValue(eventType.Key, out var sourceDictionary))
-                    continue;
-
-                if (!args.Item.Key.StartsWith(eventType.Value))
-                    continue;
-
-                var sourceKeysToRemove = new List<string>();
-                foreach (string key in sourceDictionary.Keys) {
-                    if (key.IsPatternMatch(args.Item.Key.Substring(eventType.Value.Length)))
-                        sourceKeysToRemove.Add(key);
-                }
-
-                foreach (var logger in sourceKeysToRemove) {
-                    bool value;
-                    sourceDictionary.TryRemove(logger, out value);
-                }
             }
 
             base.OnChanged(args);
@@ -202,16 +183,9 @@ namespace Exceptionless.Models {
             return minLogLevel;
         }
 
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _typeSourceEnabled = new ConcurrentDictionary<string, ConcurrentDictionary<string, bool>>(StringComparer.OrdinalIgnoreCase);
-
         public bool GetTypeAndSourceEnabled(string type, string source) {
             if (type == null)
                 return true;
-
-            if (source != null && _typeSourceEnabled.TryGetValue(type, out var sourceDictionary)) {
-                if (sourceDictionary.TryGetValue(source, out bool sourceEnabled))
-                    return sourceEnabled;
-            }
 
             return GetTypeAndSourceSetting(type, source, "true").ToBoolean(true);
         }
@@ -222,16 +196,7 @@ namespace Exceptionless.Models {
             if (type == null)
                 return defaultValue;
 
-            string sourcePrefix;
-            if (!_typeSourceEnabled.TryGetValue(type, out var sourceDictionary)) {
-                sourceDictionary = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-                _typeSourceEnabled.TryAdd(type, sourceDictionary);
-                sourcePrefix = "@@" + type + ":";
-
-                _eventTypes.TryAdd(type, sourcePrefix);
-            } else {
-                sourcePrefix = _eventTypes[type];
-            }
+            string sourcePrefix = _eventTypes.GetOrAdd(type, eventType => "@@" + eventType + ":");
 
             // check for exact source match
             if (TryGetValue(sourcePrefix + source, out string settingValue))

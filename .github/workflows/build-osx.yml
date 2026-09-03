@@ -3,16 +3,19 @@ on: [push, pull_request]
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: macOS-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
     - name: Build Reason
@@ -20,7 +23,7 @@ jobs:
     - name: Build Version
       shell: bash
       run: |
-        dotnet tool install --global minver-cli --version 6.0.0
+        dotnet tool install --global minver-cli --version 7.0.0
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build

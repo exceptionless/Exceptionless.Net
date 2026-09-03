@@ -166,21 +166,41 @@ namespace Exceptionless.Tests.Configuration {
 
         [Fact]
         public void CanGetLogSettingsMultithreaded() {
-            var settings = new SettingsDictionary {
-                { "@@log:*", "Info" },
-                { "@@log:Source1", "Trace" },
-                { "@@log:Source2", "Debug" },
-                { "@@log:Source3", "Info" },
-                { "@@log:Source4", "Info" }
-            };
+            for (int attempt = 0; attempt < 1000; attempt++) {
+                var settings = new SettingsDictionary {
+                    { "@@log:*", "Info" },
+                    { "@@log:Source1", "Trace" },
+                    { "@@log:Source2", "Debug" }
+                };
 
-            var result = Parallel.For(0, 100, index => {
-                var level = settings.GetMinLogLevel("Source1");
-                _writer.WriteLine("Source1 log level: {0}", level);
-            });
+                Parallel.For(0, 100, index => {
+                    Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("Source1"));
+                    Assert.Equal(LogLevel.Debug, settings.GetMinLogLevel("Source2"));
+                    Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("Other"));
+                });
+            }
+        }
 
-            while (!result.IsCompleted)
-                Thread.Yield();
+        [Theory]
+        [InlineData("usage")]
+        [InlineData("error")]
+        public void CanGetEventSettingsMultithreaded(string type) {
+            for (int attempt = 0; attempt < 1000; attempt++) {
+                var settings = new SettingsDictionary {
+                    { "@@" + type + ":*", "true" },
+                    { "@@" + type + ":Source1", "false" }
+                };
+
+                Parallel.For(0, 100, index => {
+                    Assert.False(settings.GetTypeAndSourceEnabled(type, "Source1"));
+                    Assert.True(settings.GetTypeAndSourceEnabled(type, "Other"));
+                });
+
+                settings["@@" + type + ":Source1"] = "true";
+                Assert.True(settings.GetTypeAndSourceEnabled(type, "Source1"));
+                settings["@@" + type + ":*"] = "false";
+                Assert.False(settings.GetTypeAndSourceEnabled(type, "Other"));
+            }
         }
         
         [Fact]

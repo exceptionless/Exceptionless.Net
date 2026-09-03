@@ -3,16 +3,20 @@ on: [push, pull_request]
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_NOLOGO: 1
+permissions:
+  contents: read
+  packages: write
 jobs:
   build:
     runs-on: windows-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
     - name: Build Reason
@@ -20,7 +24,7 @@ jobs:
     - name: Build Version
       shell: bash
       run: |
-        dotnet tool install --global minver-cli --version 6.0.0
+        dotnet tool install --global minver-cli --version 7.0.0
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
     - name: Build
@@ -30,27 +34,24 @@ jobs:
     - name: Package
       if: github.event_name != 'pull_request'
       run: dotnet pack --configuration Release --no-build Exceptionless.Net.Windows.slnx
-    - name: Install GitHub Package Tool
-      if: github.event_name != 'pull_request'
-      run: dotnet tool install gpr -g
     - name: Publish CI Packages
       shell: bash
       if: github.event_name != 'pull_request'
       run: |
-        for package in $(find -name "*.nupkg" | grep "minver" -v); do
+        while IFS= read -r -d '' package; do
           echo "${0##*/}": Pushing $package...
 
           # GitHub
-          gpr push $package -k ${{ secrets.GITHUB_TOKEN }} || true
+          dotnet nuget push "$package" --source https://nuget.pkg.github.com/Exceptionless/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate || true
 
           # Feedz (remove once GitHub supports anonymous access)
-          dotnet nuget push $package --source https://f.feedz.io/exceptionless/exceptionless/nuget --api-key ${{ secrets.FEEDZ_KEY }} --skip-duplicate
-        done
+          dotnet nuget push "$package" --source https://f.feedz.io/exceptionless/exceptionless/nuget --api-key ${{ secrets.FEEDZ_KEY }} --skip-duplicate
+        done < <(find . -name '*.nupkg' ! -path '*minver*' -print0)
     - name: Publish Release Packages
       shell: bash
       if: startsWith(github.ref, 'refs/tags/v')
       run: |
-        for package in $(find -name "*.nupkg" | grep "minver" -v); do
+        while IFS= read -r -d '' package; do
           echo "${0##*/}": Pushing $package...
-          dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_KEY }} --skip-duplicate
-        done
+          dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_KEY }} --skip-duplicate
+        done < <(find . -name '*.nupkg' ! -path '*minver*' -print0)
