@@ -39,7 +39,7 @@ namespace Exceptionless.Tests.Plugins {
 
         [Theory]
         [InlineData(null, "production")]
-        [InlineData("Staging", "staging")]
+        [InlineData("Staging", "Staging")]
         [InlineData("", null)]
         [InlineData("prod\ninvalid", null)]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null)]
