@@ -13,7 +13,11 @@ namespace Exceptionless.Tests.Platforms {
         [Theory]
         [InlineData(null, "staging")]
         [InlineData("production", "production")]
-        public void AddExceptionless_DeploymentEnvironment_UsesHostAsFallback(string? configuredEnvironment, string expectedEnvironment) {
+        [InlineData("", null)]
+        [InlineData(" ", null)]
+        [InlineData("prod\ninvalid", null)]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null)]
+        public void AddExceptionless_DeploymentEnvironment_UsesHostAsFallback(string? configuredEnvironment, string? expectedEnvironment) {
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Staging" });
             var client = new ExceptionlessClient();
             client.Configuration.Environment = configuredEnvironment;

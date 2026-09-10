@@ -18,8 +18,14 @@ namespace Exceptionless {
         /// <summary>The default deployment environment for every event.</summary>
         public string Environment {
             get => _environment;
-            set => _environment = Utility.DeploymentEnvironment.Normalize(value);
+            set {
+                _environment = Utility.DeploymentEnvironment.Normalize(value);
+                IsEnvironmentConfigured = value != null;
+            }
         }
+
+        /// <summary>Whether an environment was explicitly configured, including an invalid value that remains unspecified.</summary>
+        public bool IsEnvironmentConfigured { get; private set; }
 
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
         private const string DEFAULT_CONFIG_SERVER_URL = "https://config.exceptionless.io";
