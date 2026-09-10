@@ -2,10 +2,6 @@
     [Priority(15)]
     public class ConfigurationDefaultsPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            if (!context.Event.HasEnvironmentOverride) {
-                context.Event.Environment = context.Client.Configuration.Environment;
-            }
-
             foreach (string tag in context.Client.Configuration.DefaultTags)
                 context.Event.Tags.Add(tag);
 
