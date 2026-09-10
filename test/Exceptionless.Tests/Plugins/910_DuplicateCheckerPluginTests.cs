@@ -20,7 +20,7 @@ namespace Exceptionless.Tests.Plugins {
             var client = CreateClient();
             using (var plugin = new DuplicateCheckerPlugin(TimeSpan.FromMinutes(1))) {
                 foreach (bool duplicate in new[] { false, true }) {
-                    foreach (string environment in new[] { "production", "staging", null }) {
+                    foreach (string environment in new[] { "Production", "production", "staging", null }) {
                         var builder = client.CreateLog("Environment test").SetEnvironment(environment);
                         var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
                         plugin.Run(context);

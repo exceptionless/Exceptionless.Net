@@ -12,7 +12,7 @@ namespace Exceptionless.Utility {
                     return null;
             }
 
-            return name.ToLowerInvariant();
+            return name;
         }
     }
 }

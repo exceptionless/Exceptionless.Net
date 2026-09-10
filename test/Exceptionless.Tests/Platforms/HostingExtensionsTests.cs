@@ -11,7 +11,7 @@ using Xunit;
 namespace Exceptionless.Tests.Platforms {
     public class HostingExtensionsTests {
         [Theory]
-        [InlineData(null, "staging")]
+        [InlineData(null, "Staging")]
         [InlineData("production", "production")]
         [InlineData("", null)]
         [InlineData(" ", null)]
@@ -32,12 +32,12 @@ namespace Exceptionless.Tests.Platforms {
             using var client = new ExceptionlessClient();
             var staging = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Staging" });
             staging.AddExceptionless(client);
-            Assert.Equal("staging", client.Configuration.Environment);
+            Assert.Equal("Staging", client.Configuration.Environment);
             Assert.False(client.Configuration.IsEnvironmentConfigured);
 
             var production = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
             production.AddExceptionless(client);
-            Assert.Equal("production", client.Configuration.Environment);
+            Assert.Equal("Production", client.Configuration.Environment);
             Assert.False(client.Configuration.IsEnvironmentConfigured);
         }
 

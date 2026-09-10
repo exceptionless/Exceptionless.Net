@@ -14,7 +14,7 @@ namespace Exceptionless.Tests.Configuration {
                 var mapped = ConfigurationManager.OpenMappedExeConfiguration(new ExeConfigurationFileMap { ExeConfigFilename = path }, ConfigurationUserLevel.None);
                 using var client = new ExceptionlessClient();
                 client.Configuration.ReadFromConfigSection((ExceptionlessSection)mapped.GetSection("exceptionless"));
-                Assert.Equal("staging", client.Configuration.Environment);
+                Assert.Equal("Staging", client.Configuration.Environment);
             } finally {
                 File.Delete(path);
             }
@@ -35,7 +35,7 @@ namespace Exceptionless.Tests.Configuration {
             client.Configuration.ReadFromAppSettings(new NameValueCollection());
             Assert.Equal("staging", client.Configuration.Environment);
             client.Configuration.ReadFromAppSettings(new NameValueCollection { ["Exceptionless:Environment"] = " Production " });
-            Assert.Equal("production", client.Configuration.Environment);
+            Assert.Equal("Production", client.Configuration.Environment);
         }
     }
 }

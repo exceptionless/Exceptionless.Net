@@ -14,12 +14,12 @@ namespace Exceptionless.Tests.Plugins {
             var plugin = new DeploymentEnvironmentPlugin();
             var context = new EventPluginContext(client, new Event());
             plugin.Run(context);
-            Assert.Equal("production", context.Event.Environment);
+            Assert.Equal("Production", context.Event.Environment);
 
             var builder = client.CreateLog("test", "message").SetEnvironment(" Staging ");
             var overridden = new EventPluginContext(client, builder.Target);
             plugin.Run(overridden);
-            Assert.Equal("staging", overridden.Event.Environment);
+            Assert.Equal("Staging", overridden.Event.Environment);
             Assert.Empty(overridden.Event.Data);
         }
 
