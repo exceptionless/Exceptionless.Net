@@ -16,7 +16,7 @@ namespace Exceptionless.Models {
             }
         }
 
-        internal bool HasEnvironmentOverride { get; private set; }
+        internal bool HasEnvironmentOverride { get; set; }
 
         public Event() {
             Tags = new TagSet();
