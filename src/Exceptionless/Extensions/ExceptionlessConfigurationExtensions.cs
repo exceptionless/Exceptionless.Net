@@ -27,6 +27,11 @@ using Exceptionless.Utility;
 
 namespace Exceptionless {
     public static class ExceptionlessConfigurationExtensions {
+        /// <summary>Sets the default deployment environment for every event.</summary>
+        public static void SetEnvironment(this ExceptionlessConfiguration config, string environment) {
+            config.Environment = environment;
+        }
+
         private const string INSTALL_ID_KEY = "ExceptionlessInstallId";
 
         /// <summary>
@@ -412,6 +417,9 @@ namespace Exceptionless {
                 throw new ArgumentNullException(nameof(settings));
 
             var section = settings.GetSection("Exceptionless");
+            if (section["Environment"] != null) {
+                config.Environment = section["Environment"];
+            }
             if (Boolean.TryParse(section["Enabled"], out bool enabled) && !enabled)
                 config.Enabled = false;
 
@@ -483,6 +491,11 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
         public static void ReadFromEnvironmentalVariables(this ExceptionlessConfiguration config) {
+            string environment = GetEnvironmentalVariable("Exceptionless:Environment") ?? GetEnvironmentalVariable("Exceptionless__Environment");
+            if (environment != null) {
+                config.Environment = environment;
+            }
+
             string apiKey = GetEnvironmentalVariable("Exceptionless:ApiKey") ?? GetEnvironmentalVariable("Exceptionless__ApiKey");
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;

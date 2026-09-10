@@ -10,6 +10,15 @@ The definition of the word exceptionless is: to be without exception. [Exception
 
 ## Using Exceptionless
 
+Set the deployment environment once at startup, with an optional override on each event:
+
+```csharp
+client.Configuration.SetEnvironment("production");
+client.CreateLog("Deployment complete").SetEnvironment("staging").Submit();
+```
+
+The hosting integration falls back to `IHostEnvironment.EnvironmentName`. Explicit configuration wins; `Exceptionless:Environment` and `Exceptionless__Environment` are also supported. Names are trimmed, lowercased, and limited to 64 characters. Missing or invalid values remain unspecified. The top-level event `environment` is separate from machine diagnostics in `data.@environment`. Stacks and fixed versions remain shared across environments.
+
 Refer to the Exceptionless documentation here: [Exceptionless Docs](https://exceptionless.com/docs/).
 
 ## Getting Started (Development)

@@ -4,6 +4,15 @@ using System.Collections.Generic;
 namespace Exceptionless.Models {
     [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
     public class Event : IData {
+        private string _environment;
+
+        /// <summary>The deployment environment, such as production or staging.</summary>
+        [Json.JsonProperty(NullValueHandling = Json.NullValueHandling.Ignore)]
+        public string Environment {
+            get => _environment;
+            set => _environment = Utility.DeploymentEnvironment.Normalize(value);
+        }
+
         public Event() {
             Tags = new TagSet();
             Data = new DataDictionary();
@@ -60,7 +69,7 @@ namespace Exceptionless.Models {
         public string ReferenceId { get; set; }
 
         protected bool Equals(Event other) {
-            return string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Equals(Data, other.Data);
+            return string.Equals(Environment, other.Environment) && string.Equals(Type, other.Type) && string.Equals(Source, other.Source) && Tags.CollectionEquals(other.Tags) && string.Equals(Message, other.Message) && string.Equals(Geo, other.Geo) && Value == other.Value && Equals(Data, other.Data);
         }
 
         public override bool Equals(object obj) {
@@ -84,6 +93,9 @@ namespace Exceptionless.Models {
                 hashCode = (hashCode * 397) ^ (Geo == null ? 0 : Geo.GetHashCode());
                 hashCode = (hashCode * 397) ^ Value.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Data == null ? 0 : Data.GetCollectionHashCode(_exclusions));
+                if (Environment != null) {
+                    hashCode = (hashCode * 397) ^ Environment.GetHashCode();
+                }
                 return hashCode;
             }
         }

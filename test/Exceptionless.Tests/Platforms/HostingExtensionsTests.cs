@@ -7,6 +7,19 @@ using Xunit;
 
 namespace Exceptionless.Tests.Platforms {
     public class HostingExtensionsTests {
+        [Theory]
+        [InlineData(null, "staging")]
+        [InlineData("production", "production")]
+        public void AddExceptionless_DeploymentEnvironment_UsesHostAsFallback(string? configuredEnvironment, string expectedEnvironment) {
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Staging" });
+            var client = new ExceptionlessClient();
+            client.Configuration.Environment = configuredEnvironment;
+            builder.AddExceptionless(client);
+
+            using var services = builder.Services.BuildServiceProvider();
+            Assert.Equal(expectedEnvironment, services.GetRequiredService<ExceptionlessClient>().Configuration.Environment);
+        }
+
         [Fact]
         public void AddExceptionless_WhenCalled_RegistersClientAndLifetimeService() {
             // Arrange

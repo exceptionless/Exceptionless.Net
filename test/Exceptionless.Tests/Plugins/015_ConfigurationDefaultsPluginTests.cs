@@ -8,6 +8,22 @@ using Xunit;
 
 namespace Exceptionless.Tests.Plugins {
     public class ConfigurationDefaultsPluginTests : PluginTestBase {
+        [Fact]
+        public void Run_DeploymentEnvironment_UsesDefaultAndPreservesEventOverride() {
+            var client = CreateClient();
+            client.Configuration.SetEnvironment(" Production ");
+            var plugin = new ConfigurationDefaultsPlugin();
+            var context = new EventPluginContext(client, new Event());
+            plugin.Run(context);
+            Assert.Equal("production", context.Event.Environment);
+
+            var builder = client.CreateLog("test", "message").SetEnvironment(" Staging ");
+            var overridden = new EventPluginContext(client, builder.Target);
+            plugin.Run(overridden);
+            Assert.Equal("staging", overridden.Event.Environment);
+            Assert.Empty(overridden.Event.Data);
+        }
+
         public ConfigurationDefaultsPluginTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]

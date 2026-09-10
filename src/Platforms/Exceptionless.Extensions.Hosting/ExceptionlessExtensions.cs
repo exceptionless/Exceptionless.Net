@@ -60,7 +60,10 @@ namespace Exceptionless {
         /// <param name="client">The pre-configured <see cref="ExceptionlessClient"/> instance</param>
         /// <returns></returns>
         public static IServiceCollection AddExceptionless(this IServiceCollection services, ExceptionlessClient client) {
-            return services.AddSingleton(client);
+            return services.AddSingleton(sp => {
+                client.Configuration.Environment ??= sp.GetService<IHostEnvironment>()?.EnvironmentName;
+                return client;
+            });
         }
 
         /// <summary>
@@ -90,6 +93,7 @@ namespace Exceptionless {
                     client.Configuration.ReadFromEnvironmentalVariables();
 
                 configure?.Invoke(client.Configuration);
+                client.Configuration.Environment ??= sp.GetService<IHostEnvironment>()?.EnvironmentName;
 
                 return client;
             });
@@ -110,6 +114,7 @@ namespace Exceptionless {
                     client.Configuration.ReadFromConfiguration(configuration);
 
                 configure?.Invoke(client.Configuration);
+                client.Configuration.Environment ??= sp.GetService<IHostEnvironment>()?.EnvironmentName;
 
                 return client;
             });

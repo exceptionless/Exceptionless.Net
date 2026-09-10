@@ -13,6 +13,14 @@ using Exceptionless.Models;
 
 namespace Exceptionless {
     public class ExceptionlessConfiguration {
+        private string _environment;
+
+        /// <summary>The default deployment environment for every event.</summary>
+        public string Environment {
+            get => _environment;
+            set => _environment = Utility.DeploymentEnvironment.Normalize(value);
+        }
+
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
         private const string DEFAULT_CONFIG_SERVER_URL = "https://config.exceptionless.io";
         private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";

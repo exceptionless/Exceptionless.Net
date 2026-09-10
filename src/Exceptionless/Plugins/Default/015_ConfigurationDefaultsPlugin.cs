@@ -2,6 +2,10 @@
     [Priority(15)]
     public class ConfigurationDefaultsPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
+            if (context.Event.Environment == null) {
+                context.Event.Environment = context.Client.Configuration.Environment;
+            }
+
             foreach (string tag in context.Client.Configuration.DefaultTags)
                 context.Event.Tags.Add(tag);
 
