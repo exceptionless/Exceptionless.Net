@@ -28,6 +28,20 @@ namespace Exceptionless.Tests.Platforms {
         }
 
         [Fact]
+        public void AddExceptionless_HostFallback_DoesNotBecomeExplicitConfiguration() {
+            using var client = new ExceptionlessClient();
+            var staging = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Staging" });
+            staging.AddExceptionless(client);
+            Assert.Equal("staging", client.Configuration.Environment);
+            Assert.False(client.Configuration.IsEnvironmentConfigured);
+
+            var production = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
+            production.AddExceptionless(client);
+            Assert.Equal("production", client.Configuration.Environment);
+            Assert.False(client.Configuration.IsEnvironmentConfigured);
+        }
+
+        [Fact]
         public void AddExceptionless_ProvidedClient_RemainsOwnedByCaller() {
             var resolver = new Mock<IDependencyResolver>();
             using var client = new ExceptionlessClient(new ExceptionlessConfiguration(resolver.Object));
