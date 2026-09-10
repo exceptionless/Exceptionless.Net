@@ -13,6 +13,26 @@ using Exceptionless.Models;
 
 namespace Exceptionless {
     public class ExceptionlessConfiguration {
+        private string _environment;
+
+        /// <summary>The default deployment environment for every event.</summary>
+        public string Environment {
+            get => _environment;
+            set {
+                _environment = Utility.DeploymentEnvironment.Normalize(value);
+                IsEnvironmentConfigured = value != null;
+            }
+        }
+
+        /// <summary>Whether an environment was explicitly configured, including an invalid value that remains unspecified.</summary>
+        public bool IsEnvironmentConfigured { get; private set; }
+
+        /// <summary>Applies a deployment environment fallback without replacing an explicitly configured value.</summary>
+        public void SetDefaultEnvironment(string environment) {
+            if (!IsEnvironmentConfigured)
+                _environment = Utility.DeploymentEnvironment.Normalize(environment);
+        }
+
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
         private const string DEFAULT_CONFIG_SERVER_URL = "https://config.exceptionless.io";
         private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";
