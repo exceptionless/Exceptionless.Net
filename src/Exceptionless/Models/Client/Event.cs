@@ -10,8 +10,13 @@ namespace Exceptionless.Models {
         [Json.JsonProperty(NullValueHandling = Json.NullValueHandling.Ignore)]
         public string Environment {
             get => _environment;
-            set => _environment = Utility.DeploymentEnvironment.Normalize(value);
+            set {
+                _environment = Utility.DeploymentEnvironment.Normalize(value);
+                HasEnvironmentOverride = value != null;
+            }
         }
+
+        internal bool HasEnvironmentOverride { get; private set; }
 
         public Event() {
             Tags = new TagSet();

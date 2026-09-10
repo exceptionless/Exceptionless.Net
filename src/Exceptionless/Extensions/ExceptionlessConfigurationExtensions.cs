@@ -20,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 #endif
 
 #if NET45
+using System.Collections.Specialized;
 using System.Configuration;
 using Exceptionless.Extensions;
 using Exceptionless.Utility;
@@ -293,8 +294,15 @@ namespace Exceptionless {
                 config.Resolver.GetLog().Error(typeof(ExceptionlessConfigurationExtensions), ex, String.Concat("Error retrieving configuration section: ", ex.Message));
             }
 
+            config.ReadFromConfigSection(section);
+        }
+
+        internal static void ReadFromConfigSection(this ExceptionlessConfiguration config, ExceptionlessSection section) {
             if (section == null)
                 return;
+
+            if (section.ElementInformation.Properties["environment"].ValueOrigin != PropertyValueOrigin.Default)
+                config.Environment = section.Environment;
 
             if (!section.Enabled)
                 config.Enabled = false;
@@ -385,18 +393,25 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
         public static void ReadFromAppSettings(this ExceptionlessConfiguration config) {
-            string apiKey = ConfigurationManager.AppSettings["Exceptionless:ApiKey"];
+            config.ReadFromAppSettings(ConfigurationManager.AppSettings);
+        }
+
+        internal static void ReadFromAppSettings(this ExceptionlessConfiguration config, NameValueCollection settings) {
+            if (settings["Exceptionless:Environment"] != null)
+                config.Environment = settings["Exceptionless:Environment"];
+
+            string apiKey = settings["Exceptionless:ApiKey"];
             if (IsValidApiKey(apiKey))
                 config.ApiKey = apiKey;
 
-            if (Boolean.TryParse(ConfigurationManager.AppSettings["Exceptionless:Enabled"], out bool enabled) && !enabled)
+            if (Boolean.TryParse(settings["Exceptionless:Enabled"], out bool enabled) && !enabled)
                 config.Enabled = false;
 
-            string serverUrl = ConfigurationManager.AppSettings["Exceptionless:ServerUrl"];
+            string serverUrl = settings["Exceptionless:ServerUrl"];
             if (!String.IsNullOrEmpty(serverUrl))
                 config.ServerUrl = serverUrl;
 
-            string defaultTags = ConfigurationManager.AppSettings["Exceptionless:DefaultTags"];
+            string defaultTags = settings["Exceptionless:DefaultTags"];
             if (!String.IsNullOrEmpty(defaultTags))
                 foreach (var tag in defaultTags.SplitAndTrim(',').Where(tag => !String.IsNullOrEmpty(tag)))
                     config.DefaultTags.Add(tag);

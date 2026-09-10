@@ -2,7 +2,7 @@
     [Priority(15)]
     public class ConfigurationDefaultsPlugin : IEventPlugin {
         public void Run(EventPluginContext context) {
-            if (context.Event.Environment == null) {
+            if (!context.Event.HasEnvironmentOverride) {
                 context.Event.Environment = context.Client.Configuration.Environment;
             }
 

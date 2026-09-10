@@ -1,8 +1,11 @@
 #if NET10_0_OR_GREATER
 using System.Linq;
+using Exceptionless.Configuration;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Moq;
 using Xunit;
 
 namespace Exceptionless.Tests.Platforms {
@@ -18,6 +21,20 @@ namespace Exceptionless.Tests.Platforms {
 
             using var services = builder.Services.BuildServiceProvider();
             Assert.Equal(expectedEnvironment, services.GetRequiredService<ExceptionlessClient>().Configuration.Environment);
+        }
+
+        [Fact]
+        public void AddExceptionless_ProvidedClient_RemainsOwnedByCaller() {
+            var resolver = new Mock<IDependencyResolver>();
+            using var client = new ExceptionlessClient(new ExceptionlessConfiguration(resolver.Object));
+            var builder = Host.CreateApplicationBuilder();
+            builder.AddExceptionless(client);
+
+            using (var services = builder.Services.BuildServiceProvider()) {
+                Assert.Same(client, services.GetRequiredService<ExceptionlessClient>());
+            }
+
+            resolver.Verify(r => r.Dispose(), Times.Never);
         }
 
         [Fact]

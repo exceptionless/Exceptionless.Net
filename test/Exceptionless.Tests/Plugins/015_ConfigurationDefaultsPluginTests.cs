@@ -24,6 +24,20 @@ namespace Exceptionless.Tests.Plugins {
             Assert.Empty(overridden.Event.Data);
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("prod\ninvalid")]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        public void Run_InvalidDeploymentEnvironment_DoesNotUseDefault(string environment) {
+            var client = CreateClient();
+            client.Configuration.SetEnvironment("production");
+            var builder = client.CreateLog("test", "message").SetEnvironment(environment);
+            var context = new EventPluginContext(client, builder.Target);
+            new ConfigurationDefaultsPlugin().Run(context);
+            Assert.Null(context.Event.Environment);
+        }
+
         public ConfigurationDefaultsPluginTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
