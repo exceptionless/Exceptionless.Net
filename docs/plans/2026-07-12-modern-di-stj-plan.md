@@ -1,5 +1,15 @@
 # Modern DI and System.Text.Json implementation plan
 
+## Merge review — September 21, 2026
+
+**Not ready to merge.** The published PR still points to `d94a17b`; the restored local snapshot contains additional hardening and regression tests that have not been published or validated by CI. The older execution results below describe the previous revision and must not be used as approval of the current snapshot.
+
+- A fresh full non-Windows run restored and built successfully after updating the build-only `Microsoft.SourceLink.GitHub` dependency from 10.0.300 to the patched 10.0.303. The original pin failed restore with NU1902 for GHSA-23fw-v26w-5fgq. No audit warning was suppressed.
+- The run passed 427 core tests and 15 MessagePack tests, with 18 existing skips, but failed three keyed-DI regressions. Coverage was collected: the core test report contains 74.35% overall line / 51.36% branch coverage; the core product assembly within that report is 76.73% / 52.28%. Coverage is evidence of exercised code, not a passing release gate.
+- The two false-cycle failures are fixed locally by including the service key in activation identity. The subsequent focused DI run passed 51 tests and failed only `[ServiceKey]` injection. Same-key recursion remains guarded. Null keys follow Microsoft's unkeyed identity.
+- **Remaining P1 structural blocker:** `GetProviderDescriptor` replaces closed keyed implementation descriptors with `ActivatorUtilities` factories. That loses Microsoft's `[ServiceKey]` constructor binding. The existing `Resolve_WithKeyedImplementation_InjectsServiceKey` regression demonstrates the loss. Adding a second constructor-selection engine or more special-case activation branches would deepen the abstraction problem. The preferred correction is to preserve native Microsoft DI activation for supplied service descriptors and confine legacy activation behavior to legacy registrations, while explicitly reconciling captured-provider disposal guarantees.
+- No modified C# file exceeds 1,000 lines, and whitespace checks pass. The current snapshot still needs a passing complete suite, refreshed coverage, package-consumer and NativeAOT execution, Windows runtime proof, and CI against the final published revision before merge approval.
+
 ## Compatibility baseline
 
 1. Run the current non-Windows solution tests before editing.

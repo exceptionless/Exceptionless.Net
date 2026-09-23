@@ -231,7 +231,7 @@ namespace Exceptionless.Dependency {
         private ServiceDescriptor GetProviderDescriptor(ServiceDescriptor service) {
             if (_factories.Contains(service) && service.IsKeyedService) {
                 return ServiceDescriptor.DescribeKeyed(service.ServiceType, service.ServiceKey, (provider, key) =>
-                    Activate(service.ServiceType, () => TrackFactoryResult(service, service.KeyedImplementationFactory(new FallbackServiceProvider(this, provider), key))), service.Lifetime);
+                    Activate(service.ServiceType, () => TrackFactoryResult(service, service.KeyedImplementationFactory(new FallbackServiceProvider(this, provider), key)), key), service.Lifetime);
             }
 
             if (_factories.Contains(service)) {
@@ -244,8 +244,8 @@ namespace Exceptionless.Dependency {
                 return service;
 
             if (service.IsKeyedService) {
-                return ServiceDescriptor.DescribeKeyed(service.ServiceType, service.ServiceKey, (provider, _) =>
-                    CreateInstance(provider, service.ServiceType, implementationType), service.Lifetime);
+                return ServiceDescriptor.DescribeKeyed(service.ServiceType, service.ServiceKey, (provider, key) =>
+                    CreateInstance(provider, service.ServiceType, implementationType, key), service.Lifetime);
             }
 
             return ServiceDescriptor.Describe(service.ServiceType, provider =>
@@ -308,16 +308,16 @@ namespace Exceptionless.Dependency {
             _factories.Add(service);
         }
 
-        private object CreateInstance(IServiceProvider provider, Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType) {
-            return Activate(serviceType, () => ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType));
+        private object CreateInstance(IServiceProvider provider, Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType, object serviceKey = null) {
+            return Activate(serviceType, () => ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType), serviceKey);
         }
 
-        private object Activate(Type serviceType, Func<object> activator) {
-            if (IsActive(serviceType))
+        private object Activate(Type serviceType, Func<object> activator, object serviceKey = null) {
+            if (IsActive(serviceType, serviceKey))
                 throw CreateCircularDependencyException(serviceType);
 
             ActivationFrame previous = _activeActivation.Value;
-            var current = new ActivationFrame(serviceType, previous);
+            var current = new ActivationFrame(serviceType, serviceKey, previous);
             _activeActivation.Value = current;
             try {
                 return activator();
@@ -327,9 +327,9 @@ namespace Exceptionless.Dependency {
             }
         }
 
-        private bool IsActive(Type serviceType) {
+        private bool IsActive(Type serviceType, object serviceKey = null) {
             for (ActivationFrame current = _activeActivation.Value; current != null; current = current.Parent) {
-                if (current.IsActive && current.ServiceType == serviceType)
+                if (current.IsActive && current.ServiceType == serviceType && Equals(current.ServiceKey, serviceKey))
                     return true;
             }
 
@@ -464,6 +464,9 @@ namespace Exceptionless.Dependency {
             public object GetKeyedService(Type serviceType, object serviceKey) {
                 ResolutionFrame resolution = _resolver.EnterResolution();
                 try {
+                    if (_resolver.IsActive(serviceType, serviceKey))
+                        throw CreateCircularDependencyException(serviceType);
+
                     if (!(_provider is IKeyedServiceProvider keyedProvider))
                         throw new InvalidOperationException("The underlying dependency provider does not support keyed services.");
 
@@ -527,12 +530,14 @@ namespace Exceptionless.Dependency {
         private sealed class ActivationFrame {
             private int _isActive = 1;
 
-            public ActivationFrame(Type serviceType, ActivationFrame parent) {
+            public ActivationFrame(Type serviceType, object serviceKey, ActivationFrame parent) {
                 ServiceType = serviceType;
+                ServiceKey = serviceKey;
                 Parent = parent;
             }
 
             public Type ServiceType { get; }
+            public object ServiceKey { get; }
             public ActivationFrame Parent { get; }
             // ExecutionContext can copy this frame into child tasks. Deactivation makes those
             // inherited copies harmless after the synchronous factory or constructor returns.
