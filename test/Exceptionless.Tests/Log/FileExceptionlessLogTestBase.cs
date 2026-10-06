@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Exceptionless.Logging;
@@ -26,15 +27,19 @@ namespace Exceptionless.Tests.Log {
             DeleteLog();
 
             using (var log = GetLog(LOG_FILE)) {
-                log.Info("Test");
-
                 string contents = log.GetFileContents();
                 Assert.Equal("", contents);
+                log.Info("Test");
 
-                await Task.Delay(TimeSpan.FromMilliseconds(3100));
+                // Observe the automatic flush instead of assuming the timer runs within
+                // 100 ms of its due time on a busy test runner. Do not call Flush here.
+                var timeout = Stopwatch.StartNew();
+                while (!contents.Contains(" Info  Test") && timeout.Elapsed < TimeSpan.FromSeconds(10)) {
+                    await Task.Delay(50, TestContext.Current.CancellationToken);
+                    contents = log.GetFileContents();
+                }
 
                 Assert.True(LogExists(log.FilePath));
-                contents = log.GetFileContents();
 
                 Assert.Contains(" Info  Test", contents);
             }
