@@ -15,32 +15,36 @@ public sealed class MainPage : ContentPage {
         _sampleEvents = sampleEvents;
 
         Title = "Exceptionless";
-        BackgroundColor = Color.FromArgb("#F6F8FA");
+        BackgroundColor = Color.FromArgb("#F5F8EF");
 
         _statusLabel = new Label {
-            Text = "Ready",
-            FontSize = 14,
+            Text = exceptionlessClient.Configuration.IsValid ? "Ready" : "Set EXCEPTIONLESS_API_KEY before sending events.",
+            FontSize = 16,
+            MinimumHeightRequest = 24,
             TextColor = Color.FromArgb("#314256"),
             LineBreakMode = LineBreakMode.WordWrap
         };
 
         _lastReferenceIdLabel = new Label {
             Text = "Last reference id: none",
-            FontSize = 13,
+            FontSize = 16,
+            MinimumHeightRequest = 24,
             TextColor = Color.FromArgb("#576575"),
             LineBreakMode = LineBreakMode.TailTruncation
         };
 
         _configLabel = new Label {
             Text = $"Config {SampleEventService.SampleConfigSettingKey}: not loaded",
-            FontSize = 13,
+            FontSize = 16,
+            MinimumHeightRequest = 24,
             TextColor = Color.FromArgb("#576575"),
             LineBreakMode = LineBreakMode.TailTruncation
         };
 
         _activityIndicator = new ActivityIndicator {
             IsVisible = false,
-            Color = Color.FromArgb("#276749")
+            HeightRequest = 24,
+            Color = Color.FromArgb("#548C00")
         };
 
         Content = BuildContent();
@@ -55,45 +59,48 @@ public sealed class MainPage : ContentPage {
 
         return new ScrollView {
             Content = new VerticalStackLayout {
-                Padding = new Thickness(24, 28),
-                Spacing = 18,
+                Padding = new Thickness(24, 32),
+                MaximumWidthRequest = 820,
+                Spacing = 20,
                 Children = {
                     new Label {
                         Text = "Exceptionless MAUI Sample",
-                        FontSize = 26,
+                        FontSize = 32,
                         FontAttributes = FontAttributes.Bold,
                         TextColor = Color.FromArgb("#1D2733")
                     },
                     new Label {
                         Text = "Submit sample events through the core Exceptionless client.",
-                        FontSize = 15,
+                        FontSize = 18,
                         TextColor = Color.FromArgb("#576575"),
                         LineBreakMode = LineBreakMode.WordWrap
                     },
                     new Border {
-                        Stroke = Color.FromArgb("#D8DEE6"),
+                        Stroke = Color.FromArgb("#DCE5CE"),
                         StrokeThickness = 1,
                         BackgroundColor = Colors.White,
                         StrokeShape = new RoundRectangle { CornerRadius = 8 },
                         Padding = new Thickness(18),
                         Content = new VerticalStackLayout {
-                            Spacing = 12,
+                            Spacing = 10,
                             Children = {
                                 new Label {
                                     Text = "Client",
-                                    FontSize = 18,
+                                    FontSize = 22,
                                     FontAttributes = FontAttributes.Bold,
                                     TextColor = Color.FromArgb("#1D2733")
                                 },
                                 new Label {
                                     Text = $"Server: {_exceptionlessClient.Configuration.ServerUrl}",
-                                    FontSize = 13,
+                                    FontSize = 16,
+                                    MinimumHeightRequest = 24,
                                     TextColor = Color.FromArgb("#576575"),
-                                    LineBreakMode = LineBreakMode.TailTruncation
+                                    LineBreakMode = LineBreakMode.WordWrap
                                 },
                                 new Label {
                                     Text = $"Private information: {_exceptionlessClient.Configuration.IncludePrivateInformation}",
-                                    FontSize = 13,
+                                    FontSize = 16,
+                                    MinimumHeightRequest = 24,
                                     TextColor = Color.FromArgb("#576575")
                                 },
                                 _statusLabel,
@@ -121,11 +128,13 @@ public sealed class MainPage : ContentPage {
     private static Button CreateActionButton(string text, EventHandler clicked) {
         var button = new Button {
             Text = text,
-            BackgroundColor = Color.FromArgb("#285A84"),
+            BackgroundColor = Color.FromArgb("#436F00"),
             TextColor = Colors.White,
             CornerRadius = 8,
             FontAttributes = FontAttributes.Bold,
-            MinimumHeightRequest = 48
+            FontSize = 17,
+            HeightRequest = 60,
+            Padding = new Thickness(16, 12)
         };
 
         button.Clicked += clicked;

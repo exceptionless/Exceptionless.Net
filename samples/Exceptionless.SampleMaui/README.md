@@ -1,23 +1,22 @@
 # Exceptionless MAUI Sample
 
-This sample uses the core `Exceptionless` client from a .NET MAUI app. There is no MAUI-specific Exceptionless package, so the app registers an `ExceptionlessClient` in MAUI dependency injection and submits handled exceptions, log events, and feature-usage events from the main page.
+This sample uses the core `Exceptionless` client from a .NET MAUI app. It configures `ExceptionlessClient.Default`, registers that same instance in MAUI dependency injection, and submits handled exceptions, log events, and feature-usage events from the main page.
 
 ## Configuration
 
-The sample defaults to the local development server used by the mobile samples:
-
-- API key: `LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest`
-- iOS, Mac Catalyst, and Windows server URL: `http://localhost:7110`
-- Android emulator server URL: `http://10.0.2.2:7110`
-
-Override either value with environment variables before launch:
+Set your project's API key before launch. The sample uses the SDK's default hosted services unless you explicitly configure a self-hosted or development server:
 
 ```bash
 export EXCEPTIONLESS_API_KEY="YOUR_API_KEY"
-export EXCEPTIONLESS_SERVER_URL="https://collector.exceptionless.io"
+# Optional, for a self-hosted or development server:
+# export EXCEPTIONLESS_SERVER_URL="YOUR_SERVER_URL"
 ```
 
+For device launches without environment variables, set `ExceptionlessClient.Default.Configuration.ApiKey` in `MauiProgram` before `Startup()`. The sample has no embedded API key or development address. Missing configuration is shown on the page and prevents actions from reporting success.
+
 Events are queued under `FileSystem.Current.AppDataDirectory`, `IncludePrivateInformation` is disabled, and the sample has an explicit **Flush Queue** action. The app also asks the client to process the queue when the MAUI application goes to sleep.
+
+The client's default duplicate checker can delay repeated identical events for up to a minute and combine their occurrence counts. **Flush Queue** processes events already in the queue; it does not bypass duplicate checking.
 
 Use **Refresh Config** to force a project configuration fetch. The page shows the `SampleMaui.ConfigValue` server setting after it is loaded.
 
@@ -28,7 +27,7 @@ For command-line dogfooding, set `EXCEPTIONLESS_SAMPLE_AUTORUN=true` and optiona
 Install the MAUI workload for the .NET SDK used by this repository, then build a target supported by your machine:
 
 ```bash
-dotnet workload install maui
+dotnet workload install maui --version 10.0.401
 dotnet build samples/Exceptionless.SampleMaui/Exceptionless.SampleMaui.csproj -f net10.0-maccatalyst
 dotnet build samples/Exceptionless.SampleMaui/Exceptionless.SampleMaui.csproj -f net10.0-ios
 dotnet build samples/Exceptionless.SampleMaui/Exceptionless.SampleMaui.csproj -f net10.0-android
@@ -40,4 +39,4 @@ Launch the Mac Catalyst target from the command line with:
 dotnet build samples/Exceptionless.SampleMaui/Exceptionless.SampleMaui.csproj -t:Run -f net10.0-maccatalyst
 ```
 
-Physical Android devices cannot reach the host machine through `10.0.2.2`. Set `EXCEPTIONLESS_SERVER_URL` to an HTTP URL containing the development machine's LAN address when running on a physical device.
+For local development, set `EXCEPTIONLESS_SERVER_URL` to an address reachable from the target device or emulator. Android emulators require the host alias described in the [MAUI local web services guidance](https://learn.microsoft.com/en-us/dotnet/maui/data-cloud/local-web-services?view=net-maui-10.0); physical devices require a reachable host address. Prefer HTTPS for remote servers. The iOS sample permits local HTTP connections through `NSAllowsLocalNetworking`.

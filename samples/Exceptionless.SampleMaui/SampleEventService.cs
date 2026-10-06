@@ -13,6 +13,7 @@ public sealed class SampleEventService {
     }
 
     public string SubmitHandledException() {
+        EnsureConfigured();
         string referenceId = Guid.NewGuid().ToString("N");
 
         try {
@@ -29,6 +30,7 @@ public sealed class SampleEventService {
     }
 
     public string SubmitWarningLog() {
+        EnsureConfigured();
         string referenceId = Guid.NewGuid().ToString("N");
 
         _exceptionlessClient.CreateLog("Exceptionless.SampleMaui.MainPage", "MAUI sample warning log.", LogLevel.Warn)
@@ -39,6 +41,7 @@ public sealed class SampleEventService {
     }
 
     public string TrackFeatureUsage() {
+        EnsureConfigured();
         string referenceId = Guid.NewGuid().ToString("N");
 
         _exceptionlessClient.CreateFeatureUsage("MauiSample.TrackFeature")
@@ -49,14 +52,21 @@ public sealed class SampleEventService {
     }
 
     public async Task RefreshProjectConfigurationAsync() {
+        EnsureConfigured();
         await SettingsManager.UpdateSettingsAsync(_exceptionlessClient.Configuration, 0);
     }
 
     public Task FlushQueueAsync() {
+        EnsureConfigured();
         return _exceptionlessClient.ProcessQueueAsync();
     }
 
     public string GetSampleConfigValue() {
         return _exceptionlessClient.Configuration.Settings.GetString(SampleConfigSettingKey, "not loaded");
+    }
+
+    private void EnsureConfigured() {
+        if (!_exceptionlessClient.Configuration.IsValid)
+            throw new InvalidOperationException("Set EXCEPTIONLESS_API_KEY to your project's API key before sending events.");
     }
 }

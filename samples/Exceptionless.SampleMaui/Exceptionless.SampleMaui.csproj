@@ -25,12 +25,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#3A6EA5" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#3A6EA5" BaseSize="128,128" />
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.png" ForegroundScale="0.9" Color="#548C00" />
+    <MauiSplashScreen Include="Resources\AppIcon\appiconfg.png" Color="#548C00" BaseSize="128,128" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
   </ItemGroup>
 
   <ItemGroup>

@@ -27,7 +27,7 @@
         Description="Exceptionless MAUI Sample"
         Square150x150Logo="appiconMediumTile.png"
         Square44x44Logo="appiconLogo.png"
-        BackgroundColor="#3A6EA5">
+        BackgroundColor="#548C00">
         <uap:DefaultTile Square71x71Logo="appiconSmallTile.png" Wide310x150Logo="appiconWideTile.png" Square310x310Logo="appiconLargeTile.png" />
         <uap:SplashScreen Image="splashSplashScreen.png" />
       </uap:VisualElements>
