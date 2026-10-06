@@ -226,6 +226,27 @@ namespace Exceptionless.Tests.Configuration {
             while (!result.IsCompleted)
                 Thread.Yield();
         }
+
+        [Fact]
+        public void GetTypeAndSourceSettings_WithConcurrentColdCache_ReturnsConfiguredValues() {
+            var options = new ParallelOptions {
+                CancellationToken = TestContext.Current.CancellationToken,
+                MaxDegreeOfParallelism = 8
+            };
+
+            for (int iteration = 0; iteration < 256; iteration++) {
+                var settings = new SettingsDictionary {
+                    { "@@log:*", "Info" },
+                    { "@@log:Source1", "Trace" },
+                    { "@@feature:Source1", "false" }
+                };
+
+                Parallel.For(0, 32, options, _ => {
+                    Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("Source1"));
+                    Assert.False(settings.GetTypeAndSourceEnabled("feature", "Source1"));
+                });
+            }
+        }
         
         [Fact]
         public void LogLevels_GetMinLogLevel_Settings_Order() {
