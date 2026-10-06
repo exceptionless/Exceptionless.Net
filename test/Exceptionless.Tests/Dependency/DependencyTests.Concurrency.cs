@@ -126,7 +126,7 @@ namespace Exceptionless.Tests.Dependency {
             resolver.Register<IServiceA, ServiceA>();
             resolver.Register(typeof(IServiceB), () => {
                 Task<IServiceA> dependency = Task.Run(() => resolver.Resolve<IServiceA>());
-                if (!dependency.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
+                if (!dependency.Wait(5000, TestContext.Current.CancellationToken))
                     throw new TimeoutException("Cross-thread dependency resolution timed out.");
 
                 return new ServiceB(dependency.Result, new ServiceC());

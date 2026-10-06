@@ -4,19 +4,24 @@
 
 The `[ServiceKey]` blocker is fixed. Supplied implementation-type descriptors now remain native Microsoft DI descriptors; the resolver no longer rewrites them into `ActivatorUtilities` factories. This preserves native constructor selection, keyed binding, and open-generic provider injection, and removes the blanket open-generic rejection. Legacy resolver type registrations still use their existing compatibility activation path. Caller factories keep cycle and disposable-identity guards, with a resolution lease around the factory invocation.
 
-All 55 focused DI tests pass before rebase. Coverage includes singleton/scoped/transient key binding with a second ordinary string dependency and injected provider, valid different-key and keyed-to-unkeyed composition, same-key cycles, cross-thread singleton cycles, open generics, registration replacement, and disposal behavior. Native providers captured by supplied implementation constructors follow Microsoft's normal provider/scope lifetime contract: callers must finish using them and dispose their scopes before disposing the client. Resolver and factory calls already in progress are protected by resolution leases. This explicit ownership boundary preserves standard DI behavior without adding a constructor-selection engine.
+All 55 focused DI tests pass, including in the complete post-rebase suite. Coverage includes singleton/scoped/transient key binding with a second ordinary string dependency and injected provider, valid different-key and keyed-to-unkeyed composition, same-key cycles, cross-thread singleton cycles, open generics, registration replacement, and disposal behavior. Native providers captured by supplied implementation constructors follow Microsoft's normal provider/scope lifetime contract: callers must finish using them and dispose their scopes before disposing the client. Resolver and factory calls already in progress are protected by resolution leases. This explicit ownership boundary preserves standard DI behavior without adding a constructor-selection engine.
 
-Rebase and complete validation against current `main` are in progress; the September review and earlier execution results below are historical evidence, not current merge approval.
+The branch is rebased onto `main` at `2054b80`, retaining its SDK 10.0.401, SourceLink 10.0.401, MinVer 8, workflow security settings, and newer test packages. Rebase integration corrections are limited to the coverage package references, the HTTP test's explicit .NET Framework assembly reference, and a framework-compatible cancellation-aware timeout overload.
 
-## Merge review — September 21, 2026
+## Current validation — October 5, 2026
 
-**Not ready to merge.** The published PR still points to `d94a17b`; the restored local snapshot contains additional hardening and regression tests that have not been published or validated by CI. The older execution results below describe the previous revision and must not be used as approval of the current snapshot.
+- The complete non-Windows suite passes: 433 core and 15 MessagePack tests, zero failures, and 18 existing skips. A second full run after the test-only compatibility corrections produced the same result.
+- Cobertura coverage from the passing run is 74.34% line / 51.20% branch overall; the core product assembly is 76.72% / 52.11%. The DI resolver is 91.30% / 77.14%, its fallback provider is 88.88% / 77.27%, `JsonValueWriter` is 92.01% / 86.58%, and `DataDictionaryConverter` is 92.59% / 81.25%. Coverage is not a claim that every possible edge case is proven.
+- The complete Windows-shaped Release solution builds with zero warnings and errors, including `net462` production assets and `net472` tests. Runtime execution requires Windows CI.
+- A run-unique local NuGet package passes the consumer smoke using its actual `netstandard2.0` asset. This test intentionally compiles for net7 and rolls forward to an installed modern runtime, so STJ 10 dependencies emit expected unsupported-TFM build warnings; it does not establish support for executing on .NET 7.
+- The reflection-disabled `net10.0` smoke passes against the packed package. Real package/hosting NativeAOT publication and execution for both modern targets remain exact-head Linux CI gates.
+- SDK API comparisons against released 6.2.0 pass for `netstandard2.0`, `net8.0`, `net10.0`, and `net462`. Whole-package validation separately reports three existing cross-framework differences in `CertificateData` and `ReadFromConfiguration`; no suppression or public API change was introduced to hide those differences.
+- The current direct/transitive vulnerability audit is clean across all 15 Windows-solution projects. Whitespace checks pass, and the largest changed C# file is 828 lines.
+- The final published revision must pass Linux, macOS, Windows, and CLA before merge. Keep the PR draft pending maintainer approval of the 7.0 release impact below; local results alone are not merge approval.
 
-- A fresh full non-Windows run restored and built successfully after updating the build-only `Microsoft.SourceLink.GitHub` dependency from 10.0.300 to the patched 10.0.303. The original pin failed restore with NU1902 for GHSA-23fw-v26w-5fgq. No audit warning was suppressed.
-- The run passed 427 core tests and 15 MessagePack tests, with 18 existing skips, but failed three keyed-DI regressions. Coverage was collected: the core test report contains 74.35% overall line / 51.36% branch coverage; the core product assembly within that report is 76.73% / 52.28%. Coverage is evidence of exercised code, not a passing release gate.
-- The two false-cycle failures are fixed locally by including the service key in activation identity. The subsequent focused DI run passed 51 tests and failed only `[ServiceKey]` injection. Same-key recursion remains guarded. Null keys follow Microsoft's unkeyed identity.
-- **Remaining P1 structural blocker:** `GetProviderDescriptor` replaces closed keyed implementation descriptors with `ActivatorUtilities` factories. That loses Microsoft's `[ServiceKey]` constructor binding. The existing `Resolve_WithKeyedImplementation_InjectsServiceKey` regression demonstrates the loss. Adding a second constructor-selection engine or more special-case activation branches would deepen the abstraction problem. The preferred correction is to preserve native Microsoft DI activation for supplied service descriptors and confine legacy activation behavior to legacy registrations, while explicitly reconciling captured-provider disposal guarantees.
-- No modified C# file exceeds 1,000 lines, and whitespace checks pass. The current snapshot still needs a passing complete suite, refreshed coverage, package-consumer and NativeAOT execution, Windows runtime proof, and CI against the final published revision before merge approval.
+## Historical merge review — September 21, 2026
+
+The restored snapshot exposed two false keyed-service cycle failures and loss of `[ServiceKey]` constructor binding. Including the service key in activation identity corrected the false cycles; preserving native implementation descriptors corrected the constructor regression in the October review. The earlier 427-core/15-MessagePack passing results had three failures and were not merge approval. SourceLink's earlier vulnerability-related restore failure is also superseded by the patched tooling retained from current `main`.
 
 ## Compatibility baseline
 
@@ -55,7 +60,7 @@ Rebase and complete validation against current `main` are in progress; the Septe
 4. Use regular runtime stack traces on modern targets instead of the IL/PDB demystifier, while keeping exception capture and serialization functional with reduced metadata.
 5. Publish and execute a warning-as-error NativeAOT smoke application for both `net8.0` and `net10.0`, covering default Microsoft DI/default serialization, custom STJ metadata, storage, queues, submission, and nested exception capture in Linux CI.
 
-## Execution results
+## Original execution results (historical)
 
 - Baseline: 300 core tests and 10 MessagePack tests passed; 18 existing tests were skipped.
 - Final non-Windows suite: 377 core tests and 13 MessagePack tests passed; 0 failed; 18 existing tests were skipped.
