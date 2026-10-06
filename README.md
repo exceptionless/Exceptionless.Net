@@ -47,6 +47,12 @@ internal sealed class MyPayload {
 
 NativeAOT applications must also register custom services and plugins explicitly. Runtime type names from configuration and unregistered concrete-type activation are intentionally unsupported because trimming cannot preserve those types reliably. Error events still contain normal runtime stack traces. The `net8.0` and later assets do not include the optional IL/PDB demystification used by the legacy target. CI publishes and executes NativeAOT smoke applications on `net8.0` and `net10.0`.
 
+### Dependency injection
+
+The client accepts an `IServiceCollection` and builds its own isolated provider. Supplied implementation-type registrations use native Microsoft DI activation, including keyed services, `[ServiceKey]`, open generics, and scoped lifetimes. Legacy resolver registrations retain unregistered concrete dependency activation on dynamic-code runtimes.
+
+Dispose scopes you create and stop using captured providers before disposing the client, as with a normal Microsoft DI provider. Resolver calls and factory activations already in progress are allowed to finish before resolver disposal. A factory must return distinct disposable instances; use instance registration for a shared, caller-owned object.
+
 ## Getting Started (Development)
 
 All of our [.NET clients can be installed](https://www.nuget.org/profiles/exceptionless?showAllPackages=True) via the [NuGet package manager](https://docs.nuget.org/consume/Package-Manager-Dialog).

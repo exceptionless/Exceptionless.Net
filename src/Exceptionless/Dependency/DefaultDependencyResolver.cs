@@ -54,6 +54,9 @@ namespace Exceptionless.Dependency {
                 if (serviceType == typeof(IServiceProvider) || serviceType == typeof(IKeyedServiceProvider) || serviceType == typeof(IServiceScopeFactory))
                     return new FallbackServiceProvider(this, provider).GetService(serviceType);
 
+                if (IsActive(serviceType))
+                    throw CreateCircularDependencyException(serviceType);
+
                 var service = provider.GetService(serviceType);
                 if (service != null)
                     return service;
@@ -69,7 +72,6 @@ namespace Exceptionless.Dependency {
                 throw new ArgumentNullException(nameof(serviceType));
             if (concreteType == null)
                 throw new ArgumentNullException(nameof(concreteType));
-            ValidateOpenGenericImplementation(concreteType);
             if (!CanAssign(serviceType, concreteType))
                 throw new ArgumentException($"Type '{concreteType.FullName}' cannot be assigned to service '{serviceType.FullName}'.", nameof(concreteType));
 
@@ -144,8 +146,6 @@ namespace Exceptionless.Dependency {
             lock (_lock) {
                 ThrowIfDisposed();
                 foreach (var service in services) {
-                    Type implementationType = service.IsKeyedService ? service.KeyedImplementationType : service.ImplementationType;
-                    ValidateOpenGenericImplementation(implementationType);
                     _services.Add(service);
                     if (IsFactory(service))
                         _factories.Add(service);
@@ -223,33 +223,46 @@ namespace Exceptionless.Dependency {
             foreach (var service in _services)
                 services.Add(GetProviderDescriptor(service));
 
+            // Microsoft DI exposes keyed lookup on its provider but does not register the
+            // interface for constructor injection. Preserve the resolver's existing seam.
+            if (!_services.Any(service => !service.IsKeyedService && service.ServiceType == typeof(IKeyedServiceProvider)))
+                services.Add(ServiceDescriptor.Singleton<IKeyedServiceProvider>(provider => new FallbackServiceProvider(this, provider)));
+
             _provider = services.BuildServiceProvider();
             _providerSnapshots.Add(_provider);
             return _provider;
         }
 
         private ServiceDescriptor GetProviderDescriptor(ServiceDescriptor service) {
-            if (_factories.Contains(service) && service.IsKeyedService) {
-                return ServiceDescriptor.DescribeKeyed(service.ServiceType, service.ServiceKey, (provider, key) =>
-                    Activate(service.ServiceType, () => TrackFactoryResult(service, service.KeyedImplementationFactory(new FallbackServiceProvider(this, provider), key)), key), service.Lifetime);
-            }
-
-            if (_factories.Contains(service)) {
-                return ServiceDescriptor.Describe(service.ServiceType, provider =>
-                    Activate(service.ServiceType, () => TrackFactoryResult(service, service.ImplementationFactory(new FallbackServiceProvider(this, provider)))), service.Lifetime);
-            }
-
-            Type implementationType = service.IsKeyedService ? service.KeyedImplementationType : service.ImplementationType;
-            if (implementationType == null || implementationType.ContainsGenericParameters)
+            if (!IsFactory(service))
                 return service;
 
+            bool trackFactory = _factories.Contains(service);
             if (service.IsKeyedService) {
                 return ServiceDescriptor.DescribeKeyed(service.ServiceType, service.ServiceKey, (provider, key) =>
-                    CreateInstance(provider, service.ServiceType, implementationType, key), service.Lifetime);
+                    ResolveFactory(service, provider, key, trackFactory), service.Lifetime);
             }
 
             return ServiceDescriptor.Describe(service.ServiceType, provider =>
-                CreateInstance(provider, service.ServiceType, implementationType), service.Lifetime);
+                ResolveFactory(service, provider, null, trackFactory), service.Lifetime);
+        }
+
+        private object ResolveFactory(ServiceDescriptor service, IServiceProvider provider, object serviceKey, bool trackFactory) {
+            ResolutionFrame resolution = EnterResolution();
+            try {
+                IServiceProvider factoryProvider = trackFactory ? new FallbackServiceProvider(this, provider) : provider;
+                Func<object> create = service.IsKeyedService
+                    ? () => service.KeyedImplementationFactory(factoryProvider, serviceKey)
+                    : () => service.ImplementationFactory(factoryProvider);
+
+                // Legacy type registrations already activate through CreateInstance. Caller
+                // factories need the same cycle guard without replacing native DI activation.
+                return trackFactory
+                    ? Activate(service.ServiceType, () => TrackFactoryResult(service, create()), serviceKey)
+                    : create();
+            } finally {
+                ExitResolution(resolution);
+            }
         }
 
         private object TrackFactoryResult(ServiceDescriptor service, object instance) {
@@ -308,8 +321,8 @@ namespace Exceptionless.Dependency {
             _factories.Add(service);
         }
 
-        private object CreateInstance(IServiceProvider provider, Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType, object serviceKey = null) {
-            return Activate(serviceType, () => ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType), serviceKey);
+        private object CreateInstance(IServiceProvider provider, Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type concreteType) {
+            return Activate(serviceType, () => ActivatorUtilities.CreateInstance(new FallbackServiceProvider(this, provider), concreteType));
         }
 
         private object Activate(Type serviceType, Func<object> activator, object serviceKey = null) {
@@ -381,20 +394,6 @@ namespace Exceptionless.Dependency {
             return service.IsKeyedService
                 ? service.KeyedImplementationFactory != null
                 : service.ImplementationFactory != null;
-        }
-
-        private static void ValidateOpenGenericImplementation([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType) {
-            if (implementationType == null || !implementationType.ContainsGenericParameters)
-                return;
-
-            foreach (var constructor in implementationType.GetConstructors()) {
-                foreach (var parameter in constructor.GetParameters()) {
-                    Type parameterType = parameter.ParameterType;
-                    if (parameterType == typeof(IServiceProvider) || parameterType == typeof(IKeyedServiceProvider) || parameterType == typeof(IServiceScopeFactory)) {
-                        throw new NotSupportedException($"Open-generic implementation type '{implementationType.FullName}' cannot directly request '{parameterType.FullName}'. Register a closed implementation or use a factory so provider access remains disposal-safe.");
-                    }
-                }
-            }
         }
 
         private static InvalidOperationException CreateCircularDependencyException(Type serviceType) {

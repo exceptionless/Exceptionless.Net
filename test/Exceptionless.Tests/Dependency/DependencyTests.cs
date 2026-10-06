@@ -188,11 +188,16 @@ namespace Exceptionless.Tests.Dependency {
             Assert.Same(service, repeated);
         }
 
-        [Fact]
-        public void Resolve_WithKeyedImplementation_InjectsServiceKey() {
+        [Theory]
+        [InlineData(ServiceLifetime.Singleton)]
+        [InlineData(ServiceLifetime.Scoped)]
+        [InlineData(ServiceLifetime.Transient)]
+        public void Resolve_WithKeyedImplementation_InjectsServiceKey(ServiceLifetime lifetime) {
             // Arrange
-            var services = new ServiceCollection();
-            services.AddKeyedSingleton<IKeyAwareService, KeyAwareService>("expected-key");
+            IServiceCollection services = new ServiceCollection();
+            services.AddSingleton("ordinary-dependency");
+            services.AddSingleton<IServiceA, ServiceA>();
+            services.Add(ServiceDescriptor.DescribeKeyed(typeof(IKeyAwareService), "expected-key", typeof(KeyAwareService), lifetime));
             using var resolver = new DefaultDependencyResolver(services);
             var keyedProvider = resolver.Resolve<IKeyedServiceProvider>();
 
@@ -201,6 +206,8 @@ namespace Exceptionless.Tests.Dependency {
 
             // Assert
             Assert.Equal("expected-key", service.ServiceKey);
+            Assert.Equal("ordinary-dependency", service.Label);
+            Assert.NotNull(service.Provider.GetService(typeof(IServiceA)));
         }
 
         [Fact]
@@ -252,24 +259,27 @@ namespace Exceptionless.Tests.Dependency {
         }
 
         [Theory]
-        [MemberData(nameof(UnsafeOpenGenericImplementations))]
-        public void Register_WithOpenGenericProviderDependency_RejectsUnsafeProviderEscape(Type implementationType) {
+        [MemberData(nameof(ProviderOpenGenericImplementations))]
+        public void Resolve_WithOpenGenericProviderDependency_PreservesNativeConstructorInjection(Type implementationType) {
             // Arrange
-            var resolver = new DefaultDependencyResolver();
+            using var resolver = new DefaultDependencyResolver();
             var services = new ServiceCollection();
-            services.AddSingleton(typeof(IUnsafeGenericService<>), implementationType);
+            services.AddSingleton(typeof(IProviderGenericService<>), implementationType);
 
             // Act
-            Exception directException = Record.Exception(() => resolver.Register(typeof(IUnsafeGenericService<>), implementationType));
-            Exception collectionException = Record.Exception(() => new DefaultDependencyResolver(services));
+            resolver.Register(typeof(IProviderGenericService<>), implementationType);
+            using var collectionResolver = new DefaultDependencyResolver(services);
+            object direct = resolver.Resolve(typeof(IProviderGenericService<string>));
+            object fromCollection = collectionResolver.Resolve(typeof(IProviderGenericService<string>));
 
             // Assert
-            Assert.IsType<NotSupportedException>(directException);
-            Assert.IsType<NotSupportedException>(collectionException);
-            Assert.Contains("disposal-safe", directException.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(implementationType.MakeGenericType(typeof(string)), direct.GetType());
+            Assert.Equal(direct.GetType(), fromCollection.GetType());
+            Assert.NotNull(((IProviderGenericService<string>)direct).ProviderDependency);
+            Assert.NotNull(((IProviderGenericService<string>)fromCollection).ProviderDependency);
         }
 
-        public static TheoryData<Type> UnsafeOpenGenericImplementations => new TheoryData<Type> {
+        public static TheoryData<Type> ProviderOpenGenericImplementations => new TheoryData<Type> {
             typeof(ProviderGenericService<>),
             typeof(KeyedProviderGenericService<>),
             typeof(ScopeFactoryGenericService<>)
@@ -328,28 +338,39 @@ namespace Exceptionless.Tests.Dependency {
 
     public interface IKeyAwareService {
         string ServiceKey { get; }
+        string Label { get; }
+        IServiceProvider Provider { get; }
     }
 
     public class KeyAwareService : IKeyAwareService {
-        public KeyAwareService([ServiceKey] string serviceKey) {
+        public KeyAwareService([ServiceKey] string serviceKey, string label, IServiceProvider provider) {
             ServiceKey = serviceKey;
+            Label = label;
+            Provider = provider;
         }
 
         public string ServiceKey { get; }
+        public string Label { get; }
+        public IServiceProvider Provider { get; }
     }
 
-    public interface IUnsafeGenericService<T> { }
-
-    public class ProviderGenericService<T> : IUnsafeGenericService<T> {
-        public ProviderGenericService(IServiceProvider provider) { }
+    public interface IProviderGenericService<T> {
+        object ProviderDependency { get; }
     }
 
-    public class KeyedProviderGenericService<T> : IUnsafeGenericService<T> {
-        public KeyedProviderGenericService(IKeyedServiceProvider provider) { }
+    public class ProviderGenericService<T> : IProviderGenericService<T> {
+        public ProviderGenericService(IServiceProvider provider) { ProviderDependency = provider; }
+        public object ProviderDependency { get; }
     }
 
-    public class ScopeFactoryGenericService<T> : IUnsafeGenericService<T> {
-        public ScopeFactoryGenericService(IServiceScopeFactory scopeFactory) { }
+    public class KeyedProviderGenericService<T> : IProviderGenericService<T> {
+        public KeyedProviderGenericService(IKeyedServiceProvider provider) { ProviderDependency = provider; }
+        public object ProviderDependency { get; }
+    }
+
+    public class ScopeFactoryGenericService<T> : IProviderGenericService<T> {
+        public ScopeFactoryGenericService(IServiceScopeFactory scopeFactory) { ProviderDependency = scopeFactory; }
+        public object ProviderDependency { get; }
     }
 
 }

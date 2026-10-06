@@ -160,6 +160,28 @@ namespace Exceptionless.Tests.Dependency {
         }
 
         [Fact]
+        public void Resolve_WhenSingletonFactoryWaitsForCrossThreadSelfResolution_ReportsCircularDependency() {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IServiceA>(provider => {
+                Task<IServiceA> dependency = Task.Run(() => provider.GetRequiredService<IServiceA>());
+                Task completed = Task.WhenAny(dependency, Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)).GetAwaiter().GetResult();
+                if (completed != dependency)
+                    throw new TimeoutException("Singleton factory cycle detection timed out.");
+
+                return dependency.GetAwaiter().GetResult();
+            });
+            using var resolver = new DefaultDependencyResolver(services);
+
+            // Act
+            Exception exception = Record.Exception(() => resolver.Resolve<IServiceA>());
+
+            // Assert
+            var invalidOperationException = Assert.IsType<InvalidOperationException>(exception);
+            Assert.Contains("circular dependency", invalidOperationException.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
         public async Task Dispose_WhilePublicResolutionIsActive_WaitsAndRejectsNewResolutions() {
             // Arrange
             var service = new CountingDisposable();

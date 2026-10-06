@@ -1,5 +1,13 @@
 # Modern DI and System.Text.Json implementation plan
 
+## Keyed activation correction — October 5, 2026
+
+The `[ServiceKey]` blocker is fixed. Supplied implementation-type descriptors now remain native Microsoft DI descriptors; the resolver no longer rewrites them into `ActivatorUtilities` factories. This preserves native constructor selection, keyed binding, and open-generic provider injection, and removes the blanket open-generic rejection. Legacy resolver type registrations still use their existing compatibility activation path. Caller factories keep cycle and disposable-identity guards, with a resolution lease around the factory invocation.
+
+All 55 focused DI tests pass before rebase. Coverage includes singleton/scoped/transient key binding with a second ordinary string dependency and injected provider, valid different-key and keyed-to-unkeyed composition, same-key cycles, cross-thread singleton cycles, open generics, registration replacement, and disposal behavior. Native providers captured by supplied implementation constructors follow Microsoft's normal provider/scope lifetime contract: callers must finish using them and dispose their scopes before disposing the client. Resolver and factory calls already in progress are protected by resolution leases. This explicit ownership boundary preserves standard DI behavior without adding a constructor-selection engine.
+
+Rebase and complete validation against current `main` are in progress; the September review and earlier execution results below are historical evidence, not current merge approval.
+
 ## Merge review — September 21, 2026
 
 **Not ready to merge.** The published PR still points to `d94a17b`; the restored local snapshot contains additional hardening and regression tests that have not been published or validated by CI. The older execution results below describe the previous revision and must not be used as approval of the current snapshot.
