@@ -7,12 +7,12 @@ This sample uses the core `Exceptionless` client from a .NET MAUI app. It config
 Set your project's API key before launch. The sample uses the SDK's default hosted services unless you explicitly configure a self-hosted or development server:
 
 ```bash
-export EXCEPTIONLESS_API_KEY="YOUR_API_KEY"
+export Exceptionless__ApiKey="YOUR_API_KEY"
 # Optional, for a self-hosted or development server:
-# export EXCEPTIONLESS_SERVER_URL="YOUR_SERVER_URL"
+# export Exceptionless__ServerUrl="YOUR_SERVER_URL"
 ```
 
-For device launches without environment variables, set `ExceptionlessClient.Default.Configuration.ApiKey` in `MauiProgram` before `Startup()`. The sample has no embedded API key or development address. Missing configuration is shown on the page and prevents actions from reporting success.
+For device launches without environment variables, load the API key from your app's configuration or secure storage and assign it to `ExceptionlessClient.Default.Configuration.ApiKey` before `Startup()`. Keep project keys out of committed source. The sample has no embedded API key or development address. The SDK reads its standard environment variables during `Startup()`; no sample-specific configuration adapter is needed. Invalid configuration or a disabled client disables the page actions and makes autorun report failure.
 
 Events are queued under `FileSystem.Current.AppDataDirectory`, `IncludePrivateInformation` is disabled, and the sample has an explicit **Flush Queue** action. The app also asks the client to process the queue when the MAUI application goes to sleep.
 
@@ -39,4 +39,4 @@ Launch the Mac Catalyst target from the command line with:
 dotnet build samples/Exceptionless.SampleMaui/Exceptionless.SampleMaui.csproj -t:Run -f net10.0-maccatalyst
 ```
 
-For local development, set `EXCEPTIONLESS_SERVER_URL` to an address reachable from the target device or emulator. Android emulators require the host alias described in the [MAUI local web services guidance](https://learn.microsoft.com/en-us/dotnet/maui/data-cloud/local-web-services?view=net-maui-10.0); physical devices require a reachable host address. Prefer HTTPS for remote servers. The iOS sample permits local HTTP connections through `NSAllowsLocalNetworking`.
+For local development, set `Exceptionless__ServerUrl` to an address reachable from the target device or emulator. Android emulators require the host alias described in the [MAUI local web services guidance](https://learn.microsoft.com/en-us/dotnet/maui/data-cloud/local-web-services?view=net-maui-10.0); physical devices require a reachable host address. Prefer HTTPS for remote servers. The iOS sample permits local HTTP connections through `NSAllowsLocalNetworking`.

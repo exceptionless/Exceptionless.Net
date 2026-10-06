@@ -24,14 +24,6 @@ public static class MauiProgram {
         string appDataDirectory = FileSystem.Current.AppDataDirectory;
         var client = ExceptionlessClient.Default;
         var config = client.Configuration;
-        string? apiKey = Environment.GetEnvironmentVariable("EXCEPTIONLESS_API_KEY");
-        if (!String.IsNullOrWhiteSpace(apiKey))
-            config.ApiKey = apiKey;
-
-        string? serverUrl = Environment.GetEnvironmentVariable("EXCEPTIONLESS_SERVER_URL");
-        if (!String.IsNullOrWhiteSpace(serverUrl))
-            config.ServerUrl = serverUrl;
-
         config.IncludePrivateInformation = false;
         config.DefaultTags.Add("maui");
         config.DefaultTags.Add("sample");

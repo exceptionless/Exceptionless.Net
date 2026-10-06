@@ -2,9 +2,11 @@ namespace Exceptionless.SampleMaui;
 
 public sealed class SampleDogfoodRunner {
     private readonly SampleEventService _sampleEvents;
+    private readonly ExceptionlessClient _exceptionlessClient;
 
-    public SampleDogfoodRunner(SampleEventService sampleEvents) {
+    public SampleDogfoodRunner(SampleEventService sampleEvents, ExceptionlessClient exceptionlessClient) {
         _sampleEvents = sampleEvents;
+        _exceptionlessClient = exceptionlessClient;
     }
 
     public async Task RunIfRequestedAsync() {
@@ -12,6 +14,11 @@ public sealed class SampleDogfoodRunner {
             return;
 
         string? resultPath = Environment.GetEnvironmentVariable("EXCEPTIONLESS_SAMPLE_AUTORUN_RESULT_PATH");
+
+        if (!_exceptionlessClient.Configuration.IsValid || !_exceptionlessClient.Configuration.Enabled) {
+            await WriteResultAsync(resultPath, "status=failed", "error=Exceptionless configuration is invalid or the client is disabled.");
+            return;
+        }
 
         try {
             await _sampleEvents.RefreshProjectConfigurationAsync();

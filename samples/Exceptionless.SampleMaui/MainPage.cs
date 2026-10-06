@@ -18,7 +18,9 @@ public sealed class MainPage : ContentPage {
         BackgroundColor = Color.FromArgb("#F5F8EF");
 
         _statusLabel = new Label {
-            Text = exceptionlessClient.Configuration.IsValid ? "Ready" : "Set EXCEPTIONLESS_API_KEY before sending events.",
+            Text = !exceptionlessClient.Configuration.IsValid
+                ? "Configure Exceptionless__ApiKey before sending events."
+                : exceptionlessClient.Configuration.Enabled ? "Ready" : "Exceptionless is disabled.",
             FontSize = 16,
             MinimumHeightRequest = 24,
             TextColor = Color.FromArgb("#314256"),
@@ -125,9 +127,10 @@ public sealed class MainPage : ContentPage {
         };
     }
 
-    private static Button CreateActionButton(string text, EventHandler clicked) {
+    private Button CreateActionButton(string text, EventHandler clicked) {
         var button = new Button {
             Text = text,
+            IsEnabled = _exceptionlessClient.Configuration.IsValid && _exceptionlessClient.Configuration.Enabled,
             BackgroundColor = Color.FromArgb("#436F00"),
             TextColor = Colors.White,
             CornerRadius = 8,
