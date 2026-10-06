@@ -14,7 +14,7 @@ export Exceptionless__ApiKey="YOUR_API_KEY"
 
 For device launches without environment variables, load the API key from your app's configuration or secure storage and assign it to `ExceptionlessClient.Default.Configuration.ApiKey` before `Startup()`. Keep project keys out of committed source. The sample has no embedded API key or development address. The SDK reads its standard environment variables during `Startup()`; no sample-specific configuration adapter is needed. Invalid configuration or a disabled client disables the page actions and makes autorun report failure.
 
-Events are queued under `FileSystem.Current.AppDataDirectory`, `IncludePrivateInformation` is disabled, and the sample has an explicit **Flush Queue** action. The app also asks the client to process the queue when the MAUI application goes to sleep.
+Events are queued under `FileSystem.Current.AppDataDirectory`, `IncludePrivateInformation` is disabled, and the sample has an explicit **Flush Queue** action. The app also asks the client to process the queue when the MAUI application goes to sleep. The SDK still attaches a persistent installation ID; the shared Apple privacy manifest declares that identifier and the linked diagnostic/usage events without advertising tracking.
 
 The client's default duplicate checker can delay repeated identical events for up to a minute and combine their occurrence counts. **Flush Queue** processes events already in the queue; it does not bypass duplicate checking.
 
