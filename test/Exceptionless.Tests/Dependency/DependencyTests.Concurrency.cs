@@ -244,17 +244,12 @@ namespace Exceptionless.Tests.Dependency {
             Assert.Equal(1, service.DisposeCount);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task Dispose_WhileRegisteredConsumerProviderResolutionIsActive_WaitsForResolution(bool useFactoryRegistration) {
+        [Fact]
+        public async Task Dispose_WhileFactoryConsumerProviderResolutionIsActive_WaitsForResolution() {
             // Arrange
             var service = new CountingDisposable();
             var services = new ServiceCollection();
-            if (useFactoryRegistration)
-                services.AddSingleton(provider => new ServiceProviderConsumer(provider));
-            else
-                services.AddSingleton<ServiceProviderConsumer>();
+            services.AddSingleton(provider => new ServiceProviderConsumer(provider));
             using var entered = new ManualResetEventSlim();
             using var release = new ManualResetEventSlim();
             CancellationToken cancellationToken = TestContext.Current.CancellationToken;
@@ -284,11 +279,40 @@ namespace Exceptionless.Tests.Dependency {
         }
 
         [Fact]
-        public async Task Dispose_WhileScopedResolutionIsActive_WaitsAndPreservesScopeOwnership() {
+        public void Resolve_WithNativeInjectedProvider_PreservesProviderAndDisposalOwnership() {
             // Arrange
             var service = new CountingDisposable();
             var services = new ServiceCollection();
             services.AddSingleton<ServiceProviderConsumer>();
+            services.AddSingleton<ICountingDisposable>(_ => service);
+            services.AddScoped<CountingDisposable>();
+            using var resolver = new DefaultDependencyResolver(services);
+            IServiceProvider capturedProvider = resolver.Resolve<ServiceProviderConsumer>().ServiceProvider;
+
+            // Act: native provider calls and caller-owned scopes finish before client disposal.
+            object resolved = capturedProvider.GetService(typeof(ICountingDisposable));
+            Assert.Null(capturedProvider.GetService(typeof(ServiceC)));
+            CountingDisposable scopedService;
+            using (IServiceScope scope = capturedProvider.GetRequiredService<IServiceScopeFactory>().CreateScope()) {
+                scopedService = scope.ServiceProvider.GetRequiredService<CountingDisposable>();
+                Assert.Equal(0, scopedService.DisposeCount);
+            }
+            int disposeCountBeforeResolver = service.DisposeCount;
+            resolver.Dispose();
+
+            // Assert
+            Assert.Same(service, resolved);
+            Assert.Equal(0, disposeCountBeforeResolver);
+            Assert.Equal(1, service.DisposeCount);
+            Assert.Equal(1, scopedService.DisposeCount);
+            Assert.IsType<ObjectDisposedException>(Record.Exception(() => capturedProvider.GetService(typeof(ICountingDisposable))));
+        }
+
+        [Fact]
+        public async Task Dispose_WhileScopedResolutionIsActive_WaitsAndPreservesScopeOwnership() {
+            // Arrange
+            var service = new CountingDisposable();
+            var services = new ServiceCollection();
             using var entered = new ManualResetEventSlim();
             using var release = new ManualResetEventSlim();
             CancellationToken cancellationToken = TestContext.Current.CancellationToken;
@@ -298,8 +322,7 @@ namespace Exceptionless.Tests.Dependency {
                 return service;
             });
             var resolver = new DefaultDependencyResolver(services);
-            IServiceProvider rootProvider = resolver.Resolve<ServiceProviderConsumer>().ServiceProvider;
-            IServiceScope scope = rootProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            IServiceScope scope = resolver.Resolve<IServiceScopeFactory>().CreateScope();
             Task<object> resolution = Task.Run(() => scope.ServiceProvider.GetService(typeof(ICountingDisposable)));
             Assert.True(entered.Wait(TimeSpan.FromSeconds(5), cancellationToken));
 
@@ -325,12 +348,10 @@ namespace Exceptionless.Tests.Dependency {
         public void Resolve_FromLeasingScopes_PreservesScopedLifetimeIsolation() {
             // Arrange
             var services = new ServiceCollection();
-            services.AddSingleton<ServiceProviderConsumer>();
             services.AddScoped<IScopedService, ScopedService>();
             services.AddKeyedScoped<IScopedService, ScopedService>("scoped");
             var resolver = new DefaultDependencyResolver(services);
-            IServiceProvider rootProvider = resolver.Resolve<ServiceProviderConsumer>().ServiceProvider;
-            IServiceScopeFactory scopeFactory = rootProvider.GetRequiredService<IServiceScopeFactory>();
+            IServiceScopeFactory scopeFactory = resolver.Resolve<IServiceScopeFactory>();
             using IServiceScope firstScope = scopeFactory.CreateScope();
             using IServiceScope secondScope = scopeFactory.CreateScope();
 
