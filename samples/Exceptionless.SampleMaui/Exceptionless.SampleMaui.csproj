@@ -33,6 +33,10 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
   </ItemGroup>
 
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <BundleResource Include="Platforms\iOS\PrivacyInfo.xcprivacy" LogicalName="PrivacyInfo.xcprivacy" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Exceptionless\Exceptionless.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
