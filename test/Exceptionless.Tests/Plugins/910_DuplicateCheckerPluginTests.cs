@@ -8,7 +8,6 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Tests.Utility;
 using Xunit;
-using Exceptionless.Json;
 using Exceptionless.Extensions;
 
 namespace Exceptionless.Tests.Plugins {
@@ -99,7 +98,7 @@ namespace Exceptionless.Tests.Plugins {
                 }
             }
 
-            var nonCancelled = contexts.Where(c => !c.Cancel).Select(c => (Context: c, Event: c.Event.GetHashCode(), Json: JsonConvert.SerializeObject(c.Event))).ToList();
+            var nonCancelled = contexts.Where(c => !c.Cancel).Select(c => (Context: c, Event: c.Event.GetHashCode(), Json: System.Text.Json.JsonSerializer.Serialize(c.Event))).ToList();
             var all = contexts.Select(c => (Context: c, Event: c.Event.GetHashCode())).ToList();
 
             Assert.Equal(1, contexts.Count(c => !c.Cancel));

@@ -7,7 +7,8 @@ permissions:
   contents: read
   packages: write
 jobs:
-  build:
+  windows:
+    name: Windows
     runs-on: windows-latest
     steps:
     - name: Checkout
@@ -27,10 +28,15 @@ jobs:
         dotnet tool install --global minver-cli --version 8.0.0
         version=$(minver --tag-prefix v)
         echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
+        echo "PACKAGE_SMOKE_VERSION=0.0.0-ci.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}" >> $GITHUB_ENV
     - name: Build
       run: dotnet build --configuration Release Exceptionless.Net.Windows.slnx
     - name: Run Tests
       run: dotnet test --configuration Release --no-build Exceptionless.Net.Windows.slnx
+    - name: Pack Core for .NET Framework Test
+      run: dotnet pack --configuration Release --no-build --output "$env:RUNNER_TEMP/exceptionless-package-smoke" -p:SolutionDir="${{ github.workspace }}/" -p:MinVerVersionOverride="$env:PACKAGE_SMOKE_VERSION" src/Exceptionless/Exceptionless.csproj
+    - name: .NET Framework Package Consumer Smoke Test
+      run: dotnet run --configuration Release --framework net472 -p:ExceptionlessPackageVersion="$env:PACKAGE_SMOKE_VERSION" -p:ExceptionlessPackageSource="$env:RUNNER_TEMP/exceptionless-package-smoke" --project test/Exceptionless.PackageConsumerSmoke/Exceptionless.PackageConsumerSmoke.csproj
     - name: Package
       if: github.event_name != 'pull_request'
       run: dotnet pack --configuration Release --no-build Exceptionless.Net.Windows.slnx

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Serializer;
 using MessagePack;
 using MessagePack.Formatters;
 
@@ -58,8 +60,11 @@ namespace Exceptionless.MessagePack {
                         writer.Write((string)item.Value);
                         break;
                     default:
+                        object serializedValue = value.IsRawJson(item.Key, item.Value) && item.Value is string rawJson
+                            ? ParseRawJson(rawJson)
+                            : item.Value;
                         options.Resolver.GetFormatter<object>()
-                            .Serialize(ref writer, item.Value, options);
+                            .Serialize(ref writer, serializedValue, options);
                         break;
                 }
             }
@@ -145,6 +150,11 @@ namespace Exceptionless.MessagePack {
             }
             
             return dic;
+        }
+
+        private static object ParseRawJson(string rawJson) {
+            using var document = JsonDocument.Parse(rawJson);
+            return JsonElementValueConverter.Convert(document.RootElement, parseDates: false);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
 
 namespace Exceptionless.Extensions.Logging {
     public class ExceptionlessLoggerProvider : ILoggerProvider {
         private readonly ExceptionlessClient _client;
         private readonly bool _shouldDispose;
+        private int _disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionlessLoggerProvider"/> class.
@@ -21,11 +23,10 @@ namespace Exceptionless.Extensions.Logging {
         /// </summary>
         /// <param name="configure">An <see cref="Action{ExceptionlessConfiguration}"/> which will be used to configure created loggers.</param>
         public ExceptionlessLoggerProvider(Action<ExceptionlessConfiguration> configure) {
-            _client = ExceptionlessClient.Default;
+            _client = new ExceptionlessClient();
 
             // Rely on Logging Rules
             _client.Configuration.SetDefaultMinLogLevel(Exceptionless.Logging.LogLevel.Trace);
-            
             configure?.Invoke(_client.Configuration);
             _shouldDispose = true;
         }
@@ -41,9 +42,15 @@ namespace Exceptionless.Extensions.Logging {
         }
 
         public void Dispose() {
-            _client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-            if (_shouldDispose)
-                ((IDisposable)_client).Dispose();
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+
+            try {
+                _client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            } finally {
+                if (_shouldDispose)
+                    ((IDisposable)_client).Dispose();
+            }
         }
     }
 }

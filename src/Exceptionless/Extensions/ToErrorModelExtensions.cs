@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -54,9 +56,13 @@ namespace Exceptionless {
             error.PopulateStackTrace(error, exception, log);
 
             try {
+#if NET8_0_OR_GREATER
+                error.Code = exception.HResult.ToString();
+#else
                 PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
                 if (info != null)
                     error.Code = info.GetValue(exception, null).ToString();
+#endif
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating HResult Code: " + ex.Message);
             }
@@ -154,8 +160,10 @@ namespace Exceptionless {
                         continue;
 
                     try {
+#if !NET8_0_OR_GREATER
                         if (!includeDynamic && String.IsNullOrEmpty(assembly.Location))
                             continue;
+#endif
                     } catch (SecurityException ex) {
                         const string message = "An error occurred while getting the Assembly.Location value. This error will occur when when you are not running under full trust.";
                         log.Error(typeof(ExceptionlessClient), ex, message);
@@ -188,10 +196,15 @@ namespace Exceptionless {
             return modules;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Method metadata enrichment is best-effort and skipped when dynamic code is unavailable; file and line stack data remains available.")]
         private static void PopulateStackTrace(this Error error, Error root, Exception exception, IExceptionlessLog log) {
             StackFrame[] frames = null;
             try {
+#if NET8_0_OR_GREATER
+                var st = new StackTrace(exception, true);
+#else
                 var st = new EnhancedStackTrace(exception);
+#endif
                 frames = st.GetFrames();
             }
             catch (Exception ex) {
@@ -203,7 +216,15 @@ namespace Exceptionless {
                 return;
             }
 
-            foreach (StackFrame frame in frames) {
+            string[] rawStackFrames = (exception.StackTrace ?? String.Empty)
+                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            rawStackFrames = rawStackFrames
+                .Select(line => line.Trim())
+                .Where(line => line.StartsWith("at ", StringComparison.Ordinal))
+                .ToArray();
+
+            for (int frameIndex = 0; frameIndex < frames.Length; frameIndex++) {
+                StackFrame frame = frames[frameIndex];
                 var stackFrame = new Models.Data.StackFrame {
                     LineNumber = frame.GetFileLineNumber(),
                     Column = frame.GetFileColumnNumber(),
@@ -220,13 +241,80 @@ namespace Exceptionless {
                 }
 
                 try {
+#if NET8_0_OR_GREATER
+                    MethodBase method = frame.GetMethod();
+                    if (RuntimeFeature.IsDynamicCodeSupported)
+                        stackFrame.PopulateMethod(root, method);
+                    else
+                        stackFrame.PopulateMethodIdentity(method);
+#else
                     stackFrame.PopulateMethod(root, frame.GetMethod());
+#endif
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame method info: " + ex.Message);
                 }
 
+                if (String.IsNullOrEmpty(stackFrame.Name) && frameIndex < rawStackFrames.Length)
+                    stackFrame.PopulateMethodIdentity(rawStackFrames[frameIndex]);
+
+                // NativeAOT can expose runtime frames that have no method, source, or line
+                // metadata and do not appear in Exception.StackTrace. An offset-only frame
+                // cannot be displayed or grouped meaningfully, so omit it instead of
+                // emitting an empty stack frame.
+                if (String.IsNullOrEmpty(stackFrame.Name)
+                    && String.IsNullOrEmpty(stackFrame.DeclaringType)
+                    && String.IsNullOrEmpty(stackFrame.FileName)
+                    && stackFrame.LineNumber == 0)
+                    continue;
+
                 error.StackTrace.Add(stackFrame);
             }
+        }
+
+        private static void PopulateMethodIdentity(this Method method, string stackTraceLine) {
+            string identity = stackTraceLine?.Trim();
+            if (String.IsNullOrEmpty(identity))
+                return;
+
+            if (identity.StartsWith("at ", StringComparison.Ordinal))
+                identity = identity.Substring(3);
+
+            int locationStart = identity.IndexOf(" in ", StringComparison.Ordinal);
+            if (locationStart >= 0)
+                identity = identity.Substring(0, locationStart);
+
+            int argumentsStart = identity.IndexOf('(');
+            if (argumentsStart >= 0)
+                identity = identity.Substring(0, argumentsStart);
+
+            int methodSeparator = identity.LastIndexOf('.');
+            if (methodSeparator < 0) {
+                method.Name = identity;
+                return;
+            }
+
+            method.Name = identity.Substring(methodSeparator + 1);
+            string declaringType = identity.Substring(0, methodSeparator);
+            int namespaceSeparator = declaringType.LastIndexOf('.');
+            if (namespaceSeparator < 0) {
+                method.DeclaringType = declaringType;
+                return;
+            }
+
+            method.DeclaringNamespace = declaringType.Substring(0, namespaceSeparator);
+            method.DeclaringType = declaringType.Substring(namespaceSeparator + 1);
+        }
+
+        private static void PopulateMethodIdentity(this Method method, MethodBase methodBase) {
+            if (methodBase == null)
+                return;
+
+            method.Name = methodBase.Name;
+            if (methodBase.DeclaringType == null)
+                return;
+
+            method.DeclaringNamespace = methodBase.DeclaringType.Namespace;
+            method.DeclaringType = methodBase.DeclaringType.Name;
         }
 
         private static void PopulateMethod(this Method method, Error root, MethodBase methodBase) {

@@ -36,6 +36,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.AspNetCore\Exceptionless.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Platforms\Exceptionless.Extensions.Logging\Exceptionless.Extensions.Logging.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,9 +48,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Threading.Tasks" />
     <Reference Include="System.Runtime" />
     <Reference Include="System" />

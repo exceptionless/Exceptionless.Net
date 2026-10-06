@@ -36,6 +36,10 @@ builder.UseExceptionless();
 `AddExceptionless(...)` configures the client, and `UseExceptionless()` ensures
 the pending queue is flushed during host shutdown.
 
+Configuration and api-key overloads create an isolated client owned and disposed
+by the host service provider. When you pass an existing ExceptionlessClient, the
+client remains caller-owned and is not disposed by the service provider.
+
 Please visit the documentation https://exceptionless.com/docs/clients/dotnet/sending-events/
 for examples on sending events to Exceptionless.
 
