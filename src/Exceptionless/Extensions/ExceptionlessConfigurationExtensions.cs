@@ -302,7 +302,7 @@ namespace Exceptionless {
                 return;
 
             if (section.ElementInformation.Properties["environment"].ValueOrigin != PropertyValueOrigin.Default)
-                config.Environment = section.Environment;
+                config.SetConfiguredEnvironment(section.Environment);
 
             if (!section.Enabled)
                 config.Enabled = false;
@@ -397,8 +397,7 @@ namespace Exceptionless {
         }
 
         internal static void ReadFromAppSettings(this ExceptionlessConfiguration config, NameValueCollection settings) {
-            if (settings["Exceptionless:Environment"] != null)
-                config.Environment = settings["Exceptionless:Environment"];
+            config.SetConfiguredEnvironment(settings["Exceptionless:Environment"]);
 
             string apiKey = settings["Exceptionless:ApiKey"];
             if (IsValidApiKey(apiKey))
@@ -432,9 +431,7 @@ namespace Exceptionless {
                 throw new ArgumentNullException(nameof(settings));
 
             var section = settings.GetSection("Exceptionless");
-            if (section["Environment"] != null) {
-                config.Environment = section["Environment"];
-            }
+            config.SetConfiguredEnvironment(section["Environment"]);
             if (Boolean.TryParse(section["Enabled"], out bool enabled) && !enabled)
                 config.Enabled = false;
 
@@ -506,10 +503,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="config">The configuration object you want to apply the attribute settings to.</param>
         public static void ReadFromEnvironmentalVariables(this ExceptionlessConfiguration config) {
-            string environment = GetEnvironmentalVariable("Exceptionless:Environment") ?? GetEnvironmentalVariable("Exceptionless__Environment");
-            if (environment != null) {
-                config.Environment = environment;
-            }
+            config.SetConfiguredEnvironment(GetEnvironmentalVariable("Exceptionless:Environment") ?? GetEnvironmentalVariable("Exceptionless__Environment"));
 
             string apiKey = GetEnvironmentalVariable("Exceptionless:ApiKey") ?? GetEnvironmentalVariable("Exceptionless__ApiKey");
             if (IsValidApiKey(apiKey))

@@ -47,19 +47,48 @@ namespace Exceptionless.Tests.Platforms {
         public void ReadFromConfiguration_Environment_LoadsTrimmedValueAndPreservesMissingSetting() {
             // Arrange
             using var client = new ExceptionlessClient();
-            client.Configuration.Environment = "staging";
+            var staging = CreateConfiguration(" Staging ");
+            var production = CreateConfiguration("production");
             var missing = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:ApiKey"] = "test-api-key" }).Build();
-            var configured = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:Environment"] = " Production " }).Build();
 
             // Act
+            client.Configuration.ReadFromConfiguration(staging);
+            string? afterStaging = client.Configuration.Environment;
+            client.Configuration.ReadFromConfiguration(production);
             client.Configuration.ReadFromConfiguration(missing);
-            string? afterMissing = client.Configuration.Environment;
-            client.Configuration.ReadFromConfiguration(configured);
 
             // Assert
-            Assert.Equal("staging", afterMissing);
-            Assert.Equal("Production", client.Configuration.Environment);
+            Assert.Equal("Staging", afterStaging);
+            Assert.Equal("production", client.Configuration.Environment);
             Assert.True(client.Configuration.IsEnvironmentConfigured);
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_EnvironmentSetInCode_KeepsCodeValue() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.ReadFromConfiguration(CreateConfiguration("staging"));
+            client.Configuration.SetEnvironment("qa-west");
+
+            // Act
+            client.Configuration.ReadFromConfiguration(CreateConfiguration("production"));
+
+            // Assert
+            Assert.Equal("qa-west", client.Configuration.Environment);
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_EnvironmentClearedInCode_UsesConfiguration() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.SetEnvironment("qa-west");
+            client.Configuration.Environment = null;
+
+            // Act
+            client.Configuration.ReadFromConfiguration(CreateConfiguration("production"));
+
+            // Assert
+            Assert.Equal("production", client.Configuration.Environment);
         }
 
         [Theory]
@@ -154,6 +183,10 @@ namespace Exceptionless.Tests.Platforms {
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessLifetimeService));
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedService));
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedLifecycleService));
+        }
+
+        private static IConfiguration CreateConfiguration(string environment) {
+            return new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:Environment"] = environment }).Build();
         }
     }
 }

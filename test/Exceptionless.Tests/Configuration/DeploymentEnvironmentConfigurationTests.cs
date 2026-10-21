@@ -30,12 +30,28 @@ namespace Exceptionless.Tests.Configuration {
 
         [Fact]
         public void ReadFromAppSettings_LoadsEnvironmentAndPreservesMissingSetting() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+
+            // Act
+            client.Configuration.ReadFromAppSettings(new NameValueCollection { ["Exceptionless:Environment"] = " Production " });
+            client.Configuration.ReadFromAppSettings(new NameValueCollection());
+
+            // Assert
+            Assert.Equal("Production", client.Configuration.Environment);
+        }
+
+        [Fact]
+        public void ReadFromAppSettings_EnvironmentSetInCode_KeepsCodeValue() {
+            // Arrange
             using var client = new ExceptionlessClient();
             client.Configuration.Environment = "staging";
-            client.Configuration.ReadFromAppSettings(new NameValueCollection());
+
+            // Act
+            client.Configuration.ReadFromAppSettings(new NameValueCollection { ["Exceptionless:Environment"] = "production" });
+
+            // Assert
             Assert.Equal("staging", client.Configuration.Environment);
-            client.Configuration.ReadFromAppSettings(new NameValueCollection { ["Exceptionless:Environment"] = " Production " });
-            Assert.Equal("Production", client.Configuration.Environment);
         }
     }
 }
