@@ -24,6 +24,7 @@ namespace Exceptionless.Plugins {
         }
 
         public static void AddDefaultPlugins(ExceptionlessConfiguration config) {
+            config.AddPlugin<DeploymentEnvironmentPlugin>();
             config.AddPlugin<HandleAggregateExceptionsPlugin>();
             config.AddPlugin<EventExclusionPlugin>();
             config.AddPlugin<ConfigurationDefaultsPlugin>();

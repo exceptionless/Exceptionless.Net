@@ -14,6 +14,21 @@ using Exceptionless.Extensions;
 namespace Exceptionless.Tests.Plugins {
     public class DuplicateCheckerPluginTests : PluginTestBase {
         public DuplicateCheckerPluginTests(ITestOutputHelper output) : base(output) { }
+
+        [Fact]
+        public void Run_SameEventAcrossEnvironments_OnlyMergesWithinEnvironment() {
+            var client = CreateClient();
+            using (var plugin = new DuplicateCheckerPlugin(TimeSpan.FromMinutes(1))) {
+                foreach (bool duplicate in new[] { false, true }) {
+                    foreach (string environment in new[] { "Production", "production", "staging", null }) {
+                        var builder = client.CreateLog("Environment test").SetEnvironment(environment);
+                        var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+                        plugin.Run(context);
+                        Assert.Equal(duplicate, context.Cancel);
+                    }
+                }
+            }
+        }
         
         [Fact]
         public void CanRemoveDuplicateExceptions() {
