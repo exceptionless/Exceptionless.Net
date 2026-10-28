@@ -2,7 +2,7 @@
 
 ## Before You Start
 
-Contributions are accepted under the project's [Apache License 2.0](LICENSE.txt). By submitting a pull request, you agree that your contribution is licensed under it, as described in section 5 of the license.
+Contributions are accepted under the project's [Apache License 2.0](LICENSE.txt). By submitting a pull request, you agree that your contribution is licensed under it, as described in section 5 of the [full license text](https://www.apache.org/licenses/LICENSE-2.0).
 
 ## Reporting Bugs
 
