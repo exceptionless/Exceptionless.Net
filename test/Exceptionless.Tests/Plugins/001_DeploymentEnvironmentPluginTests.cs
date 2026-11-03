@@ -27,6 +27,12 @@ namespace Exceptionless.Tests.Plugins {
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("prod\ninvalid")]
+        [InlineData("Staging West")]
+        [InlineData("prod/eu")]
+        [InlineData("prod:eu")]
+        [InlineData("-prod")]
+        [InlineData(".prod")]
+        [InlineData("produção")]
         [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
         public void Run_InvalidDeploymentEnvironment_DoesNotUseDefault(string environment) {
             var client = CreateClient();

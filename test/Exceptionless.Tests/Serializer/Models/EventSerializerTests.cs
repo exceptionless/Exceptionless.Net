@@ -17,6 +17,7 @@ namespace Exceptionless.Tests.Serializer.Models {
             Assert.Equal("worker-1", result.GetEnvironmentInfo().MachineName);
             Assert.Null(new Event { Environment = new string('x', 65) }.Environment);
             Assert.Null(new Event { Environment = "  " }.Environment);
+            Assert.Null(new Event { Environment = "Staging West" }.Environment);
             Assert.NotEqual(new Event { Environment = "production" }, new Event { Environment = "staging" });
             Assert.NotEqual(new Event { Environment = "Production" }, new Event { Environment = "production" });
         }
