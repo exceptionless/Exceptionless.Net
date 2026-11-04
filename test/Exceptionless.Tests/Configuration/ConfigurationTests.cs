@@ -220,5 +220,26 @@ namespace Exceptionless.Tests.Configuration {
             Assert.Equal(LogLevel.Info, settings.GetMinLogLevel("abc.def"));
             Assert.Equal(LogLevel.Trace, settings.GetMinLogLevel("abc.def.ghi"));
         }
+
+        [Theory]
+        [InlineData("AWS_LAMBDA_FUNCTION_NAME", "my-function")]
+        [InlineData("FUNCTIONS_WORKER_RUNTIME", "dotnet")]
+        public void ReadFromEnvironmentalVariables_ServerlessEnvironment_EnablesProcessQueueOnCompletedRequest(string name, string value) {
+            var field = typeof(ExceptionlessConfigurationExtensions).GetField("_environmentVariables", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.NotNull(field);
+            var original = field.GetValue(null);
+
+            try {
+                field.SetValue(null, new Dictionary<string, string> { { name, value } });
+
+                var config = new ExceptionlessConfiguration(DependencyResolver.CreateDefault());
+                Assert.False(config.ProcessQueueOnCompletedRequest);
+
+                config.ReadFromEnvironmentalVariables();
+                Assert.True(config.ProcessQueueOnCompletedRequest);
+            } finally {
+                field.SetValue(null, original);
+            }
+        }
     }
 }

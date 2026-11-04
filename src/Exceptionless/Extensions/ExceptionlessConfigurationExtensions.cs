@@ -497,7 +497,7 @@ namespace Exceptionless {
             if (String.IsNullOrEmpty(processQueueOnCompletedRequestValue)) {
 
                 // check for AWS lambda environment
-                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_LAMBDA_FUNCTION_NAME ")))
+                if (!String.IsNullOrEmpty(GetEnvironmentalVariable("AWS_LAMBDA_FUNCTION_NAME")))
                     processQueueOnCompletedRequestValue = Boolean.TrueString;
 
                 // check for azure functions environment
