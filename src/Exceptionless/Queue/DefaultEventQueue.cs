@@ -60,6 +60,7 @@ namespace Exceptionless.Queue {
                 var batch = _storage.GetEventBatch(queueName, batchSize, maxCreatedDate);
                 while (batch.Any()) {
                     bool deleteBatch = true;
+                    bool retryWithSmallerBatch = false;
 
                     try {
                         var events = batch.Select(b => b.Item2).ToList();
@@ -88,6 +89,7 @@ namespace Exceptionless.Queue {
                                 _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will be retried with a smaller batch size.");
                                 batchSize = Math.Max(1, (int)Math.Round(batchSize / 1.5d, 0));
                                 deleteBatch = false;
+                                retryWithSmallerBatch = true;
                             } else {
                                 _log.Error(typeof(DefaultEventQueue), "Event submission discarded for being too large. The event will not be submitted.");
                             }
@@ -115,7 +117,7 @@ namespace Exceptionless.Queue {
                     else
                         _storage.ReleaseBatch(batch);
 
-                    if (!deleteBatch || IsQueueProcessingSuspended)
+                    if ((!deleteBatch && !retryWithSmallerBatch) || IsQueueProcessingSuspended)
                         break;
 
                     batch = _storage.GetEventBatch(queueName, batchSize, maxCreatedDate);
