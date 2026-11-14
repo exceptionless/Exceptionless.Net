@@ -5,6 +5,7 @@ using log4net.Core;
 namespace Exceptionless.Log4net {
     public class ExceptionlessAppender : AppenderSkeleton {
         private ExceptionlessClient _client = ExceptionlessClient.Default;
+        private bool _ownsClient;
 
         public string ApiKey { get; set; }
         public string ServerUrl { get; set; }
@@ -24,6 +25,7 @@ namespace Exceptionless.Log4net {
                 // Rely on Logging Rules
                 config.SetDefaultMinLogLevel(Logging.LogLevel.Trace);
             });
+            _ownsClient = true;
         }
 
         protected override void Append(LoggingEvent loggingEvent) {
@@ -35,6 +37,18 @@ namespace Exceptionless.Log4net {
                 return;
 
             _client.SubmitFromLogEvent(loggingEvent);
+        }
+
+        public override bool Flush(int millisecondsTimeout) {
+            return _client.ProcessQueueAsync().Wait(millisecondsTimeout);
+        }
+
+        protected override void OnClose() {
+            base.OnClose();
+
+            _client.ProcessQueueAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (_ownsClient)
+                ((IDisposable)_client).Dispose();
         }
     }
 }

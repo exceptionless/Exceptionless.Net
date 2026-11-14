@@ -5,13 +5,13 @@ Exceptionless provides real-time error reporting for your apps. It organizes the
 gathered information into simple actionable data that will help your app become
 exceptionless!
 
-Learn more at http://exceptionless.io.
+Learn more at https://exceptionless.com/.
 
 -------------------------------------
 		How to get an api key
 -------------------------------------
 The Exceptionless client requires an api key to use the Exceptionless service.
-You can get your Exceptionless api key by logging into http://exceptionless.io
+You can get your Exceptionless api key by logging into https://be.exceptionless.io/
 and viewing your project configuration page.
 
 -------------------------------------
@@ -52,4 +52,4 @@ minimum log level that will be used until the client retrieves settings from the
 -------------------------------------
 	  Documentation and Support
 -------------------------------------
-Please visit http://exceptionless.io for documentation and support.
+Please visit https://exceptionless.com/docs/ for documentation and support.
