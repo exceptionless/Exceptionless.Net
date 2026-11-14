@@ -21,7 +21,10 @@ namespace Exceptionless.Plugins.Default {
                 ctx.SetException(ex);
 
                 var serializer = context.Resolver.GetJsonSerializer();
-                context.Client.SubmitEvent(serializer.Deserialize(serializer.Serialize(context.Event), typeof(Event)) as Event, ctx);
+                var child = serializer.Deserialize(serializer.Serialize(context.Event), typeof(Event)) as Event;
+                if (child != null)
+                    child.HasEnvironmentOverride = context.Event.HasEnvironmentOverride;
+                context.Client.SubmitEvent(child, ctx);
             }
 
             context.Cancel = true;
