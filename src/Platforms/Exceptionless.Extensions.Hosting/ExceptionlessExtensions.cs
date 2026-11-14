@@ -81,17 +81,15 @@ namespace Exceptionless {
         /// <returns></returns>
         public static IServiceCollection AddExceptionless(this IServiceCollection services, Action<ExceptionlessConfiguration> configure = null) {
             return services.AddSingleton(sp => {
-                var client = ExceptionlessClient.Default;
+                return new ExceptionlessClient(clientConfiguration => {
+                    var configuration = sp.GetService<IConfiguration>();
+                    if (configuration != null)
+                        clientConfiguration.ReadFromConfiguration(configuration);
+                    else
+                        clientConfiguration.ReadFromEnvironmentalVariables();
 
-                var config = sp.GetService<IConfiguration>();
-                if (config != null)
-                    client.Configuration.ReadFromConfiguration(config);
-                else
-                    client.Configuration.ReadFromEnvironmentalVariables();
-
-                configure?.Invoke(client.Configuration);
-
-                return client;
+                    configure?.Invoke(clientConfiguration);
+                });
             });
         }
 
@@ -103,15 +101,13 @@ namespace Exceptionless {
         /// <param name="configure">Allows altering the <see cref="ExceptionlessClient"/> configuration.</param>
         /// <returns></returns>
         public static IServiceCollection AddExceptionless(this IServiceCollection services, IConfiguration configuration, Action<ExceptionlessConfiguration> configure = null) {
-            return services.AddSingleton(sp => {
-                var client = ExceptionlessClient.Default;
+            return services.AddSingleton(_ => {
+                return new ExceptionlessClient(clientConfiguration => {
+                    if (configuration != null)
+                        clientConfiguration.ReadFromConfiguration(configuration);
 
-                if (configuration != null)
-                    client.Configuration.ReadFromConfiguration(configuration);
-
-                configure?.Invoke(client.Configuration);
-
-                return client;
+                    configure?.Invoke(clientConfiguration);
+                });
             });
         }
 

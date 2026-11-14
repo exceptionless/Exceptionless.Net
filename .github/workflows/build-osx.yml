@@ -6,7 +6,8 @@ env:
 permissions:
   contents: read
 jobs:
-  build:
+  macos:
+    name: macOS
     runs-on: macOS-latest
     steps:
     - name: Checkout

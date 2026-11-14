@@ -1,5 +1,5 @@
 ﻿namespace Exceptionless.Models.Data {
-    [Json.JsonObject(NamingStrategyType = typeof(Json.Serialization.SnakeCaseNamingStrategy))]
+
     public class SimpleInnerError : IData {
         public SimpleInnerError() {
             Data = new DataDictionary();

@@ -5,6 +5,7 @@ using Exceptionless.Serializer;
 using Exceptionless.Services;
 using Exceptionless.Storage;
 using Exceptionless.Submission;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Exceptionless.Dependency {
     public class DependencyResolver {
@@ -23,8 +24,34 @@ namespace Exceptionless.Dependency {
             return resolver;
         }
 
+        /// <summary>
+        /// Creates a resolver containing the default Exceptionless services followed by application overrides.
+        /// </summary>
+        /// <param name="services">Services that should be added to or override the defaults.</param>
+        public static IDependencyResolver CreateDefault(IServiceCollection services) {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
+            var resolver = (DefaultDependencyResolver)CreateDefault();
+            resolver.AddServices(services);
+            return resolver;
+        }
+
         public static void RegisterDefaultServices(IDependencyResolver resolver) {
             resolver.Register(resolver);
+
+            if (resolver is DefaultDependencyResolver defaultResolver) {
+                resolver.Register<IObjectStorage, InMemoryObjectStorage>();
+                resolver.Register<IExceptionlessLog, NullExceptionlessLog>();
+                resolver.Register<IJsonSerializer, DefaultJsonSerializer>();
+                resolver.Register<IStorageSerializer, DefaultJsonSerializer>();
+                resolver.Register<IEventQueue, DefaultEventQueue>();
+                resolver.Register<ISubmissionClient, DefaultSubmissionClient>();
+                resolver.Register<IEnvironmentInfoCollector, DefaultEnvironmentInfoCollector>();
+                resolver.Register<ILastReferenceIdManager, DefaultLastReferenceIdManager>();
+                defaultResolver.RegisterSingleton(typeof(PersistedDictionary), () => new PersistedDictionary("client-data.json", resolver.Resolve<IObjectStorage>(), resolver.Resolve<IJsonSerializer>()));
+                return;
+            }
 
             var fileStorage = new Lazy<IObjectStorage>(() => resolver.Resolve<InMemoryObjectStorage>());
             resolver.Register(typeof(IObjectStorage), () => fileStorage.Value);

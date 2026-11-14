@@ -12,6 +12,47 @@ The definition of the word exceptionless is: to be without exception. [Exception
 
 Refer to the Exceptionless documentation here: [Exceptionless Docs](https://exceptionless.com/docs/).
 
+### NativeAOT
+
+The core `Exceptionless` package supports NativeAOT on `net8.0` and later. Exceptionless provides source-generated metadata for its wire models. Applications must provide a `JsonSerializerContext` for custom objects stored in event data and register the resulting serializer before creating the client:
+
+```csharp
+using System.Text.Json.Serialization;
+using Exceptionless;
+using Exceptionless.Serializer;
+using Microsoft.Extensions.DependencyInjection;
+
+var serializer = new DefaultJsonSerializer(AppJsonSerializerContext.Default);
+var services = new ServiceCollection();
+services.AddSingleton<IJsonSerializer>(serializer);
+services.AddSingleton<IStorageSerializer>(serializer);
+
+using var client = new ExceptionlessClient(services, configuration => {
+    configuration.ApiKey = "YOUR_API_KEY";
+    configuration.IncludePrivateInformation = false;
+});
+
+[JsonSourceGenerationOptions(
+    GenerationMode = JsonSourceGenerationMode.Metadata,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
+    IncludeFields = true,
+    UseStringEnumConverter = true)]
+[JsonSerializable(typeof(MyPayload))]
+internal partial class AppJsonSerializerContext : JsonSerializerContext { }
+
+internal sealed class MyPayload {
+    public int Id { get; set; }
+}
+```
+
+NativeAOT applications must also register custom services and plugins explicitly. Runtime type names from configuration and unregistered concrete-type activation are intentionally unsupported because trimming cannot preserve those types reliably. Error events still contain normal runtime stack traces. The `net8.0` and later assets do not include the optional IL/PDB demystification used by the legacy target. CI publishes and executes NativeAOT smoke applications on `net8.0` and `net10.0`.
+
+### Dependency injection
+
+The client accepts an `IServiceCollection` and builds its own isolated provider. Supplied implementation-type registrations use native Microsoft DI activation, including keyed services, `[ServiceKey]`, open generics, and scoped lifetimes. Legacy resolver registrations retain unregistered concrete dependency activation on dynamic-code runtimes.
+
+Dispose scopes you create and stop using captured providers before disposing the client, as with a normal Microsoft DI provider. Resolver calls and factory activations already in progress are allowed to finish before resolver disposal. A factory must return distinct disposable instances; use instance registration for a shared, caller-owned object.
+
 ## Getting Started (Development)
 
 All of our [.NET clients can be installed](https://www.nuget.org/profiles/exceptionless?showAllPackages=True) via the [NuGet package manager](https://docs.nuget.org/consume/Package-Manager-Dialog).

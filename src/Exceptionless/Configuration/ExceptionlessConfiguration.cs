@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -412,7 +413,7 @@ namespace Exceptionless {
         /// Register an plugin to be used in this configuration.
         /// </summary>
         /// <typeparam name="T">The plugin type to be added.</typeparam>
-        public void AddPlugin<T>() where T : IEventPlugin {
+        public void AddPlugin<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : IEventPlugin {
             AddPlugin(typeof(T).FullName, typeof(T));
         }
 
@@ -421,7 +422,7 @@ namespace Exceptionless {
         /// </summary>
         /// <param name="key">The key used to identify the plugin.</param>
         /// <param name="pluginType">The plugin type to be added.</param>
-        public void AddPlugin(string key, Type pluginType) {
+        public void AddPlugin(string key, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type pluginType) {
             RemovePlugin(key);
 
             var plugin = new PluginRegistration(key, GetPriority(pluginType), new Lazy<IEventPlugin>(() => Resolver.Resolve(pluginType) as IEventPlugin));

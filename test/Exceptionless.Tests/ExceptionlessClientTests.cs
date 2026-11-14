@@ -7,6 +7,7 @@ using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Plugins;
+using Exceptionless.Queue;
 using Exceptionless.Storage;
 using Exceptionless.Submission;
 using Exceptionless.Tests.Log;
@@ -107,16 +108,23 @@ namespace Exceptionless.Tests {
 
         [Fact]
         public async Task CanSubmitManyMessages() {
-            var client = CreateClient();
+            using var client = CreateClient();
             client.Configuration.Resolver.Register<ISubmissionClient, MySubmissionClient>();
+            var resolver = client.Configuration.Resolver;
+            var submissionClient = Assert.IsType<MySubmissionClient>(resolver.Resolve<ISubmissionClient>());
+            var storage = Assert.IsType<InMemoryObjectStorage>(resolver.Resolve<IObjectStorage>());
+            var queue = new DefaultEventQueue(
+                client.Configuration,
+                resolver.GetLog(),
+                submissionClient,
+                storage,
+                resolver.GetJsonSerializer(),
+                processQueueInterval: TimeSpan.FromMinutes(1),
+                queueStartDelay: TimeSpan.FromMinutes(1));
+            resolver.Register(typeof(IEventQueue), () => queue);
             client.Startup();
 
-            var submissionClient = client.Configuration.Resolver.Resolve<ISubmissionClient>() as MySubmissionClient;
-            Assert.NotNull(submissionClient);
             Assert.Equal(0, submissionClient.SubmittedEvents);
-
-            using var storage = client.Configuration.Resolver.Resolve<IObjectStorage>() as InMemoryObjectStorage;
-            Assert.NotNull(storage);
             Assert.Equal(0, storage.Count);
 
             const int iterations = 200;

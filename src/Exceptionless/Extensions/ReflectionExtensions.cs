@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 
@@ -12,6 +13,7 @@ namespace Exceptionless {
             return new AssemblyName(assembly.FullName);
         }
 
+        [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "Assembly.Location can be empty in single-file and NativeAOT applications; the resulting file lookup is caught and returns null.")]
         public static DateTime? GetCreationTime(this Assembly assembly) {
             try {
                 return File.GetCreationTimeUtc(assembly.Location);
@@ -20,6 +22,7 @@ namespace Exceptionless {
             return null;
         }
 
+        [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "Assembly.Location can be empty in single-file and NativeAOT applications; the resulting file lookup is caught and returns null.")]
         public static DateTime? GetLastWriteTime(this Assembly assembly) {
             try {
                 return File.GetLastWriteTimeUtc(assembly.Location);

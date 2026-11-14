@@ -14,7 +14,7 @@ using LogLevel = Exceptionless.Logging.LogLevel;
 using Module = Exceptionless.Models.Data.Module;
 
 namespace Exceptionless.Tests.Serializer {
-    public class JsonSerializerTests {
+    public partial class JsonSerializerTests {
         private readonly TestOutputWriter _writer;
         public JsonSerializerTests(ITestOutputHelper output) {
             _writer = new TestOutputWriter(output);
@@ -156,7 +156,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(error);
 
             // Assert
-            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b03f5f7f11d50a3a\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"code\":\"1001\",\"data\":{\"@ext\":{\"OrderNumber\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.ArgumentException\",\"code\":\"2002\",\"data\":{},\"inner\":null,\"stack_trace\":[{\"file_name\":null,\"line_number\":20,\"column\":0,\"is_signature_target\":false,\"declaring_namespace\":null,\"declaring_type\":null,\"name\":\"InnerMethodName\",\"module_id\":0,\"data\":{},\"generic_arguments\":[],\"parameters\":[]}],\"target_method\":null},\"stack_trace\":[{\"file_name\":\"TestFile.cs\",\"line_number\":20,\"column\":5,\"is_signature_target\":true,\"declaring_namespace\":\"TestNamespace\",\"declaring_type\":\"TestClass\",\"name\":\"InnerMethodName\",\"module_id\":1,\"data\":{\"StackFrameKey\":\"StackFrameValue\"},\"generic_arguments\":[\"T\"],\"parameters\":[{\"name\":\"param1\",\"type\":\"System.String\",\"type_namespace\":\"System\",\"data\":{\"ParameterKey\":\"ParameterValue\"},\"generic_arguments\":[\"U\"]}]}],\"target_method\":null}", json);
+            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b03f5f7f11d50a3a\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"code\":\"1001\",\"data\":{\"@ext\":{\"order_number\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.ArgumentException\",\"code\":\"2002\",\"data\":{},\"inner\":null,\"stack_trace\":[{\"file_name\":null,\"line_number\":20,\"column\":0,\"is_signature_target\":false,\"declaring_namespace\":null,\"declaring_type\":null,\"name\":\"InnerMethodName\",\"module_id\":0,\"data\":{},\"generic_arguments\":[],\"parameters\":[]}],\"target_method\":null},\"stack_trace\":[{\"file_name\":\"TestFile.cs\",\"line_number\":20,\"column\":5,\"is_signature_target\":true,\"declaring_namespace\":\"TestNamespace\",\"declaring_type\":\"TestClass\",\"name\":\"InnerMethodName\",\"module_id\":1,\"data\":{\"StackFrameKey\":\"StackFrameValue\"},\"generic_arguments\":[\"T\"],\"parameters\":[{\"name\":\"param1\",\"type\":\"System.String\",\"type_namespace\":\"System\",\"data\":{\"ParameterKey\":\"ParameterValue\"},\"generic_arguments\":[\"U\"]}]}],\"target_method\":null}", json);
         }
 
         [Fact]
@@ -263,7 +263,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(simpleError);
 
             // Assert
-            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b77a5c561934e089\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"stack_trace\":\"at TestClass.TestMethod()\",\"data\":{\"@ext\":{\"OrderNumber\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.NullReferenceException\",\"stack_trace\":\"at InnerTestClass.InnerTestMethod()\",\"data\":{},\"inner\":null}}", json);
+            Assert.Equal("{\"modules\":[{\"module_id\":1,\"name\":\"TestModule\",\"version\":\"1.0.0\",\"is_entry\":true,\"created_date\":\"2023-05-01T12:00:00Z\",\"modified_date\":\"2023-05-02T12:00:00Z\",\"data\":{\"PublicKeyToken\":\"b77a5c561934e089\"}}],\"message\":\"Test error message\",\"type\":\"System.Exception\",\"stack_trace\":\"at TestClass.TestMethod()\",\"data\":{\"@ext\":{\"order_number\":10}},\"inner\":{\"message\":\"Inner error message\",\"type\":\"System.NullReferenceException\",\"stack_trace\":\"at InnerTestClass.InnerTestMethod()\",\"data\":{},\"inner\":null}}", json);
         }
 
         [Fact]
@@ -337,7 +337,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new[] { nameof(SampleModel.Date), nameof(SampleModel.Number), nameof(SampleModel.Rating), nameof(SampleModel.Bool), nameof(SampleModel.DateOffset), nameof(SampleModel.Direction), nameof(SampleModel.Collection), nameof(SampleModel.Dictionary), nameof(SampleModel.Nested) });
 
             // Assert
-            Assert.Equal("{\"Message\":\"Testing\"}", json);
+            Assert.Equal("{\"message\":\"Testing\"}", json);
         }
 
         [Fact]
@@ -358,8 +358,9 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new[] { nameof(NestedModel.Number) });
 
             // Assert
-            Assert.Equal("{\"Message\":\"Testing\",\"Nested\":{\"Message\":\"Nested\",\"Nested\":null}}", json);
+            Assert.Equal("{\"message\":\"Testing\",\"nested\":{\"message\":\"Nested\",\"nested\":null}}", json);
         }
+
 
         [Fact]
         public void Serialize_ModelWithNullValues_ShouldIncludeNullObjects() {
@@ -371,7 +372,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data);
 
             // Assert
-            Assert.Equal("{\"Number\":0,\"Bool\":false,\"Message\":null,\"Collection\":null,\"Dictionary\":null,\"DataDictionary\":null}", json);
+            Assert.Equal("{\"number\":0,\"bool\":false,\"message\":null,\"collection\":null,\"dictionary\":null,\"data_dictionary\":null}", json);
         }
 
         [Fact]
@@ -396,7 +397,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(user, exclusions, maxDepth: 2);
 
             // Assert
-            Assert.Equal("{\"FirstName\":\"John\",\"LastName\":\"Doe\",\"Billing\":{\"ExpirationMonth\":10,\"ExpirationYear\":2020}}", json);
+            Assert.Equal("{\"first_name\":\"John\",\"last_name\":\"Doe\",\"billing\":{\"expiration_month\":10,\"expiration_year\":2020}}", json);
         }
 
         [Fact]
@@ -409,7 +410,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new []{ nameof(SampleModel.Date), nameof(SampleModel.DateOffset) });
 
             // Assert
-            Assert.Equal("{\"Number\":0,\"Rating\":0.0,\"Bool\":false,\"Direction\":\"North\",\"Message\":null,\"Dictionary\":null,\"Collection\":null,\"Nested\":null}", json);
+            Assert.Equal("{\"number\":0,\"rating\":0,\"bool\":false,\"direction\":\"North\",\"message\":null,\"dictionary\":null,\"collection\":null,\"nested\":null}", json);
             
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
@@ -440,7 +441,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data);
 
             // Assert
-            Assert.Equal("{\"Number\":1,\"Rating\":4.50,\"Bool\":true,\"Direction\":\"North\",\"Date\":\"9999-12-31T23:59:59.9999999\",\"Message\":\"test\",\"DateOffset\":\"9999-12-31T23:59:59.9999999+00:00\",\"Dictionary\":{\"key\":\"value\"},\"Collection\":[\"one\"],\"Nested\":null}", json);
+            Assert.Equal("{\"number\":1,\"rating\":4.50,\"bool\":true,\"direction\":\"North\",\"date\":\"9999-12-31T23:59:59.9999999\",\"message\":\"test\",\"date_offset\":\"9999-12-31T23:59:59.9999999+00:00\",\"dictionary\":{\"key\":\"value\"},\"collection\":[\"one\"],\"nested\":null}", json);
             
             var model = serializer.Deserialize<SampleModel>(json);
             Assert.Equal(data.Number, model.Number);
@@ -469,7 +470,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new[] { nameof(NestedModel.Number) }, maxDepth: 2);
 
             // Assert
-            Assert.Equal("{\"Message\":\"Level 1\",\"Nested\":{\"Message\":\"Level 2\"}}", json);
+            Assert.Equal("{\"message\":\"Level 1\",\"nested\":{\"message\":\"Level 2\"}}", json);
         }
 
         [Fact]
@@ -486,7 +487,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
 
             // Assert
-            Assert.Equal("{\"Collection\":null,\"Dictionary\":null,\"DataDictionary\":null}", json);
+            Assert.Equal("{\"collection\":null,\"dictionary\":null,\"data_dictionary\":null}", json);
         }
 
         [Fact]
@@ -503,7 +504,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
 
             // Assert
-            Assert.Equal("{\"Collection\":[],\"Dictionary\":{},\"DataDictionary\":{}}", json);
+            Assert.Equal("{\"collection\":[],\"dictionary\":{},\"data_dictionary\":{}}", json);
         }
 
         [Fact]
@@ -520,7 +521,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(data, new[] { nameof(DefaultsModel.Message), nameof(DefaultsModel.Bool), nameof(DefaultsModel.Number) });
 
             // Assert
-            Assert.Equal("{\"Collection\":[\"Collection\"],\"Dictionary\":{\"ItEm\":\"Value\"},\"DataDictionary\":{\"ItEm\":\"Value\"}}", json);
+            Assert.Equal("{\"collection\":[\"Collection\"],\"dictionary\":{\"ItEm\":\"Value\"},\"data_dictionary\":{\"ItEm\":\"Value\"}}", json);
         }
 
         [Fact]
@@ -575,7 +576,7 @@ namespace Exceptionless.Tests.Serializer {
             string json = serializer.Serialize(requestInfo, propertiesToExclude);
 
             // Assert
-            Assert.Equal("{\"post_data\":{\"Age\":21}}", json);
+            Assert.Equal("{\"post_data\":{\"age\":21}}", json);
         }
 
         [Fact]
@@ -650,4 +651,5 @@ namespace Exceptionless.Tests.Serializer {
         public int ExpirationMonth { get; set; }
         public int ExpirationYear { get; set; }
     }
+
 }

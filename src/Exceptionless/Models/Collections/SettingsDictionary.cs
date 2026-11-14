@@ -222,16 +222,10 @@ namespace Exceptionless.Models {
             if (type == null)
                 return defaultValue;
 
-            string sourcePrefix;
-            if (!_typeSourceEnabled.TryGetValue(type, out var sourceDictionary)) {
-                sourceDictionary = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-                _typeSourceEnabled.TryAdd(type, sourceDictionary);
-                sourcePrefix = "@@" + type + ":";
-
-                _eventTypes.TryAdd(type, sourcePrefix);
-            } else {
-                sourcePrefix = _eventTypes[type];
-            }
+            // Publish the prefix before the source cache so concurrent first readers
+            // cannot observe a cache whose corresponding event type is still missing.
+            string sourcePrefix = _eventTypes.GetOrAdd(type, eventType => "@@" + eventType + ":");
+            _typeSourceEnabled.GetOrAdd(type, _ => new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase));
 
             // check for exact source match
             if (TryGetValue(sourcePrefix + source, out string settingValue))
