@@ -1,6 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if NET10_0
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
+using Exceptionless.Dependency;
+using Exceptionless.Extensions;
+#endif
 using Exceptionless.Plugins;
 using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
@@ -10,6 +20,103 @@ using Xunit;
 namespace Exceptionless.Tests.Plugins {
     public class ErrorPluginTests : PluginTestBase {
         public ErrorPluginTests(ITestOutputHelper output) : base(output) { }
+
+#if NET10_0
+        private const string ModuleFixtureType = "ModuleIdFixture";
+        private const string ModuleFixtureMethod = "Throw";
+
+        [Fact]
+        public void WillMapDuplicateAssemblyIdentitiesToDistinctEventModules() {
+            var directory = Directory.CreateTempSubdirectory();
+            WeakReference outerContext = null;
+            WeakReference innerContext = null;
+
+            try {
+                VerifyModuleMappings(directory.FullName, out outerContext, out innerContext);
+            } finally {
+                // Windows can hold the assembly files open until the collectible contexts are released.
+                if (OperatingSystem.IsWindows()) {
+                    for (int i = 0; i < 10 && (outerContext?.IsAlive == true || innerContext?.IsAlive == true); i++) {
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                    }
+                }
+
+                directory.Delete(recursive: true);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void VerifyModuleMappings(string directory, out WeakReference outerContextReference, out WeakReference innerContextReference) {
+            const string assemblyName = "Exceptionless.ModuleIdRegressionFixture";
+            const string outerVersion = "1.0.1.0";
+            const string innerVersion = "1.0.2.0";
+            var outerContext = new AssemblyLoadContext("Outer module fixture", isCollectible: true);
+            var innerContext = new AssemblyLoadContext("Inner module fixture", isCollectible: true);
+            outerContextReference = new WeakReference(outerContext, trackResurrection: true);
+            innerContextReference = new WeakReference(innerContext, trackResurrection: true);
+
+            try {
+                string outerPath = Path.Combine(directory, "outer.dll");
+                string innerPath = Path.Combine(directory, "inner.dll");
+                WriteThrowingAssembly(outerPath, assemblyName, outerVersion);
+                WriteThrowingAssembly(innerPath, assemblyName, innerVersion);
+
+                var outerAssembly = outerContext.LoadFromAssemblyPath(outerPath);
+                var innerAssembly = innerContext.LoadFromAssemblyPath(innerPath);
+                Assert.Equal(outerAssembly.FullName, innerAssembly.FullName);
+                Assert.NotSame(outerAssembly, innerAssembly);
+
+                var throwOuter = outerAssembly.GetType(ModuleFixtureType, throwOnError: true).GetMethod(ModuleFixtureMethod).CreateDelegate<Action<Exception>>();
+                var throwInner = innerAssembly.GetType(ModuleFixtureType, throwOnError: true).GetMethod(ModuleFixtureMethod).CreateDelegate<Action<Exception>>();
+                var inner = Record.Exception(() => throwInner(null));
+                var outer = Record.Exception(() => throwOuter(inner));
+
+                using var client = CreateClient(c => c.IncludeModules = true);
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(outer);
+                new ErrorPlugin().Run(context);
+                var serializer = client.Configuration.Resolver.GetJsonSerializer();
+                string json = serializer.Serialize(context.Event);
+                var error = serializer.Deserialize<Event>(json).GetError(serializer);
+
+                Assert.Equal(error.Modules.Count, error.Modules.Select(m => m.ModuleId).Distinct().Count());
+                var fixtureModules = error.Modules.Where(m => m.Name == assemblyName).ToList();
+                Assert.Equal(2, fixtureModules.Count);
+                var outerModule = Assert.Single(fixtureModules, m => m.Version == outerVersion);
+                var innerModule = Assert.Single(fixtureModules, m => m.Version == innerVersion);
+                Assert.True(outerModule.ModuleId > 0);
+                Assert.True(innerModule.ModuleId > 0);
+                Assert.Equal(outerModule.ModuleId, Assert.Single(error.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId);
+                Assert.Equal(innerModule.ModuleId, Assert.Single(error.Inner.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId);
+
+                var nextError = Record.Exception(() => throwOuter(null)).ToErrorModel(client);
+                var originalModule = Assert.Single(context.Event.GetError().Modules, m => m.ModuleId == outerModule.ModuleId);
+                var nextModule = Assert.Single(nextError.Modules, m => m.Name == assemblyName && m.Version == outerVersion);
+                Assert.NotSame(originalModule, nextModule);
+                Assert.NotSame(originalModule.Data, nextModule.Data);
+            } finally {
+                innerContext.Unload();
+                outerContext.Unload();
+            }
+        }
+
+        private static void WriteThrowingAssembly(string path, string name, string fileVersion) {
+            var assembly = new PersistedAssemblyBuilder(new AssemblyName(name) { Version = new Version(1, 0, 0, 0) }, typeof(object).Assembly);
+            var versionConstructor = typeof(AssemblyFileVersionAttribute).GetConstructor(new[] { typeof(string) });
+            assembly.SetCustomAttribute(new CustomAttributeBuilder(versionConstructor, new object[] { fileVersion }));
+            var type = assembly.DefineDynamicModule(name).DefineType(ModuleFixtureType, TypeAttributes.Public);
+            var method = type.DefineMethod(ModuleFixtureMethod, MethodAttributes.Public | MethodAttributes.Static, typeof(void), new[] { typeof(Exception) });
+            method.SetImplementationFlags(MethodImplAttributes.NoInlining);
+            var il = method.GetILGenerator();
+            il.Emit(OpCodes.Ldstr, "Synthetic module exception");
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(new[] { typeof(string), typeof(Exception) }));
+            il.Emit(OpCodes.Throw);
+            type.CreateType();
+            assembly.Save(path);
+        }
+#endif
 
         [Fact]
         public void WillPreserveLineBreaks() {

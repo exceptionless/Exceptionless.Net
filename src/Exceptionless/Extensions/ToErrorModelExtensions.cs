@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -16,7 +16,7 @@ using StackFrame = System.Diagnostics.StackFrame;
 
 namespace Exceptionless {
     internal static class ToErrorModelExtensions {
-        private static readonly ConcurrentDictionary<string, Module> _moduleCache = new ConcurrentDictionary<string, Module>();
+        private static readonly ConditionalWeakTable<Assembly, Module> _moduleMetadata = new ConditionalWeakTable<Assembly, Module>();
         private static readonly string[] _exceptionExclusions = {
             "@exceptionless", "Data", "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
             "Message", "Source", "StackTrace", "TargetSite", "HResult",
@@ -35,10 +35,11 @@ namespace Exceptionless {
             if (client == null)
                 client = ExceptionlessClient.Default;
 
-            return ToErrorModelInternal(exception, client);
+            var moduleIds = client.Configuration.IncludeModules ? new Dictionary<Assembly, int>() : null;
+            return ToErrorModelInternal(exception, client, moduleIds);
         }
 
-        private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, bool isInner = false) {
+        private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, Dictionary<Assembly, int> moduleIds, bool isInner = false) {
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
             string typeName = type.GetTypeDisplayName();
@@ -48,10 +49,10 @@ namespace Exceptionless {
                 Type = typeName
             };
 
-            if (!isInner && client.Configuration.IncludeModules)
-                error.Modules = GetLoadedModules(log);
+            if (!isInner && moduleIds != null)
+                error.Modules = GetLoadedModules(log, moduleIds: moduleIds);
 
-            error.PopulateStackTrace(error, exception, log);
+            error.PopulateStackTrace(exception, log, moduleIds);
 
             try {
                 PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
@@ -65,7 +66,7 @@ namespace Exceptionless {
             try {
                 if (exception.TargetSite != null) {
                     error.TargetMethod = new Method();
-                    error.TargetMethod.PopulateMethod(error, exception.TargetSite);
+                    error.TargetMethod.PopulateMethod(exception.TargetSite, moduleIds);
                 }
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating TargetMethod: " + ex.Message);
@@ -116,7 +117,7 @@ namespace Exceptionless {
             }
 
             if (exception.InnerException != null)
-                error.Inner = ToErrorModelInternal(exception.InnerException, client, true);
+                error.Inner = ToErrorModelInternal(exception.InnerException, client, moduleIds, isInner: true);
 
             return error;
         }
@@ -145,7 +146,7 @@ namespace Exceptionless {
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
         }
 
-        internal static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
+        internal static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false, Dictionary<Assembly, int> moduleIds = null) {
             var modules = new ModuleCollection();
             try {
                 int id = 1;
@@ -178,6 +179,7 @@ namespace Exceptionless {
                     var module = assembly.ToModuleInfo();
                     module.ModuleId = id;
                     modules.Add(module);
+                    moduleIds?.Add(assembly, id);
 
                     id++;
                 }
@@ -188,7 +190,7 @@ namespace Exceptionless {
             return modules;
         }
 
-        private static void PopulateStackTrace(this Error error, Error root, Exception exception, IExceptionlessLog log) {
+        private static void PopulateStackTrace(this Error error, Exception exception, IExceptionlessLog log, Dictionary<Assembly, int> moduleIds) {
             StackFrame[] frames = null;
             try {
                 var st = new EnhancedStackTrace(exception);
@@ -220,7 +222,7 @@ namespace Exceptionless {
                 }
 
                 try {
-                    stackFrame.PopulateMethod(root, frame.GetMethod());
+                    stackFrame.PopulateMethod(frame.GetMethod(), moduleIds);
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame method info: " + ex.Message);
                 }
@@ -229,7 +231,7 @@ namespace Exceptionless {
             }
         }
 
-        private static void PopulateMethod(this Method method, Error root, MethodBase methodBase) {
+        private static void PopulateMethod(this Method method, MethodBase methodBase, Dictionary<Assembly, int> moduleIds) {
             if (methodBase == null)
                 return;
 
@@ -267,16 +269,7 @@ namespace Exceptionless {
                 method.Parameters.Add(parm);
             }
 
-            method.ModuleId = GetModuleId(root, methodBase.Module);
-        }
-
-        private static int GetModuleId(Error root, System.Reflection.Module module) {
-            foreach (Module mod in root.Modules) {
-                if (module.Assembly.FullName.StartsWith(mod.Name, StringComparison.OrdinalIgnoreCase))
-                    return mod.ModuleId;
-            }
-
-            return -1;
+            method.ModuleId = moduleIds != null && moduleIds.TryGetValue(methodBase.Module.Assembly, out int moduleId) ? moduleId : -1;
         }
 
         public static Module ToModuleInfo(this System.Reflection.Module module) {
@@ -287,11 +280,11 @@ namespace Exceptionless {
             if (assembly == null)
                 return null;
 
-            return _moduleCache.GetOrAdd(assembly.FullName, k => {
+            var metadata = _moduleMetadata.GetValue(assembly, a => {
                 var mod = new Module();
-                var name = assembly.GetAssemblyName();
-                string infoVersion = assembly.GetInformationalVersion();
-                string fileVersion = assembly.GetFileVersion();
+                var name = a.GetAssemblyName();
+                string infoVersion = a.GetInformationalVersion();
+                string fileVersion = a.GetFileVersion();
 
                 if (name != null) {
                     mod.Name = name.Name;
@@ -311,19 +304,28 @@ namespace Exceptionless {
                 if (!String.IsNullOrEmpty(fileVersion) && fileVersion != mod.Version)
                     mod.Data["FileVersion"] = fileVersion;
 
-                DateTime? creationTime = assembly.GetCreationTime();
+                DateTime? creationTime = a.GetCreationTime();
                 if (creationTime.HasValue)
                     mod.CreatedDate = creationTime.Value;
 
-                DateTime? lastWriteTime = assembly.GetLastWriteTime();
+                DateTime? lastWriteTime = a.GetLastWriteTime();
                 if (lastWriteTime.HasValue)
                     mod.ModifiedDate = lastWriteTime.Value;
 
-                if (assembly == Assembly.GetEntryAssembly())
+                if (a == Assembly.GetEntryAssembly())
                     mod.IsEntry = true;
 
                 return mod;
             });
+
+            return new Module {
+                Name = metadata.Name,
+                Version = metadata.Version,
+                IsEntry = metadata.IsEntry,
+                CreatedDate = metadata.CreatedDate,
+                ModifiedDate = metadata.ModifiedDate,
+                Data = new DataDictionary(metadata.Data)
+            };
         }
     }
 }
