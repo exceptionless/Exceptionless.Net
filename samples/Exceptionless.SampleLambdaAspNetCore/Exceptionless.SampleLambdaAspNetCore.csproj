@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.102.1" />
-    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="10.2.2" />
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="10.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.AspNetCore\Exceptionless.AspNetCore.csproj" />
