@@ -16,7 +16,7 @@ using StackFrame = System.Diagnostics.StackFrame;
 
 namespace Exceptionless {
     internal static class ToErrorModelExtensions {
-        private const int MaxCachedModules = 512;
+        private const int MaxCachedModules = 1024;
         private static readonly ConcurrentDictionary<string, CachedModule> _moduleCache = new ConcurrentDictionary<string, CachedModule>(StringComparer.Ordinal);
         private static readonly Queue<string> _cachedPaths = new Queue<string>();
         private static readonly string[] _exceptionExclusions = {
@@ -156,6 +156,7 @@ namespace Exceptionless {
             var modules = new ModuleCollection();
             try {
                 int id = 1;
+                var entryAssembly = Assembly.GetEntryAssembly();
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                     if (!includeDynamic && assembly.IsDynamic)
                         continue;
@@ -187,7 +188,7 @@ namespace Exceptionless {
                     }
 
                     // A single large inventory must not evict every entry on each error.
-                    var module = ToModuleInfo(assembly, path, cacheMetadata: id <= MaxCachedModules);
+                    var module = ToModuleInfo(assembly, path, entryAssembly, cacheMetadata: id <= MaxCachedModules);
                     module.ModuleId = id;
                     modules.Add(module);
                     moduleIds?.Add(assembly, id);
@@ -288,13 +289,13 @@ namespace Exceptionless {
         }
 
         public static Module ToModuleInfo(this Assembly assembly) {
-            return ToModuleInfo(assembly, null, cacheMetadata: true);
-        }
-
-        private static Module ToModuleInfo(Assembly assembly, string path, bool cacheMetadata) {
             if (assembly == null)
                 return null;
 
+            return ToModuleInfo(assembly, null, Assembly.GetEntryAssembly(), cacheMetadata: true);
+        }
+
+        private static Module ToModuleInfo(Assembly assembly, string path, Assembly entryAssembly, bool cacheMetadata) {
             Guid versionId = Guid.Empty;
             if (cacheMetadata) {
                 try {
@@ -308,7 +309,7 @@ namespace Exceptionless {
             }
 
             var module = versionId == Guid.Empty ? ReadModuleMetadata(assembly) : CopyCachedMetadata(assembly, path, versionId);
-            module.IsEntry = assembly == Assembly.GetEntryAssembly();
+            module.IsEntry = assembly == entryAssembly;
             return module;
         }
 
