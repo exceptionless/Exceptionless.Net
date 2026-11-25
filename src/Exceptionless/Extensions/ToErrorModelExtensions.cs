@@ -158,23 +158,8 @@ namespace Exceptionless {
             try {
                 var entryAssembly = Assembly.GetEntryAssembly();
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                    if (!includeDynamic && assembly.IsDynamic)
-                        continue;
-
-                    string path = null;
-                    try {
-                        if (!includeDynamic) {
-                            path = assembly.Location;
-                            if (String.IsNullOrEmpty(path))
-                                continue;
-                        }
-                    } catch (SecurityException ex) {
-                        const string message = "An error occurred while getting the Assembly.Location value. This error will occur when when you are not running under full trust.";
-                        log.Error(typeof(ExceptionlessClient), ex, message);
-                    }
-
                     // A single large inventory must not evict every entry on each error.
-                    var module = ToModuleInfo(assembly, path, modules.Count < MaxCachedModules, includeSystem, log);
+                    var module = TryGetModuleInfo(assembly, modules.Count < MaxCachedModules, includeSystem, includeDynamic, log);
                     if (module == null)
                         continue;
 
@@ -289,9 +274,32 @@ namespace Exceptionless {
             if (assembly == null)
                 return null;
 
-            var module = ToModuleInfo(assembly, null, cacheMetadata: true, includeSystem: true, log: null);
-            module.IsEntry = assembly == Assembly.GetEntryAssembly();
+            var module = TryGetModuleInfo(assembly, cacheMetadata: true, includeSystem: true, includeDynamic: true, log: null);
+            if (module != null)
+                module.IsEntry = assembly == Assembly.GetEntryAssembly();
             return module;
+        }
+
+        private static Module TryGetModuleInfo(Assembly assembly, bool cacheMetadata, bool includeSystem, bool includeDynamic, IExceptionlessLog log) {
+            try {
+                string path = null;
+                if (!includeDynamic) {
+                    if (assembly.IsDynamic)
+                        return null;
+                    try {
+                        path = assembly.Location;
+                        if (String.IsNullOrEmpty(path))
+                            return null;
+                    } catch (SecurityException ex) {
+                        log?.Error(typeof(ExceptionlessClient), ex, "Assembly.Location is unavailable under partial trust.");
+                    }
+                }
+
+                return ToModuleInfo(assembly, path, cacheMetadata, includeSystem, log);
+            } catch (Exception ex) {
+                log?.Error(typeof(ExceptionlessClient), ex, "Error reading module metadata.");
+                return null;
+            }
         }
 
         private static Module ToModuleInfo(Assembly assembly, string path, bool cacheMetadata, bool includeSystem, IExceptionlessLog log) {
@@ -318,7 +326,7 @@ namespace Exceptionless {
                     if (metadata == null) {
                         name = assembly.GetAssemblyName();
                         var token = name.GetPublicKeyToken();
-                        publicKeyToken = token.Length == 0 ? null : token.ToHex();
+                        publicKeyToken = token?.Length > 0 ? token.ToHex() : null;
                     }
 
                     if (_msPublicKeyTokens.Contains(publicKeyToken) || assembly.IsDefined(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute), inherit: false))
@@ -333,6 +341,7 @@ namespace Exceptionless {
                 if (versionId == Guid.Empty)
                     return metadata;
 
+                // Publish and evict under the same lock so each cached path is queued exactly once.
                 lock (_cachedPaths) {
                     if (!_moduleCache.ContainsKey(path)) {
                         if (_cachedPaths.Count == MaxCachedModules)
@@ -372,14 +381,14 @@ namespace Exceptionless {
 
             if (name != null) {
                 mod.Name = name.Name;
-                mod.Version = infoVersion ?? fileVersion ?? name.Version.ToString();
+                string version = name.Version?.ToString();
+                mod.Version = infoVersion ?? fileVersion ?? version;
                 byte[] pkt = name.GetPublicKeyToken();
-                if (pkt.Length > 0)
+                if (pkt?.Length > 0)
                     mod.Data["PublicKeyToken"] = pkt.ToHex();
 
-                var version = name.Version.ToString();
                 if (!String.IsNullOrEmpty(version) && version != mod.Version)
-                    mod.Data["Version"] = name.Version.ToString();
+                    mod.Data["Version"] = version;
             }
 
             if (!String.IsNullOrEmpty(infoVersion) && infoVersion != mod.Version)

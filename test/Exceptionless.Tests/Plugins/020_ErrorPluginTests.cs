@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 #endif
+using System.Threading.Tasks;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
 using Exceptionless.Plugins;
@@ -115,49 +116,51 @@ namespace Exceptionless.Tests.Plugins {
 
             var throwOuter = (Action<Exception>)outerAssembly.GetType(ModuleFixtureType, throwOnError: true).GetMethod(ModuleFixtureMethod).CreateDelegate(typeof(Action<Exception>));
             var throwInner = (Action<Exception>)innerAssembly.GetType(ModuleFixtureType, throwOnError: true).GetMethod(ModuleFixtureMethod).CreateDelegate(typeof(Action<Exception>));
-            var inner = Record.Exception(() => throwInner(null));
-            var outer = Record.Exception(() => throwOuter(inner));
-
             using var client = new ExceptionlessClient(c => {
                 c.IncludeModules = true;
                 c.UpdateSettingsWhenIdleInterval = TimeSpan.Zero;
             });
-            var context = new EventPluginContext(client, new Event());
-            context.ContextData.SetException(outer);
-            new ErrorPlugin().Run(context);
+            var events = new Event[4];
+            Parallel.For(0, events.Length, i => {
+                var inner = Record.Exception(() => throwInner(null));
+                var context = new EventPluginContext(client, new Event());
+                context.ContextData.SetException(Record.Exception(() => throwOuter(inner)));
+                new ErrorPlugin().Run(context);
+                events[i] = context.Event;
+            });
+
             var serializer = client.Configuration.Resolver.GetJsonSerializer();
-            string json = serializer.Serialize(context.Event);
-            var error = serializer.Deserialize<Event>(json).GetError(serializer);
+            foreach (var captured in events) {
+                var error = serializer.Deserialize<Event>(serializer.Serialize(captured)).GetError(serializer);
+                Assert.Equal(Enumerable.Range(1, error.Modules.Count), error.Modules.Select(m => m.ModuleId));
+                var fixtureModules = error.Modules.Where(m => m.Name == FixtureAssemblyName).ToList();
+                Assert.Equal(2, fixtureModules.Count);
+                int outerId = Assert.Single(error.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
+                int innerId = Assert.Single(error.Inner.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
+                Assert.NotEqual(outerId, innerId);
+                Assert.Equal(outerVersion, Assert.Single(fixtureModules, m => m.ModuleId == outerId).Version);
+                Assert.Equal(innerVersion, Assert.Single(fixtureModules, m => m.ModuleId == innerId).Version);
+#if NET45
+                Assert.Equal(outerId, error.TargetMethod.ModuleId);
+                Assert.Equal(innerId, error.Inner.TargetMethod.ModuleId);
+#endif
+                var module = Assert.Single(captured.GetError().Modules, m => m.ModuleId == outerId);
+                Assert.Equal(File.GetCreationTimeUtc(outerAssembly.Location), module.CreatedDate);
+                Assert.Equal(File.GetLastWriteTimeUtc(outerAssembly.Location), module.ModifiedDate);
+                Assert.Equal("1.0.0.0", module.Data["Version"]);
+                module.Data["Version"] = "changed on the event";
+            }
 
-            Assert.Equal(Enumerable.Range(1, error.Modules.Count), error.Modules.Select(m => m.ModuleId));
-            var fixtureModules = error.Modules.Where(m => m.Name == FixtureAssemblyName).ToList();
-            Assert.Equal(2, fixtureModules.Count);
-            int outerId = Assert.Single(error.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
-            int innerId = Assert.Single(error.Inner.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
-            Assert.True(outerId > 0);
-            Assert.True(innerId > 0);
-            Assert.NotEqual(outerId, innerId);
-            Assert.Equal(outerVersion, Assert.Single(fixtureModules, m => m.ModuleId == outerId).Version);
-            Assert.Equal(innerVersion, Assert.Single(fixtureModules, m => m.ModuleId == innerId).Version);
-
-            var originalModule = Assert.Single(context.Event.GetError().Modules, m => m.ModuleId == outerId);
-            Assert.Equal(File.GetCreationTimeUtc(outerAssembly.Location), originalModule.CreatedDate);
-            Assert.Equal(File.GetLastWriteTimeUtc(outerAssembly.Location), originalModule.ModifiedDate);
-            originalModule.Data["Version"] = "changed on the event";
-            var nextError = Record.Exception(() => throwOuter(null)).ToErrorModel(client);
+            var nextInner = Record.Exception(() => throwInner(null));
+            var outer = Record.Exception(() => throwOuter(nextInner));
+            var nextError = outer.ToErrorModel(client);
             int nextId = Assert.Single(nextError.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
             var nextModule = Assert.Single(nextError.Modules, m => m.ModuleId == nextId);
-            Assert.NotSame(originalModule, nextModule);
-            Assert.NotSame(originalModule.Data, nextModule.Data);
             Assert.Equal("1.0.0.0", nextModule.Data["Version"]);
             var filtered = Record.Exception(() => Enumerable.Empty<int>().First()).ToErrorModel(client);
             var frameworkFrames = filtered.StackTrace.Where(f => f.DeclaringNamespace == typeof(Enumerable).Namespace).ToList();
             Assert.NotEmpty(frameworkFrames);
             Assert.All(frameworkFrames, frame => Assert.Equal(-1, frame.ModuleId));
-#if NET45
-            Assert.Equal(outerId, error.TargetMethod.ModuleId);
-            Assert.Equal(innerId, error.Inner.TargetMethod.ModuleId);
-#endif
             var simple = outer.ToSimpleErrorModel(client);
             Assert.Equal(2, simple.Modules.Where(m => m.Name == FixtureAssemblyName).Select(m => m.ModuleId).Distinct().Count());
 
@@ -165,10 +168,10 @@ namespace Exceptionless.Tests.Plugins {
             var withoutModules = outer.ToErrorModel(client);
             Assert.Empty(withoutModules.Modules);
             Assert.Equal(-1, Assert.Single(withoutModules.Inner.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId);
-            return context.Event;
+            return events[0];
         }
 
-        private static void WriteThrowingAssembly(string path, string name, string fileVersion) {
+        private static void WriteThrowingAssembly(string path, string name, string fileVersion, bool ambiguousInformationalVersion = false) {
             var identity = new AssemblyName(name) { Version = new Version(1, 0, 0, 0) };
 #if NET10_0
             var assembly = new PersistedAssemblyBuilder(identity, typeof(object).Assembly);
@@ -179,6 +182,11 @@ namespace Exceptionless.Tests.Plugins {
 #endif
             var versionConstructor = typeof(AssemblyFileVersionAttribute).GetConstructor(new[] { typeof(string) });
             assembly.SetCustomAttribute(new CustomAttributeBuilder(versionConstructor, new object[] { fileVersion }));
+            if (ambiguousInformationalVersion) {
+                var constructor = typeof(AssemblyInformationalVersionAttribute).GetConstructor(new[] { typeof(string) });
+                assembly.SetCustomAttribute(new CustomAttributeBuilder(constructor, new object[] { "first" }));
+                assembly.SetCustomAttribute(new CustomAttributeBuilder(constructor, new object[] { "second" }));
+            }
             var type = module.DefineType(ModuleFixtureType, TypeAttributes.Public);
             var method = type.DefineMethod(ModuleFixtureMethod, MethodAttributes.Public | MethodAttributes.Static, typeof(void), new[] { typeof(Exception) });
             method.SetImplementationFlags(MethodImplAttributes.NoInlining);
@@ -209,7 +217,7 @@ namespace Exceptionless.Tests.Plugins {
             string memoryName = "Synthetic.InMemory" + Guid.NewGuid().ToString("N");
             string path = Path.Combine(Path.GetTempPath(), memoryName + ".dll");
             try {
-                WriteThrowingAssembly(path, memoryName, "1.2.3.4");
+                WriteThrowingAssembly(path, memoryName, "1.2.3.4", ambiguousInformationalVersion: true);
                 var memoryAssembly = Assembly.Load(File.ReadAllBytes(path));
                 Assert.Empty(memoryAssembly.Location);
                 Assert.Equal("1.2.3.4", memoryAssembly.ToModuleInfo().Version);
@@ -229,6 +237,14 @@ namespace Exceptionless.Tests.Plugins {
                 var generated = typeof(System.CodeDom.Compiler.GeneratedCodeAttribute).GetConstructor(new[] { typeof(string), typeof(string) });
                 dynamicAssembly.SetCustomAttribute(new CustomAttributeBuilder(generated, new object[] { "Synthetic", "1" }));
                 Assert.DoesNotContain(ToErrorModelExtensions.GetLoadedModules(log, includeDynamic: true), m => m.Name == name.Name);
+
+                // A malformed attribute on one assembly must not interrupt the inventory.
+                var fileVersion = typeof(AssemblyFileVersionAttribute).GetConstructor(new[] { typeof(string) });
+                dynamicAssembly.SetCustomAttribute(fileVersion, new byte[] { 0, 0 });
+                Assert.Null(dynamicModule.ToModuleInfo());
+                var remaining = ToErrorModelExtensions.GetLoadedModules(log, includeSystem: true, includeDynamic: true);
+                Assert.DoesNotContain(remaining, m => m.Name == name.Name);
+                Assert.Contains(remaining, m => m.Name == memoryName && m.Version == "1.2.3.4");
             } finally {
                 File.Delete(path);
             }
