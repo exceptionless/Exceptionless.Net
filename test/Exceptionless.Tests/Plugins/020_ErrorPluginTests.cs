@@ -25,29 +25,34 @@ namespace Exceptionless.Tests.Plugins {
         private const string ModuleFixtureType = "ModuleIdFixture";
         private const string ModuleFixtureMethod = "Throw";
 
-        [Fact]
-        public void WillMapDuplicateAssemblyIdentitiesToDistinctEventModules() {
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void WillMapDuplicateAssemblyIdentitiesToDistinctEventModules(bool loadSameFile) {
             var directory = Directory.CreateTempSubdirectory();
             WeakReference outerContext = null;
             WeakReference innerContext = null;
+            Event capturedEvent;
 
             try {
-                VerifyModuleMappings(directory.FullName, out outerContext, out innerContext);
+                capturedEvent = VerifyModuleMappings(directory.FullName, loadSameFile, out outerContext, out innerContext);
             } finally {
-                // Windows can hold the assembly files open until the collectible contexts are released.
-                if (OperatingSystem.IsWindows()) {
-                    for (int i = 0; i < 10 && (outerContext?.IsAlive == true || innerContext?.IsAlive == true); i++) {
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
-                    }
+                for (int i = 0; i < 10 && (outerContext?.IsAlive == true || innerContext?.IsAlive == true); i++) {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                 }
 
                 directory.Delete(recursive: true);
             }
+
+            Assert.False(outerContext.IsAlive);
+            Assert.False(innerContext.IsAlive);
+            // A queued event can outlive the assemblies that produced its stack frames.
+            GC.KeepAlive(capturedEvent);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void VerifyModuleMappings(string directory, out WeakReference outerContextReference, out WeakReference innerContextReference) {
+        private Event VerifyModuleMappings(string directory, bool loadSameFile, out WeakReference outerContextReference, out WeakReference innerContextReference) {
             const string assemblyName = "Exceptionless.ModuleIdRegressionFixture";
             const string outerVersion = "1.0.1.0";
             const string innerVersion = "1.0.2.0";
@@ -58,9 +63,10 @@ namespace Exceptionless.Tests.Plugins {
 
             try {
                 string outerPath = Path.Combine(directory, "outer.dll");
-                string innerPath = Path.Combine(directory, "inner.dll");
+                string innerPath = loadSameFile ? outerPath : Path.Combine(directory, "inner.dll");
                 WriteThrowingAssembly(outerPath, assemblyName, outerVersion);
-                WriteThrowingAssembly(innerPath, assemblyName, innerVersion);
+                if (!loadSameFile)
+                    WriteThrowingAssembly(innerPath, assemblyName, innerVersion);
 
                 var outerAssembly = outerContext.LoadFromAssemblyPath(outerPath);
                 var innerAssembly = innerContext.LoadFromAssemblyPath(innerPath);
@@ -83,18 +89,21 @@ namespace Exceptionless.Tests.Plugins {
                 Assert.Equal(error.Modules.Count, error.Modules.Select(m => m.ModuleId).Distinct().Count());
                 var fixtureModules = error.Modules.Where(m => m.Name == assemblyName).ToList();
                 Assert.Equal(2, fixtureModules.Count);
-                var outerModule = Assert.Single(fixtureModules, m => m.Version == outerVersion);
-                var innerModule = Assert.Single(fixtureModules, m => m.Version == innerVersion);
-                Assert.True(outerModule.ModuleId > 0);
-                Assert.True(innerModule.ModuleId > 0);
-                Assert.Equal(outerModule.ModuleId, Assert.Single(error.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId);
-                Assert.Equal(innerModule.ModuleId, Assert.Single(error.Inner.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId);
+                int outerId = Assert.Single(error.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
+                int innerId = Assert.Single(error.Inner.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
+                Assert.True(outerId > 0);
+                Assert.True(innerId > 0);
+                Assert.NotEqual(outerId, innerId);
+                Assert.Equal(outerVersion, Assert.Single(fixtureModules, m => m.ModuleId == outerId).Version);
+                Assert.Equal(loadSameFile ? outerVersion : innerVersion, Assert.Single(fixtureModules, m => m.ModuleId == innerId).Version);
 
                 var nextError = Record.Exception(() => throwOuter(null)).ToErrorModel(client);
-                var originalModule = Assert.Single(context.Event.GetError().Modules, m => m.ModuleId == outerModule.ModuleId);
-                var nextModule = Assert.Single(nextError.Modules, m => m.Name == assemblyName && m.Version == outerVersion);
+                var originalModule = Assert.Single(context.Event.GetError().Modules, m => m.ModuleId == outerId);
+                int nextId = Assert.Single(nextError.StackTrace, f => f.DeclaringType == ModuleFixtureType).ModuleId;
+                var nextModule = Assert.Single(nextError.Modules, m => m.ModuleId == nextId);
                 Assert.NotSame(originalModule, nextModule);
                 Assert.NotSame(originalModule.Data, nextModule.Data);
+                return context.Event;
             } finally {
                 innerContext.Unload();
                 outerContext.Unload();

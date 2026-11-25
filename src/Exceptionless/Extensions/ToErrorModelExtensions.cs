@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Security;
 using Exceptionless.Dependency;
 using Exceptionless.Extensions;
@@ -16,7 +16,6 @@ using StackFrame = System.Diagnostics.StackFrame;
 
 namespace Exceptionless {
     internal static class ToErrorModelExtensions {
-        private static readonly ConditionalWeakTable<Assembly, Module> _moduleMetadata = new ConditionalWeakTable<Assembly, Module>();
         private static readonly string[] _exceptionExclusions = {
             "@exceptionless", "Data", "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
             "Message", "Source", "StackTrace", "TargetSite", "HResult",
@@ -162,21 +161,22 @@ namespace Exceptionless {
                         log.Error(typeof(ExceptionlessClient), ex, message);
                     }
 
+                    var name = assembly.GetAssemblyName();
+                    var token = name?.GetPublicKeyToken();
+                    string publicKeyToken = token?.Length > 0 ? token.ToHex() : null;
                     if (!includeSystem) {
                         try {
-                            string publicKeyToken = assembly.GetAssemblyName().GetPublicKeyToken().ToHex();
                             if (_msPublicKeyTokens.Contains(publicKeyToken))
                                 continue;
 
-                            var attrs = assembly.GetCustomAttributes(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute)).ToList();
-                            if (attrs.Count > 0)
+                            if (assembly.IsDefined(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute), inherit: false))
                                 continue;
                         } catch (Exception ex) {
                             log.Error(typeof(ExceptionlessClient), ex, "Error while checking if assembly " + assembly.FullName + " should be added to modules:" + ex.Message);
                         }
                     }
 
-                    var module = assembly.ToModuleInfo();
+                    var module = CreateModule(assembly, name, publicKeyToken);
                     module.ModuleId = id;
                     modules.Add(module);
                     moduleIds?.Add(assembly, id);
@@ -272,60 +272,38 @@ namespace Exceptionless {
             method.ModuleId = moduleIds != null && moduleIds.TryGetValue(methodBase.Module.Assembly, out int moduleId) ? moduleId : -1;
         }
 
-        public static Module ToModuleInfo(this System.Reflection.Module module) {
-            return ToModuleInfo(module.Assembly);
-        }
+        private static Module CreateModule(Assembly assembly, AssemblyName name, string publicKeyToken) {
+            var mod = new Module();
+            string infoVersion = assembly.GetInformationalVersion();
+            string fileVersion = assembly.GetFileVersion();
 
-        public static Module ToModuleInfo(this Assembly assembly) {
-            if (assembly == null)
-                return null;
+            if (name != null) {
+                mod.Name = name.Name;
+                mod.Version = infoVersion ?? fileVersion ?? name.Version.ToString();
+                if (publicKeyToken != null)
+                    mod.Data["PublicKeyToken"] = publicKeyToken;
 
-            var metadata = _moduleMetadata.GetValue(assembly, a => {
-                var mod = new Module();
-                var name = a.GetAssemblyName();
-                string infoVersion = a.GetInformationalVersion();
-                string fileVersion = a.GetFileVersion();
+                var version = name.Version.ToString();
+                if (!String.IsNullOrEmpty(version) && version != mod.Version)
+                    mod.Data["Version"] = version;
+            }
 
-                if (name != null) {
-                    mod.Name = name.Name;
-                    mod.Version = infoVersion ?? fileVersion ?? name.Version.ToString();
-                    byte[] pkt = name.GetPublicKeyToken();
-                    if (pkt.Length > 0)
-                        mod.Data["PublicKeyToken"] = pkt.ToHex();
+            if (!String.IsNullOrEmpty(infoVersion) && infoVersion != mod.Version)
+                mod.Data["ProductVersion"] = infoVersion;
 
-                    var version = name.Version.ToString();
-                    if (!String.IsNullOrEmpty(version) && version != mod.Version)
-                        mod.Data["Version"] = name.Version.ToString();
-                }
+            if (!String.IsNullOrEmpty(fileVersion) && fileVersion != mod.Version)
+                mod.Data["FileVersion"] = fileVersion;
 
-                if (!String.IsNullOrEmpty(infoVersion) && infoVersion != mod.Version)
-                    mod.Data["ProductVersion"] = infoVersion;
+            try {
+                var file = new FileInfo(assembly.Location);
+                mod.ModifiedDate = file.LastWriteTimeUtc;
+                mod.CreatedDate = file.CreationTimeUtc;
+            } catch {
+                // Some assemblies have no accessible file timestamps.
+            }
 
-                if (!String.IsNullOrEmpty(fileVersion) && fileVersion != mod.Version)
-                    mod.Data["FileVersion"] = fileVersion;
-
-                DateTime? creationTime = a.GetCreationTime();
-                if (creationTime.HasValue)
-                    mod.CreatedDate = creationTime.Value;
-
-                DateTime? lastWriteTime = a.GetLastWriteTime();
-                if (lastWriteTime.HasValue)
-                    mod.ModifiedDate = lastWriteTime.Value;
-
-                if (a == Assembly.GetEntryAssembly())
-                    mod.IsEntry = true;
-
-                return mod;
-            });
-
-            return new Module {
-                Name = metadata.Name,
-                Version = metadata.Version,
-                IsEntry = metadata.IsEntry,
-                CreatedDate = metadata.CreatedDate,
-                ModifiedDate = metadata.ModifiedDate,
-                Data = new DataDictionary(metadata.Data)
-            };
+            mod.IsEntry = assembly == Assembly.GetEntryAssembly();
+            return mod;
         }
     }
 }
