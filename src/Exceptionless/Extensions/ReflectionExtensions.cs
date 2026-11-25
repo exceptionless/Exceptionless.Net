@@ -37,13 +37,19 @@ namespace Exceptionless {
         }
 
         public static string GetFileVersion(this Assembly assembly) {
-            var attributes = assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), inherit: false);
-            return attributes.Length == 1 ? ((AssemblyFileVersionAttribute)attributes[0]).Version : null;
+            return assembly.GetSingleVersionAttribute<AssemblyFileVersionAttribute>()?.Version;
         }
 
         public static string GetInformationalVersion(this Assembly assembly) {
-            var attributes = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), inherit: false);
-            return attributes.Length == 1 ? ((AssemblyInformationalVersionAttribute)attributes[0]).InformationalVersion : null;
+            return assembly.GetSingleVersionAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        }
+
+        private static T GetSingleVersionAttribute<T>(this Assembly assembly) where T : Attribute {
+            var matches = assembly.GetCustomAttributes(typeof(T), inherit: false);
+            if (matches.Length is not 1)
+                return null;
+
+            return matches[0] as T;
         }
 
         public static string GetCompany(this Assembly assembly) {

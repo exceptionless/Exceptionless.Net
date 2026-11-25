@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,8 +19,8 @@ using StackFrame = System.Diagnostics.StackFrame;
 namespace Exceptionless {
     internal static class ToErrorModelExtensions {
         private const int MaxCachedModules = 1024;
-        private static readonly ConcurrentDictionary<string, CachedModule> _moduleCache = new ConcurrentDictionary<string, CachedModule>(StringComparer.Ordinal);
-        private static readonly Queue<string> _cachedPaths = new Queue<string>();
+        private static readonly ConcurrentDictionary<string, CachedModule> _moduleCache = new();
+        private static readonly Queue<string> _cachedPaths = new();
         private static readonly string[] _exceptionExclusions = {
             "@exceptionless", "Data", "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
             "Message", "Source", "StackTrace", "TargetSite", "HResult",
@@ -35,14 +36,13 @@ namespace Exceptionless {
         /// ExceptionlessClient.Default.
         /// </param>
         public static Error ToErrorModel(this Exception exception, ExceptionlessClient client = null) {
-            if (client == null)
+            if (client is null)
                 client = ExceptionlessClient.Default;
 
-            var moduleAssemblies = client.Configuration.IncludeModules ? new List<Assembly>() : null;
-            return ToErrorModelInternal(exception, client, moduleAssemblies);
+            return ToErrorModelInternal(exception, client);
         }
 
-        private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, List<Assembly> moduleAssemblies, bool isInner = false) {
+        private static Error ToErrorModelInternal(Exception exception, ExceptionlessClient client, List<Assembly> moduleAssemblies = null, bool isInner = false) {
             var log = client.Configuration.Resolver.GetLog();
             Type type = exception.GetType();
             string typeName = type.GetTypeDisplayName();
@@ -52,10 +52,12 @@ namespace Exceptionless {
                 Type = typeName
             };
 
-            if (!isInner && moduleAssemblies != null)
-                error.Modules = GetLoadedModules(log, false, false, moduleAssemblies);
+            if (!isInner && client.Configuration.IncludeModules) {
+                moduleAssemblies = new List<Assembly>();
+                error.Modules = GetLoadedModules(log, moduleAssemblies: moduleAssemblies);
+            }
 
-            error.PopulateStackTrace(exception, log, moduleAssemblies);
+            error.PopulateStackTrace(moduleAssemblies, exception, log);
 
             try {
                 PropertyInfo info = type.GetProperty("HResult", BindingFlags.Public | BindingFlags.Instance);
@@ -67,9 +69,9 @@ namespace Exceptionless {
 
 #if NET45
             try {
-                if (exception.TargetSite != null) {
+                if (exception.TargetSite is not null) {
                     error.TargetMethod = new Method();
-                    error.TargetMethod.PopulateMethod(exception.TargetSite, moduleAssemblies);
+                    error.TargetMethod.PopulateMethod(moduleAssemblies, exception.TargetSite);
                 }
             } catch (Exception ex) {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating TargetMethod: " + ex.Message);
@@ -119,7 +121,7 @@ namespace Exceptionless {
                 log.Error(typeof(ExceptionlessClient), ex, "Error populating extra exception properties: " + ex.Message);
             }
 
-            if (exception.InnerException != null)
+            if (exception.InnerException is not null)
                 error.Inner = ToErrorModelInternal(exception.InnerException, client, moduleAssemblies, isInner: true);
 
             return error;
@@ -149,21 +151,17 @@ namespace Exceptionless {
             return !String.IsNullOrEmpty(message) ? message : defaultMessage;
         }
 
-        internal static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false) {
-            return GetLoadedModules(log, includeSystem, includeDynamic, null);
-        }
-
-        private static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem, bool includeDynamic, List<Assembly> moduleAssemblies) {
+        internal static ModuleCollection GetLoadedModules(IExceptionlessLog log, bool includeSystem = false, bool includeDynamic = false, List<Assembly> moduleAssemblies = null) {
             var modules = new ModuleCollection();
             try {
                 var entryAssembly = Assembly.GetEntryAssembly();
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                     // A single large inventory must not evict every entry on each error.
-                    var module = TryGetModuleInfo(assembly, modules.Count < MaxCachedModules, includeSystem, includeDynamic, log);
-                    if (module == null)
+                    bool cacheMetadata = modules.Count < MaxCachedModules;
+                    var module = TryGetModuleInfo(assembly, entryAssembly, log, includeSystem, includeDynamic, cacheMetadata);
+                    if (module is null)
                         continue;
 
-                    module.IsEntry = assembly == entryAssembly;
                     module.ModuleId = modules.Count + 1;
                     modules.Add(module);
                     moduleAssemblies?.Add(assembly);
@@ -175,7 +173,7 @@ namespace Exceptionless {
             return modules;
         }
 
-        private static void PopulateStackTrace(this Error error, Exception exception, IExceptionlessLog log, List<Assembly> moduleAssemblies) {
+        private static void PopulateStackTrace(this Error error, List<Assembly> moduleAssemblies, Exception exception, IExceptionlessLog log) {
             StackFrame[] frames = null;
             try {
                 var st = new EnhancedStackTrace(exception);
@@ -207,7 +205,7 @@ namespace Exceptionless {
                 }
 
                 try {
-                    stackFrame.PopulateMethod(frame.GetMethod(), moduleAssemblies);
+                    stackFrame.PopulateMethod(moduleAssemblies, frame.GetMethod());
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error populating StackFrame method info: " + ex.Message);
                 }
@@ -216,8 +214,8 @@ namespace Exceptionless {
             }
         }
 
-        private static void PopulateMethod(this Method method, MethodBase methodBase, List<Assembly> moduleAssemblies) {
-            if (methodBase == null)
+        private static void PopulateMethod(this Method method, List<Assembly> moduleAssemblies, MethodBase methodBase) {
+            if (methodBase is null)
                 return;
 
             method.Name = methodBase.Name;
@@ -254,10 +252,14 @@ namespace Exceptionless {
                 method.Parameters.Add(parm);
             }
 
-            method.ModuleId = moduleAssemblies == null ? -1 : GetModuleId(moduleAssemblies, methodBase.Module.Assembly);
+            method.ModuleId = GetModuleId(moduleAssemblies, methodBase);
         }
 
-        private static int GetModuleId(List<Assembly> moduleAssemblies, Assembly assembly) {
+        private static int GetModuleId(List<Assembly> moduleAssemblies, MethodBase method) {
+            if (moduleAssemblies is null)
+                return -1;
+
+            var assembly = method.Module.Assembly;
             for (int i = 0; i < moduleAssemblies.Count; i++) {
                 if (ReferenceEquals(moduleAssemblies[i], assembly))
                     return i + 1;
@@ -271,45 +273,40 @@ namespace Exceptionless {
         }
 
         public static Module ToModuleInfo(this Assembly assembly) {
-            if (assembly == null)
+            if (assembly is null)
                 return null;
 
-            var module = TryGetModuleInfo(assembly, cacheMetadata: true, includeSystem: true, includeDynamic: true, log: null);
-            if (module != null)
-                module.IsEntry = assembly == Assembly.GetEntryAssembly();
-            return module;
+            return TryGetModuleInfo(assembly, Assembly.GetEntryAssembly(), log: null, includeSystem: true, includeDynamic: true);
         }
 
-        private static Module TryGetModuleInfo(Assembly assembly, bool cacheMetadata, bool includeSystem, bool includeDynamic, IExceptionlessLog log) {
+        private static Module TryGetModuleInfo(Assembly assembly, Assembly entryAssembly, IExceptionlessLog log,
+            bool includeSystem, bool includeDynamic, bool cacheMetadata = true) {
             try {
                 string path = null;
-                if (!includeDynamic) {
-                    if (assembly.IsDynamic)
-                        return null;
-                    try {
+                try {
+                    if (!assembly.IsDynamic)
                         path = assembly.Location;
-                        if (String.IsNullOrEmpty(path))
-                            return null;
-                    } catch (SecurityException ex) {
-                        log?.Error(typeof(ExceptionlessClient), ex, "Assembly.Location is unavailable under partial trust.");
-                    }
+                    if (!includeDynamic && String.IsNullOrEmpty(path))
+                        return null;
+                } catch (Exception ex) when (includeDynamic || ex is SecurityException) {
+                    log?.Error(typeof(ExceptionlessClient), ex, "Assembly location is unavailable.");
                 }
 
-                return ToModuleInfo(assembly, path, cacheMetadata, includeSystem, log);
+                var module = GetModuleMetadata(assembly, path, cacheMetadata, includeSystem, log);
+                if (module is not null)
+                    module.IsEntry = ReferenceEquals(assembly, entryAssembly);
+                return module;
             } catch (Exception ex) {
                 log?.Error(typeof(ExceptionlessClient), ex, "Error reading module metadata.");
                 return null;
             }
         }
 
-        private static Module ToModuleInfo(Assembly assembly, string path, bool cacheMetadata, bool includeSystem, IExceptionlessLog log) {
+        private static Module GetModuleMetadata(Assembly assembly, string path, bool cacheMetadata, bool includeSystem, IExceptionlessLog log) {
             Guid versionId = Guid.Empty;
-            if (cacheMetadata) {
+            if (cacheMetadata && !String.IsNullOrEmpty(path)) {
                 try {
-                    if (path == null && !assembly.IsDynamic)
-                        path = assembly.Location;
-                    if (!String.IsNullOrEmpty(path))
-                        versionId = assembly.ManifestModule.ModuleVersionId;
+                    versionId = assembly.ManifestModule.ModuleVersionId;
                 } catch {
                     // Restricted reflection can still provide the usual module metadata.
                 }
@@ -320,31 +317,33 @@ namespace Exceptionless {
                 metadata = cached.Metadata;
 
             AssemblyName name = null;
+            string publicKeyToken = null;
+            if (metadata is null) {
+                name = assembly.GetAssemblyName();
+                if (name?.GetPublicKeyToken() is { Length: > 0 } token)
+                    publicKeyToken = token.ToHex();
+            } else {
+                publicKeyToken = metadata.Data.GetString("PublicKeyToken");
+            }
+
             if (!includeSystem) {
                 try {
-                    string publicKeyToken = metadata?.Data.GetString("PublicKeyToken");
-                    if (metadata == null) {
-                        name = assembly.GetAssemblyName();
-                        var token = name.GetPublicKeyToken();
-                        publicKeyToken = token?.Length > 0 ? token.ToHex() : null;
-                    }
-
-                    if (_msPublicKeyTokens.Contains(publicKeyToken) || assembly.IsDefined(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute), inherit: false))
+                    if (_msPublicKeyTokens.Contains(publicKeyToken) || assembly.IsDefined(typeof(GeneratedCodeAttribute), inherit: false))
                         return null;
                 } catch (Exception ex) {
                     log.Error(typeof(ExceptionlessClient), ex, "Error while checking if assembly " + assembly.FullName + " should be added to modules:" + ex.Message);
                 }
             }
 
-            if (metadata == null) {
-                metadata = ReadModuleMetadata(assembly, name, path);
+            if (metadata is null) {
+                metadata = ReadModuleMetadata(assembly, name, publicKeyToken, path);
                 if (versionId == Guid.Empty)
                     return metadata;
 
                 // Publish and evict under the same lock so each cached path is queued exactly once.
                 lock (_cachedPaths) {
                     if (!_moduleCache.ContainsKey(path)) {
-                        if (_cachedPaths.Count == MaxCachedModules)
+                        if (_cachedPaths.Count >= MaxCachedModules)
                             _moduleCache.TryRemove(_cachedPaths.Dequeue(), out _);
                         _cachedPaths.Enqueue(path);
                     }
@@ -373,19 +372,17 @@ namespace Exceptionless {
             public Module Metadata { get; }
         }
 
-        private static Module ReadModuleMetadata(Assembly assembly, AssemblyName name, string path) {
+        private static Module ReadModuleMetadata(Assembly assembly, AssemblyName name, string publicKeyToken, string path) {
             var mod = new Module();
-            name ??= assembly.GetAssemblyName();
             string infoVersion = assembly.GetInformationalVersion();
             string fileVersion = assembly.GetFileVersion();
 
-            if (name != null) {
+            if (name is not null) {
                 mod.Name = name.Name;
                 string version = name.Version?.ToString();
                 mod.Version = infoVersion ?? fileVersion ?? version;
-                byte[] pkt = name.GetPublicKeyToken();
-                if (pkt?.Length > 0)
-                    mod.Data["PublicKeyToken"] = pkt.ToHex();
+                if (publicKeyToken is not null)
+                    mod.Data["PublicKeyToken"] = publicKeyToken;
 
                 if (!String.IsNullOrEmpty(version) && version != mod.Version)
                     mod.Data["Version"] = version;
