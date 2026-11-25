@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.IO;
+using System.Reflection;
 
 namespace Exceptionless {
     internal static class ReflectionExtensions {
@@ -8,6 +10,22 @@ namespace Exceptionless {
             } catch { }
 
             return new AssemblyName(assembly.FullName);
+        }
+
+        public static DateTime? GetCreationTime(this Assembly assembly) {
+            try {
+                return File.GetCreationTimeUtc(assembly.Location);
+            } catch {}
+
+            return null;
+        }
+
+        public static DateTime? GetLastWriteTime(this Assembly assembly) {
+            try {
+                return File.GetLastWriteTimeUtc(assembly.Location);
+            } catch {}
+
+            return null;
         }
 
         public static string GetVersion(this Assembly assembly) {
