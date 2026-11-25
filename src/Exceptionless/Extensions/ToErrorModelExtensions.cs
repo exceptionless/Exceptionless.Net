@@ -53,6 +53,8 @@ namespace Exceptionless {
             };
 
             if (!isInner && client.Configuration.IncludeModules) {
+                // Rebuild the frame lookup once per exception chain because assemblies can load or unload.
+                // Only file-backed module metadata is reused across errors.
                 moduleAssemblies = new List<Assembly>();
                 error.Modules = GetLoadedModules(log, moduleAssemblies: moduleAssemblies);
             }

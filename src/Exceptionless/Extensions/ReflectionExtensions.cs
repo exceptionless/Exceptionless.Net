@@ -45,6 +45,7 @@ namespace Exceptionless {
         }
 
         private static T GetSingleVersionAttribute<T>(this Assembly assembly) where T : Attribute {
+            // Version attributes are single-use. If an emitted assembly repeats one, fall back to the next version source.
             var matches = assembly.GetCustomAttributes(typeof(T), inherit: false);
             if (matches.Length is not 1)
                 return null;
