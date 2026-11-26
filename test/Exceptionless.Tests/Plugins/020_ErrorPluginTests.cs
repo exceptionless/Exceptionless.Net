@@ -236,27 +236,22 @@ namespace Exceptionless.Tests.Plugins {
             }
         }
 
-        [Theory]
-        [InlineData(null, null, "release")]
-        [InlineData("release", null, "release")]
-        [InlineData(null, "9.9.9.9", "release")]
-        [InlineData("other", null, "1.2.3.4")]
-        [InlineData("other", "1.2.3.4", "1.2.3.4")]
-        [InlineData("other", "9.9.9.9", "1.0.0.0")]
-        public void ToModuleInfo_VersionAttributes_UsesMostSpecificUnambiguousVersion(string? extraInfoVersion, string? extraFileVersion, string expected) {
+        [Fact]
+        public void ToModuleInfo_DuplicateVersionAttributes_UsesFirstOfEachKind() {
             // Arrange
-            var versions = new List<CustomAttributeBuilder> { VersionAttribute<AssemblyInformationalVersionAttribute>("release") };
-            if (extraInfoVersion is not null)
-                versions.Add(VersionAttribute<AssemblyInformationalVersionAttribute>(extraInfoVersion));
-            if (extraFileVersion is not null)
-                versions.Add(VersionAttribute<AssemblyFileVersionAttribute>(extraFileVersion));
-            var assembly = LoadInMemory("Synthetic.Version" + Guid.NewGuid().ToString("N"), versions.ToArray());
+            var assembly = LoadInMemory("Synthetic.Version" + Guid.NewGuid().ToString("N"),
+                VersionAttribute<AssemblyInformationalVersionAttribute>("preview"),
+                VersionAttribute<AssemblyInformationalVersionAttribute>("release"),
+                VersionAttribute<AssemblyFileVersionAttribute>("9.9.9.9"));
+            var firstInfo = assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First();
+            var firstFile = assembly.GetCustomAttributes<AssemblyFileVersionAttribute>().First();
 
             // Act
             var module = assembly.ToModuleInfo();
 
             // Assert
-            Assert.Equal(expected, module.Version);
+            Assert.Equal(firstInfo.InformationalVersion, module.Version);
+            Assert.Equal(firstFile.Version, module.Data["FileVersion"]);
         }
 
         [Fact]
