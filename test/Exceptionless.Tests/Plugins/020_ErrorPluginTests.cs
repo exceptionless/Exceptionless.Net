@@ -237,16 +237,19 @@ namespace Exceptionless.Tests.Plugins {
         }
 
         [Theory]
-        [InlineData(false, false, "release")]
-        [InlineData(true, false, "1.2.3.4")]
-        [InlineData(true, true, "1.0.0.0")]
-        public void ToModuleInfo_VersionAttributes_UsesMostSpecificUnambiguousVersion(bool repeatInfo, bool repeatFile, string expected) {
+        [InlineData(null, null, "release")]
+        [InlineData("release", null, "release")]
+        [InlineData(null, "9.9.9.9", "release")]
+        [InlineData("other", null, "1.2.3.4")]
+        [InlineData("other", "1.2.3.4", "1.2.3.4")]
+        [InlineData("other", "9.9.9.9", "1.0.0.0")]
+        public void ToModuleInfo_VersionAttributes_UsesMostSpecificUnambiguousVersion(string? extraInfoVersion, string? extraFileVersion, string expected) {
             // Arrange
             var versions = new List<CustomAttributeBuilder> { VersionAttribute<AssemblyInformationalVersionAttribute>("release") };
-            if (repeatInfo)
-                versions.Add(VersionAttribute<AssemblyInformationalVersionAttribute>("other"));
-            if (repeatFile)
-                versions.Add(VersionAttribute<AssemblyFileVersionAttribute>("9.9.9.9"));
+            if (extraInfoVersion is not null)
+                versions.Add(VersionAttribute<AssemblyInformationalVersionAttribute>(extraInfoVersion));
+            if (extraFileVersion is not null)
+                versions.Add(VersionAttribute<AssemblyFileVersionAttribute>(extraFileVersion));
             var assembly = LoadInMemory("Synthetic.Version" + Guid.NewGuid().ToString("N"), versions.ToArray());
 
             // Act

@@ -37,20 +37,27 @@ namespace Exceptionless {
         }
 
         public static string GetFileVersion(this Assembly assembly) {
-            return assembly.GetSingleVersionAttribute<AssemblyFileVersionAttribute>()?.Version;
+            return assembly.GetVersionAttributeValue<AssemblyFileVersionAttribute>(static attribute => attribute.Version);
         }
 
         public static string GetInformationalVersion(this Assembly assembly) {
-            return assembly.GetSingleVersionAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            return assembly.GetVersionAttributeValue<AssemblyInformationalVersionAttribute>(static attribute => attribute.InformationalVersion);
         }
 
-        private static T GetSingleVersionAttribute<T>(this Assembly assembly) where T : Attribute {
-            // Version attributes are single-use. If an emitted assembly repeats one, fall back to the next version source.
+        private static string GetVersionAttributeValue<T>(this Assembly assembly, Func<T, string> getValue) where T : Attribute {
             var matches = assembly.GetCustomAttributes(typeof(T), inherit: false);
-            if (matches.Length is not 1)
+            if (matches.Length is 0)
                 return null;
 
-            return matches[0] as T;
+            string version = getValue((T)matches[0]);
+            // Emitted assemblies can repeat a single-use attribute. Keep the value when the copies agree.
+            // A conflict skips only this version source, so the module can still use its file or assembly version.
+            for (int i = 1; i < matches.Length; i++) {
+                if (!String.Equals(version, getValue((T)matches[i]), StringComparison.Ordinal))
+                    return null;
+            }
+
+            return version;
         }
 
         public static string GetCompany(this Assembly assembly) {
