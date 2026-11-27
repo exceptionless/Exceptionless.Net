@@ -18,8 +18,9 @@ namespace Exceptionless.Tests.Serializer.Models {
             Assert.Null(new Event { Environment = new string('x', 65) }.Environment);
             Assert.Null(new Event { Environment = "  " }.Environment);
             Assert.Null(new Event { Environment = "Staging West" }.Environment);
-            Assert.NotEqual(new Event { Environment = "production" }, new Event { Environment = "staging" });
-            Assert.NotEqual(new Event { Environment = "Production" }, new Event { Environment = "production" });
+            // The duplicate checker keys on GetHashCode; environments match case-insensitively, like the server.
+            Assert.NotEqual(new Event { Environment = "production" }.GetHashCode(), new Event { Environment = "staging" }.GetHashCode());
+            Assert.Equal(new Event { Environment = "Production" }.GetHashCode(), new Event { Environment = "production" }.GetHashCode());
         }
 
         /* lang=json */
