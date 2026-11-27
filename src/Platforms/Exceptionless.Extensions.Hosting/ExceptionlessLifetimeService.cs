@@ -5,16 +5,25 @@ using Microsoft.Extensions.Hosting;
 namespace Exceptionless.Extensions.Hosting {
     public sealed class ExceptionlessLifetimeService : IHostedLifecycleService {
         private readonly ExceptionlessClient _exceptionlessClient;
+        private readonly IHostEnvironment _hostEnvironment;
         private int _started;
 
-        public ExceptionlessLifetimeService(ExceptionlessClient client) {
+        public ExceptionlessLifetimeService(ExceptionlessClient client) : this(client, null) { }
+
+        /// <summary>
+        /// Creates the lifetime service. The host's environment name becomes the client's deployment environment
+        /// when none was configured.
+        /// </summary>
+        public ExceptionlessLifetimeService(ExceptionlessClient client, IHostEnvironment hostEnvironment) {
             _exceptionlessClient = client;
+            _hostEnvironment = hostEnvironment;
         }
 
         public Task StartingAsync(CancellationToken cancellationToken) {
             if (Interlocked.Exchange(ref _started, 1) == 1)
                 return Task.CompletedTask;
 
+            _exceptionlessClient.Configuration.SetDefaultEnvironment(_hostEnvironment?.EnvironmentName);
             _exceptionlessClient.RegisterAppDomainUnhandledExceptionHandler();
             _exceptionlessClient.RegisterTaskSchedulerUnobservedTaskExceptionHandler();
             return Task.CompletedTask;

@@ -185,6 +185,44 @@ namespace Exceptionless.Tests.Platforms {
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedLifecycleService));
         }
 
+        [Fact]
+        public async System.Threading.Tasks.Task HostBuilder_UseExceptionless_AppliesHostEnvironmentToSuppliedClient() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.SetDefaultEnvironment("detected");
+            using var host = new HostBuilder()
+                .UseEnvironment("Staging")
+                .UseExceptionless()
+                .ConfigureServices(services => services.AddExceptionless(client))
+                .Build();
+            var lifetime = host.Services.GetRequiredService<ExceptionlessLifetimeService>();
+
+            // Act
+            await lifetime.StartingAsync(TestContext.Current.CancellationToken);
+            await lifetime.StopAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal("Staging", client.Configuration.Environment);
+            Assert.False(client.Configuration.IsEnvironmentConfigured);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task LifetimeService_ConfiguredEnvironment_KeepsConfiguredValue() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.SetEnvironment("qa-west");
+            var hostEnvironment = new Mock<IHostEnvironment>();
+            hostEnvironment.SetupGet(e => e.EnvironmentName).Returns("Production");
+            var lifetime = new ExceptionlessLifetimeService(client, hostEnvironment.Object);
+
+            // Act
+            await lifetime.StartingAsync(TestContext.Current.CancellationToken);
+            await lifetime.StopAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal("qa-west", client.Configuration.Environment);
+        }
+
         private static IConfiguration CreateConfiguration(string environment) {
             return new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:Environment"] = environment }).Build();
         }

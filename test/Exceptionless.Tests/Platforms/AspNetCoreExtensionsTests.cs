@@ -11,6 +11,24 @@ using Xunit;
 
 namespace Exceptionless.Tests.Platforms {
     public class AspNetCoreExtensionsTests {
+        [Theory]
+        [InlineData(null, "Staging")]
+        [InlineData("qa-west", "qa-west")]
+        public void UseExceptionless_ClientNotInServices_UsesHostEnvironmentAsFallback(string? configuredEnvironment, string expectedEnvironment) {
+            // Arrange
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Staging" });
+            using var app = builder.Build();
+            using var client = new ExceptionlessClient();
+            if (configuredEnvironment != null)
+                client.Configuration.SetEnvironment(configuredEnvironment);
+
+            // Act
+            app.UseExceptionless(client);
+
+            // Assert
+            Assert.Equal(expectedEnvironment, client.Configuration.Environment);
+        }
+
         [Fact]
         public void AddExceptionlessExceptionHandler_WhenCalled_RegistersAspNetCoreServices() {
             // Arrange

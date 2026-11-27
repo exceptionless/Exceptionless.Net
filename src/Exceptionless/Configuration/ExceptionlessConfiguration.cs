@@ -16,7 +16,11 @@ namespace Exceptionless {
         private string _environment;
         private bool _isEnvironmentSetInCode;
 
-        /// <summary>The default deployment environment for every event. A value set here takes precedence over configuration files and environment variables.</summary>
+        /// <summary>
+        /// The default deployment environment for every event. A value set here takes precedence over configuration files and
+        /// environment variables, which take precedence over the detected host environment. Defaults to the first of
+        /// ASPNETCORE_ENVIRONMENT, DOTNET_ENVIRONMENT or AZURE_FUNCTIONS_ENVIRONMENT that is set.
+        /// </summary>
         public string Environment {
             get => _environment;
             set {
@@ -38,9 +42,12 @@ namespace Exceptionless {
             IsEnvironmentConfigured = true;
         }
 
-        /// <summary>Applies a deployment environment fallback without replacing an explicitly configured value.</summary>
+        /// <summary>
+        /// Applies a detected deployment environment, such as the host's environment name, without replacing an explicitly
+        /// configured value. A null value is ignored so it never clears an environment detected earlier.
+        /// </summary>
         public void SetDefaultEnvironment(string environment) {
-            if (!IsEnvironmentConfigured)
+            if (environment != null && !IsEnvironmentConfigured)
                 _environment = Utility.DeploymentEnvironment.Normalize(environment);
         }
 
@@ -91,6 +98,7 @@ namespace Exceptionless {
             Settings = new SettingsDictionary();
             IncludePrivateInformation = true;
             IncludeModules = true;
+            SetDefaultEnvironment(Utility.DeploymentEnvironment.Detect());
 
             _resolver = resolver;
 
