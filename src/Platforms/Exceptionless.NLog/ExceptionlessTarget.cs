@@ -17,6 +17,12 @@ namespace Exceptionless.NLog {
         public Layout UserIdentity { get; set; }
         public Layout UserIdentityName { get; set; }
 
+        /// <summary>
+        /// The deployment environment for events written by this target, such as <c>production</c> or
+        /// <c>${environment:DOTNET_ENVIRONMENT}</c>. When it renders empty, the client's environment is used.
+        /// </summary>
+        public Layout Environment { get; set; }
+
         [ArrayParameter(typeof(ExceptionlessField), "field")]
         public IList<ExceptionlessField> Fields { get; set; }
 
@@ -81,6 +87,10 @@ namespace Exceptionless.NLog {
             string userIdentity = RenderLogEvent(UserIdentity, logEvent);
             string userIdentityName = RenderLogEvent(UserIdentityName, logEvent);
             builder.Target.SetUserIdentity(userIdentity, userIdentityName);
+
+            string environment = RenderLogEvent(Environment, logEvent);
+            if (!String.IsNullOrWhiteSpace(environment))
+                builder.SetEnvironment(environment);
 
             if (Fields != null) {
                 foreach (var field in Fields) {

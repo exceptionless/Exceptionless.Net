@@ -17,6 +17,27 @@ Startup/configuration paths:
 - Legacy .NET Framework reads app.config/web.config, app settings, attributes, environment variables, and saved server settings.
 - Server settings can update the local `Settings` dictionary after startup.
 
+## Deployment Environment
+
+`Event.Environment` (root `environment` field) drives server filtering, per-environment notifications and the project environment allow-list. It is separate from machine diagnostics in `data.@environment`; do not put environments in `DefaultTags`/`DefaultData`.
+
+The first match in this order wins:
+
+1. **Per event:** `builder.SetEnvironment("staging")`.
+2. **Code:** `config.SetEnvironment("production")` / `config.Environment`.
+3. **Configuration** (last source read wins):
+   - `Exceptionless:Environment` (IConfiguration or app setting)
+   - `Exceptionless__Environment` env var
+   - `[assembly: Exceptionless(..., Environment = "...")]`
+   - `<exceptionless environment="..." />`
+4. **Host:** `IHostEnvironment.EnvironmentName`. Applied by the hosting, ASP.NET Core and lifetime-service integrations.
+5. **Process:** the first of `ASPNETCORE_ENVIRONMENT`, `DOTNET_ENVIRONMENT` or `AZURE_FUNCTIONS_ENVIRONMENT` that is set.
+
+Validation:
+
+- Names are trimmed and must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`. Casing is kept; the server matches case-insensitively.
+- A configured invalid or empty value leaves events unspecified instead of falling back.
+
 ## Code-First Configuration
 
 ```csharp
@@ -28,7 +49,7 @@ var client = new ExceptionlessClient(c => {
     c.ApiKey = "VALID_API_KEY_12345";
     c.ServerUrl = "https://collector.exceptionless.io";
     c.SetVersion("2.4.1");
-    c.DefaultTags.Add("production");
+    c.SetEnvironment("production");
     c.DefaultData["Service"] = "checkout";
     c.Settings["FeatureXYZEnabled"] = "false";
     c.IncludePrivateInformation = false;
@@ -43,20 +64,21 @@ await client.ProcessQueueAsync();
 
 ## appsettings.json
 
-Current `ReadFromConfiguration` supports these keys: `Enabled`, `ApiKey`, `ServerUrl`, `QueueMaxAge`, `QueueMaxAttempts`, `StoragePath`, `StorageSerializer`, `EnableLogging`, `LogPath`, `IncludePrivateInformation`, `ProcessQueueOnCompletedRequest`, `DefaultTags`, `DefaultData`, and `Settings`.
+Current `ReadFromConfiguration` supports these keys: `Enabled`, `ApiKey`, `Environment`, `ServerUrl`, `QueueMaxAge`, `QueueMaxAttempts`, `StoragePath`, `StorageSerializer`, `EnableLogging`, `LogPath`, `IncludePrivateInformation`, `ProcessQueueOnCompletedRequest`, `DefaultTags`, `DefaultData`, and `Settings`.
 
 ```json
 {
   "Exceptionless": {
     "ApiKey": "VALID_API_KEY_12345",
     "ServerUrl": "https://collector.exceptionless.io",
+    "Environment": "production",
     "Enabled": true,
     "StoragePath": "exceptionless-queue",
     "EnableLogging": true,
     "LogPath": "exceptionless-client.log",
     "IncludePrivateInformation": false,
     "ProcessQueueOnCompletedRequest": true,
-    "DefaultTags": [ "api", "production" ],
+    "DefaultTags": [ "api" ],
     "DefaultData": {
       "Service": "checkout",
       "Region": "us-central"
@@ -76,6 +98,8 @@ Both colon and double-underscore names are supported for these current keys:
 ```text
 Exceptionless:ApiKey=VALID_API_KEY_12345
 Exceptionless__ApiKey=VALID_API_KEY_12345
+Exceptionless:Environment=production
+Exceptionless__Environment=production
 Exceptionless:Enabled=true
 Exceptionless__Enabled=true
 Exceptionless:ServerUrl=https://collector.exceptionless.io
@@ -96,9 +120,10 @@ Legacy .NET Framework config section:
   <exceptionless
     apiKey="VALID_API_KEY_12345"
     serverUrl="https://collector.exceptionless.io"
+    environment="production"
     enabled="true"
     includePrivateInformation="false"
-    tags="api,production"
+    tags="api"
     storagePath="C:\Exceptionless\Queue"
     enableLogging="true"
     logPath="C:\Exceptionless\exceptionless.log">
@@ -117,7 +142,7 @@ Legacy .NET Framework config section:
 Assembly attributes:
 
 ```text
-[assembly: Exceptionless.Configuration.Exceptionless("VALID_API_KEY_12345", ServerUrl = "https://collector.exceptionless.io")]
+[assembly: Exceptionless.Configuration.Exceptionless("VALID_API_KEY_12345", ServerUrl = "https://collector.exceptionless.io", Environment = "production")]
 [assembly: Exceptionless.Configuration.ExceptionlessSetting("FeatureXYZEnabled", "false")]
 ```
 

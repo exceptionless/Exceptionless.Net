@@ -71,6 +71,7 @@ namespace Exceptionless {
             var contextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
 
             client.Startup();
+            client.Configuration.SetDefaultEnvironment(app.ApplicationServices.GetService<IHostEnvironment>()?.EnvironmentName);
             client.Configuration.AddPlugin(new ExceptionlessAspNetCorePlugin(contextAccessor));
             client.Configuration.AddPlugin<IgnoreUserAgentPlugin>();
             //client.Configuration.Resolver.Register<ILastReferenceIdManager, WebLastReferenceIdManager>();

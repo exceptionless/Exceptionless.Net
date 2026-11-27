@@ -37,23 +37,30 @@ namespace Exceptionless.Tests.Plugins {
             Assert.True(context.Cancel);
         }
 
-        [Fact]
-        public async Task MultipleInnerException() {
+        [Theory]
+        [InlineData(null, "production")]
+        [InlineData("Staging", "Staging")]
+        [InlineData("", null)]
+        [InlineData("prod\ninvalid", null)]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null)]
+        public async Task MultipleInnerException(string? environment, string? expectedEnvironment) {
             var submissionClient = new InMemorySubmissionClient();
-            var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest");
+            using var client = new ExceptionlessClient("LhhP1C9gijpSKCslHHCvwdSIz298twx271nTest");
             client.Configuration.Resolver.Register<ISubmissionClient>(submissionClient);
+            client.Configuration.Environment = "production";
 
             var plugin = new HandleAggregateExceptionsPlugin();
             var exceptionOne = new Exception("one");
             var exceptionTwo = new Exception("two");
 
-            var context = new EventPluginContext(client, new Event());
+            var context = new EventPluginContext(client, new Event { Environment = environment });
             context.ContextData.SetException(new AggregateException(exceptionOne, exceptionTwo));
             plugin.Run(context);
             Assert.True(context.Cancel);
 
             await client.ProcessQueueAsync();
             Assert.Equal(2, submissionClient.Events.Count);
+            Assert.All(submissionClient.Events, ev => Assert.Equal(expectedEnvironment, ev.Environment));
         }
     }
 }

@@ -6,6 +6,23 @@ using Xunit;
 
 namespace Exceptionless.Tests.Serializer.Models {
     public class EventSerializerTests : SerializerTestBase {
+        [Fact]
+        public void Serialize_DeploymentEnvironment_RoundTripsSeparatelyFromRuntimeMetadata() {
+            var model = new Event { Environment = " Production " };
+            model.Data[Event.KnownDataKeys.EnvironmentInfo] = new EnvironmentInfo { MachineName = "worker-1" };
+            string json = Serialize(model);
+            Assert.Contains("\"environment\":\"Production\"", json);
+            var result = Deserialize<Event>(json);
+            Assert.Equal("Production", result.Environment);
+            Assert.Equal("worker-1", result.GetEnvironmentInfo().MachineName);
+            Assert.Null(new Event { Environment = new string('x', 65) }.Environment);
+            Assert.Null(new Event { Environment = "  " }.Environment);
+            Assert.Null(new Event { Environment = "Staging West" }.Environment);
+            // The duplicate checker keys on GetHashCode; environments match case-insensitively, like the server.
+            Assert.NotEqual(new Event { Environment = "production" }.GetHashCode(), new Event { Environment = "staging" }.GetHashCode());
+            Assert.Equal(new Event { Environment = "Production" }.GetHashCode(), new Event { Environment = "production" }.GetHashCode());
+        }
+
         /* lang=json */
         private const string MinimalJson = """{"type":"log","source":"app","date":"0001-01-01T00:00:00+00:00","tags":[],"message":null,"geo":null,"value":null,"count":null,"data":{},"reference_id":null}""";
         /* lang=json */

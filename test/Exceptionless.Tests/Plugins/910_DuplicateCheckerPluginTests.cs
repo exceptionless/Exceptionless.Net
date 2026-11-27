@@ -14,6 +14,37 @@ using Exceptionless.Extensions;
 namespace Exceptionless.Tests.Plugins {
     public class DuplicateCheckerPluginTests : PluginTestBase {
         public DuplicateCheckerPluginTests(ITestOutputHelper output) : base(output) { }
+
+        [Fact]
+        public void Run_SameEventAcrossEnvironments_OnlyMergesWithinEnvironment() {
+            var client = CreateClient();
+            using (var plugin = new DuplicateCheckerPlugin(TimeSpan.FromMinutes(1))) {
+                foreach (bool duplicate in new[] { false, true }) {
+                    foreach (string environment in new[] { "Production", "staging", null }) {
+                        var builder = client.CreateLog("Environment test").SetEnvironment(environment);
+                        var context = new EventPluginContext(client, builder.Target, builder.PluginContextData);
+                        plugin.Run(context);
+                        Assert.Equal(duplicate, context.Cancel);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Run_EnvironmentCasingDiffers_MergesLikeTheServerMatches() {
+            var client = CreateClient();
+            using (var plugin = new DuplicateCheckerPlugin(TimeSpan.FromMinutes(1))) {
+                var first = client.CreateLog("Environment casing test").SetEnvironment("Production");
+                plugin.Run(new EventPluginContext(client, first.Target, first.PluginContextData));
+
+                var second = client.CreateLog("Environment casing test").SetEnvironment("production");
+                var context = new EventPluginContext(client, second.Target, second.PluginContextData);
+                plugin.Run(context);
+
+                Assert.True(context.Cancel);
+                Assert.Equal(first.Target.GetHashCode(), second.Target.GetHashCode());
+            }
+        }
         
         [Fact]
         public void CanRemoveDuplicateExceptions() {

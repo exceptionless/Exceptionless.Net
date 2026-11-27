@@ -4,6 +4,12 @@ using Exceptionless.Plugins.Default;
 
 namespace Exceptionless {
     public static class EventBuilderExtensions {
+        /// <summary>Overrides the deployment environment for this event.</summary>
+        public static EventBuilder SetEnvironment(this EventBuilder builder, string environment) {
+            builder.Target.Environment = environment;
+            return builder;
+        }
+
         /// <summary>
         /// Sets the user's identity (ie. email address, username, user id) that the event happened to.
         /// </summary>

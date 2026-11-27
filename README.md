@@ -12,6 +12,32 @@ The definition of the word exceptionless is: to be without exception. [Exception
 
 Refer to the Exceptionless documentation here: [Exceptionless Docs](https://exceptionless.com/docs/).
 
+### Deployment environments
+
+Every event can carry a deployment environment, such as `production` or `staging`. The server uses it for filtering, per-environment notifications, and the project's environment allow-list.
+
+```csharp
+client.Configuration.SetEnvironment("production");                         // default for every event
+client.CreateLog("Deployment complete").SetEnvironment("staging").Submit(); // override one event
+```
+
+The first match in this order wins:
+
+| # | Source | Example |
+|---|---|---|
+| 1 | Per event | `builder.SetEnvironment("staging")` |
+| 2 | Code | `config.SetEnvironment("production")`, or `config.Environment` inside `AddExceptionless(c => ...)` |
+| 3 | Configuration (later sources replace earlier ones) | `Exceptionless:Environment` in `appsettings.json` · `Exceptionless__Environment` env var · `[assembly: Exceptionless(..., Environment = "production")]` · `<exceptionless environment="production" />` · `Exceptionless:Environment` app setting |
+| 4 | Host | `IHostEnvironment.EnvironmentName`, for the Generic Host, ASP.NET Core and Worker services |
+| 5 | Process | the first of `ASPNETCORE_ENVIRONMENT`, `DOTNET_ENVIRONMENT` or `AZURE_FUNCTIONS_ENVIRONMENT` that is set |
+
+The NLog target and the log4net appenders also accept an `Environment` setting, which overrides per event. For NLog it can be a layout such as `${environment:DOTNET_ENVIRONMENT}`.
+
+- **Valid names:** names are trimmed, then must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`. Casing is kept and the server matches case-insensitively.
+- **Invalid names:** a configured invalid or empty value, such as `Staging West`, `prod/eu` or `produção`, leaves events unspecified. It does not fall back to a lower source.
+- **Not `data.@environment`:** the event's `environment` is separate from the machine diagnostics in `data.@environment`. Stacks and fixed versions are shared across environments.
+- **Legacy ASP.NET, WinForms and WPF:** these apps have no host environment, so set the environment through configuration or code.
+
 ## Getting Started (Development)
 
 All of our [.NET clients can be installed](https://www.nuget.org/profiles/exceptionless?showAllPackages=True) via the [NuGet package manager](https://docs.nuget.org/consume/Package-Manager-Dialog).

@@ -9,9 +9,14 @@ namespace Exceptionless.Log4net {
         public string ApiKey { get; set; }
         public string ServerUrl { get; set; }
 
+        /// <summary>
+        /// The deployment environment for events written by this appender, such as production. When empty, the client's environment is used.
+        /// </summary>
+        public string Environment { get; set; }
+
         protected override void SendBuffer(LoggingEvent[] events) {
             foreach (var e in events)
-                _client.SubmitFromLogEvent(e);
+                _client.SubmitFromLogEvent(e, Environment);
         }
 
         public override void ActivateOptions() {

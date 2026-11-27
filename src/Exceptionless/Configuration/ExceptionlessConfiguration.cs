@@ -13,6 +13,44 @@ using Exceptionless.Models;
 
 namespace Exceptionless {
     public class ExceptionlessConfiguration {
+        private string _environment;
+        private bool _isEnvironmentSetInCode;
+
+        /// <summary>
+        /// The default deployment environment for every event. A value set here takes precedence over configuration files and
+        /// environment variables, which take precedence over the detected host environment. Defaults to the first of
+        /// ASPNETCORE_ENVIRONMENT, DOTNET_ENVIRONMENT or AZURE_FUNCTIONS_ENVIRONMENT that is set.
+        /// </summary>
+        public string Environment {
+            get => _environment;
+            set {
+                _environment = Utility.DeploymentEnvironment.Normalize(value);
+                IsEnvironmentConfigured = value != null;
+                _isEnvironmentSetInCode = value != null;
+            }
+        }
+
+        /// <summary>Whether an environment was explicitly configured, including an invalid value that remains unspecified.</summary>
+        public bool IsEnvironmentConfigured { get; private set; }
+
+        /// <summary>Applies an environment from a configuration source unless one was set in code. Later sources replace earlier ones.</summary>
+        internal void SetConfiguredEnvironment(string environment) {
+            if (environment == null || _isEnvironmentSetInCode)
+                return;
+
+            _environment = Utility.DeploymentEnvironment.Normalize(environment);
+            IsEnvironmentConfigured = true;
+        }
+
+        /// <summary>
+        /// Applies a detected deployment environment, such as the host's environment name, without replacing an explicitly
+        /// configured value. A null value is ignored so it never clears an environment detected earlier.
+        /// </summary>
+        public void SetDefaultEnvironment(string environment) {
+            if (environment != null && !IsEnvironmentConfigured)
+                _environment = Utility.DeploymentEnvironment.Normalize(environment);
+        }
+
         private const string DEFAULT_SERVER_URL = "https://collector.exceptionless.io";
         private const string DEFAULT_CONFIG_SERVER_URL = "https://config.exceptionless.io";
         private const string DEFAULT_HEARTBEAT_SERVER_URL = "https://heartbeat.exceptionless.io";
@@ -60,6 +98,7 @@ namespace Exceptionless {
             Settings = new SettingsDictionary();
             IncludePrivateInformation = true;
             IncludeModules = true;
+            SetDefaultEnvironment(Utility.DeploymentEnvironment.Detect());
 
             _resolver = resolver;
 

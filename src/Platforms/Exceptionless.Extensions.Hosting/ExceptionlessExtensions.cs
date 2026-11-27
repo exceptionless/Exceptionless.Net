@@ -30,6 +30,7 @@ namespace Exceptionless {
         /// Adds the given pre-configured <see cref="ExceptionlessClient"/> to the host builder and registers lifecycle hooks.
         /// </summary>
         public static IHostApplicationBuilder AddExceptionless(this IHostApplicationBuilder builder, ExceptionlessClient client) {
+            client.Configuration.SetDefaultEnvironment(builder.Environment.EnvironmentName);
             builder.Services.AddExceptionless(client);
             builder.Services.AddExceptionlessLifetimeService();
             return builder;
@@ -90,6 +91,7 @@ namespace Exceptionless {
                     client.Configuration.ReadFromEnvironmentalVariables();
 
                 configure?.Invoke(client.Configuration);
+                client.Configuration.SetDefaultEnvironment(sp.GetService<IHostEnvironment>()?.EnvironmentName);
 
                 return client;
             });
@@ -110,6 +112,7 @@ namespace Exceptionless {
                     client.Configuration.ReadFromConfiguration(configuration);
 
                 configure?.Invoke(client.Configuration);
+                client.Configuration.SetDefaultEnvironment(sp.GetService<IHostEnvironment>()?.EnvironmentName);
 
                 return client;
             });

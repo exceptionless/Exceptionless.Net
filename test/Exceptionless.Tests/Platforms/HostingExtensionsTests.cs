@@ -1,12 +1,152 @@
 #if NET10_0_OR_GREATER
+using System.Collections.Generic;
 using System.Linq;
+using Exceptionless.Configuration;
+using Exceptionless.Dependency;
 using Exceptionless.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Moq;
 using Xunit;
 
 namespace Exceptionless.Tests.Platforms {
     public class HostingExtensionsTests {
+        [Theory]
+        [InlineData(null, "Staging")]
+        [InlineData("production", "production")]
+        [InlineData("", null)]
+        [InlineData(" ", null)]
+        [InlineData("prod\ninvalid", null)]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", null)]
+        public void AddExceptionless_DeploymentEnvironment_UsesHostAsFallback(string? configuredEnvironment, string? expectedEnvironment) {
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Staging" });
+            var client = new ExceptionlessClient();
+            client.Configuration.Environment = configuredEnvironment;
+            builder.AddExceptionless(client);
+
+            using var services = builder.Services.BuildServiceProvider();
+            Assert.Equal(expectedEnvironment, services.GetRequiredService<ExceptionlessClient>().Configuration.Environment);
+        }
+
+        [Fact]
+        public void AddExceptionless_HostFallback_DoesNotBecomeExplicitConfiguration() {
+            using var client = new ExceptionlessClient();
+            var staging = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Staging" });
+            staging.AddExceptionless(client);
+            Assert.Equal("Staging", client.Configuration.Environment);
+            Assert.False(client.Configuration.IsEnvironmentConfigured);
+
+            var production = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
+            production.AddExceptionless(client);
+            Assert.Equal("Production", client.Configuration.Environment);
+            Assert.False(client.Configuration.IsEnvironmentConfigured);
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_Environment_LoadsTrimmedValueAndPreservesMissingSetting() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            var staging = CreateConfiguration(" Staging ");
+            var production = CreateConfiguration("production");
+            var missing = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:ApiKey"] = "test-api-key" }).Build();
+
+            // Act
+            client.Configuration.ReadFromConfiguration(staging);
+            string? afterStaging = client.Configuration.Environment;
+            client.Configuration.ReadFromConfiguration(production);
+            client.Configuration.ReadFromConfiguration(missing);
+
+            // Assert
+            Assert.Equal("Staging", afterStaging);
+            Assert.Equal("production", client.Configuration.Environment);
+            Assert.True(client.Configuration.IsEnvironmentConfigured);
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_EnvironmentSetInCode_KeepsCodeValue() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.ReadFromConfiguration(CreateConfiguration("staging"));
+            client.Configuration.SetEnvironment("qa-west");
+
+            // Act
+            client.Configuration.ReadFromConfiguration(CreateConfiguration("production"));
+
+            // Assert
+            Assert.Equal("qa-west", client.Configuration.Environment);
+        }
+
+        [Fact]
+        public void ReadFromConfiguration_EnvironmentClearedInCode_UsesConfiguration() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.SetEnvironment("qa-west");
+            client.Configuration.Environment = null;
+
+            // Act
+            client.Configuration.ReadFromConfiguration(CreateConfiguration("production"));
+
+            // Assert
+            Assert.Equal("production", client.Configuration.Environment);
+        }
+
+        [Theory]
+        [InlineData(" Staging ", "Staging")]
+        [InlineData(null, "Production")]
+        [InlineData("", null)]
+        public void AddExceptionless_ConfigurationEnvironment_TakesPrecedenceOverHost(string? configuredEnvironment, string? expectedEnvironment) {
+            // Arrange
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
+            if (configuredEnvironment != null)
+                builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:Environment"] = configuredEnvironment });
+
+            try {
+                // Act
+                builder.Services.AddExceptionless(builder.Configuration);
+                using var services = builder.Services.BuildServiceProvider();
+                var client = services.GetRequiredService<ExceptionlessClient>();
+
+                // Assert
+                Assert.Equal(expectedEnvironment, client.Configuration.Environment);
+            } finally {
+                ExceptionlessClient.Default.Configuration.Environment = null;
+            }
+        }
+
+        [Fact]
+        public void AddExceptionless_ConfigureCallback_TakesPrecedenceOverConfigurationAndHost() {
+            // Arrange
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = "Production" });
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:Environment"] = "staging" });
+
+            try {
+                // Act
+                builder.Services.AddExceptionless(configuration => configuration.SetEnvironment("qa-west"));
+                using var services = builder.Services.BuildServiceProvider();
+                var client = services.GetRequiredService<ExceptionlessClient>();
+
+                // Assert
+                Assert.Equal("qa-west", client.Configuration.Environment);
+            } finally {
+                ExceptionlessClient.Default.Configuration.Environment = null;
+            }
+        }
+
+        [Fact]
+        public void AddExceptionless_ProvidedClient_RemainsOwnedByCaller() {
+            var resolver = new Mock<IDependencyResolver>();
+            using var client = new ExceptionlessClient(new ExceptionlessConfiguration(resolver.Object));
+            var builder = Host.CreateApplicationBuilder();
+            builder.AddExceptionless(client);
+
+            using (var services = builder.Services.BuildServiceProvider()) {
+                Assert.Same(client, services.GetRequiredService<ExceptionlessClient>());
+            }
+
+            resolver.Verify(r => r.Dispose(), Times.Never);
+        }
+
         [Fact]
         public void AddExceptionless_WhenCalled_RegistersClientAndLifetimeService() {
             // Arrange
@@ -43,6 +183,48 @@ namespace Exceptionless.Tests.Platforms {
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(ExceptionlessLifetimeService));
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedService));
             Assert.Single(builder.Services, descriptor => descriptor.ServiceType == typeof(IHostedLifecycleService));
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task HostBuilder_UseExceptionless_AppliesHostEnvironmentToSuppliedClient() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.SetDefaultEnvironment("detected");
+            using var host = new HostBuilder()
+                .UseEnvironment("Staging")
+                .UseExceptionless()
+                .ConfigureServices(services => services.AddExceptionless(client))
+                .Build();
+            var lifetime = host.Services.GetRequiredService<ExceptionlessLifetimeService>();
+
+            // Act
+            await lifetime.StartingAsync(TestContext.Current.CancellationToken);
+            await lifetime.StopAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal("Staging", client.Configuration.Environment);
+            Assert.False(client.Configuration.IsEnvironmentConfigured);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task LifetimeService_ConfiguredEnvironment_KeepsConfiguredValue() {
+            // Arrange
+            using var client = new ExceptionlessClient();
+            client.Configuration.SetEnvironment("qa-west");
+            var hostEnvironment = new Mock<IHostEnvironment>();
+            hostEnvironment.SetupGet(e => e.EnvironmentName).Returns("Production");
+            var lifetime = new ExceptionlessLifetimeService(client, hostEnvironment.Object);
+
+            // Act
+            await lifetime.StartingAsync(TestContext.Current.CancellationToken);
+            await lifetime.StopAsync(TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal("qa-west", client.Configuration.Environment);
+        }
+
+        private static IConfiguration CreateConfiguration(string environment) {
+            return new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Exceptionless:Environment"] = environment }).Build();
         }
     }
 }

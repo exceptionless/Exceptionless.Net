@@ -27,6 +27,7 @@ namespace Exceptionless.Tests.Serializer {
             var ev= new Event {
                 Date = DateTime.Now,
                 Message = "Testing",
+                Environment = "production",
                 Type = Event.KnownTypes.Log,
                 Source = "StorageSerializer"
             };

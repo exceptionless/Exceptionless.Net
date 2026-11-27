@@ -36,6 +36,8 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
     <ProjectReference Include="..\..\src\Platforms\Exceptionless.AspNetCore\Exceptionless.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Platforms\Exceptionless.Log4net\Exceptionless.Log4net.csproj" />
+    <ProjectReference Include="..\..\src\Platforms\Exceptionless.NLog\Exceptionless.NLog.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +53,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Reference Include="System.Threading.Tasks" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Runtime" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
