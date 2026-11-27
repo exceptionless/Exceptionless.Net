@@ -20,7 +20,8 @@ Set NLog `minlevel` to `Trace` if Exceptionless server-side project settings sho
 <nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <targets async="true">
-    <target type="Exceptionless, Exceptionless.NLog" name="exceptionless" apiKey="VALID_API_KEY_12345">
+    <target type="Exceptionless, Exceptionless.NLog" name="exceptionless" apiKey="VALID_API_KEY_12345"
+            environment="${environment:DOTNET_ENVIRONMENT}">
       <field name="host" layout="${machinename}" />
       <field name="process" layout="${processname}" />
       <field name="user" layout="${environment-user}" />
@@ -44,9 +45,13 @@ config.LoggingRules.Add(new LoggingRule("*", NLog.LogLevel.Debug, exceptionlessT
 LogManager.Configuration = config;
 ```
 
+## Deployment Environment
+
+The `environment` layout sets each event's deployment environment and overrides the client's. When it renders empty, the client's environment is used. A target with its own `apiKey` builds a private client, which still picks up `ASPNETCORE_ENVIRONMENT`/`DOTNET_ENVIRONMENT`/`AZURE_FUNCTIONS_ENVIRONMENT`.
+
 ## Fields And Structured Data
 
-The target supports `ExceptionlessField` entries. Use fields for low-cardinality operational data such as host, process, environment, region, and service. Avoid credentials, raw request payloads, and high-cardinality IDs unless they are needed for investigation.
+The target supports `ExceptionlessField` entries. Use fields for low-cardinality operational data such as host, process, region, and service. Use the `environment` attribute, not a field, for the deployment environment. Avoid credentials, raw request payloads, and high-cardinality IDs unless they are needed for investigation.
 
 The package also exposes fluent helpers in `Exceptionless.NLog`:
 
@@ -72,5 +77,5 @@ If support needs near-real-time remote log-level changes, keep NLog permissive e
 
 - Use async NLog targets for production.
 - Prefer remote log-level settings for temporary debugging.
-- Add fields for environment and service ownership.
+- Set `environment` for the deployment environment and add fields for service ownership.
 - Keep target-level API key configuration out of source-controlled XML when possible; use transforms, environment-specific config, or root Exceptionless configuration.

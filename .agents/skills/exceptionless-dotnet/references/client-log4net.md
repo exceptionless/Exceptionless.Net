@@ -22,8 +22,11 @@ dotnet add package Exceptionless.Log4net
 ```xml
 <appender name="exceptionless" type="Exceptionless.Log4net.ExceptionlessAppender, Exceptionless.Log4net">
   <apiKey value="VALID_API_KEY_12345" />
+  <environment value="production" />
 </appender>
 ```
+
+`environment` sets the deployment environment of every event from the appender and overrides the client's. Without it, the client's environment is used: the root configuration or `ASPNETCORE_ENVIRONMENT`/`DOTNET_ENVIRONMENT`. `BufferingExceptionlessAppender` supports the same setting.
 
 ## Root Configuration
 
@@ -34,7 +37,7 @@ When the API key is not on the appender, configure the root Exceptionless sectio
   <configSections>
     <section name="exceptionless" type="Exceptionless.ExceptionlessSection, Exceptionless" />
   </configSections>
-  <exceptionless apiKey="VALID_API_KEY_12345" includePrivateInformation="false" />
+  <exceptionless apiKey="VALID_API_KEY_12345" environment="production" includePrivateInformation="false" />
 </configuration>
 ```
 

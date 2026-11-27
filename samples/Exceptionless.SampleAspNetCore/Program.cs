@@ -12,6 +12,8 @@ builder.Logging.AddExceptionless();
 // Reads settings from IConfiguration then adds additional configuration from this lambda.
 // This also configures ExceptionlessClient.Default, host shutdown queue flushing,
 // and automatically registers the Exceptionless IExceptionHandler.
+// Events use builder.Environment.EnvironmentName (ASPNETCORE_ENVIRONMENT) as their deployment environment
+// unless "Exceptionless:Environment" or c.SetEnvironment("staging-eu") sets one.
 builder.AddExceptionless(c => c.DefaultData["Startup"] = "heyyy");
 // OR
 // builder.AddExceptionless();

@@ -10,16 +10,33 @@ The definition of the word exceptionless is: to be without exception. [Exception
 
 ## Using Exceptionless
 
-Set the deployment environment once at startup, with an optional override on each event:
+Refer to the Exceptionless documentation here: [Exceptionless Docs](https://exceptionless.com/docs/).
+
+### Deployment environments
+
+Every event can carry a deployment environment, such as `production` or `staging`. The server uses it for filtering, per-environment notifications, and the project's environment allow-list.
 
 ```csharp
-client.Configuration.SetEnvironment("production");
-client.CreateLog("Deployment complete").SetEnvironment("staging").Submit();
+client.Configuration.SetEnvironment("production");                         // default for every event
+client.CreateLog("Deployment complete").SetEnvironment("staging").Submit(); // override one event
 ```
 
-You can also set `Exceptionless:Environment` in .NET configuration or the `Exceptionless__Environment` environment variable. A value set in code takes precedence; configuration and environment variables apply only when code has not set one. The hosting integration uses `IHostEnvironment.EnvironmentName` only when no environment is configured; a configured empty or invalid value leaves events unspecified instead. .NET Framework applications can use the `Exceptionless:Environment` app setting or the `environment` attribute on the `<exceptionless>` configuration section. Names are trimmed, then must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`: ASCII letters, digits, `.`, `_` and `-`, starting with a letter or digit, at most 64 characters. Casing is preserved and names are never rewritten, so values such as `Staging West`, `prod/eu` or `produção` are invalid. The server filters case-insensitively and normalizes aggregation keys. Missing or invalid values remain unspecified. The top-level event `environment` is separate from machine diagnostics in `data.@environment`. Stacks and fixed versions remain shared across environments.
+The first match in this order wins:
 
-Refer to the Exceptionless documentation here: [Exceptionless Docs](https://exceptionless.com/docs/).
+| # | Source | Example |
+|---|---|---|
+| 1 | Per event | `builder.SetEnvironment("staging")` |
+| 2 | Code | `config.SetEnvironment("production")`, or `config.Environment` inside `AddExceptionless(c => ...)` |
+| 3 | Configuration (later sources replace earlier ones) | `Exceptionless:Environment` in `appsettings.json` · `Exceptionless__Environment` env var · `[assembly: Exceptionless(..., Environment = "production")]` · `<exceptionless environment="production" />` · `Exceptionless:Environment` app setting |
+| 4 | Host | `IHostEnvironment.EnvironmentName`, for the Generic Host, ASP.NET Core and Worker services |
+| 5 | Process | the first of `ASPNETCORE_ENVIRONMENT`, `DOTNET_ENVIRONMENT` or `AZURE_FUNCTIONS_ENVIRONMENT` that is set |
+
+The NLog target and the log4net appenders also accept an `Environment` setting, which overrides per event. For NLog it can be a layout such as `${environment:DOTNET_ENVIRONMENT}`.
+
+- **Valid names:** names are trimmed, then must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`. Casing is kept and the server matches case-insensitively.
+- **Invalid names:** a configured invalid or empty value, such as `Staging West`, `prod/eu` or `produção`, leaves events unspecified. It does not fall back to a lower source.
+- **Not `data.@environment`:** the event's `environment` is separate from the machine diagnostics in `data.@environment`. Stacks and fixed versions are shared across environments.
+- **Legacy ASP.NET, WinForms and WPF:** these apps have no host environment, so set the environment through configuration or code.
 
 ## Getting Started (Development)
 

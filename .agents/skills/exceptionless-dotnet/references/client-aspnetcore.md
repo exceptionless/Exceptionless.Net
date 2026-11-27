@@ -144,7 +144,7 @@ public sealed class ValuesController : ControllerBase {
     "DefaultData": {
       "Service": "payments-api"
     },
-    "DefaultTags": [ "aspnetcore", "production" ],
+    "DefaultTags": [ "aspnetcore" ],
     "Settings": {
       "@@log:*": "Warn",
       "enableLogSubmission": true
@@ -152,6 +152,8 @@ public sealed class ValuesController : ControllerBase {
   }
 }
 ```
+
+Events use `IWebHostEnvironment.EnvironmentName` (`ASPNETCORE_ENVIRONMENT`) as their deployment environment unless `Exceptionless:Environment` or `c.SetEnvironment(...)` sets one. For example, set `"Environment": "staging-eu"` when a deployment's name differs from the ASP.NET Core environment.
 
 ## Serverless ASP.NET Core
 

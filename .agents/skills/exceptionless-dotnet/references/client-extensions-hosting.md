@@ -69,6 +69,10 @@ Host.CreateDefaultBuilder(args)
 
 Inject `ExceptionlessClient` anywhere the DI container is available. Use it for feature usage, handled exceptions, custom events, and manual queue flushing in unusual shutdown flows.
 
+## Deployment Environment
+
+The host's `IHostEnvironment.EnvironmentName` becomes the client's deployment environment when none is configured. The `AddExceptionless` overloads, `UseExceptionless()` and `ExceptionlessLifetimeService` all apply it. To use a different name, set `Exceptionless:Environment` in configuration or call `c.SetEnvironment(...)` in the configure callback. See `client-configuration-runtime-settings.md` for the full order.
+
 ## Shutdown Behavior
 
 The hosting package registers `ExceptionlessLifetimeService` as both `IHostedService` and `IHostedLifecycleService`. It calls `ProcessQueueAsync()` during host stop. Avoid duplicate manual shutdown flushing unless you know the process exits before the host stop lifecycle.

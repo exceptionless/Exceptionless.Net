@@ -134,5 +134,6 @@ public sealed class ProcessQueueScope : IAsyncDisposable {
 - Configure API key/server URL/storage/logger before first event submission.
 - Use folder storage for durable short-lived apps; use in-memory storage only when losing unsent events is acceptable.
 - Explicitly set `IncludePrivateInformation` and data exclusions for production.
-- Use `SetVersion`, `DefaultTags`, and `DefaultData` for release, environment, service, region, and tenant dimensions that apply to all events.
+- Use `SetEnvironment` (or `Exceptionless:Environment` / `DOTNET_ENVIRONMENT`) for the deployment environment, not tags or data.
+- Use `SetVersion`, `DefaultTags`, and `DefaultData` for release, service, region, and tenant dimensions that apply to all events.
 - Flush with `ProcessQueueAsync` or `ShutdownAsync` before exit.
