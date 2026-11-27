@@ -56,6 +56,17 @@ namespace Exceptionless.Log4net {
             CreateFromLogEvent(client, ev).Submit();
         }
 
+        internal static void SubmitFromLogEvent(this ExceptionlessClient client, LoggingEvent ev, string environment) {
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+
+            var builder = CreateFromLogEvent(client, ev);
+            if (!String.IsNullOrWhiteSpace(environment))
+                builder.SetEnvironment(environment);
+
+            builder.Submit();
+        }
+
         private static readonly List<string> _ignoredEventProperties = new List<string> {
             "CallerFilePath",
             "CallerMemberName",

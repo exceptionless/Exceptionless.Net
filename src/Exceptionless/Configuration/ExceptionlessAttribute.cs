@@ -26,6 +26,11 @@ namespace Exceptionless.Configuration {
         /// </summary>
         /// <value>The API key.</value>
         public string ApiKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default deployment environment, such as production or staging.
+        /// </summary>
+        public string Environment { get; set; }
         
         /// <summary>
         /// Gets or sets if reporting is enabled.

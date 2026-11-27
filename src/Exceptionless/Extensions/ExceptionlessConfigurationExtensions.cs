@@ -185,6 +185,7 @@ namespace Exceptionless {
                     if (!String.IsNullOrEmpty(attr.ServerUrl))
                         config.ServerUrl = attr.ServerUrl;
 
+                    config.SetConfiguredEnvironment(attr.Environment);
                     break;
                 }
 

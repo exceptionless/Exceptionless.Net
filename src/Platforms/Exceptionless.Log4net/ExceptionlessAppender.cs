@@ -9,6 +9,11 @@ namespace Exceptionless.Log4net {
         public string ApiKey { get; set; }
         public string ServerUrl { get; set; }
 
+        /// <summary>
+        /// The deployment environment for events written by this appender, such as production. When empty, the client's environment is used.
+        /// </summary>
+        public string Environment { get; set; }
+
         public override void ActivateOptions() {
             if (String.IsNullOrEmpty(ApiKey) && String.IsNullOrEmpty(ServerUrl))
                 return;
@@ -34,7 +39,7 @@ namespace Exceptionless.Log4net {
             if (loggingEvent.Level.ToLogLevel() < minLogLevel)
                 return;
 
-            _client.SubmitFromLogEvent(loggingEvent);
+            _client.SubmitFromLogEvent(loggingEvent, Environment);
         }
     }
 }
