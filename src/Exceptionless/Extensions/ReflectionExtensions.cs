@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Exceptionless {
@@ -36,14 +37,13 @@ namespace Exceptionless {
             return assembly.GetAssemblyName().Version.ToString();
         }
 
+        // Emitted assemblies can repeat version attributes. Take the first match to avoid AmbiguousMatchException.
         public static string GetFileVersion(this Assembly assembly) {
-            var attr = assembly.GetCustomAttribute(typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
-            return attr != null ? attr.Version : null;
+            return assembly.GetCustomAttributes<AssemblyFileVersionAttribute>().FirstOrDefault()?.Version;
         }
 
         public static string GetInformationalVersion(this Assembly assembly) {
-            var attr = assembly.GetCustomAttribute(typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
-            return attr != null ? attr.InformationalVersion : null;
+            return assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion;
         }
 
         public static string GetCompany(this Assembly assembly) {
