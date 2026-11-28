@@ -17,6 +17,7 @@ using Exceptionless.Plugins.Default;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
 using Exceptionless.Serializer;
+using Exceptionless.Utility;
 using Xunit;
 
 namespace Exceptionless.Tests.Plugins {
@@ -233,6 +234,35 @@ namespace Exceptionless.Tests.Plugins {
                 return Assembly.Load(File.ReadAllBytes(path));
             } finally {
                 File.Delete(path);
+            }
+        }
+
+        [Fact]
+        public void Read_EvictionDisabled_FillsFreeSlotsAndReusesCachedMetadata() {
+            // Arrange
+            var directory = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")));
+            try {
+                var reader = new ModuleMetadataReader(cacheCapacity: 1);
+                string firstPath = Path.Combine(directory.FullName, "first.dll");
+                string secondPath = Path.Combine(directory.FullName, "second.dll");
+                WriteThrowingAssembly(firstPath, "Synthetic.Cache", "1.2.3.4");
+                File.Copy(firstPath, secondPath);
+                ModuleMetadata ReadCopy(string path) => reader.Read(Assembly.Load(File.ReadAllBytes(path)), path,
+                    includeSystem: false, allowCacheEviction: false, log: null);
+
+                // Act
+                var first = ReadCopy(firstPath);
+                var overflow = ReadCopy(secondPath);
+                var firstAgain = ReadCopy(firstPath);
+                var overflowAgain = ReadCopy(secondPath);
+
+                // Assert
+                Assert.NotNull(first);
+                Assert.Same(first, firstAgain);
+                Assert.NotSame(overflow, overflowAgain);
+                Assert.Equal("1.2.3.4", overflow.CreateModule(isEntry: false).Version);
+            } finally {
+                directory.Delete(recursive: true);
             }
         }
 

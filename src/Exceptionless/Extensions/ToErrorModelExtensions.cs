@@ -1,10 +1,7 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security;
@@ -13,14 +10,13 @@ using Exceptionless.Extensions;
 using Exceptionless.Logging;
 using Exceptionless.Models;
 using Exceptionless.Models.Data;
+using Exceptionless.Utility;
 using Module = Exceptionless.Models.Data.Module;
 using StackFrame = System.Diagnostics.StackFrame;
 
 namespace Exceptionless {
     internal static class ToErrorModelExtensions {
-        private const int MaxCachedModules = 1024;
-        private static readonly ConcurrentDictionary<string, CachedModule> _moduleCache = new();
-        private static readonly Queue<string> _cachedPaths = new();
+        private static readonly ModuleMetadataReader _moduleMetadata = new(cacheCapacity: 1024);
         private static readonly string[] _exceptionExclusions = {
             "@exceptionless", "Data", "HelpLink", "ExceptionContext", "InnerExceptions", "InnerException", "Errors", "Types",
             "Message", "Source", "StackTrace", "TargetSite", "HResult",
@@ -141,12 +137,6 @@ namespace Exceptionless {
             return false;
         }
 
-        private static readonly List<string> _msPublicKeyTokens = new List<string> {
-            "b77a5c561934e089",
-            "b03f5f7f11d50a3a",
-            "31bf3856ad364e35"
-        };
-
         private static string GetMessage(this Exception exception, string typeName) {
             string defaultMessage = $"Exception of type '{typeName}' was thrown.";
             string message = !String.IsNullOrEmpty(exception.Message) ? exception.Message.Trim() : null;
@@ -158,9 +148,9 @@ namespace Exceptionless {
             try {
                 var entryAssembly = Assembly.GetEntryAssembly();
                 foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                    // A single large inventory must not evict every entry on each error.
-                    bool cacheMetadata = modules.Count < MaxCachedModules;
-                    var module = TryGetModuleInfo(assembly, entryAssembly, log, includeSystem, includeDynamic, cacheMetadata);
+                    // Later modules can reuse any cached path without evicting the start of a large inventory.
+                    bool allowCacheEviction = modules.Count < _moduleMetadata.CacheCapacity;
+                    var module = TryGetModuleInfo(assembly, entryAssembly, log, includeSystem, includeDynamic, allowCacheEviction);
                     if (module is null)
                         continue;
 
@@ -282,7 +272,7 @@ namespace Exceptionless {
         }
 
         private static Module TryGetModuleInfo(Assembly assembly, Assembly entryAssembly, IExceptionlessLog log,
-            bool includeSystem, bool includeDynamic, bool cacheMetadata = true) {
+            bool includeSystem, bool includeDynamic, bool allowCacheEviction = true) {
             try {
                 string path = null;
                 try {
@@ -294,123 +284,12 @@ namespace Exceptionless {
                     log?.Error(typeof(ExceptionlessClient), ex, "Assembly location is unavailable.");
                 }
 
-                var module = GetModuleMetadata(assembly, path, cacheMetadata, includeSystem, log);
-                if (module is not null)
-                    module.IsEntry = ReferenceEquals(assembly, entryAssembly);
-                return module;
+                var metadata = _moduleMetadata.Read(assembly, path, includeSystem, allowCacheEviction, log);
+                return metadata?.CreateModule(isEntry: ReferenceEquals(assembly, entryAssembly));
             } catch (Exception ex) {
                 log?.Error(typeof(ExceptionlessClient), ex, "Error reading module metadata.");
                 return null;
             }
-        }
-
-        private static Module GetModuleMetadata(Assembly assembly, string path, bool cacheMetadata, bool includeSystem, IExceptionlessLog log) {
-            Guid versionId = Guid.Empty;
-            if (cacheMetadata && !String.IsNullOrEmpty(path)) {
-                try {
-                    versionId = assembly.ManifestModule.ModuleVersionId;
-                } catch {
-                    // Restricted reflection can still provide the usual module metadata.
-                }
-            }
-
-            Module metadata = null;
-            if (versionId != Guid.Empty && _moduleCache.TryGetValue(path, out var cached) && cached.VersionId == versionId)
-                metadata = cached.Metadata;
-
-            AssemblyName name = null;
-            string publicKeyToken = null;
-            if (metadata is null) {
-                name = assembly.GetAssemblyName();
-                if (name?.GetPublicKeyToken() is { Length: > 0 } token)
-                    publicKeyToken = token.ToHex();
-            } else {
-                publicKeyToken = metadata.Data.GetString("PublicKeyToken");
-            }
-
-            if (!includeSystem) {
-                try {
-                    if (_msPublicKeyTokens.Contains(publicKeyToken) || assembly.IsDefined(typeof(GeneratedCodeAttribute), inherit: false))
-                        return null;
-                } catch (Exception ex) {
-                    log.Error(typeof(ExceptionlessClient), ex, "Error while checking if assembly " + assembly.FullName + " should be added to modules:" + ex.Message);
-                }
-            }
-
-            if (metadata is null) {
-                metadata = ReadModuleMetadata(assembly, name, publicKeyToken, path);
-                if (versionId == Guid.Empty)
-                    return metadata;
-
-                // Publish and evict under the same lock so each cached path is queued exactly once.
-                lock (_cachedPaths) {
-                    if (!_moduleCache.ContainsKey(path)) {
-                        if (_cachedPaths.Count >= MaxCachedModules)
-                            _moduleCache.TryRemove(_cachedPaths.Dequeue(), out _);
-                        _cachedPaths.Enqueue(path);
-                    }
-                    _moduleCache[path] = new CachedModule(versionId, metadata);
-                }
-            }
-
-            var module = new Module {
-                Name = metadata.Name,
-                Version = metadata.Version,
-                CreatedDate = metadata.CreatedDate,
-                ModifiedDate = metadata.ModifiedDate
-            };
-            foreach (var entry in metadata.Data)
-                module.Data.Add(entry.Key, entry.Value);
-            return module;
-        }
-
-        private sealed class CachedModule {
-            public CachedModule(Guid versionId, Module metadata) {
-                VersionId = versionId;
-                Metadata = metadata;
-            }
-
-            public Guid VersionId { get; }
-            public Module Metadata { get; }
-        }
-
-        private static Module ReadModuleMetadata(Assembly assembly, AssemblyName name, string publicKeyToken, string path) {
-            var mod = new Module();
-            string infoVersion = assembly.GetInformationalVersion();
-            string fileVersion = assembly.GetFileVersion();
-
-            if (name is not null) {
-                mod.Name = name.Name;
-                string version = name.Version?.ToString();
-                mod.Version = infoVersion ?? fileVersion ?? version;
-                if (publicKeyToken is not null)
-                    mod.Data["PublicKeyToken"] = publicKeyToken;
-
-                if (!String.IsNullOrEmpty(version) && version != mod.Version)
-                    mod.Data["Version"] = version;
-            }
-
-            if (!String.IsNullOrEmpty(infoVersion) && infoVersion != mod.Version)
-                mod.Data["ProductVersion"] = infoVersion;
-
-            if (!String.IsNullOrEmpty(fileVersion) && fileVersion != mod.Version)
-                mod.Data["FileVersion"] = fileVersion;
-
-            if (!String.IsNullOrEmpty(path)) {
-                try {
-                    var file = new FileInfo(path);
-                    mod.CreatedDate = file.CreationTimeUtc;
-                    mod.ModifiedDate = file.LastWriteTimeUtc;
-                    return mod;
-                } catch {
-                    // Try each timestamp independently on restricted or unavailable files.
-                }
-            }
-
-            mod.CreatedDate = assembly.GetCreationTime().GetValueOrDefault();
-            mod.ModifiedDate = assembly.GetLastWriteTime().GetValueOrDefault();
-
-            return mod;
         }
     }
 }
